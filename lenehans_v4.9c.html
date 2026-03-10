@@ -181,8 +181,26 @@
     .health-track{width:54px;height:7px;background:#d1d9e3;border-radius:4px;overflow:hidden;border:1px solid #94a3b8}
     .health-fill{height:100%;border-radius:4px}
 
-    /* ── Footer ─────────────────────────────────────────────────────── */
     .footer{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.6}
+
+    /* ── Detail table reason column ─────────────────────────────────── */
+    .reason{
+      font-size:12px;color:var(--text-secondary);
+      line-height:1.55;margin-top:2px;
+      max-width:400px;
+    }
+    /* Keep number columns tight */
+    #detailTable td.num{white-space:nowrap;padding:8px 6px}
+    #detailTable td:first-child{white-space:nowrap}
+
+    /* ── Load status box ────────────────────────────────────────────── */
+    #loadStatus{
+      margin-top:10px;padding:8px 12px;border-radius:6px;
+      font-size:13px;font-weight:600;line-height:1.5;
+      background:#f1f5f9;border:1px solid var(--line-light);
+      min-height:32px;
+    }
+    #loadMeta{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
 
     /* ── Order preview card ─────────────────────────────────────────── */
     #orderPreviewCard{
@@ -219,28 +237,6 @@
     .guidance-strip .small span{white-space:nowrap}
 
     @media (max-width:1100px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
-
-    /* ── Detail table: sticky left columns ─────────────────────────── */
-    /* Keeps SKU, Item, ✓ (omit), and Buy visible while scrolling right */
-    #detailTable td:nth-child(1), #detailTable th:nth-child(1){ position:sticky;left:0;z-index:1;background:inherit }
-    #detailTable td:nth-child(2), #detailTable th:nth-child(2){ position:sticky;left:90px;z-index:1;background:inherit;min-width:220px;max-width:220px }
-    #detailTable td:nth-child(3), #detailTable th:nth-child(3){ position:sticky;left:310px;z-index:1;background:inherit }
-    #detailTable td:nth-child(4), #detailTable th:nth-child(4){ position:sticky;left:354px;z-index:1;background:inherit;border-right:2px solid var(--line) !important }
-    /* Ensure header sticky cells get the thead background */
-    #detailTable thead th:nth-child(1),
-    #detailTable thead th:nth-child(2),
-    #detailTable thead th:nth-child(3),
-    #detailTable thead th:nth-child(4){ background:var(--thead-bg);z-index:3 }
-    /* Tighter padding for detail table to fit more columns */
-    #detailTable td, #detailTable th{ padding:8px 7px;font-size:12px }
-    #detailTable .reason{ font-size:12px;max-width:460px }
-    /* Buy cell: make the number big and obvious */
-    #detailTable td:nth-child(4){ background:#f0f9ff }
-    tbody tr:nth-child(even) #detailTable td:nth-child(4),
-    #detailTable tbody tr:nth-child(even) td:nth-child(4){ background:#e0f2fe }
-    /* Omit checkbox: centre it */
-    #detailTable td:nth-child(3){ text-align:center;vertical-align:middle }
-    input[type="checkbox"]{ width:16px;height:16px;cursor:pointer;accent-color:var(--accent) }
   </style>
 </head>
 <body>
@@ -263,6 +259,11 @@
         <input id="csvFile" type="file" accept=".csv,text/csv">
       </label>
       <button id="sampleBtn" class="secondary">Load sample</button>
+    </div>
+    <div class="load-row" style="margin-top:8px">
+      <label style="flex:1">Monthly sales history CSV URL <span class="small" style="color:var(--muted)">(optional — enables real seasonal demand)</span>
+        <input id="monthlyUrl" type="text" value="https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=1156598081" style="min-width:460px">
+      </label>
     </div>
     <div class="small">Supplier-first view. Only suppliers in CS Shared / PO Status are shown (governed suppliers). Seasonal mode uses smart look-ahead demand, not raw 180D totals.</div>
     <div id="loadStatus" class="footer">No data loaded.</div>
@@ -402,21 +403,20 @@
       <table id="detailTable" style="display:none">
         <thead>
           <tr>
-            <th style="width:90px">SKU</th>
-            <th style="width:220px">Item</th>
-            <th style="width:44px" class="num" title="Include in PO export">✓</th>
-            <th style="width:60px" class="num">Buy</th>
-            <th style="width:80px">Status</th>
-            <th style="width:70px">Cover</th>
-            <th style="width:80px">Cover Status</th>
-            <th style="width:36px" class="num" title="A/B/C sales volume class">ABC</th>
-            <th style="width:72px" class="num" title="Net stock at Arklow">Stock</th>
-            <th style="width:72px" class="num" title="Units sold in selected demand period">Demand</th>
-            <th style="width:80px" class="num" title="7D vs 30D demand momentum">Momentum</th>
-            <th style="width:60px" class="num" title="Adjusted daily demand rate after seasonal multiplier">Daily</th>
-            <th style="width:90px">Category / Flags</th>
-            <th style="width:90px" title="Overall confidence in this buy recommendation">Confidence</th>
-            <th>Reason</th>
+            <th style="min-width:90px">SKU</th>
+            <th style="min-width:180px">Item</th>
+            <th style="min-width:260px">Reason / Signals</th>
+            <th class="num">Buy</th>
+            <th class="num">Omit</th>
+            <th class="num" title="Cover status and days of stock remaining">Cover</th>
+            <th class="num" title="Net stock at Arklow">Stock</th>
+            <th class="num" title="Demand qty in selected period">Demand</th>
+            <th class="num" title="Demand momentum: 7D vs 30D run-rate">Trend</th>
+            <th class="num" title="Adjusted daily demand after seasonal multiplier">Daily</th>
+            <th class="num" title="Days of cover at current demand rate">Days</th>
+            <th class="num" title="Target stock quantity">Target</th>
+            <th class="num" title="ABC class based on 180D volume">ABC</th>
+            <th title="Buyer confidence in this recommendation">Conf</th>
           </tr>
         </thead>
         <tbody id="detailTbody"></tbody>
@@ -430,20 +430,24 @@
 <script>
 // ─── STATE ───────────────────────────────────────────────────────────────────
 const state = {
-  rawRows: [],          // normalised QueryData rows (all suppliers)
-  governedRows: [],     // rawRows filtered to governed suppliers only
-  computedRows: [],     // governedRows after computeRow()
+  rawRows: [],
+  governedRows: [],
+  computedRows: [],
   activeSupplier: '',
-  csLines: [],          // parsed CS Shared rows
-  poStatusMap: {},      // supplierName -> {status, person, date}
-  governedSuppliers: new Set(), // supplier names from CS+PO feeds
-  omittedSkus: new Set(),  // SKUs buyer has manually unticked
+  csLines: [],
+  poStatusMap: {},
+  governedSuppliers: new Set(),
+  omittedSkus: new Set(),
+  monthlyData: {},      // SKU -> { '2024_03': qty, '2024_04': qty, ... }
+  monthlyLoaded: false, // true once monthly feed has been attempted
 };
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 const DEFAULT_URL   = 'https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=734583899';
 const CS_URL        = 'https://docs.google.com/spreadsheets/d/1PF5QxmIvX2K4Kqz5zWeRUFv7uSRllCAMkhxhvizAjkw/export?format=csv&gid=0';
 const PO_URL        = 'https://docs.google.com/spreadsheets/d/1PF5QxmIvX2K4Kqz5zWeRUFv7uSRllCAMkhxhvizAjkw/export?format=csv&gid=48828416';
+// Monthly sales history — SKU × month columns (2024_01 … 2025_02)
+const MONTHLY_URL   = 'https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=1156598081';
 
 // PO done statuses → green
 const PO_DONE_STATUSES = ['done','complete','ordered','sent'];
@@ -514,7 +518,7 @@ function fmtInt(v){ return Math.round(num(v)).toLocaleString('en-IE'); }
 function fmt1(v){ return num(v).toFixed(1); }
 function monthIndex(){ return new Date().getMonth(); }
 function monthLabel(){ return new Date().toLocaleString('en-IE', {month:'long'}); }
-function setStatus(msg,bad){ const el=document.getElementById('loadStatus'); if(el){ el.textContent=msg; el.style.color=bad?'var(--bad)':'var(--muted)'; } }
+function setStatus(msg,bad){ const el=document.getElementById('loadStatus'); if(el){ el.textContent=msg; el.style.color=bad?'var(--bad)':'#14532d'; el.style.background=bad?'#fee2e2':msg.startsWith('✅')?'#dcfce7':'#f1f5f9'; el.style.borderColor=bad?'#f87171':msg.startsWith('✅')?'#4ade80':'var(--line-light)'; } }
 function setLoadMeta(msg,bad){ const el=document.getElementById('loadMeta'); if(el){ el.textContent=msg||''; el.style.color=bad?'var(--bad)':'var(--muted)'; } }
 function setGovStatus(msg){ const el=document.getElementById('govStatus'); if(el) el.textContent=msg||''; }
 
@@ -716,11 +720,82 @@ function classifySkuName(name){
 }
 function clampMultiplier(m){ return Math.max(1,Math.min(num(m)||1,3)); }
 
-// ─── SEASONAL MULTIPLIER (FIXED) ─────────────────────────────────────────────
-// Only applies a meaningful multiplier when the profile is non-NONE.
-// This is what "Seasonal mode" uses; other modes keep multiplier = 1.
+// ─── MONTHLY SALES FEED PARSER ───────────────────────────────────────────────
+// Parses the monthly_sales CSV (SKU, 2024_01, 2024_02, ... columns)
+// Returns { SKU: { '2024_03': qty, ... }, ... }
+function parseMonthlyFeed(rows){
+  const result = {};
+  if(!rows.length) return result;
+  const headers = Object.keys(rows[0]);
+  // Find SKU column (first non-month column)
+  const skuCol = headers[0];
+  // Month columns: anything matching YYYY_MM
+  const monthCols = headers.filter(h => /^\d{4}_\d{2}$/.test(h));
+  for(const r of rows){
+    const sku = String(r[skuCol]||'').trim();
+    if(!sku) continue;
+    const entry = {};
+    for(const col of monthCols){
+      const v = num(r[col]);
+      if(v > 0) entry[col] = v;
+    }
+    if(Object.keys(entry).length > 0) result[sku] = entry;
+  }
+  return result;
+}
+
+// ─── SEASONAL DEMAND FROM REAL DATA ──────────────────────────────────────────
+// Returns the seasonal daily demand rate for a SKU based on historical monthly data.
+// Rule: avg(same month last available year, following month last available year) / days_in_period
+// Falls back to profile multiplier if no monthly data for this SKU.
+//
+// today = March 2026 → look for 2025_03 + 2025_04 first, then 2024_03 + 2024_04
+function getSeasonalDemandFromData(sku, baseDailyRate){
+  const data = state.monthlyData[sku];
+  if(!data || !state.monthlyLoaded) return null; // no data → caller uses fallback
+
+  const now = new Date();
+  const curMonth = now.getMonth() + 1; // 1-based
+  const nextMonth = curMonth === 12 ? 1 : curMonth + 1;
+  const curYear = now.getFullYear();
+
+  // Days in each month (approximate)
+  function daysInMonth(y, m){ return new Date(y, m, 0).getDate(); }
+
+  // Try years in descending order: last year, two years ago
+  for(const yearOffset of [1, 2]){
+    const yr = curYear - yearOffset;
+    const col1 = `${yr}_${String(curMonth).padStart(2,'0')}`;
+    const col2 = `${yr}_${String(nextMonth).padStart(2,'0')}`;
+    const q1 = data[col1] || 0;
+    const q2 = data[col2] || 0;
+    if(q1 > 0 || q2 > 0){
+      // Convert monthly totals to daily rates, average them
+      const d1 = daysInMonth(yr, curMonth);
+      const d2 = daysInMonth(yr, nextMonth);
+      const daily1 = q1 / d1;
+      const daily2 = q2 / d2;
+      // Use whichever months have data; if only one, use it
+      const bothPresent = q1 > 0 && q2 > 0;
+      const avgDaily = bothPresent ? (daily1 + daily2) / 2 : (q1>0 ? daily1 : daily2);
+      return {
+        daily: avgDaily,
+        yr,
+        col1, q1, d1,
+        col2, q2, d2,
+        bothPresent,
+        // Only treat as meaningful seasonal signal if notably different from base
+        ratio: baseDailyRate > 0 ? avgDaily / baseDailyRate : null,
+      };
+    }
+  }
+  return null; // no usable monthly data for this SKU
+}
+
+// ─── SEASONAL MULTIPLIER (profile-based fallback only) ───────────────────────
+// Used only when monthly data is unavailable for a SKU.
 function getSeasonalMultiplier(profileName, forceApply){
-  if(!forceApply) return 1; // in 30D/7D mode, no profile boost
+  if(!forceApply) return 1;
   const p=SEASONAL_PROFILES[profileName]||SEASONAL_PROFILES.NONE;
   return clampMultiplier(p.monthly[monthIndex()]||1);
 }
@@ -861,19 +936,33 @@ function buildBuyerReason(res){
   const lines=[];
   lines.push(`Sold ${fmtInt(res.demandQty)} units in the last ${fmtInt(res.demandDays)} days (~${fmt1(res.baseDaily)}/day).`);
   if(res.fallbackUsed) lines.push(`Because recent demand was zero and stock is zero, fallback demand from ${res.fallbackUsed==='Fallback180'?'the last 180 days':'the last 90 days'} was used.`);
-  // Momentum note
   const mom = getDemandMomentum(res);
   if(mom.direction === 'up')   lines.push(`Demand is accelerating: 7-day run-rate is ${fmt1(mom.ratio)}× the 30-day average.`);
   if(mom.direction === 'down' && mom.ratio < 0.7) lines.push(`Demand is slowing: 7-day run-rate is only ${fmt1(mom.ratio)}× the 30-day average.`);
-  if(res.seasonalMultiplier>1.01) lines.push(`${res.categoryLabel} seasonal profile for ${monthLabel()} increases demand to ~${fmt1(res.adjustedDaily)}/day (${fmt1(res.seasonalMultiplier)}× multiplier).`);
+  // Seasonal demand source — real data takes priority over profile note
+  if(res.demandMode==='Seasonal'){
+    if(res.seasonalDataUsed){
+      const sd = res.seasonalDataUsed;
+      const col1label = sd.col1.replace(/_/,'/');
+      const col2label = sd.col2.replace(/_/,'/');
+      if(sd.bothPresent){
+        lines.push(`Seasonal demand from ${sd.yr} actuals: ${col1label}=${fmtInt(sd.q1)} units, ${col2label}=${fmtInt(sd.q2)} units → ${fmt1(sd.daily)}/day average.`);
+      } else {
+        const usedCol = sd.q1>0 ? col1label : col2label;
+        const usedQty = sd.q1>0 ? sd.q1 : sd.q2;
+        lines.push(`Seasonal demand from ${sd.yr} actuals: ${usedCol}=${fmtInt(usedQty)} units → ${fmt1(sd.daily)}/day.`);
+      }
+      if(sd.ratio && sd.ratio > 1.1) lines.push(`This is ${fmt1(sd.ratio)}× higher than the current 30D run-rate.`);
+      if(sd.ratio && sd.ratio < 0.9) lines.push(`This is ${fmt1(sd.ratio)}× of the current 30D run-rate — season is quieter than now.`);
+    } else if(res.seasonalMultiplier>1.01){
+      lines.push(`No monthly history for this SKU — ${res.categoryLabel} profile estimate for ${monthLabel()} (${fmt1(res.seasonalMultiplier)}× multiplier).`);
+    }
+  }
   const seasonRule=detectSeasonalRule(res.ItemTitle);
-  if(seasonRule) lines.push(`Irish seasonal rule active: ${seasonRule.name}.`);
+  if(seasonRule&&!res.seasonalDataUsed) lines.push(`Irish seasonal rule active: ${seasonRule.name}.`);
   const hiddenSeasonal=getHiddenSeasonalSignal(res);
   if(hiddenSeasonal.label!=='Normal') lines.push(`${hiddenSeasonal.label} detected from 180-day versus 30-day sales pattern.`);
   if(res.seasonalBoostPct>0) lines.push(`Seasonal buy boost applied (+${fmtInt(res.seasonalBoostPct*100)}%) because cover is weak.`);
-  // Seasonal look-ahead note
-  const ahead = getSeasonalLookAhead(res.seasonalProfile, 3);
-  if(ahead) lines.push(`Look-ahead: ${res.categoryLabel} peaks at ${fmt1(ahead.peak)}× in ${ahead.peakMonthName} (${ahead.monthsAway} month${ahead.monthsAway===1?'':'s'} away) — consider ordering ahead.`);
   if(res.adjustedDaily>0) lines.push(`Current stock is ${fmtInt(res.stock)}, giving about ${fmtInt(res.daysOfCover)} days of cover.`);
   else lines.push(`Current stock is ${fmtInt(res.stock)} and there is no active demand signal right now.`);
   lines.push(`To maintain ${fmtInt(res.coverDays)} days of stock we need ${fmtInt(res.target)} units.`);
@@ -895,8 +984,6 @@ function computeRow(row){
   const isSeasonalMode = demandMode==='Seasonal';
 
   const cls=classifySkuName(`${row.ItemTitle} ${row.SKU}`);
-  // Seasonal multiplier only active in Seasonal mode
-  const seasonalMultiplier = getSeasonalMultiplier(cls.seasonalProfile, isSeasonalMode);
 
   let d=getDemandConfig(demandMode,row), demandUsed=d.label, demandQty=d.qty, demandDays=d.days, fallbackUsed='';
   if(fallbackOn&&demandQty<=0&&row.NetStock_Arklow<=0){
@@ -921,8 +1008,29 @@ function computeRow(row){
   const stock=row.NetStock_Arklow;
   const seasonalRule=detectSeasonalRule(row.ItemTitle);
 
-  let adjustedDaily=baseDaily*seasonalMultiplier;
-  if(isSeasonalMode&&seasonalRule) adjustedDaily*=seasonalRule.boost;
+  // ── Seasonal demand calculation ───────────────────────────────────────────
+  // Priority: (1) real monthly data, (2) profile multiplier fallback
+  let adjustedDaily = baseDaily;
+  let seasonalMultiplier = 1;
+  let seasonalNote = cls.seasonalNote;
+  let seasonalDataUsed = null; // populated when real monthly data drives the calc
+
+  if(isSeasonalMode){
+    const monthlyResult = getSeasonalDemandFromData(row.SKU, baseDaily);
+    if(monthlyResult){
+      // Real data available — use it directly
+      adjustedDaily = monthlyResult.daily;
+      seasonalDataUsed = monthlyResult;
+      // Derive an effective multiplier for display purposes
+      seasonalMultiplier = baseDaily > 0 ? Math.max(1, adjustedDaily / baseDaily) : 1;
+      seasonalNote = `${monthlyResult.yr} data: ${monthlyResult.col1.replace('_','/')}=${monthlyResult.q1}, ${monthlyResult.col2.replace('_','/')}=${monthlyResult.q2}`;
+    } else {
+      // Fallback to profile multiplier (no monthly data for this SKU)
+      seasonalMultiplier = getSeasonalMultiplier(cls.seasonalProfile, true);
+      adjustedDaily = baseDaily * seasonalMultiplier;
+      if(seasonalRule) adjustedDaily *= seasonalRule.boost;
+    }
+  }
 
   const preBoostDaysOfCover=adjustedDaily>0?(stock/adjustedDaily):(stock>0?9999:0);
   const preBoostCoverStatus=adjustedDaily<=0?(stock>0?'No demand':'Out of Stock')
@@ -959,8 +1067,8 @@ function computeRow(row){
     ...row,
     demandMode,demandUsed,demandQty,demandDays,fallbackUsed,
     categoryId:cls.categoryId,categoryLabel:cls.categoryLabel,
-    seasonalProfile:cls.seasonalProfile,seasonalNote:cls.seasonalNote,
-    seasonalMultiplier,abcClass,seasonalSignal,seasonalBoostPct,
+    seasonalProfile:cls.seasonalProfile,seasonalNote,
+    seasonalMultiplier,seasonalDataUsed,abcClass,seasonalSignal,seasonalBoostPct,
     baseDaily,adjustedDaily:effectiveDaily,daysOfCover,coverStatus,coverDays,
     target,rawBuy,maxBuy,buy,stock,status,ramp,capelSignal,minOneFallbackApplied,
     _csRequired:row._csRequired||false,
@@ -1136,47 +1244,52 @@ function render(){
       if(!a._csRequired&&b._csRequired) return 1;
       return b.buy-a.buy||b.target-a.target||a.SKU.localeCompare(b.SKU);
     }).map(r=>{
-      const statusCls=r.status==='OK'?'good-txt':(r.status==='Low'?'warn-txt':'bad');
-      const seasonalRule=detectSeasonalRule(r.ItemTitle);
-      const hiddenSeasonal=getHiddenSeasonalSignal(r);
-      // Compact flag chips — only the most signal-bearing ones
-      const flags=[];
-      if(r._csRequired) flags.push(`<span class="chip cs-req">CS🔒</span>`);
-      if(seasonalRule) flags.push(`<span class="chip season" title="${esc(seasonalRule.name)}">${esc(r.categoryLabel)}</span>`);
-      else flags.push(`<span class="chip category">${esc(r.categoryLabel)}</span>`);
-      if(hiddenSeasonal.label!=='Normal') flags.push(`<span class="chip rule" title="${esc(hiddenSeasonal.label)}">${hiddenSeasonal.label==='Hidden seasonal'?'🙈 Hidden':'⚠ Seas.'}</span>`);
-      if(r.fallbackUsed) flags.push(`<span class="chip rule" title="Fallback demand used">FB</span>`);
-      if(r.seasonalBoostPct>0) flags.push(`<span class="chip season">+${fmtInt(r.seasonalBoostPct*100)}%</span>`);
-      if(r.ramp&&r.demandMode!=='7D') flags.push(`<span class="chip rule" title="7-day demand spike visible">↑7D</span>`);
-
+      const mom = r.momentum || getDemandMomentum(r);
+      const conf = r.confidence || {score:60,label:'Med',cls:'conf-med'};
+      const confBar = `<div class="conf-bar"><div class="conf-track"><div class="conf-fill ${conf.cls}" style="width:${conf.score}%"></div></div><span style="font-size:11px;font-weight:700;color:${conf.cls==='conf-high'?'#166534':conf.cls==='conf-med'?'#d97706':'#dc2626'}">${conf.label}</span></div>`;
+      const momChip = `<span class="chip ${mom.chip}" title="7D vs 30D run-rate">${mom.label}</span>`;
       const coverCls=r.coverStatus==='Healthy'?'good-txt':(r.coverStatus==='Low'?'warn-txt':(r.coverStatus==='Critical'||r.coverStatus==='Out of Stock'?'bad':''));
       const coverText=r.daysOfCover>=9999?'∞':fmtInt(r.daysOfCover);
       const isOmitted=state.omittedSkus.has(r.SKU)&&!r._csRequired;
       const omitBtn=r._csRequired
-        ?`<input type="checkbox" checked disabled title="CS-required — cannot omit">`
+        ?`<span class="chip cs-req" title="Cannot omit CS-required lines">🔒</span>`
         :`<input type="checkbox" title="Untick to omit from PO export" ${isOmitted?'':'checked'} data-sku="${esc(r.SKU)}" class="omit-toggle">`;
-      const mom = r.momentum || getDemandMomentum(r);
-      const conf = r.confidence || {score:60,label:'Med',cls:'conf-med'};
-      const confColor = conf.cls==='conf-high'?'#14532d':conf.cls==='conf-med'?'#92400e':'#991b1b';
-      const confBar = `<div class="conf-bar"><div class="conf-track"><div class="conf-fill ${conf.cls}" style="width:${conf.score}%"></div></div><span style="font-size:11px;font-weight:700;color:${confColor}">${conf.label}&nbsp;${conf.score}</span></div>`;
-      const momChip = `<span class="chip ${mom.chip}" title="7D vs 30D run-rate">${mom.label}</span>`;
-      const statusCls=r.status==='OK'?'good-txt':(r.status==='Low'?'warn-txt':'bad');
-      return `<tr style="${isOmitted?'opacity:.4;text-decoration:line-through':''}">
-        <td style="font-size:12px;font-weight:700">${esc(r.SKU)}</td>
-        <td style="font-size:13px">${esc(r.ItemTitle)}</td>
-        <td class="num" style="text-align:center">${omitBtn}</td>
-        <td class="num"><strong style="font-size:16px">${fmtInt(r.buy)}</strong></td>
-        <td class="${statusCls}">${esc(r.status)}</td>
-        <td class="num ${coverCls}">${coverText}d</td>
-        <td class="${coverCls}">${esc(r.coverStatus)}</td>
-        <td class="num" style="font-weight:700">${esc(r.abcClass)}</td>
+
+      // Signals cell — chips + short reason summary in one column
+      const seasonalRule=detectSeasonalRule(r.ItemTitle);
+      const hiddenSeasonal=getHiddenSeasonalSignal(r);
+      const chips=[];
+      if(r._csRequired) chips.push(`<span class="chip cs-req">🔒 CS floor ${fmtInt(r._csQtyFloor)}</span>`);
+      chips.push(`<span class="chip ${coverCls||''}">` + esc(r.coverStatus) + `</span>`);
+      if(r.seasonalDataUsed) chips.push(`<span class="chip season" title="${esc(r.seasonalNote)}">📅 ${r.seasonalDataUsed.yr} actuals</span>`);
+      else if(seasonalRule) chips.push(`<span class="chip season">${seasonalRule.name}</span>`);
+      if(hiddenSeasonal.label!=='Normal') chips.push(`<span class="chip rule">${hiddenSeasonal.label}</span>`);
+      chips.push(`<span class="chip category">${esc(r.categoryLabel)}</span>`);
+      if(r.seasonalMultiplier>1.01) chips.push(`<span class="chip season">${fmt1(r.seasonalMultiplier)}× ${monthLabel()}</span>`);
+      if(r.seasonalBoostPct>0) chips.push(`<span class="chip rule">+${fmtInt(r.seasonalBoostPct*100)}% boost</span>`);
+      if(r.fallbackUsed) chips.push(`<span class="chip rule">${esc(r.fallbackUsed)}</span>`);
+      if(r.minOneFallbackApplied) chips.push(`<span class="chip rule">Min 1</span>`);
+      if(r.ramp&&r.demandMode!=='7D') chips.push(`<span class="chip rule">7D spike</span>`);
+      if(r.lookAhead) chips.push(`<span class="chip season" title="Seasonal peak coming">↑ ${r.lookAhead.peakMonthName} ${fmt1(r.lookAhead.peak)}×</span>`);
+
+      return `<tr style="${isOmitted?'opacity:.45':''}">
+        <td style="white-space:nowrap;font-weight:700">${esc(r.SKU)}</td>
+        <td style="min-width:160px">${esc(r.ItemTitle)}</td>
+        <td style="min-width:260px;max-width:400px">
+          <div class="chip-row" style="margin-bottom:5px">${chips.join('')}</div>
+          <div class="reason">${esc(r.reason)}</div>
+        </td>
+        <td class="num" style="font-size:16px;font-weight:800;white-space:nowrap">${fmtInt(r.buy)}</td>
+        <td class="num">${omitBtn}</td>
+        <td class="num ${coverCls}">${esc(r.coverStatus)}</td>
         <td class="num">${fmtInt(r.stock)}</td>
         <td class="num">${fmtInt(r.demandQty)}</td>
         <td class="num">${momChip}</td>
         <td class="num">${fmt1(r.adjustedDaily)}</td>
-        <td><div class="chip-row">${flags.join('')}</div></td>
+        <td class="num">${coverText}</td>
+        <td class="num">${fmtInt(r.target)}</td>
+        <td class="num"><strong>${esc(r.abcClass)}</strong></td>
         <td>${confBar}</td>
-        <td class="reason">${esc(r.reason)}</td>
       </tr>`;
     }).join('');
     // Bind omit toggles
@@ -1280,6 +1393,15 @@ async function fetchCSV(url, label){
   return parseCSV(text);
 }
 
+function setLoadingState(loading){
+  const loadBtn  = document.getElementById('loadUrlBtn');
+  const autoBtn  = document.getElementById('autoLoadBtn');
+  const testBtn  = document.getElementById('testUrlBtn');
+  if(loadBtn){ loadBtn.disabled=loading; loadBtn.textContent = loading ? '⏳ Loading…' : 'Load from URL'; }
+  if(autoBtn){ autoBtn.disabled=loading; autoBtn.textContent = loading ? '⏳ Loading…' : 'Auto-load all feeds'; }
+  if(testBtn){ testBtn.disabled=loading; }
+}
+
 // ─── GOVERNANCE LOAD ─────────────────────────────────────────────────────────
 async function loadGovernanceFeeds(){
   const msgs=[];
@@ -1288,7 +1410,7 @@ async function loadGovernanceFeeds(){
     state.csLines=parseCSFeed(csRaw);
     msgs.push(`CS Shared: ${state.csLines.length} active lines`);
   }catch(e){
-    msgs.push(`CS Shared load failed: ${e.message}`);
+    msgs.push(`CS Shared unavailable (${e.message})`);
     state.csLines=[];
   }
   try{
@@ -1296,21 +1418,38 @@ async function loadGovernanceFeeds(){
     state.poStatusMap=parsePOFeed(poRaw);
     msgs.push(`PO Status: ${Object.keys(state.poStatusMap).length} suppliers`);
   }catch(e){
-    msgs.push(`PO Status load failed: ${e.message}`);
+    msgs.push(`PO Status unavailable (${e.message})`);
     state.poStatusMap={};
   }
+  // Monthly sales history — load if URL is configured
+  state.monthlyLoaded = false;
+  const monthlyUrlEl = document.getElementById('monthlyUrl');
+  const monthlyUrl = (monthlyUrlEl && monthlyUrlEl.value.trim()) || MONTHLY_URL;
+  if(monthlyUrl){
+    try{
+      const mRaw = await fetchCSV(normalizeGoogleCsvUrl(monthlyUrl), 'Monthly Sales');
+      state.monthlyData = parseMonthlyFeed(mRaw);
+      state.monthlyLoaded = true;
+      msgs.push(`Monthly history: ${Object.keys(state.monthlyData).length} SKUs`);
+    }catch(e){
+      msgs.push(`Monthly history unavailable (${e.message})`);
+      state.monthlyData = {};
+    }
+  } else {
+    msgs.push('Monthly history: no URL — using profile estimates for Seasonal mode');
+  }
   state.governedSuppliers=buildGovernedSet(state.csLines,state.poStatusMap);
-  setGovStatus(`Governance: ${msgs.join(' · ')} · ${state.governedSuppliers.size} governed suppliers`);
-  return state.governedSuppliers.size>0;
+  const govMsg = state.governedSuppliers.size > 0
+    ? `✅ Governance active · ${msgs.join(' · ')} · ${state.governedSuppliers.size} governed suppliers`
+    : `⚠️ Governance feeds not reachable · ${msgs.join(' · ')} · showing all suppliers`;
+  setGovStatus(govMsg);
 }
 
 function applyGovernance(rows){
   if(state.governedSuppliers.size===0) return rows; // no governance data = show all (fail-safe)
   return rows.filter(r=>{
     if(!r.SupplierName) return false;
-    // Exact match first
     if(state.governedSuppliers.has(r.SupplierName)) return true;
-    // Fuzzy: governed set entry is a prefix/substring of the supplier name or vice versa
     for(const g of state.governedSuppliers){
       const rLow=r.SupplierName.toLowerCase();
       const gLow=g.toLowerCase();
@@ -1324,14 +1463,10 @@ function applyGovernance(rows){
 async function processRawRows(parsedRaw, sourceName){
   const missing=detectMissingColumns(parsedRaw);
   const normalised=parsedRaw.map(normalizeRow).filter(r=>r.SKU||r.ItemTitle);
-  if(normalised.length===0){setStatus('No rows found in CSV.',true);return;}
+  if(normalised.length===0){setStatus('❌ No rows found in CSV.',true);return;}
 
   state.rawRows=normalised;
-
-  // Apply CS merge (attach floor qtys + inject synthetic CS lines)
   const withCS=mergeCSIntoRows([...normalised],state.csLines);
-
-  // Apply supplier governance filter
   const governed=applyGovernance(withCS);
   state.governedRows=governed;
 
@@ -1339,45 +1474,74 @@ async function processRawRows(parsedRaw, sourceName){
   state.activeSupplier='';
   recompute();
 
-  setStatus(`Loaded ${fmtInt(normalised.length)} rows from ${sourceName}. Governed: ${fmtInt(governed.length)} rows (${fmtInt(new Set(governed.map(r=>r.SupplierName)).size)} suppliers, ${hiddenCount} QueryData rows hidden by governance).${missing.length?' Missing columns: '+missing.join(', '):''}`,false);
+  const govNote = state.governedSuppliers.size > 0
+    ? ` · ${fmtInt(new Set(governed.map(r=>r.SupplierName)).size)} governed suppliers · ${hiddenCount} rows hidden by governance`
+    : ' · governance feeds unavailable, showing all suppliers';
+  setStatus(`✅ Loaded ${fmtInt(normalised.length)} rows from ${sourceName}${govNote}.${missing.length?' Missing columns: '+missing.join(', '):''}`, false);
   setLoadMeta('',false);
 }
 
 async function testUrl(){
-  const input=document.getElementById('csvUrl');const rawUrl=input.value.trim();if(!rawUrl) return setStatus('Paste a CSV URL first.',true);
-  const url=normalizeGoogleCsvUrl(rawUrl);input.value=url;setStatus('Testing URL...',false);setLoadMeta('');
-  document.getElementById('loadUrlBtn').disabled=true;document.getElementById('testUrlBtn').disabled=true;
+  const input=document.getElementById('csvUrl');
+  const rawUrl=input.value.trim();
+  if(!rawUrl) return setStatus('Paste a CSV URL first.',true);
+  const url=normalizeGoogleCsvUrl(rawUrl);input.value=url;
+  setStatus('⏳ Testing URL…',false);setLoadMeta('');
+  setLoadingState(true);
   try{
-    const started=performance.now();const res=await fetchWithTimeout(url,12000);if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const ct=(res.headers.get('content-type')||'').toLowerCase();const text=await res.text();const secs=((performance.now()-started)/1000).toFixed(1);
-    if(/text\/html|application\/html/.test(ct)||/^\s*<!doctype html/i.test(text)||/^\s*<html/i.test(text)) throw new Error('Returned HTML instead of CSV');
-    const preview=parseCSV(text);if(!preview.length) throw new Error('No CSV rows detected');
-    const missing=detectMissingColumns(preview);setStatus(`URL works. Preview rows: ${preview.length}.`,false);setLoadMeta(`Fetched in ${secs}s${missing.length?' · Missing columns: '+missing.join(', '):'  · Required columns detected.'}`,false);
+    const started=performance.now();
+    const res=await fetchWithTimeout(url,12000);
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const ct=(res.headers.get('content-type')||'').toLowerCase();
+    const text=await res.text();
+    const secs=((performance.now()-started)/1000).toFixed(1);
+    if(/text\/html|application\/html/.test(ct)||/^\s*<!doctype html/i.test(text)||/^\s*<html/i.test(text)) throw new Error('URL returned HTML instead of CSV — check sharing settings');
+    const preview=parseCSV(text);
+    if(!preview.length) throw new Error('No CSV rows detected');
+    const missing=detectMissingColumns(preview);
+    setStatus(`✅ URL works · ${preview.length} rows · fetched in ${secs}s`,false);
+    setLoadMeta(missing.length?`⚠️ Missing columns: ${missing.join(', ')}`:'✅ All required columns detected.',false);
   }catch(err){
-    let msg=err&&err.name==='AbortError'?'URL test timed out after 12 seconds.':`URL test failed: ${err.message}`;if(window.location.protocol==='file:') msg+=' Local file mode can block remote fetches.';setStatus(msg,true);
-  }finally{document.getElementById('loadUrlBtn').disabled=false;document.getElementById('testUrlBtn').disabled=false;}
+    let msg=`❌ URL test failed: ${err.message}`;
+    if(window.location.protocol==='file:') msg+=' (Local file mode — browsers block remote fetches from file://)';
+    setStatus(msg,true);
+  }finally{setLoadingState(false);}
 }
 
 async function loadFromUrl(){
-  const input=document.getElementById('csvUrl');const rawUrl=input.value.trim();if(!rawUrl) return setStatus('Paste a CSV URL first.',true);
+  const input=document.getElementById('csvUrl');
+  const rawUrl=input.value.trim();
+  if(!rawUrl) return setStatus('❌ Paste a CSV URL first.',true);
   const url=normalizeGoogleCsvUrl(rawUrl);input.value=url;
-  if(window.location.protocol==='file:'&&/^https?:/i.test(url)) setLoadMeta('Opening as a local file — some browsers block remote fetches. If loading fails, upload the CSV file instead.',false); else setLoadMeta('',false);
-  setStatus('Loading governance feeds...',false);
-  document.getElementById('loadUrlBtn').disabled=true;document.getElementById('testUrlBtn').disabled=true;
+
+  if(window.location.protocol==='file:'&&/^https?:/i.test(url)){
+    setLoadMeta('⚠️ Opened as a local file — browsers may block remote fetches. If nothing loads, save the file to your computer and open it in Chrome or Edge.',false);
+  } else {
+    setLoadMeta('',false);
+  }
+
+  setStatus('⏳ Loading governance feeds (CS Shared + PO Status)…',false);
+  setLoadingState(true);
   try{
     await loadGovernanceFeeds();
-    setStatus('Loading QueryData...',false);
+    setStatus('⏳ Loading QueryData…',false);
     const started=performance.now();
-    const res=await fetchWithTimeout(url,20000);if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const ct=(res.headers.get('content-type')||'').toLowerCase();const text=await res.text();
-    if(/text\/html|application\/html/.test(ct)||/^\s*<!doctype html/i.test(text)||/^\s*<html/i.test(text)) throw new Error('The URL returned HTML instead of CSV.');
+    const res=await fetchWithTimeout(url,20000);
+    if(!res.ok) throw new Error(`HTTP ${res.status} — check the sheet is shared publicly`);
+    const ct=(res.headers.get('content-type')||'').toLowerCase();
+    const text=await res.text();
+    if(/text\/html|application\/html/.test(ct)||/^\s*<!doctype html/i.test(text)||/^\s*<html/i.test(text))
+      throw new Error('URL returned HTML instead of CSV — the sheet may not be set to "Anyone with the link can view"');
     const parsedRaw=parseCSV(text);
     const secs=((performance.now()-started)/1000).toFixed(1);
     setLoadMeta(`QueryData fetched in ${secs}s.`,false);
     await processRawRows(parsedRaw,'URL');
   }catch(err){
-    let msg=err&&err.name==='AbortError'?'Loading timed out after 20 seconds.':`Failed to load URL: ${err.message}`;if(window.location.protocol==='file:') msg+=' Try uploading the CSV file directly.';setStatus(msg,true);
-  }finally{document.getElementById('loadUrlBtn').disabled=false;document.getElementById('testUrlBtn').disabled=false;}
+    let msg=`❌ ${err.message}`;
+    if(err.name==='AbortError') msg='❌ Load timed out after 20 seconds — the sheet may be too large or unavailable.';
+    if(window.location.protocol==='file:') msg+=' Try opening this file in Chrome/Edge directly (not via a web viewer).';
+    setStatus(msg,true);
+  }finally{setLoadingState(false);}
 }
 
 function loadFromCsvText(text,sourceName){
