@@ -361,7 +361,7 @@
 
   <div class="card" id="actionNowCard" style="margin:14px 0;">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
-      <h3 style="margin:0">🏆 Top 200 SKU Watchlist <span class="small" style="font-weight:400;text-transform:none;letter-spacing:0" id="actionNowSummary"></span></h3>
+      <h3 style="margin:0">🏆 Top 500 SKU Watchlist <span class="small" style="font-weight:400;text-transform:none;letter-spacing:0" id="actionNowSummary"></span></h3>
     </div>
     <div id="actionNowGrid"></div>
   </div>
@@ -1220,7 +1220,7 @@ function renderActionNow(rows){
   const top200=[...allRows]
     .filter(r=>r.Revenue_Online_Total_30d>0||r.QtySold_Online_Total_90d>0)
     .sort((a,b)=>(b.Revenue_Online_Total_30d||0)-(a.Revenue_Online_Total_30d||0))
-    .slice(0,200);
+    .slice(0,500);
 
   if(!top200.length){
     sumEl.textContent='— no revenue data loaded yet';
@@ -1256,8 +1256,8 @@ function renderActionNow(rows){
   const totalCrit=suppliers.reduce((t,s)=>t+s.crit,0);
 
   sumEl.innerHTML=atRisk.length>0
-    ?`— <span style="color:#dc2626;font-weight:800">🔴 ${totalOos+totalCrit} of your top 200 SKUs need ordering now</span>${totalLost>0?' · <strong>€'+fmtInt(totalLost)+'</strong> est. at risk':''}`
-    :`— <span style="color:#16a34a;font-weight:700">✓ All top 200 SKUs are healthy</span>`;
+    ?`— <span style="color:#dc2626;font-weight:800">🔴 ${totalOos+totalCrit} of your top 500 SKUs need ordering now</span>${totalLost>0?' · <strong>€'+fmtInt(totalLost)+'</strong> est. at risk':''}`
+    :`— <span style="color:#16a34a;font-weight:700">✓ All top 500 SKUs are healthy</span>`;
 
   function poText(name){
     let po=state.poStatusMap[name];
@@ -1282,7 +1282,7 @@ function renderActionNow(rows){
     const btnCls=colour==='green'?'green':'';
     return `<div class="wl-card ${colour}" data-supplier="${esc(s.name)}">
       <div class="wl-card-name">${esc(s.name)}</div>
-      <div class="wl-card-skus">${s.skus.length} top-200 SKU${s.skus.length>1?'s':''}</div>
+      <div class="wl-card-skus">${s.skus.length} top-500 SKU${s.skus.length>1?'s':''}</div>
       <div class="wl-card-signals">${signals.join('')}</div>
       ${revHtml}
       <div class="wl-card-po">${poText(s.name)}</div>
@@ -1293,10 +1293,12 @@ function renderActionNow(rows){
   let html=`<div class="wl-grid">`;
   for(const s of atRisk) html+=makeCard(s);
   for(const s of lowOnly) html+=makeCard(s);
-  for(const s of healthy) html+=makeCard(s);
   html+=`</div>`;
-  if(healthy.length>0&&atRisk.length>0){
-    html+=`<div class="wl-healthy-bar">✓ ${healthy.length} supplier${healthy.length>1?'s':''} fully stocked across their top-200 SKUs</div>`;
+  if(!atRisk.length&&!lowOnly.length){
+    html='<div style="color:#16a34a;font-size:13px;padding:8px;font-weight:600">✓ None of your top 500 SKUs are at risk right now.</div>';
+  }
+  if(healthy.length>0){
+    html+=`<div class="wl-healthy-bar">✓ ${healthy.length} supplier${healthy.length>1?'s':''} fully stocked across their top-500 SKUs</div>`;
   }
   el.innerHTML=html;
 
