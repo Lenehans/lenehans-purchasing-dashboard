@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lenehans Purchasing Dashboard · V5.4 · INTELLIGENCE</title>
+  <title>Lenehans Purchasing Dashboard · V5.6 · INTELLIGENCE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -395,7 +395,7 @@
 </head>
 <body>
 <header>
-  <div class="title">Lenehans Purchasing Dashboard · V5.4 · INTELLIGENCE</div>
+  <div class="title">Lenehans Purchasing Dashboard · V5.6 · INTELLIGENCE</div>
   <div class="sub">QueryData_master + CS Shared + PO Status · governance · seasonal look-ahead · momentum · order health · confidence score</div>
 </header>
 
@@ -600,7 +600,7 @@
     </div>
   </div>
 
-  <div class="footer">V5.4 · Supplier governance · Seasonal look-ahead (next 3 months) · Demand momentum (7D vs 30D) · Buyer confidence score · Supplier order health · CS-required lines locked · stock basis = NetStock_Arklow</div>
+  <div class="footer">V5.6 · Supplier governance · Seasonal look-ahead (next 3 months) · Demand momentum (7D vs 30D) · Buyer confidence score · Supplier order health · CS-required lines locked · stock basis = NetStock_Arklow</div>
   </div><!-- /tab-buying -->
 
   <!-- TAB 2: Clear Stock -->
@@ -1362,42 +1362,63 @@ function parseCSFeed(rows){
 
 // ─── PO STATUS FEED PARSING ──────────────────────────────────────────────────
 function parsePOFeed(rows){
-  // Columns: MonthKey, Supplier, Channel, Status, DoneDate, DoneBy
+  // Columns (new format): MonthKey, Supplier, Status Arklow, Status Capel Street,
+  //   DoneDate Arklow, DoneDate Capel Street, DoneBy Arklow, DoneBy Capel Street
+  // One row per supplier per month. Arklow and Capel Street are separate columns.
   const map = {};
   if(!rows.length) return map;
-  const headers = Object.keys(rows[0]).map(h=>h.toLowerCase());
-  function findCol(keywords){
+
+  // Find columns by exact or partial match
+  const hdrs = Object.keys(rows[0]);
+  function col(keywords){
     for(const kw of keywords){
-      const idx = headers.findIndex(h=>h.includes(kw));
-      if(idx>=0) return Object.keys(rows[0])[idx];
+      const found = hdrs.find(h=>h.toLowerCase().includes(kw.toLowerCase()));
+      if(found) return found;
     }
     return null;
   }
-  const supplierCol = findCol(['supplier']);
-  const statusCol   = findCol(['status','po status','po_status']);
-  const personCol   = findCol(['doneby','done by','person','buyer','contact','raised by']);
-  const dateCol     = findCol(['donedate','done date','date','po date','ordered','sent']);
-  const channelCol  = findCol(['channel']);
 
-  if(!supplierCol || !statusCol) return map;
+  const supplierCol    = col(['supplier']);
+  const statusAKCol    = col(['status arklow','status ak','Status Arklow']);
+  const statusCSCol    = col(['status capel','status cs','Status Capel']);
+  const dateAKCol      = col(['donedate arklow','done date arklow','date arklow']);
+  const dateCSCol      = col(['donedate capel','done date capel','date capel']);
+  const personAKCol    = col(['doneby arklow','done by arklow','by arklow']);
+  const personCSCol    = col(['doneby capel','done by capel','by capel']);
+
+  if(!supplierCol) return map;
+
+  function makeEntry(rawStatus, date, person, channel){
+    const statusLower = (rawStatus||'').toLowerCase();
+    const isDone = PO_DONE_STATUSES.some(s=>statusLower.includes(s));
+    return { raw:rawStatus||'', isDone, date:date||'', person:person||'', channel };
+  }
 
   for(const r of rows){
-    const supplier   = String(r[supplierCol]||'').trim();
-    const rawStatus  = String(r[statusCol]||'').trim();
-    if(!supplier || !rawStatus) continue;
-    const channel    = channelCol ? String(r[channelCol]||'Arklow').trim().toLowerCase() : 'arklow';
-    const statusLower = rawStatus.toLowerCase();
-    const isDone = PO_DONE_STATUSES.some(s=>statusLower.includes(s));
-    // Key by supplier+channel so both channels can have independent PO status
-    const key = `${supplier}||${channel}`;
-    map[key] = {
-      raw: rawStatus, isDone,
-      person: personCol ? String(r[personCol]||'').trim() : '',
-      date:   dateCol   ? String(r[dateCol]||'').trim()   : '',
-      channel
-    };
-    // Also store under supplier-only key for backward compat (last write wins)
-    map[supplier] = map[key];
+    const supplier = String(r[supplierCol]||'').trim();
+    if(!supplier) continue;
+
+    const statusAK = statusAKCol ? String(r[statusAKCol]||'').trim() : '';
+    const statusCS = statusCSCol ? String(r[statusCSCol]||'').trim() : '';
+    const dateAK   = dateAKCol   ? String(r[dateAKCol]||'').trim()   : '';
+    const dateCS   = dateCSCol   ? String(r[dateCSCol]||'').trim()   : '';
+    const personAK = personAKCol ? String(r[personAKCol]||'').trim() : '';
+    // Capel Street: no DoneBy per spec — person intentionally blank
+
+    // Store Arklow entry — keyed by supplier||arklow
+    const akKey = `${supplier}||arklow`;
+    if(statusAK || !map[akKey]){
+      map[akKey] = makeEntry(statusAK, dateAK, personAK, 'arklow');
+    }
+
+    // Store Capel Street entry — keyed by supplier||capel street
+    const csKey = `${supplier}||capel street`;
+    if(statusCS || !map[csKey]){
+      map[csKey] = makeEntry(statusCS, dateCS, '', 'capel street');
+    }
+
+    // Backward compat key — prefer Arklow status for supplier-only lookups
+    if(!map[supplier] || statusAK) map[supplier] = map[akKey];
   }
   return map;
 }
