@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lenehans Purchasing Dashboard · V4.9 · INTELLIGENCE</title>
+  <title>Lenehans Purchasing Dashboard · V5.3 · INTELLIGENCE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -26,7 +26,7 @@
 
     /* ── Reset / base ───────────────────────────────────────────────── */
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 Inter,Segoe UI,Arial,sans-serif}
+    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 Inter,Segoe UI,Arial,sans-serif;padding-bottom:70px}
 
     /* ── Header ─────────────────────────────────────────────────────── */
     header{position:sticky;top:0;z-index:20;background:#0f172a;color:#fff;padding:14px 20px;border-bottom:3px solid #2563eb}
@@ -82,6 +82,51 @@
     .metric{font-size:32px;font-weight:800;color:var(--text);line-height:1.1}
     .small{font-size:12px;color:var(--muted);line-height:1.5}
     .muted{color:var(--muted)}
+
+    /* ── Slim metrics strip (replaces big cards) ────────────────────── */
+    .metrics-strip{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;
+      background:#fff;border:1.5px solid var(--line);border-radius:8px;
+      padding:8px 14px;margin:10px 0;font-size:13px}
+    .ms-stat{display:flex;align-items:center;gap:5px;white-space:nowrap}
+    .ms-val{font-size:18px;font-weight:900;color:var(--text)}
+    .ms-val.red{color:#dc2626}.ms-val.amber{color:#d97706}.ms-val.green{color:#16a34a}
+    .ms-lbl{font-size:11px;color:#64748b;font-weight:600}
+    .ms-div{width:1px;height:24px;background:#e2e8f0;flex-shrink:0}
+    .ms-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-left:auto}
+    .ms-leg-item{font-size:11px;color:#475569}
+
+    /* ── Collapsible load card ──────────────────────────────────────── */
+    .load-collapsed{display:flex;align-items:center;gap:10px;padding:8px 14px;
+      background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;
+      margin:10px 0;font-size:13px;cursor:pointer}
+    .load-collapsed .lc-status{font-weight:700;color:#15803d;flex:1}
+    .load-collapsed .lc-expand{font-size:11px;color:#64748b;font-weight:600;text-decoration:underline;white-space:nowrap}
+
+    /* ── Collapsible watchlist ──────────────────────────────────────── */
+    .wl-header{display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 14px;
+      background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;margin:10px 0;
+      user-select:none}
+    .wl-header:hover{background:#f1f5f9}
+    .wl-header h3{margin:0;font-size:14px}
+    .wl-toggle{margin-left:auto;font-size:12px;color:#64748b;font-weight:600}
+    .wl-body{display:none}
+    .wl-body.open{display:block}
+
+    /* ── Sticky bottom PO bar ───────────────────────────────────────── */
+    #stickyPoBar{
+      position:fixed;bottom:0;left:0;right:0;z-index:100;
+      background:#1e3a5f;color:#fff;
+      padding:10px 24px;
+      display:none;align-items:center;gap:16px;
+      box-shadow:0 -4px 16px rgba(0,0,0,.18);
+      font-size:13px;font-weight:600;
+    }
+    #stickyPoBar .spb-supplier{font-size:15px;font-weight:800;flex:1}
+    #stickyPoBar .spb-info{color:#94d2ff;font-size:12px}
+    #stickyPoBar button{background:#16a34a;color:#fff;border:none;border-radius:8px;
+      padding:9px 20px;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap}
+    #stickyPoBar button:hover{background:#15803d}
+    #stickyPoBar .spb-back{background:#334155;margin-left:auto}
 
     /* ── Toolbar ────────────────────────────────────────────────────── */
     .toolbar{
@@ -144,6 +189,11 @@
     /* ── Text styles ────────────────────────────────────────────────── */
     .supplier-link{color:var(--accent);font-weight:700;text-decoration:none;font-size:14px}
     .supplier-link:hover{text-decoration:underline;color:#1748c0}
+    .sup-fb{display:inline-flex;align-items:center;gap:2px;margin-left:6px;vertical-align:middle}
+    .sup-fb button{padding:2px 7px;font-size:10px;font-weight:800;border-radius:4px;border:1.5px solid #cbd5e1;background:#f8fafc;color:#64748b;cursor:pointer;line-height:1.4;transition:all .1s}
+    .sup-fb button.active-90{background:#fff7ed;border-color:#f97316;color:#c2410c}
+    .sup-fb button.active-180{background:#fdf4ff;border-color:#a855f7;color:#7e22ce}
+    .sup-fb button:hover:not(.active-90):not(.active-180){background:#f1f5f9;border-color:#94a3b8}
     .reason{max-width:560px;color:var(--text-secondary);line-height:1.55;font-size:13px}
     .bad{color:var(--bad);font-weight:700}
     .warn-txt{color:var(--warn);font-weight:700}
@@ -257,6 +307,25 @@
     .cs-disc.warn{color:#d97706}
     .cs-disc.clear{color:#dc2626}
     .cs-no-data{color:#64748b;font-size:13px;padding:20px;text-align:center}
+    /* ── Stock Transfers ────────────────────────────────────────────────── */
+    .xfr-summary-bar{display:flex;gap:16px;flex-wrap:wrap;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:12px 18px;margin-bottom:16px;align-items:center}
+    .xfr-summary-stat .val{font-size:22px;font-weight:900;color:#1e293b}
+    .xfr-summary-stat .val.green{color:#16a34a}
+    .xfr-summary-stat .lbl{font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+    .xfr-dir-hdr{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:10px;margin:12px 0 6px 0;font-size:15px;font-weight:800}
+    .xfr-dir-hdr.to-capel{background:#f0f9ff;border:1.5px solid #bae6fd;color:#0369a1}
+    .xfr-dir-hdr.to-arklow{background:#fdf4ff;border:1.5px solid #e9d5ff;color:#7c3aed}
+    .xfr-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px}
+    .xfr-table th{background:#f8fafc;padding:5px 8px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#64748b;border-bottom:1px solid #e2e8f0}
+    .xfr-table th.r{text-align:right}
+    .xfr-table td{padding:6px 8px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+    .xfr-table td.r{text-align:right;font-variant-numeric:tabular-nums}
+    .xfr-table tr:hover td{background:#f8fafc}
+    .xfr-onorder{font-size:10px;color:#d97706;font-weight:700}
+    .xfr-urgency{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700}
+    .xfr-urgency.high{background:#fee2e2;color:#dc2626}
+    .xfr-urgency.med{background:#ffedd5;color:#d97706}
+    .xfr-urgency.low{background:#fef9c3;color:#ca8a04}
 
     /* ── Detail table reason column ─────────────────────────────────── */
     .reason{
@@ -326,7 +395,7 @@
 </head>
 <body>
 <header>
-  <div class="title">Lenehans Purchasing Dashboard · V4.9 · INTELLIGENCE</div>
+  <div class="title">Lenehans Purchasing Dashboard · V5.3 · INTELLIGENCE</div>
   <div class="sub">QueryData_master + CS Shared + PO Status · governance · seasonal look-ahead · momentum · order health · confidence score</div>
 </header>
 
@@ -335,11 +404,14 @@
   <div class="tab-bar">
     <button class="tab-btn active" data-tab="buying">📦 Buying</button>
     <button class="tab-btn" data-tab="clearstock">🏷️ Clear Stock</button>
+    <button class="tab-btn" data-tab="transfers">🔄 Stock Transfers</button>
   </div>
 
   <!-- TAB 1: Buying -->
   <div class="tab-panel active" id="tab-buying">
-  <div class="card">
+
+  <!-- Load card: full form (shown before load) / collapsed status bar (after load) -->
+  <div id="loadCardFull" class="card">
     <h3>Load Data</h3>
     <div class="load-row">
       <label>QueryData CSV URL
@@ -362,6 +434,13 @@
     <div id="loadStatus" class="footer">No data loaded.</div>
     <div id="loadMeta" class="footer"></div>
     <div id="govStatus"></div>
+  </div>
+  <!-- Collapsed load bar (shown after data loads) -->
+  <div id="loadCardCollapsed" class="load-collapsed" style="display:none" onclick="document.getElementById('loadCardFull').style.display='block';this.style.display='none'">
+    <span>✅</span>
+    <span class="lc-status" id="loadCollapsedStatus">Data loaded</span>
+    <span id="loadCollapsedMeta" class="ms-lbl"></span>
+    <span class="lc-expand">▲ expand to reload</span>
   </div>
 
   <div class="channel-bar">
@@ -409,38 +488,41 @@
     </label>
     <button id="buyRiskModeBtn" class="secondary" title="Focuses the view on items that need ordering: hides healthy stock and shows only lines with a positive buy quantity.">⚠ View buy risks</button>
     <button id="clearRiskFiltersBtn" class="secondary">Clear risk filters</button>
-    <button id="exportBtn" class="secondary">Export current view CSV</button>
+    <button id="exportBtn" class="secondary">Export CSV</button>
     <button id="poExportBtn" class="secondary">Export PO</button>
   </div>
 
-  <div class="guidance-strip">
-    <div class="small" style="display:flex;gap:18px;flex-wrap:wrap;">
-      <span><strong>🔴 Critical</strong> — under 14 days cover or out of stock</span>
-      <span><strong>🟠 Low</strong> — 14–30 days cover, order soon</span>
-      <span><strong>📦 Buy Units</strong> — total units suggested to order from this supplier</span>
-      <span><strong>Seasonal N</strong> — N SKUs with an active Irish seasonal rule this month</span>
-      <span><strong>Hidden N</strong> — N SKUs with low recent sales but high historical volume (easy to miss)</span>
-      <span><strong>Done/Sent</strong> — PO already placed (green)</span>
-      <span><strong>Pending</strong> — PO not yet raised (red)</span>
+  <!-- Slim metrics + legend strip -->
+  <div class="metrics-strip">
+    <div class="ms-stat"><span class="ms-val" id="mSuppliers">0</span><span class="ms-lbl">suppliers</span></div>
+    <div class="ms-div"></div>
+    <div class="ms-stat"><span class="ms-val" id="mRows">0</span><span class="ms-lbl">rows</span></div>
+    <div class="ms-div"></div>
+    <div class="ms-stat"><span class="ms-val red" id="mCritical">0</span><span class="ms-lbl">critical SKUs</span></div>
+    <div class="ms-div"></div>
+    <div class="ms-stat"><span class="ms-val amber" id="mBuy">0</span><span class="ms-lbl">units to buy</span></div>
+    <div class="ms-div"></div>
+    <div class="ms-stat"><span class="ms-val" id="mMode">30D</span><span class="ms-lbl">demand mode</span></div>
+    <div class="ms-legend">
+      <span class="ms-leg-item"><strong>🔴 Critical</strong> &lt;14d cover</span>
+      <span class="ms-leg-item"><strong>🟠 Low</strong> 14–30d cover</span>
+      <span class="ms-leg-item"><strong>📦 Buy Units</strong> suggested order</span>
+      <span class="ms-leg-item"><strong>Done/Sent</strong> = PO placed ✅</span>
+      <span class="ms-leg-item"><strong>Pending</strong> = PO not raised 🔴</span>
     </div>
   </div>
 
-  <div class="metrics">
-    <div class="card"><h3>Governed suppliers</h3><div id="mSuppliers" class="metric">0</div></div>
-    <div class="card"><h3>Visible rows</h3><div id="mRows" class="metric">0</div></div>
-    <div class="card"><h3>Total suggested buy</h3><div id="mBuy" class="metric">0</div></div>
-    <div class="card"><h3>Critical SKUs</h3><div id="mCritical" class="metric">0</div></div>
-    <div class="card"><h3>Demand mode</h3><div id="mMode" class="metric">30D</div></div>
+  <!-- Watchlist: collapsible -->
+  <div id="wlHeader" class="wl-header" onclick="toggleWatchlist()">
+    <h3>🏆 Top 500 SKU Watchlist</h3>
+    <span id="actionNowSummary" class="small" style="color:#64748b"></span>
+    <span class="wl-toggle" id="wlToggleLabel">▼ show</span>
   </div>
-
-  <div class="card" id="actionNowCard" style="margin:14px 0;">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
-      <h3 style="margin:0">🏆 Top 500 SKU Watchlist <span class="small" style="font-weight:400;text-transform:none;letter-spacing:0" id="actionNowSummary"></span></h3>
-    </div>
+  <div id="wlBody" class="wl-body">
     <div id="actionNowGrid"></div>
   </div>
 
-  <!-- Order preview card (was missing in v4.7) -->
+  <!-- Order preview card -->
   <div class="card" id="orderPreviewCard">
     <h3>Order Preview — <span id="opSupplierName" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"></span></h3>
     <div class="op-metrics">
@@ -516,7 +598,7 @@
     </div>
   </div>
 
-  <div class="footer">V4.9 · Supplier governance · Seasonal look-ahead (next 3 months) · Demand momentum (7D vs 30D) · Buyer confidence score · Supplier order health · CS-required lines locked · stock basis = NetStock_Arklow</div>
+  <div class="footer">V5.3 · Supplier governance · Seasonal look-ahead (next 3 months) · Demand momentum (7D vs 30D) · Buyer confidence score · Supplier order health · CS-required lines locked · stock basis = NetStock_Arklow</div>
   </div><!-- /tab-buying -->
 
   <!-- TAB 2: Clear Stock -->
@@ -547,9 +629,269 @@
     </div>
   </div><!-- /tab-clearstock -->
 
+  <!-- TAB 3: Stock Transfers -->
+  <div class="tab-panel" id="tab-transfers">
+    <div style="margin-top:14px">
+      <div class="xfr-summary-bar">
+        <div class="xfr-summary-stat"><div class="val green" id="xfrToCapelCount">—</div><div class="lbl">→ Capel Street transfers</div></div>
+        <div class="cs-divider"></div>
+        <div class="xfr-summary-stat"><div class="val" id="xfrToArklowCount" style="color:#7c3aed">—</div><div class="lbl">→ Arklow transfers</div></div>
+        <div class="cs-divider"></div>
+        <div class="xfr-summary-stat"><div class="val" id="xfrTotalUnits">—</div><div class="lbl">Total units to move</div></div>
+        <div class="cs-divider"></div>
+        <div class="xfr-summary-stat"><div class="val green" id="xfrCostValue">—</div><div class="lbl">Est. cost value to redeploy</div></div>
+        <button id="xfrExportBtn" class="secondary" style="margin-left:auto;font-size:12px">Export transfers CSV</button>
+      </div>
+      <div style="font-size:12px;color:#64748b;margin-bottom:12px">
+        Transfer logic: source must be healthy (>56d cover) · destination must be slow/critical · qty = what destination needs to reach 56-day target, capped at 75% of source stock · SKUs skipped if on-order at destination already covers the gap
+      </div>
+      <div id="xfrContainer"><div class="cs-no-data">Load data to see stock transfer recommendations.</div></div>
+    </div>
+  </div><!-- /tab-transfers -->
+
 </div><!-- /wrap -->
 
+<!-- Sticky bottom bar — visible when drilling into a supplier -->
+<div id="stickyPoBar">
+  <div class="spb-supplier" id="spbSupplierName">—</div>
+  <div class="spb-info" id="spbInfo"></div>
+  <button onclick="exportPO()">📄 Export PO</button>
+  <button class="spb-back" onclick="document.getElementById('backBtn').click()">← Back to suppliers</button>
+</div>
+
 <script>
+// ─── STOCK TRANSFERS ─────────────────────────────────────────────────────────
+// Transfer constants
+const XFR_TARGET_DAYS  = 56;  // fill destination to this many days cover
+const XFR_MIN_QTY      = 1;   // ignore sub-1-unit suggestions
+
+// Classify a single location: returns {label, days, tier:'ok'|'low'|'critical'|'oos'|'nodemand'}
+function xfrClassify(stock, daily){
+  if(stock <= 0)   return {label:'Out of stock', days:0,    tier:'oos'};
+  if(daily <= 0)   return {label:'No demand',    days:9999, tier:'nodemand'};
+  const d = stock / daily;
+  if(d < 14)       return {label:'Critical',     days:d,    tier:'critical'};
+  if(d < 30)       return {label:'Low stock',    days:d,    tier:'low'};
+  if(d < XFR_TARGET_DAYS) return {label:'Below target', days:d, tier:'below'};
+  return             {label:'Healthy',          days:d,    tier:'ok'};
+}
+
+function computeTransfers(){
+  const toCapel=[], toArklow=[];
+  if(!state.computedRows || !state.computedRows.length) return {toCapel, toArklow};
+
+  for(const r of state.computedRows){
+    // ── Raw field reads ────────────────────────────────────────────────────
+    const akStock  = r.NetStock_Arklow          || 0;
+    const csStock  = r.NetStock_CapelStreet      || 0;
+    const ooAK     = r.OnOrderQty_Arklow         || 0;
+    const ooCS     = r.OnOrderQty_CapelStreet    || 0;
+
+    // Online (Arklow) demand signals
+    const akQ30  = r.QtySold_Online_Total_30d    || 0;
+    const akQ90  = r.QtySold_Online_Total_90d    || 0;
+    const akQ180 = r.QtySold_Online_Total_180d   || 0;
+
+    // Vend/shop (Capel Street) demand signals
+    const csQ30  = r.QtySold_Shop_CapelStreet_30d  || 0;
+    const csQ90  = r.QtySold_Shop_CapelStreet_90d  || 0;
+    const csQ180 = r.QtySold_Shop_CapelStreet_180d || 0;
+
+    // Best cost for value calculations
+    const cost = r._bestKnownCost || 0;
+
+    // Daily demand rates
+    const akDaily = akQ30 / 30;
+    const csDaily = csQ30 / 30;
+
+    // Location status
+    const akStatus = xfrClassify(akStock, akDaily);
+    const csStatus = xfrClassify(csStock, csDaily);
+
+    // ── ARKLOW → CAPEL STREET ─────────────────────────────────────────────
+    // Trigger: Arklow is healthy (surplus), Capel Street is not
+    // Capel Street must have some historical shop demand (not a dead listing there)
+    const csHasDemand = csQ30 > 0 || csQ90 > 0 || csQ180 > 0;
+    const akIsSurplus  = akStatus.tier === 'ok';
+    const csNeedsStock = csStatus.tier === 'critical' || csStatus.tier === 'low' || csStatus.tier === 'below' || csStatus.tier === 'oos';
+
+    if(akIsSurplus && csNeedsStock && csHasDemand && csDaily > 0){
+      // How many units Capel Street needs to reach target
+      const csTargetUnits  = Math.ceil(XFR_TARGET_DAYS * csDaily);
+      const csNeedUnits    = Math.max(0, csTargetUnits - csStock);
+      // Skip if on-order at destination already covers the gap
+      if(ooCS >= csNeedUnits) continue;
+      const csStillNeeded = csNeedUnits - ooCS;
+      // Transfer up to 75% of source stock (never strip source bare)
+      const qty = Math.min(Math.floor(akStock * 0.75), csStillNeeded);
+      if(qty >= XFR_MIN_QTY){
+        toCapel.push({
+          SKU: r.SKU, ItemTitle: r.ItemTitle, SupplierName: r.SupplierName,
+          qty, cost, value: qty * cost,
+          // Source (Arklow)
+          akStock, akDaily, akStatus,
+          akQ30, akQ90, akQ180,
+          // Destination (Capel Street)
+          csStock, csDaily, csStatus,
+          csQ30, csQ90, csQ180,
+          ooCS,  // on-order warning at destination
+          rank: state.skuRankMap ? (state.skuRankMap.get(r.SKU)||9999) : 9999
+        });
+      }
+    }
+
+    // ── CAPEL STREET → ARKLOW ─────────────────────────────────────────────
+    // Trigger: Capel Street is healthy (surplus), Arklow is not
+    // Arklow must have some online demand history
+    const akHasDemand  = akQ30 > 0 || akQ90 > 0 || akQ180 > 0;
+    const csIsSurplus  = csStatus.tier === 'ok';
+    const akNeedsStock = akStatus.tier === 'critical' || akStatus.tier === 'low' || akStatus.tier === 'below' || akStatus.tier === 'oos';
+
+    if(csIsSurplus && akNeedsStock && akHasDemand && akDaily > 0){
+      const akTargetUnits  = Math.ceil(XFR_TARGET_DAYS * akDaily);
+      const akNeedUnits    = Math.max(0, akTargetUnits - akStock);
+      // Skip if on-order at destination already covers the gap
+      if(ooAK >= akNeedUnits) continue;
+      const akStillNeeded = akNeedUnits - ooAK;
+      // Transfer up to 75% of source stock (never strip source bare)
+      const qty = Math.min(Math.floor(csStock * 0.75), akStillNeeded);
+      if(qty >= XFR_MIN_QTY){
+        toArklow.push({
+          SKU: r.SKU, ItemTitle: r.ItemTitle, SupplierName: r.SupplierName,
+          qty, cost, value: qty * cost,
+          // Source (Capel Street)
+          csStock, csDaily, csStatus,
+          csQ30, csQ90, csQ180,
+          // Destination (Arklow)
+          akStock, akDaily, akStatus,
+          akQ30, akQ90, akQ180,
+          ooAK,  // on-order warning at destination
+          rank: state.skuRankMap ? (state.skuRankMap.get(r.SKU)||9999) : 9999
+        });
+      }
+    }
+  }
+
+  // Sort: most urgent destination first (oos > critical > low > below), then by rank
+  const tierOrder = {oos:0, critical:1, low:2, below:3, nodemand:4, ok:5};
+  const sortXfr = (a,b) => {
+    const da = tierOrder[a.csStatus?.tier||a.akStatus?.tier]||9;
+    const db = tierOrder[b.csStatus?.tier||b.akStatus?.tier]||9;
+    return da!==db ? da-db : a.rank-b.rank;
+  };
+  // For toCapel: sort by csStatus; for toArklow: sort by akStatus
+  toCapel.sort((a,b)  => (tierOrder[a.csStatus.tier]||9) - (tierOrder[b.csStatus.tier]||9) || a.rank-b.rank);
+  toArklow.sort((a,b) => (tierOrder[a.akStatus.tier]||9) - (tierOrder[b.akStatus.tier]||9) || a.rank-b.rank);
+
+  return {toCapel, toArklow};
+}
+
+function xfrDaysBadge(tier, days){
+  const d = days >= 9999 ? '∞' : Math.round(days)+'d';
+  const colours = {oos:'color:#dc2626;font-weight:900', critical:'color:#dc2626;font-weight:800',
+    low:'color:#d97706;font-weight:700', below:'color:#ca8a04;font-weight:600',
+    ok:'color:#16a34a;font-weight:600', nodemand:'color:#94a3b8'};
+  return `<span style="${colours[tier]||''}">${d}</span>`;
+}
+
+function xfrUrgencyBadge(tier){
+  if(tier==='oos')      return `<span class="xfr-urgency high">🔴 Out of stock</span>`;
+  if(tier==='critical') return `<span class="xfr-urgency high">🔴 Critical &lt;14d</span>`;
+  if(tier==='low')      return `<span class="xfr-urgency med">🟠 Low &lt;30d</span>`;
+  if(tier==='below')    return `<span class="xfr-urgency low">🟡 Below target</span>`;
+  return '';
+}
+
+function xfrRankBadge(rank){
+  if(rank<=100)  return `<span style="color:#713f12;font-weight:900;font-size:11px">⭐#${rank}</span>`;
+  if(rank<=500)  return `<span style="color:#0369a1;font-weight:700;font-size:11px">#${rank}</span>`;
+  return `<span style="color:#94a3b8;font-size:11px">#${rank}</span>`;
+}
+
+function renderXfrTable(rows, srcLabel, dstLabel, getSrcStock, getSrcDays, getDstTier, getDstDays, getDstStock, getOO){
+  if(!rows.length) return `<p style="color:#64748b;font-size:13px;padding:8px 4px">No transfer opportunities in this direction right now.</p>`;
+  return `
+  <table class="xfr-table">
+    <thead><tr>
+      <th>SKU</th><th>Item</th><th>Supplier</th>
+      <th class="r">Transfer<br>Qty</th>
+      <th class="r">Cost<br>Value</th>
+      <th class="r">${srcLabel}<br>Stock</th>
+      <th class="r">${srcLabel}<br>Cover</th>
+      <th class="r">${dstLabel}<br>Stock</th>
+      <th class="r">${dstLabel}<br>Cover</th>
+      <th>Destination<br>Status</th>
+      <th class="r">Rank</th>
+    </tr></thead>
+    <tbody>
+    ${rows.map(r=>{
+      const oo = getOO(r);
+      return `<tr>
+        <td style="font-family:monospace;font-size:11px;font-weight:700;color:#1e40af;white-space:nowrap">${esc(r.SKU)}</td>
+        <td style="max-width:180px;word-break:break-word;font-size:12px">${esc(r.ItemTitle)}</td>
+        <td style="font-size:11px;color:#64748b;white-space:nowrap">${esc(r.SupplierName||'')}</td>
+        <td class="r" style="font-size:18px;font-weight:900;color:#16a34a">${fmtInt(r.qty)}</td>
+        <td class="r" style="font-size:12px">${r.value>0?'<strong>€'+fmtInt(r.value)+'</strong>':'—'}</td>
+        <td class="r">${fmtInt(getSrcStock(r))}</td>
+        <td class="r">${xfrDaysBadge('ok', getSrcDays(r))}</td>
+        <td class="r" style="color:${getDstTier(r)==='oos'||getDstTier(r)==='critical'?'#dc2626':getDstTier(r)==='low'?'#d97706':'#ca8a04'}">${fmtInt(getDstStock(r))}</td>
+        <td class="r">${xfrDaysBadge(getDstTier(r), getDstDays(r))}</td>
+        <td>
+          ${xfrUrgencyBadge(getDstTier(r))}
+          ${oo>0?`<div class="xfr-onorder">⚠ ${fmtInt(oo)} on order inbound</div>`:''}
+        </td>
+        <td class="r">${xfrRankBadge(r.rank)}</td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function renderTransfers(){
+  const container = document.getElementById('xfrContainer');
+  if(!container) return;
+  if(!state.computedRows || !state.computedRows.length){
+    container.innerHTML = '<div class="cs-no-data">Load data to see stock transfer recommendations.</div>';
+    document.getElementById('xfrToCapelCount').textContent='—';
+    document.getElementById('xfrToArklowCount').textContent='—';
+    document.getElementById('xfrTotalUnits').textContent='—';
+    document.getElementById('xfrCostValue').textContent='—';
+    return;
+  }
+
+  const {toCapel, toArklow} = computeTransfers();
+
+  // Update summary bar
+  const allXfr = [...toCapel, ...toArklow];
+  const totalUnits = allXfr.reduce((s,r)=>s+r.qty, 0);
+  const totalValue = allXfr.reduce((s,r)=>s+r.value, 0);
+  document.getElementById('xfrToCapelCount').textContent  = fmtInt(toCapel.length);
+  document.getElementById('xfrToArklowCount').textContent = fmtInt(toArklow.length);
+  document.getElementById('xfrTotalUnits').textContent    = fmtInt(totalUnits)+' units';
+  document.getElementById('xfrCostValue').textContent     = totalValue>0 ? '€'+fmtInt(totalValue) : 'N/A';
+
+  // Render direction sections
+  const capelTable  = renderXfrTable(toCapel,  'Arklow', 'Capel St',
+    r=>r.akStock, r=>r.akStatus.days,
+    r=>r.csStatus.tier, r=>r.csStatus.days, r=>r.csStock, r=>r.ooCS);
+  const arklowTable = renderXfrTable(toArklow, 'Capel St', 'Arklow',
+    r=>r.csStock, r=>r.csStatus.days,
+    r=>r.akStatus.tier, r=>r.akStatus.days, r=>r.akStock, r=>r.ooAK);
+
+  container.innerHTML = `
+    <div class="xfr-dir-hdr to-capel">
+      🏭→🏪 Arklow to Capel Street
+      <span style="font-size:12px;font-weight:600;margin-left:8px">${toCapel.length} SKU${toCapel.length!==1?'s':''} · ${fmtInt(toCapel.reduce((s,r)=>s+r.qty,0))} units · €${fmtInt(toCapel.reduce((s,r)=>s+r.value,0))} cost</span>
+    </div>
+    ${capelTable}
+    <div class="xfr-dir-hdr to-arklow" style="margin-top:20px">
+      🏪→🏭 Capel Street to Arklow
+      <span style="font-size:12px;font-weight:600;margin-left:8px">${toArklow.length} SKU${toArklow.length!==1?'s':''} · ${fmtInt(toArklow.reduce((s,r)=>s+r.qty,0))} units · €${fmtInt(toArklow.reduce((s,r)=>s+r.value,0))} cost</span>
+    </div>
+    ${arklowTable}
+  `;
+}
+
 // ─── STATE ───────────────────────────────────────────────────────────────────
 // ─── CLEAR STOCK THEMES ──────────────────────────────────────────────────────
 const SLOW_THEMES=[
@@ -766,6 +1108,7 @@ const state = {
   channel: 'arklow', // 'arklow' or 'capel'
   monthlyData: {},      // SKU -> { '2024_03': qty, '2024_04': qty, ... }
   monthlyLoaded: false, // true once monthly feed has been attempted
+  supplierFallbackOverrides: {}, // supplierName -> '90D' | '180D' | null
 };
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
@@ -774,6 +1117,26 @@ const CS_URL        = 'https://docs.google.com/spreadsheets/d/1PF5QxmIvX2K4Kqz5z
 const PO_URL        = 'https://docs.google.com/spreadsheets/d/1PF5QxmIvX2K4Kqz5zWeRUFv7uSRllCAMkhxhvizAjkw/export?format=csv&gid=48828416';
 // Monthly sales history — SKU × month columns (2024_01 … 2025_02)
 const MONTHLY_URL   = 'https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=1156598081';
+
+// ─── SUPPLIER FALLBACK OVERRIDES (localStorage) ───────────────────────────────
+const FB_STORAGE_KEY = 'lenehans_supplier_fallbacks';
+function loadFallbackOverrides(){
+  try{ const s=localStorage.getItem(FB_STORAGE_KEY); if(s) state.supplierFallbackOverrides=JSON.parse(s)||{}; }catch(e){}
+}
+function saveFallbackOverrides(){
+  try{ localStorage.setItem(FB_STORAGE_KEY, JSON.stringify(state.supplierFallbackOverrides)); }catch(e){}
+}
+function setSupplierFallback(supplierName, mode){
+  // mode: '90D' | '180D' | null (null = use global)
+  if(!mode) delete state.supplierFallbackOverrides[supplierName];
+  else state.supplierFallbackOverrides[supplierName] = mode;
+  saveFallbackOverrides();
+  recompute(); render();
+}
+function getSupplierFallback(supplierName){
+  return state.supplierFallbackOverrides[supplierName] || null;
+}
+loadFallbackOverrides();
 
 // PO done statuses → green
 const PO_DONE_STATUSES = ['done','complete','ordered','sent'];
@@ -844,9 +1207,30 @@ function fmtInt(v){ return Math.round(num(v)).toLocaleString('en-IE'); }
 function fmt1(v){ return num(v).toFixed(1); }
 function monthIndex(){ return new Date().getMonth(); }
 function monthLabel(){ return new Date().toLocaleString('en-IE', {month:'long'}); }
-function setStatus(msg,bad){ const el=document.getElementById('loadStatus'); if(el){ el.textContent=msg; el.style.color=bad?'var(--bad)':'#14532d'; el.style.background=bad?'#fee2e2':msg.startsWith('✅')?'#dcfce7':'#f1f5f9'; el.style.borderColor=bad?'#f87171':msg.startsWith('✅')?'#4ade80':'var(--line-light)'; } }
+function setStatus(msg,bad){
+  const el=document.getElementById('loadStatus');
+  if(el){ el.textContent=msg; el.style.color=bad?'var(--bad)':'#14532d'; el.style.background=bad?'#fee2e2':msg.startsWith('✅')?'#dcfce7':'#f1f5f9'; el.style.borderColor=bad?'#f87171':msg.startsWith('✅')?'#4ade80':'var(--line-light)'; }
+  // Collapse load card when data loads successfully
+  if(msg.startsWith('✅')&&!bad){
+    const full=document.getElementById('loadCardFull');
+    const col=document.getElementById('loadCardCollapsed');
+    const cs=document.getElementById('loadCollapsedStatus');
+    const cm=document.getElementById('loadCollapsedMeta');
+    if(full&&col){ full.style.display='none'; col.style.display='flex'; }
+    if(cs) cs.textContent=msg;
+    if(cm){ const meta=document.getElementById('loadMeta'); cm.textContent=meta?meta.textContent:''; }
+  }
+}
 function setLoadMeta(msg,bad){ const el=document.getElementById('loadMeta'); if(el){ el.textContent=msg||''; el.style.color=bad?'var(--bad)':'var(--muted)'; } }
 function setGovStatus(msg){ const el=document.getElementById('govStatus'); if(el) el.textContent=msg||''; }
+
+function toggleWatchlist(){
+  const body=document.getElementById('wlBody');
+  const lbl=document.getElementById('wlToggleLabel');
+  if(!body||!lbl) return;
+  const open=body.classList.toggle('open');
+  lbl.textContent=open?'▲ hide':'▼ show';
+}
 
 function parseCSV(text){
   const rows=[]; let i=0, field='', row=[], inQ=false;
@@ -885,31 +1269,55 @@ function normalizeGoogleCsvUrl(url){
 }
 
 function detectMissingColumns(rows){
-  const needed=["SupplierName","SKU","ItemTitle","AvailableQty_CapelStreet","OnOrderQty_Arklow","NetStock_Arklow","QtySold_Online_CapelStreet_30d","QtySold_Online_Total_30d","QtySold_Online_Total_7d","QtySold_Online_Total_90d","QtySold_Online_Total_180d"];
-  if(!rows.length) return needed;
+  // Each entry: canonical name + accepted short aliases (any match = ok)
+  const needed=[
+    {canon:"SupplierName",  aliases:[]},
+    {canon:"SKU",           aliases:[]},
+    {canon:"ItemTitle",     aliases:[]},
+    {canon:"NetStock_Arklow",        aliases:["NSk_AK"]},
+    {canon:"NetStock_CapelStreet",   aliases:["NSk_CS"]},
+    {canon:"OnOrderQty_Arklow",      aliases:["OOQty_AK"]},
+    {canon:"QtySold_Online_Total_30d",  aliases:["QSold_On30"]},
+    {canon:"QtySold_Online_Total_7d",   aliases:["QSold_On7"]},
+    {canon:"QtySold_Online_Total_90d",  aliases:["QSold_On90"]},
+    {canon:"QtySold_Online_Total_180d", aliases:["QSold_On180"]},
+    {canon:"QtySold_Online_CapelStreet_30d", aliases:["QSold_OnCS30"]},
+  ];
+  if(!rows.length) return needed.map(c=>c.canon);
   const sample=rows[0];
-  return needed.filter(c=>!(c in sample));
+  return needed
+    .filter(({canon,aliases})=> !(canon in sample) && !aliases.some(a=>a in sample))
+    .map(({canon})=>canon);
 }
 
 function normalizeRow(r){
   // Accept both full column names and short aliases from updated SQL
   const n=k=>num(r[k]||0);
+  // SKU MUST be treated as a raw string — never passed through num().
+  // Google Sheets strips leading zeros (094918 → 94918) when a column is
+  // auto-formatted as a number. We preserve the exact string from the CSV.
+  // Strip leading apostrophe added by SQL to force Google Sheets text formatting
+  const rawSku = String(r.SKU != null ? r.SKU : (r.sku != null ? r.sku : '')).trim().replace(/^'+/, '');
   return {
     SupplierName:r.SupplierName||'',
-    SKU:r.SKU||'',
+    SKU: rawSku,
     ItemTitle:r.ItemTitle||'',
     AvailableQty_CapelStreet:   n('AvailableQty_CapelStreet')||n('AQty_CS'),
     AvailableQty_Arklow:        n('AvailableQty_Arklow')||n('AQty_AK'),
     OnOrderQty_CapelStreet:     n('OnOrderQty_CapelStreet')||n('OOQty_CS'),
     OnOrderQty_Arklow:          n('OnOrderQty_Arklow')||n('OOQty_AK'),
-    NetStock_Arklow:            n('NetStock_Arklow'),
-    NetStock_CapelStreet:       n('NetStock_CapelStreet'),
+    // Short aliases: NetStock_Arklow -> NSk_AK, NetStock_CapelStreet -> NSk_CS
+    NetStock_Arklow:            n('NetStock_Arklow')||n('NSk_AK'),
+    NetStock_CapelStreet:       n('NetStock_CapelStreet')||n('NSk_CS'),
     QtySold_Online_CapelStreet_30d: n('QtySold_Online_CapelStreet_30d')||n('QSold_OnCS30'),
     QtySold_Online_Total_7d:    n('QtySold_Online_Total_7d')||n('QSold_On7'),
     QtySold_Online_Total_30d:   n('QtySold_Online_Total_30d')||n('QSold_On30'),
     QtySold_Online_Total_90d:   n('QtySold_Online_Total_90d')||n('QSold_On90'),
     QtySold_Online_Total_180d:  n('QtySold_Online_Total_180d')||n('QSold_On180'),
-    Revenue_Online_Total_30d:   n('Revenue_Online_Total_30d')||n('Rev_On30'),
+    // Rev_OnAK30 = Arklow online revenue 30D (new split column); Rev_On30 = combined fallback
+    Revenue_Online_Total_30d:   n('Revenue_Online_Total_30d')||n('Rev_OnAK30')||n('Rev_On30'),
+    // Rev_OnCS30 = Capel Street online revenue 30D
+    Revenue_Online_CapelStreet_30d: n('Revenue_Online_CapelStreet_30d')||n('Rev_OnCS30'),
     QtySold_Shop_CapelStreet_7d:  n('QtySold_Shop_CapelStreet_7d')||n('QSold_ShCS7'),
     QtySold_Shop_CapelStreet_30d: n('QtySold_Shop_CapelStreet_30d')||n('QSold_ShCS30'),
     QtySold_Shop_CapelStreet_90d: n('QtySold_Shop_CapelStreet_90d')||n('QSold_ShCS90'),
@@ -1359,7 +1767,11 @@ function computeRow(row){
   const demandMode   = document.getElementById('demandMode').value;
   const fallback90On  = document.getElementById('fallback90Btn')?.dataset.active==='true';
   const fallback180On = document.getElementById('fallback180Btn')?.dataset.active==='true';
-  const fallbackOn    = fallback90On || fallback180On;
+  // Per-supplier override takes precedence over global buttons
+  const supplierOverride = getSupplierFallback(row.SupplierName);
+  const eff90On  = supplierOverride ? supplierOverride==='90D'  : fallback90On;
+  const eff180On = supplierOverride ? supplierOverride==='180D' : fallback180On;
+  const fallbackOn    = eff90On || eff180On;
   const baseCover    = num(document.getElementById('baseCoverDays').value)||56;
   const lead         = num(document.getElementById('leadDays').value)||0;
   const coverDays    = baseCover+lead;
@@ -1380,9 +1792,9 @@ function computeRow(row){
   const cls=classifySkuName(`${row.ItemTitle} ${row.SKU}`);
 
   let d=getDemandConfig(demandMode,row), demandUsed=d.label, demandQty=d.qty, demandDays=d.days, fallbackUsed='';
-  if(fallbackOn&&demandQty<=0&&row.NetStock_Arklow<=0){
-    if(fallback90On&&row.QtySold_Online_Total_90d>0){demandQty=row.QtySold_Online_Total_90d;demandDays=90;fallbackUsed='Fallback90';}
-    else if(fallback180On&&row.QtySold_Online_Total_180d>0){demandQty=row.QtySold_Online_Total_180d;demandDays=180;fallbackUsed='Fallback180';}
+  if(fallbackOn&&demandQty<=0){
+    if(eff90On&&row.QtySold_Online_Total_90d>0){demandQty=row.QtySold_Online_Total_90d;demandDays=90;fallbackUsed='Fallback90';}
+    else if(eff180On&&row.QtySold_Online_Total_180d>0){demandQty=row.QtySold_Online_Total_180d;demandDays=180;fallbackUsed='Fallback180';}
     if(fallbackUsed) demandUsed=fallbackUsed;
   }
 
@@ -1478,6 +1890,7 @@ function computeRow(row){
 
 // ─── SUPPLIER SUMMARY ────────────────────────────────────────────────────────
 function supplierSummaryRows(rows){
+  const chPoMap = getChannelPOMap();
   const map=new Map();
   for(const r of rows){
     const k=r.SupplierName||'(Blank supplier)';
@@ -1496,14 +1909,14 @@ function supplierSummaryRows(rows){
     if(r.buy>s.topSkuBuy){s.topSkuBuy=r.buy;s.topSku=r.SKU;s.topItem=r.ItemTitle;}
     if(r._csRequired) s.csLineCount++;
     s._skuRows.push(r);
-    // Attach PO status from map (use first match by supplier name)
-    if(!s.poStatus && state.poStatusMap[k]) s.poStatus=state.poStatusMap[k];
+    // Attach PO status from channel-correct map
+    if(!s.poStatus && chPoMap[k]) s.poStatus=chPoMap[k];
   }
   // Also try fuzzy PO status match
   for(const [name, s] of map){
     if(!s.poStatus){
-      for(const [poKey, poVal] of Object.entries(state.poStatusMap)){
-        if(name.toLowerCase().includes(poKey.toLowerCase())||poKey.toLowerCase().includes(name.toLowerCase())){
+      for(const [poKey, poVal] of Object.entries(chPoMap)){
+        if(!poKey.includes('||') && (name.toLowerCase().includes(poKey.toLowerCase())||poKey.toLowerCase().includes(name.toLowerCase()))){
           s.poStatus=poVal; break;
         }
       }
@@ -1545,6 +1958,7 @@ function getFilteredRows(){
 }
 
 function recompute(){
+  const chPoMap = getChannelPOMap();
   const allComputed=state.governedRows.map(computeRow);
 
   // ── Deduplicate by SKU: keep lowest cost supplier, attach alternatives ──────
@@ -1577,9 +1991,9 @@ function recompute(){
     const alternatives=rows.slice(1).map(r=>({
       SupplierName:r.SupplierName,
       cost:r.SupplierCostPrice||0,
-      hasPO:!!state.poStatusMap[r.SupplierName],
-      poIsDone:state.poStatusMap[r.SupplierName]?.isDone||false,
-      poRaw:state.poStatusMap[r.SupplierName]?.raw||''
+      hasPO:!!chPoMap[r.SupplierName],
+      poIsDone:chPoMap[r.SupplierName]?.isDone||false,
+      poRaw:chPoMap[r.SupplierName]?.raw||''
     }));
     primary._alternatives=alternatives;
     // Best known cost = lowest non-zero cost across ALL suppliers for this SKU
@@ -1599,7 +2013,8 @@ function recompute(){
 }
 
 // ─── ORDER PREVIEW ───────────────────────────────────────────────────────────
-function renderOrderPreview(rows){
+function renderOrderPreview(rows, chPoMap){
+  chPoMap = chPoMap || getChannelPOMap();
   const card=document.getElementById('orderPreviewCard');
   if(!card) return;
   if(!state.activeSupplier){card.style.display='none';return;}
@@ -1621,7 +2036,7 @@ function renderOrderPreview(rows){
   document.getElementById('opCSLines').textContent=fmtInt(csLines);
   document.getElementById('opTopRisk').textContent=top?`${top.SKU} · ${top.ItemTitle}`:'—';
   // PO status
-  const po=state.poStatusMap[state.activeSupplier];
+  const po=chPoMap[state.activeSupplier];
   const poEl=document.getElementById('opPOStatus');
   if(po){
     const cls=po.isDone?'po-done':'po-pending';
@@ -1681,10 +2096,11 @@ function renderActionNow(rows){
     ?`— <span style="color:#dc2626;font-weight:800">🔴 ${totalOos+totalCrit} of your top 500 SKUs need ordering now</span>${totalLost>0?' · <strong>€'+fmtInt(totalLost)+'</strong> est. at risk':''}`
     :`— <span style="color:#16a34a;font-weight:700">✓ All top 500 SKUs are healthy</span>`;
 
+  const _chPoMap = getChannelPOMap();
   function poText(name){
-    let po=state.poStatusMap[name];
-    if(!po) for(const [k,v] of Object.entries(state.poStatusMap)){
-      if(k.toLowerCase()===name.toLowerCase()||k.toLowerCase().includes(name.toLowerCase())||name.toLowerCase().includes(k.toLowerCase())){po=v;break;}
+    let po=_chPoMap[name];
+    if(!po) for(const [k,v] of Object.entries(_chPoMap)){
+      if(!k.includes('||') && (k.toLowerCase()===name.toLowerCase()||k.toLowerCase().includes(name.toLowerCase())||name.toLowerCase().includes(k.toLowerCase()))){po=v;break;}
     }
     if(!po) return '—&nbsp;No PO on record';
     const icon=po.isDone?'✅':'🔴';
@@ -1751,7 +2167,17 @@ function render(){
   const activeLabel=document.getElementById('activeSupplierLabel');
 
   if(state.activeSupplier){
-    supplierTable.style.display='none';detailTable.style.display='table';backBtn.style.display='inline-flex';activeLabel.textContent=`Supplier: ${state.activeSupplier}`;
+    supplierTable.style.display='none';detailTable.style.display='table';backBtn.style.display='inline-flex';
+    activeLabel.textContent=`Supplier: ${state.activeSupplier}`;
+    // Show sticky PO bar
+    const spb=document.getElementById('stickyPoBar');
+    const spbName=document.getElementById('spbSupplierName');
+    const spbInfo=document.getElementById('spbInfo');
+    if(spb){ spb.style.display='flex'; }
+    if(spbName) spbName.textContent=state.activeSupplier;
+    const buyUnits=rows.reduce((s,r)=>s+r.buy,0);
+    const buySkus=rows.filter(r=>r.buy>0).length;
+    if(spbInfo) spbInfo.textContent=`${buySkus} SKUs · ${fmtInt(buyUnits)} units to order`;
     document.getElementById('resultCount').textContent=`${fmtInt(rows.length)} SKUs`;
     document.getElementById('mRows').textContent=fmtInt(rows.length);
     document.getElementById('mBuy').textContent=fmtInt(rows.reduce((s,r)=>s+r.buy,0));
@@ -1847,6 +2273,7 @@ function render(){
       return sk.dir*(av-bv);
     });
     supplierTable.style.display='table';detailTable.style.display='none';backBtn.style.display='none';activeLabel.textContent='';
+    const spb=document.getElementById('stickyPoBar'); if(spb) spb.style.display='none';
     document.getElementById('resultCount').textContent=`${fmtInt(summary.length)} suppliers`;
     document.getElementById('mRows').textContent=fmtInt(summary.length);
     document.getElementById('mBuy').textContent=fmtInt(summary.reduce((s,r)=>s+r.totalBuy,0));
@@ -1859,9 +2286,17 @@ function render(){
       const conf   = s.avgConfidence || {score:60,label:'Med',cls:'conf-med'};
       const healthBar = `<div class="health-bar"><div class="health-track"><div class="health-fill ${health.cls}" style="width:${health.score}%"></div></div>${health.label}</div>`;
       const confBar   = `<div class="conf-bar"><div class="conf-track"><div class="conf-fill ${conf.cls}" style="width:${conf.score}%"></div></div><span style="font-size:11px;font-weight:700">${conf.label}</span></div>`;
+      const fbOvr = getSupplierFallback(s.SupplierName);
+      const fbToggle = `<span class="sup-fb" title="Per-supplier fallback demand override">
+        <button class="${fbOvr==='90D'?'active-90':''}" onclick="event.stopPropagation();setSupplierFallback('${esc(s.SupplierName)}',${fbOvr==='90D'?'null':"'90D'"})">90D</button>
+        <button class="${fbOvr==='180D'?'active-180':''}" onclick="event.stopPropagation();setSupplierFallback('${esc(s.SupplierName)}',${fbOvr==='180D'?'null':"'180D'"})">180D</button>
+      </span>`;
       return `<tr>
         <td><div class="stack">
-          <a href="#" class="supplier-link" data-supplier="${esc(s.SupplierName)}">${esc(s.SupplierName)}</a>
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+            <a href="#" class="supplier-link" data-supplier="${esc(s.SupplierName)}">${esc(s.SupplierName)}</a>
+            ${fbToggle}
+          </div>
           <div class="chip-row">
             <span class="chip rule">${esc(s.riskLabel)}</span>
             <span class="chip crit" title="SKUs with under 14 days cover or out of stock">🔴 ${fmtInt(s.criticalCount)}</span>
@@ -2137,7 +2572,16 @@ function bindEvents(){
   const testUrlBtn=byId('testUrlBtn');if(testUrlBtn) testUrlBtn.addEventListener('click',testUrl);
   const sampleBtn=byId('sampleBtn');if(sampleBtn) sampleBtn.addEventListener('click',loadSample);
   const csvFile=byId('csvFile');if(csvFile) csvFile.addEventListener('change',async e=>{const f=e.target.files[0];if(!f) return;setStatus(`Reading ${f.name}...`,false);const fileText=await f.text();loadFromCsvText(fileText,f.name);});
-  ['searchBox','demandMode','leadDays','baseCoverDays','showFilter','excludeHealthyFilter'].forEach(id=>{
+  // Search box — only needs render() (computed values don't change), debounced for performance
+  const searchEl=byId('searchBox');
+  if(searchEl){
+    let _searchTimer=null;
+    const doSearch=()=>{ if(state.rawRows.length) render(); };
+    searchEl.addEventListener('input',()=>{ clearTimeout(_searchTimer); _searchTimer=setTimeout(doSearch,300); });
+    searchEl.addEventListener('change',doSearch);
+  }
+  // All other controls need a full recompute (demand/cover/lead params change computed values)
+  ['demandMode','leadDays','baseCoverDays','showFilter','excludeHealthyFilter'].forEach(id=>{
     const el=byId(id);if(!el) return;
     el.addEventListener('input',()=>state.rawRows.length&&recompute());
     el.addEventListener('change',()=>state.rawRows.length&&recompute());
@@ -2163,6 +2607,28 @@ function bindEvents(){
   });
   const exportBtn=byId('exportBtn');if(exportBtn) exportBtn.addEventListener('click',exportCSV);
   const poExportBtn=byId('poExportBtn');if(poExportBtn) poExportBtn.addEventListener('click',exportPO);
+  const xfrExportBtn=byId('xfrExportBtn');
+  if(xfrExportBtn) xfrExportBtn.addEventListener('click',()=>{
+    const {toCapel, toArklow} = computeTransfers();
+    const allRows = [
+      ...toCapel.map(r=>({Direction:'Arklow → Capel Street', ...r})),
+      ...toArklow.map(r=>({Direction:'Capel Street → Arklow',  ...r}))
+    ];
+    if(!allRows.length){ alert('No transfer recommendations to export.'); return; }
+    const cols=['Direction','SKU','ItemTitle','SupplierName','qty','value','cost',
+      'akStock','akDaily','csStock','csDaily','ooAK','ooCS','rank'];
+    const hdr=cols.join(',');
+    const body=allRows.map(r=>cols.map(c=>{
+      const v=r[c]!=null?r[c]:'';
+      const s=String(typeof v==='object'?JSON.stringify(v):v);
+      return s.includes(',')||s.includes('"')?`"${s.replace(/"/g,'""')}"`:s;
+    }).join(',')).join('\n');
+    const blob=new Blob([hdr+'\n'+body],{type:'text/csv'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`lenehans_stock_transfers_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  });
   const watchlistToggleBtn=byId('watchlistToggleBtn');
   if(watchlistToggleBtn) watchlistToggleBtn.addEventListener('click',()=>{
     const cur=watchlistToggleBtn.dataset.showAll==='true';
@@ -2206,6 +2672,7 @@ function bindEvents(){
       btn.classList.add('active');
       document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
       if(btn.dataset.tab==='clearstock') renderClearStock();
+      if(btn.dataset.tab==='transfers')  renderTransfers();
     });
   });
   // ── Clear Stock filter buttons ─────────────────────────────────────────────
