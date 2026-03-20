@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lenehans Purchasing Dashboard · V5.7 · INTELLIGENCE</title>
+  <title>Lenehans Purchasing Dashboard · V5.8 · INTELLIGENCE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -395,7 +395,7 @@
 </head>
 <body>
 <header>
-  <div class="title">Lenehans Purchasing Dashboard · V5.7 · INTELLIGENCE</div>
+  <div class="title">Lenehans Purchasing Dashboard · V5.8 · INTELLIGENCE</div>
   <div class="sub">QueryData_master + CS Shared + PO Status · governance · seasonal look-ahead · momentum · order health · confidence score</div>
 </header>
 
@@ -600,7 +600,7 @@
     </div>
   </div>
 
-  <div class="footer">V5.7 · Supplier governance · Seasonal look-ahead (next 3 months) · Demand momentum (7D vs 30D) · Buyer confidence score · Supplier order health · CS-required lines locked · stock basis = NetStock_Arklow</div>
+  <div class="footer">V5.8 · Supplier governance · Seasonal look-ahead (next 3 months) · Demand momentum (7D vs 30D) · Buyer confidence score · Supplier order health · CS-required lines locked · stock basis = NetStock_Arklow</div>
   </div><!-- /tab-buying -->
 
   <!-- TAB 2: Clear Stock -->
@@ -1316,6 +1316,11 @@ function normalizeRow(r){
     QtySold_Online_Total_30d:   n('QtySold_Online_Total_30d')||n('QSold_On30'),
     QtySold_Online_Total_90d:   n('QtySold_Online_Total_90d')||n('QSold_On90'),
     QtySold_Online_Total_180d:  n('QtySold_Online_Total_180d')||n('QSold_On180'),
+    // Per-location 90D/180D splits (new columns from updated SQL)
+    QtySold_Online_Arklow_90d:  n('QtySold_Online_Arklow_90d')||n('QSold_OnAK90'),
+    QtySold_Online_Arklow_180d: n('QtySold_Online_Arklow_180d')||n('QSold_OnAK180'),
+    QtySold_Online_CapelStreet_90d:  n('QtySold_Online_CapelStreet_90d')||n('QSold_OnCS90'),
+    QtySold_Online_CapelStreet_180d: n('QtySold_Online_CapelStreet_180d')||n('QSold_OnCS180'),
     // Rev_OnAK30 = Arklow online revenue 30D (new split column); Rev_On30 = combined fallback
     Revenue_Online_Total_30d:   n('Revenue_Online_Total_30d')||n('Rev_OnAK30')||n('Rev_On30'),
     // Rev_OnCS30 = Capel Street online revenue 30D
@@ -1815,8 +1820,9 @@ function computeRow(row){
       NetStock_Arklow: row.NetStock_CapelStreet||0,
       QtySold_Online_Total_7d:   row.QtySold_Shop_CapelStreet_7d||0,
       QtySold_Online_Total_30d:  row.QtySold_Shop_CapelStreet_30d||0,
-      QtySold_Online_Total_90d:  row.QtySold_Shop_CapelStreet_90d||0,
-      QtySold_Online_Total_180d: row.QtySold_Shop_CapelStreet_180d||0,
+      // Use Capel-specific 90D/180D online splits if available, fall back to shop data
+      QtySold_Online_Total_90d:  row.QtySold_Online_CapelStreet_90d||row.QtySold_Shop_CapelStreet_90d||0,
+      QtySold_Online_Total_180d: row.QtySold_Online_CapelStreet_180d||row.QtySold_Shop_CapelStreet_180d||0,
     };
   }
 
