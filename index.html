@@ -593,9 +593,80 @@
     .po-confirm-stat{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-bottom:1px solid #f1f5f9}
     .po-confirm-stat .val{font-weight:800}
     .po-confirm-btns{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+    /* ── Password gate ───────────────────────────────────────────────── */
+    #authGate{
+      position:fixed;inset:0;z-index:9999;
+      background:linear-gradient(135deg,#0f172a,#1e3a5f);
+      display:flex;align-items:center;justify-content:center;
+    }
+    #authGate.hidden{display:none}
+    .auth-box{
+      background:#fff;border-radius:16px;padding:40px;max-width:380px;width:90%;
+      box-shadow:0 20px 60px rgba(0,0,0,.4);text-align:center;
+    }
+    .auth-box h1{margin:0 0 6px;font-size:22px;font-weight:800;color:#1e3a5f}
+    .auth-box p{margin:0 0 24px;font-size:13px;color:#64748b}
+    .auth-input{
+      width:100%;padding:12px 16px;border:2px solid #cbd5e1;border-radius:10px;
+      font-size:15px;font-weight:600;text-align:center;margin-bottom:12px;
+    }
+    .auth-input:focus{outline:none;border-color:#1e40af;box-shadow:0 0 0 3px rgba(30,64,175,.15)}
+    .auth-btn{
+      width:100%;padding:12px;background:#1e40af;color:#fff;border:none;
+      border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;
+    }
+    .auth-btn:hover{background:#1748c0}
+    .auth-error{color:#dc2626;font-size:13px;font-weight:600;margin-top:8px;display:none}
   </style>
 </head>
 <body>
+
+<!-- Password gate -->
+<div id="authGate">
+  <div class="auth-box">
+    <h1>🔒 Lenehans Purchasing</h1>
+    <p>Enter password to access the dashboard</p>
+    <input type="password" id="authPassword" class="auth-input" placeholder="Password" autofocus
+      onkeydown="if(event.key==='Enter')checkAuth()">
+    <button class="auth-btn" onclick="checkAuth()">Sign In</button>
+    <div class="auth-error" id="authError">Incorrect password. Please try again.</div>
+  </div>
+</div>
+<script>
+const AUTH_HASH='c518c1f2e8d730a732d125a70cb2b2dccff3e310c0bca08662326ffaa7413e64';
+const AUTH_KEY='lenehans_auth';
+const AUTH_TTL=24*60*60*1000; // 24 hours
+
+async function sha256(str){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkAuth(){
+  const pwd=document.getElementById('authPassword').value;
+  const hash=await sha256(pwd);
+  if(hash===AUTH_HASH){
+    localStorage.setItem(AUTH_KEY,JSON.stringify({t:Date.now()}));
+    document.getElementById('authGate').classList.add('hidden');
+    document.getElementById('authError').style.display='none';
+  } else {
+    document.getElementById('authError').style.display='block';
+    document.getElementById('authPassword').value='';
+    document.getElementById('authPassword').focus();
+  }
+}
+
+// Check if already authenticated within TTL
+(function(){
+  try{
+    const s=JSON.parse(localStorage.getItem(AUTH_KEY)||'{}');
+    if(s.t && (Date.now()-s.t)<AUTH_TTL){
+      document.getElementById('authGate').classList.add('hidden');
+    }
+  }catch(e){}
+})();
+</script>
+
 <header>
   <div class="title">Lenehans Purchasing Dashboard · V5.41 · INTELLIGENCE</div>
   <div class="sub">QueryData_master + CS Shared + PO Status · governance · seasonal look-ahead · momentum · order health · confidence score · <span id="buildStamp" style="color:#60a5fa">build 2026-04-22</span></div>
