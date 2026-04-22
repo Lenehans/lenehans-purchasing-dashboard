@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V5.30 · INTELLIGENCE</title>
+  <title>Lenehans Purchasing Dashboard · V5.40 · INTELLIGENCE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -515,26 +515,93 @@
     .noos-body .sup-group td{padding:8px 10px;border-bottom:2px solid #e2e8f0}
     .noos-badge-crit{background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700}
     .noos-badge-oos{background:#991b1b;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:800}
+
+    /* ── Data freshness indicator ────────────────────────────────────── */
+    #freshnessBar{
+      display:none;position:sticky;top:47px;z-index:19;
+      padding:5px 20px;font-size:12px;font-weight:600;
+      background:#f0fdf4;border-bottom:1px solid #86efac;color:#15803d;
+      transition:background .3s,color .3s;
+    }
+    #freshnessBar.stale{background:#fff7ed;border-color:#fdba74;color:#92400e}
+    #freshnessBar.old{background:#fee2e2;border-color:#f87171;color:#991b1b}
+
+    /* ── Sticky channel floating badge ───────────────────────────────── */
+    #stickyChannelBadge{
+      position:fixed;top:56px;right:20px;z-index:21;
+      padding:5px 14px;border-radius:0 0 8px 8px;
+      font-size:12px;font-weight:800;letter-spacing:.04em;
+      box-shadow:0 2px 8px rgba(0,0,0,.12);display:none;
+    }
+    #stickyChannelBadge.arklow{background:#1e40af;color:#fff}
+    #stickyChannelBadge.capel{background:#7c3aed;color:#fff}
+
+    /* ── Colour-blind status icons ───────────────────────────────────── */
+    .cb-icon{font-size:10px;margin-right:2px;font-style:normal}
+
+    /* ── Team tab search ─────────────────────────────────────────────── */
+    #teamSearchBox{
+      padding:8px 14px;border:1.5px solid #cbd5e1;border-radius:8px;
+      font-size:13px;width:260px;margin-left:auto;
+    }
+    #teamSearchBox:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+
+    /* ── Keyboard shortcut hint ──────────────────────────────────────── */
+    .kbd-hint{
+      display:inline-block;padding:1px 5px;border-radius:3px;
+      background:#f1f5f9;border:1px solid #cbd5e1;
+      font-size:10px;font-weight:700;color:#64748b;
+      font-family:monospace;margin-left:4px;
+    }
+
+    /* ── Pack size / min order badge ─────────────────────────────────── */
+    .pack-badge{font-size:10px;color:#7c3aed;font-weight:700;white-space:nowrap}
+
+    /* ── Weather strip ───────────────────────────────────────────────── */
+    #weatherStrip{
+      display:none;align-items:center;gap:10px;
+      padding:6px 14px;margin:6px 0;
+      background:#f0f9ff;border:1.5px solid #7dd3fc;border-radius:8px;
+      font-size:12px;color:#0369a1;font-weight:600;
+    }
+    #weatherStrip .wx-temp{font-size:16px;font-weight:900;color:#0c4a6e}
+    #weatherStrip .wx-label{color:#64748b;font-weight:600}
+
+    /* ── PO export confirmation dialog ───────────────────────────────── */
+    .po-confirm-overlay{
+      position:fixed;inset:0;z-index:300;background:rgba(15,23,42,.5);
+      display:flex;align-items:center;justify-content:center;
+    }
+    .po-confirm-box{
+      background:#fff;border-radius:14px;padding:24px;max-width:420px;width:90%;
+      box-shadow:0 20px 60px rgba(0,0,0,.2);
+    }
+    .po-confirm-box h3{margin:0 0 16px;font-size:16px;font-weight:800;color:#1e3a5f}
+    .po-confirm-stat{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-bottom:1px solid #f1f5f9}
+    .po-confirm-stat .val{font-weight:800}
+    .po-confirm-btns{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
   </style>
 </head>
 <body>
 <header>
-  <div class="title">Lenehans Purchasing Dashboard · V5.30 · INTELLIGENCE</div>
+  <div class="title">Lenehans Purchasing Dashboard · V5.40 · INTELLIGENCE</div>
   <div class="sub">QueryData_master + CS Shared + PO Status · governance · seasonal look-ahead · momentum · order health · confidence score</div>
 </header>
+<div id="freshnessBar"></div>
+<div id="stickyChannelBadge"></div>
 
 <div class="wrap">
   <!-- Tab navigation -->
   <div class="tab-bar">
-    <button class="tab-btn active" data-tab="team">👥 Team</button>
-    <button class="tab-btn" data-tab="buying">📦 Buying</button>
-    <button class="tab-btn" data-tab="clearstock">🏷️ Clear Stock</button>
-    <button class="tab-btn" data-tab="transfers">🔄 Stock Transfers</button>
-    <button class="tab-btn" data-tab="noos">⭐ Never Out of Stock</button>
+    <button class="tab-btn active" data-tab="buying">📦 Buying <span class="kbd-hint">1</span></button>
+    <button class="tab-btn" data-tab="team">👥 Team <span class="kbd-hint">2</span></button>
+    <button class="tab-btn" data-tab="clearstock">🏷️ Clear Stock <span class="kbd-hint">3</span></button>
+    <button class="tab-btn" data-tab="transfers">🔄 Stock Transfers <span class="kbd-hint">4</span></button>
+    <button class="tab-btn" data-tab="noos">⭐ Never Out of Stock <span class="kbd-hint">5</span></button>
   </div>
 
   <!-- TAB 1: Buying -->
-  <div class="tab-panel" id="tab-buying">
+  <div class="tab-panel active" id="tab-buying">
 
   <!-- Load card: full form (shown before load) / collapsed status bar (after load) -->
   <div id="loadCardFull" class="card">
@@ -579,6 +646,7 @@
     <span id="channelNote" style="font-size:12px;color:#0369a1;margin-left:8px">Stock basis: NetStock_Arklow · Demand: Magento online orders</span>
   </div>
 
+  <div id="weatherStrip"></div>
   <div id="basicLoadBar">
     <div class="basic-spinner"></div>
     <span id="basicLoadMsg">Loading data…</span>
@@ -738,7 +806,7 @@
     </div>
   </div>
 
-  <div class="footer">V5.30 · Supplier governance · Seasonal look-ahead (next 3 months) · Demand momentum (7D vs 30D) · Buyer confidence score · Supplier order health · CS-required lines locked · stock basis = NetStock_Arklow</div>
+  <div class="footer">V5.40 · Supplier governance · Weather-aware · Pack-size rounding · Revenue ABC · Seasonal look-ahead (next 3 months) · Demand momentum (7D vs 30D) · Buyer confidence score · Supplier order health · CS-required lines locked · stock basis = NetStock_Arklow</div>
   </div><!-- /tab-buying -->
 
   <!-- TAB 2: Clear Stock -->
@@ -829,7 +897,7 @@
     </div>
   </div><!-- /tab-noos -->
 
-  <div class="tab-panel active" id="tab-team">
+  <div class="tab-panel" id="tab-team">
     <div id="teamView" style="padding:16px 0">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
         <button onclick="shiftTeamDate(-1)" style="width:36px;height:36px;border-radius:50%;border:2px solid #e2e8f0;background:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#1e3a5f">‹</button>
@@ -838,6 +906,7 @@
           <div id="teamDateSub" style="font-size:11px;color:#94a3b8"></div>
         </div>
         <button onclick="shiftTeamDate(1)" style="width:36px;height:36px;border-radius:50%;border:2px solid #e2e8f0;background:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#1e3a5f">›</button>
+        <input type="text" id="teamSearchBox" placeholder="Search supplier…" oninput="filterTeamOrders(this.value)">
         <button onclick="resetTeamDate()" id="teamTodayBtn" style="display:none;padding:4px 12px;border-radius:16px;border:1.5px solid #f97316;background:#fff7ed;color:#c2410c;font-size:12px;font-weight:700;cursor:pointer">Back to today</button>
       </div>
       <div id="teamBuyerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:24px"></div>
@@ -1123,6 +1192,12 @@ function classifySlowMover(r){
   if(q180===0) return 'dead';
   if(q90===0)  return 'stale';
   if(q30===0)  return 'slow';
+  // Velocity check: stock with >365 days of cover at current rate = barely moving
+  if(q30>0 && stock>0){
+    const dailyRate = q30/30;
+    const coverDays = stock / dailyRate;
+    if(coverDays > 365) return 'slow'; // will take over a year to sell through
+  }
   return null;
 }
 
@@ -1408,6 +1483,70 @@ loadFallbackOverrides();
 // PO done statuses → green
 const PO_DONE_STATUSES = ['done','complete','ordered','sent'];
 
+// ─── WEATHER-AWARE DEMAND ─────────────────────────────────────────────────────
+// Fetches Met Éireann 7-day forecast, classifies conditions, applies multiplier
+// to relevant seasonal categories
+const WEATHER_RULES = {
+  warm_dry:   { categories:['GARDEN_TOOLS','WATERING','BBQ','PATIO_CLEANING','LAWN_SEED','FERTILISER','WEED_CONTROL','PAINT_DECOR'], multiplier:1.15, label:'☀️ Warm & dry — garden/outdoor boost' },
+  cold_snap:  { categories:['WINTER_ICE','FIRE_HEAT','RODENT_CONTROL','PLUMBING_SEASON'],                                           multiplier:1.20, label:'❄️ Cold snap — winter prep boost' },
+  wet_windy:  { categories:['TARP_STORM','SECURITY'],                                                                                multiplier:1.10, label:'🌧️ Wet & windy — storm prep boost' },
+  mild:       { categories:[],                                                                                                        multiplier:1.00, label:'🌤️ Mild — no weather adjustment' }
+};
+let weatherData = { condition:'mild', forecast:null, lastFetch:null, tempAvg:null };
+
+async function fetchWeather(){
+  try{
+    // Met Éireann Open Data API — Dublin area forecast
+    const resp = await fetch('https://prodapi.metweb.ie/observations/Dublin/today');
+    if(!resp.ok) throw new Error('Weather API error');
+    const data = await resp.json();
+    // Parse temperature from observations
+    const temps = (data.observations||[]).map(o=>parseFloat(o.temperature)).filter(t=>!isNaN(t));
+    const avgTemp = temps.length ? temps.reduce((a,b)=>a+b,0)/temps.length : 12;
+    const maxTemp = temps.length ? Math.max(...temps) : 14;
+    // Simple condition classification
+    let condition = 'mild';
+    if(maxTemp >= 18) condition = 'warm_dry';
+    else if(avgTemp <= 4) condition = 'cold_snap';
+    else if(avgTemp <= 8) condition = 'wet_windy'; // cold + likely rain in Ireland
+    weatherData = { condition, forecast:data, lastFetch:new Date(), tempAvg:Math.round(avgTemp*10)/10 };
+    renderWeatherStrip();
+    return weatherData;
+  }catch(e){
+    // Silently fail — weather is an enhancement, not critical
+    console.log('Weather fetch skipped:', e.message);
+    // Try fallback: use month-based temperature estimate for Ireland
+    const monthTemps = [5,6,7,9,11,14,16,15,13,10,7,5]; // avg Irish temps by month
+    const estTemp = monthTemps[new Date().getMonth()];
+    let condition = 'mild';
+    if(estTemp >= 16) condition = 'warm_dry';
+    else if(estTemp <= 5) condition = 'cold_snap';
+    weatherData = { condition, forecast:null, lastFetch:new Date(), tempAvg:estTemp };
+    renderWeatherStrip();
+    return weatherData;
+  }
+}
+
+function getWeatherMultiplier(categoryId){
+  const rule = WEATHER_RULES[weatherData.condition];
+  if(!rule || !rule.categories.length) return 1;
+  return rule.categories.includes(categoryId) ? rule.multiplier : 1;
+}
+
+function renderWeatherStrip(){
+  const el = document.getElementById('weatherStrip');
+  if(!el) return;
+  const rule = WEATHER_RULES[weatherData.condition] || WEATHER_RULES.mild;
+  const temp = weatherData.tempAvg != null ? weatherData.tempAvg + '°C' : '—';
+  el.style.display = 'flex';
+  el.innerHTML = `<span class="wx-temp">${temp}</span>
+    <span>${rule.label}</span>
+    <span class="wx-label" style="margin-left:auto">${rule.multiplier > 1 ? '+' + Math.round((rule.multiplier-1)*100) + '% to ' + rule.categories.length + ' categories' : 'No adjustment'}</span>
+    <span class="wx-label">Last check: ${weatherData.lastFetch ? weatherData.lastFetch.toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'}) : '—'}</span>`;
+}
+
+
+
 // ─── CATEGORY & SEASONAL RULES ───────────────────────────────────────────────
 const CATEGORY_RULES = [
   { id:'BIRD_CONTROL',   label:'Bird Control',    keywords:['bird','hawk','kite','pigeon','scarer','repeller','falcon'],                   seasonalProfile:'SPRING_BIRD',       priority:100 },
@@ -1425,7 +1564,12 @@ const CATEGORY_RULES = [
   { id:'WINTER_ICE',     label:'De-Icer / Salt',  keywords:['rock salt','deicer','de icer','de-icer','ice melt','snow shovel','ice scraper'], seasonalProfile:'WINTER_ICE',     priority:100 },
   { id:'CHRISTMAS',      label:'Christmas',       keywords:['christmas','xmas','tree lights','tree stand','decorations'],                 seasonalProfile:'CHRISTMAS',          priority:100 },
   { id:'TARP_STORM',     label:'Storm Prep',      keywords:['tarpaulin','tarp','rope','bungee'],                                          seasonalProfile:'STORM_AUTUMN',       priority:72  },
-  { id:'FIRE_HEAT',      label:'Fire / Heat',     keywords:['kindling','firelighter','fire lighters','logs','log basket'],                seasonalProfile:'WINTER_FIRE',        priority:78  }
+  { id:'FIRE_HEAT',      label:'Fire / Heat',     keywords:['kindling','firelighter','fire lighters','logs','log basket'],                seasonalProfile:'WINTER_FIRE',        priority:78  },
+  { id:'PAINT_DECOR',    label:'Paint & Decorating', keywords:['paint','primer','varnish','stain','roller','brush','filler','wallpaper','decorator','masking'], seasonalProfile:'SPRING_PAINT', priority:68 },
+  { id:'LIGHTING',       label:'Lighting',        keywords:['bulb','lamp','led','spotlight','floodlight','desk light','reading light','lantern'],              seasonalProfile:'WINTER_LIGHTING',    priority:65  },
+  { id:'SECURITY',       label:'Security & Locks', keywords:['lock','padlock','deadbolt','hasp','door chain','security light','alarm','safe'],                seasonalProfile:'AUTUMN_SECURITY',    priority:70  },
+  { id:'ADHESIVES',      label:'Adhesives & Sealants', keywords:['adhesive','glue','sealant','silicone','epoxy','superglue','no more nails','grip fill'],     seasonalProfile:'SPRING_CONSTRUCTION',priority:62  },
+  { id:'PLUMBING_SEASON',label:'Plumbing (seasonal)', keywords:['pipe','lagging','frost','bleed key','radiator key','pipe insulation','stopcock'],            seasonalProfile:'WINTER_PLUMBING',    priority:72  }
 ];
 
 const SEASONAL_PROFILES = {
@@ -1445,7 +1589,12 @@ const SEASONAL_PROFILES = {
   WINTER_ICE:        { monthly:[2.1,1.9,1.0,1.0,1.0,1.0,1.0,1.0,1.2,2.0,2.5,2.4], note:'Winter de-icer demand' },
   CHRISTMAS:         { monthly:[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.3,1.7,2.5,2.0], note:'Christmas demand' },
   STORM_AUTUMN:      { monthly:[1.1,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.2,1.5,1.6,1.5], note:'Autumn/winter storm demand' },
-  WINTER_FIRE:       { monthly:[1.6,1.2,1.0,1.0,1.0,1.0,1.0,1.0,1.3,1.6,1.8,1.8], note:'Cold season fire demand' }
+  WINTER_FIRE:       { monthly:[1.6,1.2,1.0,1.0,1.0,1.0,1.0,1.0,1.3,1.6,1.8,1.8], note:'Cold season fire demand' },
+  SPRING_PAINT:      { monthly:[1.0,1.3,1.7,2.0,1.9,1.5,1.2,1.0,1.1,1.0,1.0,1.0], note:'Spring decorating season' },
+  WINTER_LIGHTING:   { monthly:[1.3,1.1,1.0,1.0,1.0,1.0,1.0,1.0,1.2,1.5,1.7,1.5], note:'Dark evenings lighting demand' },
+  AUTUMN_SECURITY:   { monthly:[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.2,1.5,1.4,1.2], note:'Autumn clocks-change security demand' },
+  SPRING_CONSTRUCTION:{ monthly:[1.0,1.2,1.5,1.7,1.8,1.6,1.3,1.1,1.1,1.0,1.0,1.0], note:'Construction season adhesive demand' },
+  WINTER_PLUMBING:   { monthly:[1.8,1.5,1.1,1.0,1.0,1.0,1.0,1.0,1.0,1.2,1.6,1.9], note:'Winter burst-pipe plumbing demand' }
 };
 
 // Irish seasonal rules — used for reason text and boost decisions
@@ -1463,7 +1612,12 @@ const IRISH_SEASONAL_RULES = [
   {name:'Storm prep',               keywords:['tarpaulin','tarp','rope','bungee'],                             months:[9,10,11,12,1],    boost:1.1 },
   {name:'Fire / winter heat',       keywords:['kindling','firelighter','log','coal'],                         months:[9,10,11,12,1],    boost:1.1 },
   {name:'Christmas',                keywords:['christmas','xmas','tree light','decor'],                        months:[9,10,11,12],      boost:1.25},
-  {name:'Storage / organisation',   keywords:['storage','shelving','box','crate','garage'],                   months:[1],               boost:1.1 }
+  {name:'Storage / organisation',   keywords:['storage','shelving','box','crate','garage'],                   months:[1],               boost:1.1 },
+  {name:'Paint / decorating',      keywords:['paint','primer','varnish','stain','roller','filler','wallpaper'], months:[3,4,5,6],       boost:1.15},
+  {name:'Lighting (dark evenings)', keywords:['bulb','lamp','led','spotlight','lantern','desk light'],          months:[9,10,11,12,1],  boost:1.1 },
+  {name:'Security (clocks change)', keywords:['lock','padlock','alarm','security','safe','door chain'],        months:[10,11],           boost:1.12},
+  {name:'Adhesives / construction', keywords:['adhesive','glue','sealant','silicone','epoxy','no more nails'], months:[3,4,5,6,7],     boost:1.1 },
+  {name:'Plumbing (freeze risk)',   keywords:['pipe','lagging','frost','bleed key','stopcock','insulation'],   months:[11,12,1,2],     boost:1.2 }
 ];
 
 // ─── UTILITY ─────────────────────────────────────────────────────────────────
@@ -1477,6 +1631,9 @@ function monthLabel(){ return new Date().toLocaleString('en-IE', {month:'long'})
 function setStatus(msg,bad){
   const el=document.getElementById('loadStatus');
   if(el){ el.textContent=msg; el.style.color=bad?'var(--bad)':'#14532d'; el.style.background=bad?'#fee2e2':msg.startsWith('✅')?'#dcfce7':'#f1f5f9'; el.style.borderColor=bad?'#f87171':msg.startsWith('✅')?'#4ade80':'var(--line-light)'; }
+  // Track data load time for freshness indicator
+  if(msg.startsWith('✅')&&!bad) state._dataLoadedAt = new Date();
+  updateFreshnessBar();
   // Collapse load card when data loads successfully
   if(msg.startsWith('✅')&&!bad){
     // Hide basic mode loading bar
@@ -1493,6 +1650,47 @@ function setStatus(msg,bad){
 }
 function setLoadMeta(msg,bad){ const el=document.getElementById('loadMeta'); if(el){ el.textContent=msg||''; el.style.color=bad?'var(--bad)':'var(--muted)'; } }
 function setGovStatus(msg){ const el=document.getElementById('govStatus'); if(el) el.textContent=msg||''; }
+
+
+// ─── DATA FRESHNESS INDICATOR ─────────────────────────────────────────────────
+function updateFreshnessBar(){
+  const bar = document.getElementById('freshnessBar');
+  if(!bar) return;
+  if(!state._dataLoadedAt){ bar.style.display='none'; return; }
+  const now = new Date();
+  const diff = now - state._dataLoadedAt;
+  const hrs = Math.floor(diff / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  const loadTime = state._dataLoadedAt.toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'});
+  const loadDate = state._dataLoadedAt.toLocaleDateString('en-IE',{day:'numeric',month:'short'});
+  let label = `Data loaded at ${loadTime} on ${loadDate}`;
+  if(hrs > 0) label += ` · ${hrs}h ${mins}m ago`;
+  else if(mins > 0) label += ` · ${mins}m ago`;
+  else label += ' · just now';
+  bar.style.display = 'block';
+  bar.className = hrs >= 48 ? 'old' : (hrs >= 24 ? 'stale' : '');
+  bar.textContent = (hrs >= 48 ? '🔴 ' : hrs >= 24 ? '🟠 ' : '🟢 ') + label;
+}
+// Update freshness every minute
+setInterval(updateFreshnessBar, 60000);
+
+
+// ─── STICKY CHANNEL BADGE ─────────────────────────────────────────────────────
+function updateChannelBadge(){
+  const badge = document.getElementById('stickyChannelBadge');
+  if(!badge) return;
+  const isCapel = state.channel === 'capel';
+  const buyingTab = document.getElementById('tab-buying');
+  const isActive = buyingTab && buyingTab.classList.contains('active');
+  if(!isActive || !state.computedRows || !state.computedRows.length){
+    badge.style.display = 'none';
+    return;
+  }
+  badge.style.display = window.scrollY > 200 ? 'block' : 'none';
+  badge.className = isCapel ? 'capel' : 'arklow';
+  badge.textContent = isCapel ? '🏪 CAPEL STREET' : '🏭 ARKLOW';
+}
+window.addEventListener('scroll', updateChannelBadge, {passive:true});
 
 function toggleWatchlist(){
   const body=document.getElementById('wlBody');
@@ -1666,7 +1864,15 @@ function parsePOFeed(rows){
   // Mar AK Status, Mar AK Done, Mar AK By, Mar CS Status, Mar CS Done, Mar CS By
   // Apr AK Status, Apr AK Done, Apr AK By, Apr CS Status, Apr CS Done, Apr CS By
   // May AK Status, May AK Done, May AK By, May CS Status, May CS Done, May CS By
-  const monthPrefixes = ['Mar','Apr','May'];
+  // Auto month rollover — dynamically calculate current + 2 prior months
+  const _mpMonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const _mpNow = new Date();
+  const _mpCur = _mpNow.getMonth(); // 0-based
+  const monthPrefixes = [
+    _mpMonths[(_mpCur - 2 + 12) % 12],
+    _mpMonths[(_mpCur - 1 + 12) % 12],
+    _mpMonths[_mpCur]
+  ];
 
   function isDoneStatus(s){ return PO_DONE_STATUSES.some(d=>(s||'').toLowerCase().includes(d)); }
   function getCol(prefix, suffix){
@@ -2090,6 +2296,7 @@ function buildBuyerReason(res){
   if(seasonRule&&!res.seasonalDataUsed) lines.push(`Irish seasonal rule active: ${seasonRule.name}.`);
   const hiddenSeasonal=getHiddenSeasonalSignal(res);
   if(hiddenSeasonal.label!=='Normal') lines.push(`${hiddenSeasonal.label} detected from 180-day versus 30-day sales pattern.`);
+  if(res.wxMultiplier>1.01) lines.push(`Weather adjustment: ${WEATHER_RULES[weatherData.condition]?.label || 'mild'} (+${Math.round((res.wxMultiplier-1)*100)}%).`);
   if(res.seasonalBoostPct>0) lines.push(`Seasonal buy boost applied (+${fmtInt(res.seasonalBoostPct*100)}%) because cover is weak.`);
   if(res.adjustedDaily>0) lines.push(`Current stock is ${fmtInt(res.stock)}, giving about ${fmtInt(res.daysOfCover)} days of cover.`);
   else lines.push(`Current stock is ${fmtInt(res.stock)} and there is no active demand signal right now.`);
@@ -2097,6 +2304,8 @@ function buildBuyerReason(res){
   if(res._csRequired) lines.push(`CS-required line — minimum floor qty ${fmtInt(res._csQtyFloor)}. Cannot be omitted from PO export.${res._csReason?' Reason: '+res._csReason+'.':''}`);
   if(res.minOneFallbackApplied) lines.push(`Minimum order of 1 unit applied because fallback demand exists and stock is zero.`);
   else lines.push(`Recommended order: ${fmtInt(res.buy)} units.`);
+  if(res.packRounded) lines.push(`Rounded up to pack size of ${fmtInt(res.packSize)}.`);
+  if(res.minOrderApplied) lines.push(`Raised to supplier minimum order of ${fmtInt(res.minOrder)}.`);
   if(res.ramp&&res.demandMode!=='7D') lines.push(`A 7-day spike is visible as a signal (${res.demandMode} mode is active).`);
   if(res.capelSignal) lines.push(`<span style="color:#dc2626;font-weight:700">${res.capelSignal}</span>`);
   // Alternative supplier signals
@@ -2230,11 +2439,17 @@ function computeRow(row){
 
   const baseDaily=demandDays>0?demandQty/demandDays:0;
 
-  let abcClass='C';
+  // Revenue-weighted ABC: blend volume and revenue for better ranking
   const qty180=row.QtySold_Online_Total_180d||0;
   const qty30 =row.QtySold_Online_Total_30d||0;
-  if(qty180>=100) abcClass='A';
-  else if(qty180>=20) abcClass='B';
+  const rev180=(row.Revenue_Online_Total_30d||0)*6; // extrapolate 30D rev to 180D
+  // Composite score: 60% revenue + 40% volume (normalised against thresholds)
+  const abcRevScore  = Math.min(rev180 / 500, 1); // €500 in 180D = max revenue score
+  const abcVolScore  = Math.min(qty180 / 100, 1); // 100 units in 180D = max volume score
+  const abcComposite = (abcRevScore * 0.6) + (abcVolScore * 0.4);
+  let abcClass='C';
+  if(abcComposite >= 0.5) abcClass='A';
+  else if(abcComposite >= 0.2) abcClass='B';
 
   const seasonalRatio=qty30>0?(qty180/6)/qty30:0;
   let seasonalSignal='Normal';
@@ -2281,7 +2496,9 @@ function computeRow(row){
   }
   seasonalBoostPct=Math.min(seasonalBoostPct,0.20);
 
-  const effectiveDaily=adjustedDaily*(1+seasonalBoostPct);
+  // Apply weather multiplier for relevant categories
+  const wxMultiplier = getWeatherMultiplier(cls.categoryId);
+  const effectiveDaily=adjustedDaily*(1+seasonalBoostPct)*wxMultiplier;
   const target=ceilNonNeg(effectiveDaily*coverDays);
 
   // CS floor: buy must be at least the CS floor qty if CS-required
@@ -2291,6 +2508,18 @@ function computeRow(row){
   if(row._csRequired&&row._csQtyFloor>0) buy=Math.max(buy,row._csQtyFloor);
   const minOneFallbackApplied=!!fallbackUsed&&stock<=0&&demandQty>0&&buy<=0;
   if(minOneFallbackApplied) buy=1;
+  // Pack-size rounding: round up to nearest pack, enforce supplier minimum
+  const packSize = row.SupplierPackSize || 1;
+  const minOrder = row.SupplierMinOrder || 0;
+  if(buy > 0 && packSize > 1){
+    buy = Math.ceil(buy / packSize) * packSize;
+  }
+  if(buy > 0 && minOrder > 0 && buy < minOrder){
+    buy = minOrder;
+  }
+  // Track if pack rounding was applied for display
+  const packRounded = (packSize > 1 && buy > 0);
+  const minOrderApplied = (minOrder > 0 && rawBuy > 0 && rawBuy < minOrder);
 
   const daysOfCover=effectiveDaily>0?(stock/effectiveDaily):(stock>0?9999:0);
   const rawCoverStatus=effectiveDaily<=0?(stock>0?'No demand':'Out of Stock')
@@ -2310,6 +2539,7 @@ function computeRow(row){
     seasonalMultiplier,seasonalDataUsed,abcClass,seasonalSignal,seasonalBoostPct,
     baseDaily,adjustedDaily:effectiveDaily,daysOfCover,coverStatus,coverDays,
     target,rawBuy,maxBuy,buy,stock,status,ramp,capelSignal,minOneFallbackApplied,
+    packRounded,minOrderApplied,packSize,minOrder:minOrder,wxMultiplier,
     _csRequired:row._csRequired||false,
     _csQtyFloor:row._csQtyFloor||0,
     _csReason:row._csReason||''
@@ -2344,6 +2574,11 @@ function supplierSummaryRows(rows){
     s._skuRows.push(r);
     // Attach PO status from channel-correct map
     if(!s.poStatus && chPoMap[k]) s.poStatus=chPoMap[k];
+    // Extract last done date for display
+    if(s.poStatus && s.poStatus.history && s.poStatus.history.length>0){
+      const lastDone = s.poStatus.history.find(h=>h.isDone);
+      if(lastDone) s.lastDoneDate = lastDone.date || lastDone.month || '';
+    }
   }
   // Also try fuzzy PO status match
   for(const [name, s] of map){
@@ -2357,12 +2592,16 @@ function supplierSummaryRows(rows){
   }
   const arr=[...map.values()];
   for(const s of arr){
-    const riskScore=(s.criticalCount*5)+(s.lowCount*3)+(s.buySkuCount*2)+(s.totalBuy/50);
+    // Cost-weighted risk: critical A-items with high cost rank above cheap C-items
+    const critCost = s._skuRows.filter(r=>['Critical','Out of Stock'].includes(r.coverStatus))
+      .reduce((sum,r)=>sum + (r.buy||0) * (r._bestKnownCost||r.SupplierCostPrice||0), 0);
+    const riskScore=(s.criticalCount*5)+(s.lowCount*3)+(s.buySkuCount*2)+(s.totalBuy/50)+(critCost/200);
     let riskLabel='Low';
     if(riskScore>40) riskLabel='Order now';
     else if(riskScore>25) riskLabel='High';
     else if(riskScore>12) riskLabel='Medium';
     s.riskLabel=riskLabel;
+    s.critCostAtRisk=critCost;
     s.orderHealth = getSupplierOrderHealth(s._skuRows);
     const confScores = s._skuRows.map(r=>r.confidence?r.confidence.score:60);
     const avgConf = confScores.length ? Math.round(confScores.reduce((a,b)=>a+b,0)/confScores.length) : 60;
@@ -2442,6 +2681,7 @@ function recompute(){
   const rankSorted=[...deduped].sort((a,b)=>(b.Revenue_Online_Total_30d||0)-(a.Revenue_Online_Total_30d||0));
   state.skuRankMap=new Map(rankSorted.map((r,i)=>[ r.SKU, i+1 ]));
   render();
+  updateChannelBadge();
   if(document.getElementById('tab-clearstock')?.classList.contains('active')) renderClearStock();
   if(document.getElementById('tab-noos')?.classList.contains('active')) renderNOOS();
 }
@@ -2681,6 +2921,7 @@ function render(){
       const confBar = `<div class="conf-bar"><div class="conf-track"><div class="conf-fill ${conf.cls}" style="width:${conf.score}%"></div></div><span style="font-size:11px;font-weight:700;color:${conf.cls==='conf-high'?'#166534':conf.cls==='conf-med'?'#d97706':'#dc2626'}">${conf.label}</span></div>`;
       const momChip = `<span class="chip ${mom.chip}" title="7D vs 30D run-rate">${mom.label}</span>`;
       const coverCls=r.coverStatus==='Healthy'?'good-txt':(r.coverStatus==='Low'?'warn-txt':(r.coverStatus==='Critical'||r.coverStatus==='Out of Stock'?'bad':''));
+      const cbIcon=r.coverStatus==='Out of Stock'?'⬤':r.coverStatus==='Critical'?'◆':r.coverStatus==='Low'?'△':r.coverStatus==='Healthy'?'✓':r.coverStatus==='High'?'▲':'·';
       const coverText=r.daysOfCover>=9999?'∞':fmtInt(r.daysOfCover);
       const isOmitted=state.omittedSkus.has(r.SKU)&&!r._csRequired;
       const omitBtn=r._csRequired
@@ -2826,7 +3067,7 @@ function render(){
           }
           return `<div><span class="chip ${chipCls}">${esc(po.raw)}${personPart}${datePart}</span>${histHtml}</div>`;
         })()
-        :`<span class="chip po-pending">No PO</span>`;
+        : `<span class="chip po-pending">No PO</span>`;
       const health = s.orderHealth || {score:0,label:'—',cls:'conf-low'};
       const conf   = s.avgConfidence || {score:60,label:'Med',cls:'conf-med'};
       const healthBar = `<div class="health-bar"><div class="health-track"><div class="health-fill ${health.cls}" style="width:${health.score}%"></div></div>${health.label}</div>`;
@@ -3081,7 +3322,7 @@ function toggleBasicMode(){
 function applyInitialMode(){
   // Default: basic mode
   const saved = localStorage.getItem('lenehans_mode');
-  const goBasic = saved !== 'full'; // basic unless explicitly set to full
+  const goBasic = saved === 'basic'; // full unless explicitly set to basic
   if(goBasic){
     document.body.classList.add('basic-mode');
     const btn = document.getElementById('basicModeBtn');
@@ -3092,6 +3333,11 @@ function applyInitialMode(){
 function exportPO(){
   const rows=getFilteredRows().filter(r=>r.buy>0&&(!state.omittedSkus.has(r.SKU)||r._csRequired));
   if(!rows.length){alert('No lines to export for current view.');return;}
+  showPOConfirmation(rows, _doExportPO);
+}
+function _doExportPO(){
+  const rows=getFilteredRows().filter(r=>r.buy>0&&(!state.omittedSkus.has(r.SKU)||r._csRequired));
+  if(!rows.length) return;
   const supplierLabel=state.activeSupplier||'ALL_SUPPLIERS';
   const cols=['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','_csRequired','_csQtyFloor','coverStatus','stock','target','reason'];
   const headers=[...cols,'Tax Rate'];
@@ -3204,6 +3450,15 @@ async function processRawRows(parsedRaw, sourceName){
     : ' · governance feeds unavailable, showing all suppliers';
   setStatus(`✅ Loaded ${fmtInt(normalised.length)} rows from ${sourceName}${govNote}.${missing.length?' Missing columns: '+missing.join(', '):''}`, false);
   setLoadMeta('',false);
+  // Refresh Team tab with latest PO status data
+  renderTeam();
+  // If buyer order list is open, re-render it too
+  const teamList = document.getElementById('teamOrderList');
+  const teamHdr  = teamList && teamList.style.display!=='none' && teamList.querySelector('.team-buyer-title');
+  if(teamHdr){
+    const name = teamHdr.textContent.replace(/^👤\s*/,'').replace(/'s orders$/,'').trim();
+    renderBuyerOrders(name);
+  }
 }
 
 async function testUrl(){
@@ -3456,7 +3711,6 @@ function bindEvents(){
 document.addEventListener('DOMContentLoaded',()=>{
   applyInitialMode();
   updateTeamDateUI();
-  renderTeam();
   bindEvents();
   const monthBadge=document.getElementById('monthBadge');
   if(monthBadge) monthBadge.textContent=`Month: ${monthLabel()}`;
@@ -3490,19 +3744,20 @@ function shouldFireToday(cadence, date){
 }
 
 let teamDoneSet = new Set();
-let teamDate = new Date(); // date being viewed in team tab
+function nearestWeekday(d){ const day=d.getDay(); if(day===0) d.setDate(d.getDate()+1); if(day===6) d.setDate(d.getDate()-1); return d; }
+let teamDate = nearestWeekday(new Date()); // weekdays only
 
 function shiftTeamDate(delta){
   teamDate = new Date(teamDate);
   teamDate.setDate(teamDate.getDate() + delta);
-  // Skip weekends
+  // Skip weekends — keep moving in same direction
   while(teamDate.getDay()===0||teamDate.getDay()===6) teamDate.setDate(teamDate.getDate()+delta);
   updateTeamDateUI();
   renderTeam();
 }
 
 function resetTeamDate(){
-  teamDate = new Date();
+  teamDate = nearestWeekday(new Date());
   updateTeamDateUI();
   renderTeam();
 }
@@ -3543,20 +3798,16 @@ function renderTeam(){
 
   const lbData = buyerNames.map((name,i)=>{
     const b = buyers[name];
-    const uniqueSuppliers = [...new Set(b.today.map(r=>r.supplier))];
-
-    // Seed done from PO map for today's suppliers
+    // Seed done from PO map for today's suppliers (per supplier+channel)
     let doneToday = 0;
-    for(const sup of uniqueSuppliers){
-      const supRows = b.today.filter(r=>r.supplier===sup);
-      const allDone = supRows.every(r=>{
-        const ch = r.channel.toLowerCase().includes('capel')?'capel street':'arklow';
-        const po = poMap[sup+'||'+ch];
-        if(po && po.isDone){ teamDoneSet.add(sup+'||'+r.channel); return true; }
-        return teamDoneSet.has(sup+'||'+r.channel);
-      });
-      if(allDone) doneToday++;
+    for(const r of b.today){
+      const ch = r.channel.toLowerCase().includes('capel')?'capel street':'arklow';
+      const po = poMap[r.supplier+'||'+ch];
+      if(po && po.isDone) teamDoneSet.add(r.supplier+'||'+r.channel);
     }
+    // Count unique supplier+channel combos done today
+    const uniqueKeys = [...new Set(b.today.map(r=>r.supplier+'||'+r.channel))];
+    doneToday = uniqueKeys.filter(k=>teamDoneSet.has(k)).length;
 
     // Count all done this month across ALL their suppliers (not just today)
     const allSuppliers = [...new Set(b.all.map(r=>r.supplier))];
@@ -3571,7 +3822,7 @@ function renderTeam(){
       if(anyDone) doneMonth++;
     }
 
-    return {name, colour:colours[i%colours.length], uniqueSuppliers, doneToday,
+    return {name, colour:colours[i%colours.length], uniqueKeys, doneToday,
             allSuppliers, doneMonth, hasOrders: b.today.length>0};
   });
 
@@ -3583,7 +3834,7 @@ function renderTeam(){
       <div class="team-buyer-avatar" style="background:linear-gradient(135deg,${b.colour},#3b82f6)">${initials}</div>
       <div class="team-buyer-name">${esc(b.name)}</div>
       ${b.hasOrders
-        ? `<div style="font-size:26px;font-weight:900;color:#16a34a;line-height:1.1">${b.doneToday}<span style="font-size:13px;font-weight:600;color:#94a3b8"> / ${b.uniqueSuppliers.length}</span></div>
+        ? `<div style="font-size:26px;font-weight:900;color:#16a34a;line-height:1.1">${b.doneToday}<span style="font-size:13px;font-weight:600;color:#94a3b8"> / ${b.uniqueKeys.length}</span></div>
            <div style="font-size:11px;color:#94a3b8;margin-bottom:6px">done today</div>
            <div style="height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden">
              <div style="height:100%;width:${monthPct}%;background:#4ade80;border-radius:2px;transition:width .4s"></div>
@@ -3621,17 +3872,17 @@ function renderBuyerOrders(buyerName){
     }
   }
 
-  // Group by supplier
+  // One card per supplier+channel combination
   const bySupplier = {};
   for(const r of todayRows){
-    if(!bySupplier[r.supplier]) bySupplier[r.supplier]={supplier:r.supplier,channels:[],cadence:r.cadence};
-    if(!bySupplier[r.supplier].channels.includes(r.channel)) bySupplier[r.supplier].channels.push(r.channel);
+    const key = r.supplier + '||' + r.channel;
+    if(!bySupplier[key]) bySupplier[key]={supplier:r.supplier,channel:r.channel,channels:[r.channel],cadence:r.cadence};
   }
   const suppliers = Object.values(bySupplier);
 
   const dayName = teamDate.toLocaleDateString('en-IE',{weekday:'long',day:'numeric',month:'long'});
-  const pending = suppliers.filter(s=>!s.channels.every(ch=>teamDoneSet.has(s.supplier+'||'+ch)));
-  const done    = suppliers.filter(s=> s.channels.every(ch=>teamDoneSet.has(s.supplier+'||'+ch)));
+  const pending = suppliers.filter(s=>!teamDoneSet.has(s.supplier+'||'+s.channel));
+  const done    = suppliers.filter(s=> teamDoneSet.has(s.supplier+'||'+s.channel));
 
   let html = `<div class="team-order-header">
     <button class="team-back-btn" onclick="renderTeam()">← Back</button>
@@ -3656,37 +3907,52 @@ function renderBuyerOrders(buyerName){
 }
 
 function buildOrderCard(s, isDone, buyerName){
-  const channelChips = s.channels.map(ch=>
-    `<span class="team-order-chip ${ch.toLowerCase().includes('capel')?'capel':'arklow'}">${esc(ch)}</span>`
-  ).join(' ');
-  const chStr = s.channels.map(c=>`'${esc(c)}'`).join(',');
+  const isCapelCh = s.channel.toLowerCase().includes('capel');
+  const channelChip = `<span class="team-order-chip ${isCapelCh?'capel':'arklow'}">${esc(s.channel)}</span>`;
 
   // Get PO done details from poStatusMap for display
   let doneDetail = '';
   if(isDone){
     const poMap = state.poStatusMap || {};
-    for(const ch of s.channels){
-      const mapKey = s.supplier + '||' + ch.toLowerCase();
-      const po = poMap[mapKey];
-      if(po && po.isDone && po.date){
-        doneDetail = `&nbsp;·&nbsp;${esc(po.date)}${po.person?' · '+esc(po.person):''}`;
-        break;
-      }
+    const mapKey = s.supplier + '||' + s.channel.toLowerCase();
+    const po = poMap[mapKey];
+    if(po && po.isDone && po.date){
+      doneDetail = `&nbsp;·&nbsp;${esc(po.date)}${po.person?' · '+esc(po.person):''}`;
     }
   }
 
-  return `<div class="team-order-card ${isDone?'done':''}">
+  return `<div class="team-order-card ${isDone?'done':''}" style="border-left:4px solid ${isCapelCh?'#7c3aed':'#1e40af'}">
     <div class="team-order-info">
       <div class="team-order-supplier">${esc(s.supplier)}</div>
-      <div class="team-order-meta">${channelChips}&nbsp;·&nbsp;${esc(s.cadence)}${doneDetail?'<span style="color:#15803d;font-weight:600">'+doneDetail+'</span>':''}</div>
+      <div class="team-order-meta">${channelChip}&nbsp;·&nbsp;${esc(s.cadence)}${doneDetail?'<span style="color:#15803d;font-weight:600">'+doneDetail+'</span>':''}</div>
     </div>
     <button class="team-order-done-btn ${isDone?'marked':''}"
-      onclick="event.stopPropagation();toggleTeamDone('${esc(s.supplier)}',[${chStr}],'${esc(buyerName||'')}')">
+      onclick="event.stopPropagation();toggleTeamDone('${esc(s.supplier)}',['${esc(s.channel)}'],'${esc(buyerName||'')}')">
       ${isDone?'✓ Done':'Pending'}
     </button>
     <button class="team-order-go"
-      onclick="event.stopPropagation();goToSupplier('${esc(s.supplier)}')">Open →</button>
+      onclick="event.stopPropagation();goToSupplier('${esc(s.supplier)}','${esc(s.channel)}')">Open →</button>
   </div>`;
+}
+
+// ─── SILENT PO REFRESH ───────────────────────────────────────────────────────
+// Re-fetches PO Status feed in background and updates chips without full reload
+async function silentRefreshPO(){
+  try{
+    const poRaw = await fetchCSV(PO_URL, 'PO Status');
+    state.poStatusMap = parsePOFeed(poRaw);
+    recompute();
+    // If team order list is open, refresh it too
+    const list = document.getElementById('teamOrderList');
+    const hdr  = list && list.style.display!=='none' && list.querySelector('.team-buyer-title');
+    if(hdr){
+      const name = hdr.textContent.replace(/^👤\s*/,'').replace(/'s orders$/,'').trim();
+      renderBuyerOrders(name);
+    }
+    renderTeam();
+  }catch(e){
+    // Silent fail — sheet may be temporarily unavailable
+  }
 }
 
 function toggleTeamDone(supplier, channels, buyerName){
@@ -3695,7 +3961,35 @@ function toggleTeamDone(supplier, channels, buyerName){
   if(allDone) channels.forEach(ch=>teamDoneSet.delete(supplier+'||'+ch));
   else        channels.forEach(ch=>teamDoneSet.add(supplier+'||'+ch));
 
-  // Write back to PO Status Log if URL is configured
+  // ── Optimistically update in-memory poStatusMap so supplier list chip updates instantly ──
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now = new Date();
+  const todayStr = String(now.getDate()).padStart(2,'0') + ' ' + MONTHS[now.getMonth()];
+  const monthLabel = MONTHS[now.getMonth()] + ' ' + now.getFullYear();
+  channels.forEach(ch=>{
+    const mapKey = supplier + '||' + ch.toLowerCase();
+    if(action === 'done'){
+      state.poStatusMap[mapKey] = {
+        raw: 'DONE', isDone: true,
+        date: todayStr, person: buyerName||'',
+        month: monthLabel, channel: ch.toLowerCase(),
+        history: state.poStatusMap[mapKey]?.history || []
+      };
+    } else {
+      state.poStatusMap[mapKey] = {
+        raw: 'PENDING', isDone: false,
+        date: '', person: '', month: monthLabel,
+        channel: ch.toLowerCase(), history: []
+      };
+    }
+  });
+
+  // Re-render supplier list chip and team grid immediately
+  recompute();
+  const grid = document.getElementById('teamBuyerGrid');
+  if(grid && grid.style.display !== 'none') renderTeam();
+
+  // Write back to PO Status Log (fire and forget)
   if(PO_UPDATER_URL){
     channels.forEach(ch=>{
       const url = PO_UPDATER_URL
@@ -3703,8 +3997,11 @@ function toggleTeamDone(supplier, channels, buyerName){
         + '&channel='  + encodeURIComponent(ch)
         + '&buyer='    + encodeURIComponent(buyerName||'')
         + '&action='   + action;
-      fetch(url).catch(()=>{}); // fire and forget
+      fetch(url, {mode:'no-cors'}).catch(()=>{});
     });
+    // Re-fetch PO feed after 4 seconds to pick up any sheet changes
+    setTimeout(()=>silentRefreshPO(), 4000);
+    startPOAutoRefresh();
   }
 
   const list = document.getElementById('teamOrderList');
@@ -3715,7 +4012,30 @@ function toggleTeamDone(supplier, channels, buyerName){
   }
 }
 
-function goToSupplier(supplierName){
+function goToSupplier(supplierName, channel){
+  // Always open in full mode when navigating from Team tab
+  document.body.classList.remove('basic-mode');
+  localStorage.setItem('lenehans_mode','full');
+  const modeBtn = document.getElementById('basicModeBtn');
+  if(modeBtn) modeBtn.textContent = '⚡ Basic Mode';
+  // Switch channel if specified
+  if(channel){
+    const isCapel = channel.toLowerCase().includes('capel');
+    const newCh = isCapel ? 'capel' : 'arklow';
+    if(state.channel !== newCh){
+      state.channel = newCh;
+      document.getElementById('channelArklow').classList.toggle('active', !isCapel);
+      document.getElementById('channelCapel').classList.toggle('active', isCapel);
+      const note = document.getElementById('channelNote');
+      if(note) note.textContent = isCapel
+        ? 'Stock basis: NetStock_CapelStreet · Demand: Vend shop sales'
+        : 'Stock basis: NetStock_Arklow · Demand: Magento online orders';
+      const poBtn = document.getElementById('poExportBtn');
+      if(poBtn) poBtn.textContent = isCapel ? 'Export PO (Capel Street)' : 'Export PO';
+      if(state.rawRows.length) recompute();
+    }
+  }
+  // Switch to Buying tab
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   const btn   = document.querySelector('[data-tab="buying"]');
@@ -3933,6 +4253,105 @@ function downloadNoosCsv(rows,label){
   a.download='PO_NeverOOS_'+label.replace(/[^a-z0-9]+/gi,'_')+'.csv';
   a.click();URL.revokeObjectURL(a.href);
 }
+
+
+// ─── KEYBOARD SHORTCUTS ──────────────────────────────────────────────────────
+document.addEventListener('keydown', function(e){
+  // Don't fire when typing in inputs
+  if(e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+  
+  switch(e.key){
+    case '1': case '2': case '3': case '4': case '5':
+      e.preventDefault();
+      const tabs = document.querySelectorAll('.tab-btn');
+      const idx = parseInt(e.key) - 1;
+      if(tabs[idx]) tabs[idx].click();
+      break;
+    case 's': case 'S':
+      if(!e.ctrlKey && !e.metaKey){
+        e.preventDefault();
+        const sb = document.getElementById('searchBox');
+        if(sb) sb.focus();
+      }
+      break;
+    case 'Escape':
+      const backBtn = document.getElementById('backBtn');
+      if(backBtn && backBtn.style.display !== 'none') backBtn.click();
+      break;
+    case 'r': case 'R':
+      if(!e.ctrlKey && !e.metaKey){
+        e.preventDefault();
+        const autoBtn = document.getElementById('autoLoadBtn');
+        if(autoBtn) autoBtn.click();
+      }
+      break;
+  }
+});
+
+
+// ─── TEAM TAB SEARCH ─────────────────────────────────────────────────────────
+function filterTeamOrders(query){
+  const q = (query||'').toLowerCase().trim();
+  const cards = document.querySelectorAll('.team-order-card');
+  cards.forEach(card => {
+    const text = card.textContent.toLowerCase();
+    card.style.display = !q || text.includes(q) ? '' : 'none';
+  });
+  // Also filter buyer grid cards
+  const buyerCards = document.querySelectorAll('.team-buyer-card');
+  if(q && buyerCards.length){
+    // Check if any of the buyer's suppliers match
+    buyerCards.forEach(card => {
+      const name = card.querySelector('.team-buyer-name')?.textContent || '';
+      const buyerSuppliers = BUYER_SCHEDULE.filter(r=>r.buyer===name).map(r=>r.supplier.toLowerCase());
+      const match = !q || name.toLowerCase().includes(q) || buyerSuppliers.some(s=>s.includes(q));
+      card.style.display = match ? '' : 'none';
+    });
+  } else {
+    buyerCards.forEach(card => card.style.display = '');
+  }
+}
+
+
+// ─── PO EXPORT CONFIRMATION ──────────────────────────────────────────────────
+function showPOConfirmation(rows, callback){
+  const totalUnits = rows.reduce((s,r) => s + (r.buy||0), 0);
+  const totalCost = rows.reduce((s,r) => s + (r.buy||0) * (r.SupplierCostPrice||0), 0);
+  const critLines = rows.filter(r => ['Critical','Out of Stock'].includes(r.coverStatus)).length;
+  const aItems = rows.filter(r => r.abcClass === 'A').length;
+  
+  const overlay = document.createElement('div');
+  overlay.className = 'po-confirm-overlay';
+  overlay.innerHTML = `<div class="po-confirm-box">
+    <h3>📄 Export Purchase Order</h3>
+    <div class="po-confirm-stat"><span>Supplier</span><span class="val">${esc(state.activeSupplier||'All')}</span></div>
+    <div class="po-confirm-stat"><span>SKU lines</span><span class="val">${fmtInt(rows.length)}</span></div>
+    <div class="po-confirm-stat"><span>Total units</span><span class="val">${fmtInt(totalUnits)}</span></div>
+    <div class="po-confirm-stat"><span>Est. cost value</span><span class="val" style="color:#dc2626">€${fmtInt(totalCost)}</span></div>
+    <div class="po-confirm-stat"><span>Critical lines</span><span class="val" style="color:#dc2626">${fmtInt(critLines)}</span></div>
+    <div class="po-confirm-stat"><span>A-class items</span><span class="val">${fmtInt(aItems)}</span></div>
+    <div class="po-confirm-btns">
+      <button class="secondary" onclick="this.closest('.po-confirm-overlay').remove()">Cancel</button>
+      <button onclick="this.closest('.po-confirm-overlay').remove();_doExportPO()">✅ Export CSV</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+}
+
+
+// ─── BACKGROUND AUTO-REFRESH ──────────────────────────────────────────────────
+// Silently refresh PO status every 10 minutes to keep Team tab current
+let _poRefreshInterval = null;
+function startPOAutoRefresh(){
+  if(_poRefreshInterval) clearInterval(_poRefreshInterval);
+  _poRefreshInterval = setInterval(()=>{
+    if(state.poStatusMap && Object.keys(state.poStatusMap).length > 0){
+      silentRefreshPO();
+    }
+  }, 10 * 60 * 1000); // 10 minutes
+}
+
 
 </script>
 
