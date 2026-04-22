@@ -8,7 +8,7 @@
   <meta http-equiv="Expires" content="0">
   <script>
     // Version gate — helps confirm cache is cleared
-    window.DASH_VERSION = '5.40';
+    window.DASH_VERSION = '5.41';
     window.DASH_BUILD   = '2026-04-22T' + new Date().getHours();
     // Unregister any stale service workers
     if('serviceWorker' in navigator){
@@ -19,7 +19,7 @@
     // Console banner for debugging cache issues
     console.log('%c Lenehans Dashboard V' + window.DASH_VERSION + ' loaded ', 'background:#1e3a5f;color:#fff;font-size:14px;padding:4px 12px;border-radius:4px');
   </script>
-  <title>Lenehans Purchasing Dashboard · V5.40 · INTELLIGENCE</title>
+  <title>Lenehans Purchasing Dashboard · V5.41 · INTELLIGENCE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -597,7 +597,7 @@
 </head>
 <body>
 <header>
-  <div class="title">Lenehans Purchasing Dashboard · V5.40 · INTELLIGENCE</div>
+  <div class="title">Lenehans Purchasing Dashboard · V5.41 · INTELLIGENCE</div>
   <div class="sub">QueryData_master + CS Shared + PO Status · governance · seasonal look-ahead · momentum · order health · confidence score · <span id="buildStamp" style="color:#60a5fa">build 2026-04-22</span></div>
 </header>
 <div id="freshnessBar"></div>
@@ -819,7 +819,7 @@
     </div>
   </div>
 
-  <div class="footer">V5.40 · Supplier governance · Weather-aware · Pack-size rounding · Revenue ABC · Seasonal look-ahead (next 3 months) · Demand momentum (7D vs 30D) · Buyer confidence score · Supplier order health · CS-required lines locked · stock basis = NetStock_Arklow</div>
+  <div class="footer">V5.41 · Supplier governance · Weather-aware · Pack-size rounding · Revenue ABC · Seasonal look-ahead (next 3 months) · Demand momentum (7D vs 30D) · Buyer confidence score · Supplier order health · CS-required lines locked · stock basis = NetStock_Arklow</div>
   </div><!-- /tab-buying -->
 
   <!-- TAB 2: Clear Stock -->
@@ -1509,27 +1509,28 @@ let weatherData = { condition:'mild', forecast:null, lastFetch:null, tempAvg:nul
 
 async function fetchWeather(){
   try{
-    // Met Éireann Open Data API — Dublin area forecast
-    const resp = await fetch('https://prodapi.metweb.ie/observations/Dublin/today');
+    // Open-Meteo free API — Dublin coordinates, no API key needed, CORS-friendly
+    const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=53.35&longitude=-6.26&current=temperature_2m,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Europe/Dublin&forecast_days=7');
     if(!resp.ok) throw new Error('Weather API error');
     const data = await resp.json();
-    // Parse temperature from observations
-    const temps = (data.observations||[]).map(o=>parseFloat(o.temperature)).filter(t=>!isNaN(t));
-    const avgTemp = temps.length ? temps.reduce((a,b)=>a+b,0)/temps.length : 12;
-    const maxTemp = temps.length ? Math.max(...temps) : 14;
-    // Simple condition classification
+    const curTemp = data.current?.temperature_2m || 12;
+    // Average of 7-day max temps for condition classification
+    const maxTemps = data.daily?.temperature_2m_max || [];
+    const avgMax = maxTemps.length ? maxTemps.reduce((a,b)=>a+b,0)/maxTemps.length : curTemp;
+    const avgMin = (data.daily?.temperature_2m_min||[]).reduce((a,b)=>a+b,0)/(data.daily?.temperature_2m_min?.length||1);
+    const totalRain = (data.daily?.precipitation_sum||[]).reduce((a,b)=>a+b,0);
+    // Condition classification based on 7-day outlook
     let condition = 'mild';
-    if(maxTemp >= 18) condition = 'warm_dry';
-    else if(avgTemp <= 4) condition = 'cold_snap';
-    else if(avgTemp <= 8) condition = 'wet_windy'; // cold + likely rain in Ireland
-    weatherData = { condition, forecast:data, lastFetch:new Date(), tempAvg:Math.round(avgTemp*10)/10 };
+    if(avgMax >= 18 && totalRain < 10) condition = 'warm_dry';
+    else if(avgMin <= 2) condition = 'cold_snap';
+    else if(totalRain > 30 || (data.current?.wind_speed_10m||0) > 40) condition = 'wet_windy';
+    weatherData = { condition, forecast:data, lastFetch:new Date(), tempAvg:Math.round(curTemp*10)/10, avgMax:Math.round(avgMax), totalRain:Math.round(totalRain) };
     renderWeatherStrip();
     return weatherData;
   }catch(e){
-    // Silently fail — weather is an enhancement, not critical
     console.log('Weather fetch skipped:', e.message);
-    // Try fallback: use month-based temperature estimate for Ireland
-    const monthTemps = [5,6,7,9,11,14,16,15,13,10,7,5]; // avg Irish temps by month
+    // Fallback: month-based temperature estimate for Ireland
+    const monthTemps = [5,6,7,9,11,14,16,15,13,10,7,5];
     const estTemp = monthTemps[new Date().getMonth()];
     let condition = 'mild';
     if(estTemp >= 16) condition = 'warm_dry';
@@ -1551,11 +1552,14 @@ function renderWeatherStrip(){
   if(!el) return;
   const rule = WEATHER_RULES[weatherData.condition] || WEATHER_RULES.mild;
   const temp = weatherData.tempAvg != null ? weatherData.tempAvg + '°C' : '—';
+  const rainInfo = weatherData.totalRain != null ? ` · ${weatherData.totalRain}mm rain next 7d` : '';
+  const maxInfo = weatherData.avgMax != null ? ` · Avg high ${weatherData.avgMax}°C` : '';
   el.style.display = 'flex';
   el.innerHTML = `<span class="wx-temp">${temp}</span>
     <span>${rule.label}</span>
+    <span class="wx-label">${maxInfo}${rainInfo}</span>
     <span class="wx-label" style="margin-left:auto">${rule.multiplier > 1 ? '+' + Math.round((rule.multiplier-1)*100) + '% to ' + rule.categories.length + ' categories' : 'No adjustment'}</span>
-    <span class="wx-label">Last check: ${weatherData.lastFetch ? weatherData.lastFetch.toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'}) : '—'}</span>`;
+    <span class="wx-label">Updated: ${weatherData.lastFetch ? weatherData.lastFetch.toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'}) : '—'}</span>`;
 }
 
 
@@ -3735,6 +3739,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(excludeEl) excludeEl.value='yes';
   if(demandEl) demandEl.value='30D';
   // Auto-load all feeds immediately on open
+  fetchWeather(); // Weather-aware demand — fires on load, falls back to monthly estimates if API unavailable
   const urlEl=document.getElementById('csvUrl');
   if(urlEl) urlEl.value=DEFAULT_URL;
   setStatus('⏳ Auto-loading all feeds…',false);
@@ -4404,4 +4409,3 @@ function startPOAutoRefresh(){
 </div>
 </body>
 </html>
- 
