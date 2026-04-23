@@ -2135,11 +2135,14 @@ function parsePOFeed(rows){
 
   // Build map entries — latest status + history array for chip display
   for(const [supplier, h] of Object.entries(history)){
-    // Sort by month descending (most recent first)
-    const sortEntries = arr => arr.sort((a,b) => {
-      const da = new Date(a.month), db = new Date(b.month);
-      return isNaN(da)||isNaN(db) ? 0 : db-da;
-    });
+    // Sort by month descending (most recent first) — locale-safe, no Date parsing
+    const _monthIdx = m => {
+      const parts = (m||'').split(' ');
+      const mi = _mpMonths.indexOf(parts[0]);
+      const yr = parseInt(parts[1]||'0',10);
+      return yr * 12 + (mi >= 0 ? mi : 0);
+    };
+    const sortEntries = arr => arr.sort((a,b) => _monthIdx(b.month) - _monthIdx(a.month));
 
     const akEntries = sortEntries(h.arklow);
     const csEntries = sortEntries(h.capelstreet);
