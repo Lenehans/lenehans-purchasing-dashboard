@@ -1089,9 +1089,9 @@ async function checkAuth(){
     <div id="teamView" style="padding:16px 0">
       <!-- Summary bar -->
       <div class="team-summary" id="teamSummaryBar">
-        <div class="team-summary-stat"><div class="val green" id="tsDoneToday">—</div><div class="lbl">Done today</div></div>
+        <div class="team-summary-stat" style="cursor:pointer" onclick="document.getElementById('teamDoneSection')?.scrollIntoView({behavior:'smooth'})"><div class="val green" id="tsDoneToday">—</div><div class="lbl">Done today ↓</div></div>
         <div class="team-summary-div"></div>
-        <div class="team-summary-stat"><div class="val amber" id="tsPendingToday">—</div><div class="lbl">Pending today</div></div>
+        <div class="team-summary-stat" style="cursor:pointer" onclick="document.getElementById('teamPendingSection')?.scrollIntoView({behavior:'smooth'})"><div class="val amber" id="tsPendingToday">—</div><div class="lbl">Pending today ↓</div></div>
         <div class="team-summary-div"></div>
         <div class="team-summary-stat"><div class="val" id="tsMonthPct" style="color:#1e40af">—</div><div class="lbl">Month completion</div></div>
         <div class="team-summary-div"></div>
@@ -4145,11 +4145,11 @@ function renderTeam(){
 
     let html2 = '';
     if(pending.length){
-      html2 += `<div class="team-today-hdr">⏳ ${pending.length} orders pending today</div>`;
+      html2 += `<div class="team-today-hdr" id="teamPendingSection">⏳ ${pending.length} orders due today — not yet completed</div>`;
       html2 += pending.map(s=>buildTeamOrderRow(s)).join('');
     }
     if(done.length){
-      html2 += `<div class="team-today-hdr" style="color:#16a34a;margin-top:16px">✅ ${done.length} completed today</div>`;
+      html2 += `<div class="team-today-hdr" id="teamDoneSection" style="color:#16a34a;margin-top:16px">✅ ${done.length} completed this month (due today)</div>`;
       html2 += done.map(s=>buildTeamOrderRow(s)).join('');
     }
     if(!allToday.length){
