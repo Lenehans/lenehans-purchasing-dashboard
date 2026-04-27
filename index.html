@@ -579,19 +579,63 @@
     #weatherStrip .wx-temp{font-size:16px;font-weight:900;color:#0c4a6e}
     #weatherStrip .wx-label{color:#64748b;font-weight:600}
 
-    /* ── PO export confirmation dialog ───────────────────────────────── */
+    /* ── PO Review Modal ────────────────────────────────────────────── */
     .po-confirm-overlay{
       position:fixed;inset:0;z-index:300;background:rgba(15,23,42,.5);
       display:flex;align-items:center;justify-content:center;
     }
-    .po-confirm-box{
-      background:#fff;border-radius:14px;padding:24px;max-width:420px;width:90%;
-      box-shadow:0 20px 60px rgba(0,0,0,.2);
+    .po-review-modal{
+      background:#fff;border-radius:14px;max-width:1100px;width:95%;max-height:90vh;
+      display:flex;flex-direction:column;
+      box-shadow:0 20px 60px rgba(0,0,0,.25);
     }
-    .po-confirm-box h3{margin:0 0 16px;font-size:16px;font-weight:800;color:#1e3a5f}
-    .po-confirm-stat{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-bottom:1px solid #f1f5f9}
-    .po-confirm-stat .val{font-weight:800}
-    .po-confirm-btns{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+    .po-review-head{
+      display:flex;align-items:center;gap:16px;padding:16px 20px;
+      border-bottom:2px solid #e2e8f0;flex-shrink:0;
+    }
+    .po-review-head h3{margin:0;font-size:17px;font-weight:800;color:#1e3a5f;flex:1}
+    .po-review-head button.close{background:none;border:none;font-size:22px;cursor:pointer;color:#64748b;padding:4px 8px}
+    .po-review-summary{
+      display:flex;gap:20px;flex-wrap:wrap;padding:12px 20px;
+      background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-shrink:0;
+      align-items:center;
+    }
+    .po-review-stat{text-align:center}
+    .po-review-stat .val{font-size:20px;font-weight:900;color:#1e3a5f}
+    .po-review-stat .val.red{color:#dc2626}
+    .po-review-stat .val.green{color:#16a34a}
+    .po-review-stat .lbl{font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+    .po-review-body{overflow:auto;flex:1;padding:0}
+    .po-review-body table{width:100%;border-collapse:collapse}
+    .po-review-body thead th{
+      position:sticky;top:0;background:#1e3a5f;color:#fff;
+      padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;
+      letter-spacing:.04em;text-align:left;white-space:nowrap;z-index:1;
+    }
+    .po-review-body thead th.r{text-align:right}
+    .po-review-body tbody td{padding:8px 10px;border-bottom:1px solid #f1f5f9;font-size:13px;vertical-align:middle}
+    .po-review-body tbody tr:nth-child(even) td{background:#f8fafc}
+    .po-review-body tbody tr:hover td{background:#eff6ff}
+    .po-review-body .num{text-align:right;font-variant-numeric:tabular-nums}
+    .po-review-why{
+      font-size:12px;color:#475569;line-height:1.5;max-width:300px;
+    }
+    .po-review-why strong{color:#1e3a5f}
+    .po-review-qty{
+      width:60px;padding:4px 6px;border:2px solid #e2e8f0;border-radius:6px;
+      font-size:14px;font-weight:800;text-align:center;color:#1e3a5f;
+    }
+    .po-review-qty:focus{outline:none;border-color:#1e40af;box-shadow:0 0 0 2px rgba(30,64,175,.15)}
+    .po-review-foot{
+      display:flex;gap:10px;padding:14px 20px;border-top:2px solid #e2e8f0;
+      flex-shrink:0;align-items:center;
+    }
+    .po-review-foot .total-label{font-size:13px;color:#64748b;font-weight:600;flex:1}
+    .po-review-foot .total-val{font-size:18px;font-weight:900;color:#1e3a5f;margin-right:16px}
+    .po-review-search{
+      padding:6px 12px;border:1.5px solid #cbd5e1;border-radius:6px;
+      font-size:12px;width:180px;
+    }
 
     /* ── Team Leaderboard ────────────────────────────────────────────── */
     .lb-strip{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
@@ -3549,17 +3593,13 @@ function applyInitialMode(){
 function exportPO(){
   const rows=getFilteredRows().filter(r=>r.buy>0&&(!state.omittedSkus.has(r.SKU)||r._csRequired));
   if(!rows.length){alert('No lines to export for current view.');return;}
-  showPOConfirmation(rows, _doExportPO);
-}
-function _doExportPO(){
-  const rows=getFilteredRows().filter(r=>r.buy>0&&(!state.omittedSkus.has(r.SKU)||r._csRequired));
-  if(!rows.length) return;
-  const supplierLabel=state.activeSupplier||'ALL_SUPPLIERS';
-  const cols=['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','_csRequired','_csQtyFloor','coverStatus','stock','target','reason'];
-  const headers=[...cols,'Tax Rate'];
-  const lines=[headers.join(',')];
-  for(const r of rows){lines.push([...cols.map(c=>{let v=r[c];if(typeof v==='boolean') v=v?'YES':'NO';if(typeof v==='number') v=String(v);v=String(v??'');if(/[",\n]/.test(v)) v='"'+v.replace(/"/g,'""')+'"';return v;}),'0'].join(','));}
-  const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`PO_${supplierLabel.replace(/[^a-z0-9]+/gi,'_')}_${document.getElementById('demandMode').value}.csv`;a.click();URL.revokeObjectURL(a.href);
+  // Sort: OOS first, then critical, then by buy qty desc
+  rows.sort((a,b)=>{
+    const pa = a.stock<=0?0:a.coverStatus==='Critical'?1:a.coverStatus==='Low'?2:3;
+    const pb = b.stock<=0?0:b.coverStatus==='Critical'?1:b.coverStatus==='Low'?2:3;
+    return pa!==pb ? pa-pb : b.buy-a.buy;
+  });
+  showPOConfirmation(rows);
 }
 
 // ─── FETCH HELPERS ───────────────────────────────────────────────────────────
@@ -4582,30 +4622,208 @@ function filterTeamOrders(query){
 }
 
 
-// ─── PO EXPORT CONFIRMATION ──────────────────────────────────────────────────
-function showPOConfirmation(rows, callback){
-  const totalUnits = rows.reduce((s,r) => s + (r.buy||0), 0);
-  const totalCost = rows.reduce((s,r) => s + (r.buy||0) * (r.SupplierCostPrice||0), 0);
-  const critLines = rows.filter(r => ['Critical','Out of Stock'].includes(r.coverStatus)).length;
-  const aItems = rows.filter(r => r.abcClass === 'A').length;
+// ─── PO REVIEW SCREEN ─────────────────────────────────────────────────────
+// Full line-by-line review before export — shows stock, qty, and WHY for each SKU
+let _poReviewRows = []; // mutable copy for qty edits
+
+function buildWhyText(r){
+  const parts = [];
+  const isCapel = state.channel === 'capel';
+  const q7  = isCapel ? (r.QtySold_Shop_CapelStreet_7d||0)  : (r.QtySold_Online_Total_7d||0);
+  const q30 = isCapel ? (r.QtySold_Shop_CapelStreet_30d||0) : (r.QtySold_Online_Total_30d||0);
+  const q90 = isCapel ? (r.QtySold_Shop_CapelStreet_90d||0) : (r.QtySold_Online_Total_90d||0);
+  const q180= isCapel ? (r.QtySold_Shop_CapelStreet_180d||0): (r.QtySold_Online_Total_180d||0);
+  
+  // Core demand signal
+  if(q30 > 0) parts.push(`<strong>Sold ${fmtInt(q30)} in last 30 days</strong> (${fmt1(q30/30)}/day)`);
+  else if(q90 > 0) parts.push(`<strong>Sold ${fmtInt(q90)} in last 90 days</strong> (${fmt1(q90/90)}/day) — no 30D sales`);
+  else if(q180 > 0) parts.push(`<strong>Sold ${fmtInt(q180)} in last 180 days</strong> — very slow`);
+  else parts.push(`<strong>No sales recorded</strong>`);
+  
+  // 7D spike
+  if(q30 > 0 && q7 > 0){
+    const ratio = (q7/7) / (q30/30);
+    if(ratio >= 1.5) parts.push(`↑ 7D spike: ${fmtInt(q7)} units this week (${fmt1(ratio)}× avg)`);
+    else if(ratio < 0.5) parts.push(`↓ Slowing: only ${fmtInt(q7)} this week`);
+  }
+  
+  // Stock situation
+  if(r.stock <= 0) parts.push(`🔴 <strong>OUT OF STOCK</strong>`);
+  else if(r.daysOfCover < 14) parts.push(`🔴 Only ${Math.round(r.daysOfCover)} days cover left`);
+  else if(r.daysOfCover < 30) parts.push(`🟠 ${Math.round(r.daysOfCover)} days cover — below target`);
+  
+  // Seasonal
+  if(r.seasonalMultiplier > 1.05) parts.push(`📅 Seasonal uplift: ${fmt1(r.seasonalMultiplier)}× for ${monthLabel()}`);
+  if(r.wxMultiplier > 1.01) parts.push(`🌤️ Weather boost: +${Math.round((r.wxMultiplier-1)*100)}%`);
+  
+  // CS required
+  if(r._csRequired) parts.push(`🔒 CS-required: min ${fmtInt(r._csQtyFloor)} units${r._csReason?' ('+r._csReason+')':''}`);
+  
+  // Pack size
+  if(r.packRounded) parts.push(`📦 Rounded to pack size of ${fmtInt(r.packSize)}`);
+  
+  // Fallback
+  if(r.fallbackUsed) parts.push(`⚠ Using ${r.fallbackUsed==='Fallback180'?'180D':'90D'} fallback demand`);
+  
+  return parts.join('<br>');
+}
+
+function showPOConfirmation(rows){
+  // Make editable copies
+  _poReviewRows = rows.map(r => ({...r, editQty: r.buy}));
   
   const overlay = document.createElement('div');
   overlay.className = 'po-confirm-overlay';
-  overlay.innerHTML = `<div class="po-confirm-box">
-    <h3>📄 Export Purchase Order</h3>
-    <div class="po-confirm-stat"><span>Supplier</span><span class="val">${esc(state.activeSupplier||'All')}</span></div>
-    <div class="po-confirm-stat"><span>SKU lines</span><span class="val">${fmtInt(rows.length)}</span></div>
-    <div class="po-confirm-stat"><span>Total units</span><span class="val">${fmtInt(totalUnits)}</span></div>
-    <div class="po-confirm-stat"><span>Est. cost value</span><span class="val" style="color:#dc2626">€${fmtInt(totalCost)}</span></div>
-    <div class="po-confirm-stat"><span>Critical lines</span><span class="val" style="color:#dc2626">${fmtInt(critLines)}</span></div>
-    <div class="po-confirm-stat"><span>A-class items</span><span class="val">${fmtInt(aItems)}</span></div>
-    <div class="po-confirm-btns">
+  overlay.id = 'poReviewOverlay';
+  
+  overlay.innerHTML = `<div class="po-review-modal">
+    <div class="po-review-head">
+      <h3>📋 PO Review — ${esc(state.activeSupplier||'All Suppliers')}</h3>
+      <input type="text" class="po-review-search" placeholder="Search SKU / item…" oninput="filterPOReview(this.value)">
+      <button class="close" onclick="this.closest('.po-confirm-overlay').remove()">&times;</button>
+    </div>
+    <div class="po-review-summary" id="poReviewSummary"></div>
+    <div class="po-review-body">
+      <table>
+        <thead><tr>
+          <th>SKU</th>
+          <th>Item</th>
+          <th class="r">In Stock</th>
+          <th class="r">Buy Qty</th>
+          <th class="r">Cover</th>
+          <th class="r">ABC</th>
+          <th class="r">Cost</th>
+          <th class="r">Line Total</th>
+          <th>Why this quantity?</th>
+        </tr></thead>
+        <tbody id="poReviewTbody"></tbody>
+      </table>
+    </div>
+    <div class="po-review-foot">
+      <span class="total-label" id="poReviewFootLabel">0 lines · 0 units</span>
+      <span class="total-val" id="poReviewFootTotal">€0</span>
       <button class="secondary" onclick="this.closest('.po-confirm-overlay').remove()">Cancel</button>
-      <button onclick="this.closest('.po-confirm-overlay').remove();_doExportPO()">✅ Export CSV</button>
+      <button onclick="executePOExport()">✅ Confirm & Export CSV</button>
     </div>
   </div>`;
+  
   document.body.appendChild(overlay);
   overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+  
+  renderPOReviewTable();
+  updatePOReviewSummary();
+}
+
+function renderPOReviewTable(filter){
+  const tbody = document.getElementById('poReviewTbody');
+  if(!tbody) return;
+  const q = (filter||'').toLowerCase();
+  
+  tbody.innerHTML = _poReviewRows.map((r,idx) => {
+    const hay = `${r.SKU} ${r.ItemTitle}`.toLowerCase();
+    if(q && !hay.includes(q)) return '';
+    
+    const coverCls = r.coverStatus==='Out of Stock'||r.coverStatus==='Critical' ? 'color:#dc2626;font-weight:800' 
+                   : r.coverStatus==='Low' ? 'color:#d97706;font-weight:700' : 'color:#16a34a';
+    const coverText = r.daysOfCover >= 9999 ? '∞' : Math.round(r.daysOfCover) + 'd';
+    const cost = r.SupplierCostPrice || 0;
+    const lineTotal = (r.editQty||0) * cost;
+    const why = buildWhyText(r);
+    const stockWarn = r.stock <= 0 ? 'style="color:#dc2626;font-weight:900"' : r.stock < 10 ? 'style="color:#d97706;font-weight:700"' : '';
+    
+    return `<tr data-idx="${idx}">
+      <td style="font-family:monospace;font-size:12px;font-weight:700;color:#1e40af;white-space:nowrap">${esc(r.SKU)}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.ItemTitle)}">${esc(r.ItemTitle)}</td>
+      <td class="num" ${stockWarn}>${fmtInt(r.stock)}</td>
+      <td class="num"><input type="number" min="0" class="po-review-qty" value="${r.editQty}" data-idx="${idx}" onchange="updatePOReviewQty(this)"></td>
+      <td class="num" style="${coverCls}">${coverText}</td>
+      <td class="num"><strong>${r.abcClass}</strong></td>
+      <td class="num">${cost > 0 ? '€'+fmt1(cost) : '—'}</td>
+      <td class="num" style="font-weight:700">${lineTotal > 0 ? '€'+fmtInt(lineTotal) : '—'}</td>
+      <td><div class="po-review-why">${why}</div></td>
+    </tr>`;
+  }).join('');
+  
+  // Prevent scroll wheel changing inputs
+  tbody.querySelectorAll('.po-review-qty').forEach(inp => {
+    inp.addEventListener('wheel', e => e.preventDefault(), {passive:false});
+  });
+}
+
+function updatePOReviewQty(input){
+  const idx = parseInt(input.dataset.idx, 10);
+  const val = parseInt(input.value, 10);
+  if(isNaN(val) || val < 0){ input.value = 0; _poReviewRows[idx].editQty = 0; }
+  else { _poReviewRows[idx].editQty = val; }
+  updatePOReviewSummary();
+  // Update line total in same row
+  const tr = input.closest('tr');
+  if(tr){
+    const cost = _poReviewRows[idx].SupplierCostPrice || 0;
+    const cells = tr.querySelectorAll('td');
+    if(cells[7]) cells[7].innerHTML = `<span style="font-weight:700">${(val*cost)>0?'€'+fmtInt(val*cost):'—'}</span>`;
+  }
+}
+
+function updatePOReviewSummary(){
+  const active = _poReviewRows.filter(r => r.editQty > 0);
+  const totalUnits = active.reduce((s,r) => s + r.editQty, 0);
+  const totalCost = active.reduce((s,r) => s + r.editQty * (r.SupplierCostPrice||0), 0);
+  const critLines = active.filter(r => ['Critical','Out of Stock'].includes(r.coverStatus)).length;
+  const oosLines = active.filter(r => r.stock <= 0).length;
+  const aItems = active.filter(r => r.abcClass === 'A').length;
+  const removed = _poReviewRows.filter(r => r.editQty <= 0 && r.buy > 0).length;
+  
+  const summary = document.getElementById('poReviewSummary');
+  if(summary) summary.innerHTML = `
+    <div class="po-review-stat"><div class="val">${fmtInt(active.length)}</div><div class="lbl">SKU lines</div></div>
+    <div class="po-review-stat"><div class="val">${fmtInt(totalUnits)}</div><div class="lbl">Total units</div></div>
+    <div class="po-review-stat"><div class="val red">€${fmtInt(totalCost)}</div><div class="lbl">Est. cost</div></div>
+    <div class="po-review-stat"><div class="val red">${fmtInt(oosLines)}</div><div class="lbl">Out of stock</div></div>
+    <div class="po-review-stat"><div class="val" style="color:#d97706">${fmtInt(critLines)}</div><div class="lbl">Critical</div></div>
+    <div class="po-review-stat"><div class="val green">${fmtInt(aItems)}</div><div class="lbl">A-class</div></div>
+    ${removed > 0 ? `<div class="po-review-stat"><div class="val" style="color:#94a3b8">${fmtInt(removed)}</div><div class="lbl">Removed</div></div>` : ''}
+  `;
+  
+  const footLabel = document.getElementById('poReviewFootLabel');
+  const footTotal = document.getElementById('poReviewFootTotal');
+  if(footLabel) footLabel.textContent = `${fmtInt(active.length)} lines · ${fmtInt(totalUnits)} units`;
+  if(footTotal) footTotal.textContent = `€${fmtInt(totalCost)}`;
+}
+
+function filterPOReview(q){
+  renderPOReviewTable(q);
+}
+
+function executePOExport(){
+  // Use edited quantities
+  const active = _poReviewRows.filter(r => r.editQty > 0);
+  if(!active.length){ alert('No lines to export — all quantities are zero.'); return; }
+  
+  const supplierLabel = state.activeSupplier || 'ALL_SUPPLIERS';
+  const cols = ['SupplierName','SKU','ItemTitle','editQty','SupplierCostPrice','_csRequired','_csQtyFloor','coverStatus','stock','target','reason'];
+  const headers = ['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','_csRequired','_csQtyFloor','coverStatus','stock','target','reason','Tax Rate'];
+  const lines = [headers.join(',')];
+  for(const r of active){
+    lines.push([...cols.map(c => {
+      let v = r[c];
+      if(typeof v === 'boolean') v = v ? 'YES' : 'NO';
+      if(typeof v === 'number') v = String(v);
+      v = String(v ?? '');
+      if(/[",\n]/.test(v)) v = '"' + v.replace(/"/g,'""') + '"';
+      return v;
+    }), '0'].join(','));
+  }
+  const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `PO_${supplierLabel.replace(/[^a-z0-9]+/gi,'_')}_${document.getElementById('demandMode').value}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  
+  // Close modal
+  const overlay = document.getElementById('poReviewOverlay');
+  if(overlay) overlay.remove();
 }
 
 
