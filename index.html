@@ -8,8 +8,8 @@
   <meta http-equiv="Expires" content="0">
   <script>
     // Version gate — helps confirm cache is cleared
-    window.DASH_VERSION = '5.41';
-    window.DASH_BUILD   = '2026-04-22T' + new Date().getHours();
+    window.DASH_VERSION = '5.50';
+    window.DASH_BUILD = '2026-04-27';
     // Unregister any stale service workers
     if('serviceWorker' in navigator){
       navigator.serviceWorker.getRegistrations().then(regs=>{
@@ -19,7 +19,7 @@
     // Console banner for debugging cache issues
     console.log('%c Lenehans Dashboard V' + window.DASH_VERSION + ' loaded ', 'background:#1e3a5f;color:#fff;font-size:14px;padding:4px 12px;border-radius:4px');
   </script>
-  <title>Lenehans Purchasing Dashboard · V5.41 · INTELLIGENCE</title>
+  <title>Lenehans Purchasing Dashboard · V5.50 · INTELLIGENCE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -816,9 +816,10 @@ async function checkAuth(){
 </script>
 
 <header>
-  <div class="title">Lenehans Purchasing Dashboard · V5.41 · INTELLIGENCE</div>
-  <div class="sub">QueryData_master + CS Shared + PO Status · governance · seasonal look-ahead · momentum · order health · confidence score · <span id="buildStamp" style="color:#60a5fa">build 2026-04-22</span></div>
+  <div class="title">Lenehans Purchasing Dashboard · V5.50 · INTELLIGENCE</div>
+  <div class="sub">QueryData_master + CS Shared + PO Status · governance · seasonal look-ahead · momentum · order health · confidence score · weather-aware · pack-size rounding · PO review · <span id="buildStamp" style="color:#60a5fa"></span></div>
 </header>
+<script>document.getElementById('buildStamp').textContent='build 2026-04-27';</script>
 <div id="freshnessBar"></div>
 <div id="stickyChannelBadge"></div>
 
@@ -1038,7 +1039,7 @@ async function checkAuth(){
     </div>
   </div>
 
-  <div class="footer">V5.41 · Supplier governance · Weather-aware · Pack-size rounding · Revenue ABC · Seasonal look-ahead (next 3 months) · Demand momentum (7D vs 30D) · Buyer confidence score · Supplier order health · CS-required lines locked · stock basis = NetStock_Arklow</div>
+  <div class="footer">V5.50 · Supplier governance · Weather-aware demand · Pack-size rounding · Revenue-weighted ABC · PO review screen · Seasonal look-ahead · Demand momentum · Buyer confidence · Supplier order health · Buyer leaderboard · CS-required lines locked</div>
   </div><!-- /tab-buying -->
 
   <!-- TAB 2: Clear Stock -->
