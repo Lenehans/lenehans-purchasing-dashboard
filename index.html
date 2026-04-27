@@ -926,6 +926,7 @@ async function checkAuth(){
     <button id="clearRiskFiltersBtn" class="secondary">Clear risk filters</button>
     <button id="exportBtn" class="secondary">Export CSV</button>
     <button id="poExportBtn" class="secondary">Export PO</button>
+    <button id="whyBuyBtn" class="secondary" onclick="openWhyBuy()" title="Review why each SKU is being ordered — stock levels, demand, and reasoning">🔍 Why Buy?</button>
     <button id="xfrPickBtn" class="secondary" onclick="exportTransferPickingNote()" title="Export transfer picking note — only visible when inside a supplier" style="display:none">⇄ Transfer Note</button>
   </div>
 
@@ -1170,6 +1171,7 @@ async function checkAuth(){
   <div class="spb-supplier" id="spbSupplierName">—</div>
   <div class="spb-info" id="spbInfo"></div>
   <button onclick="exportPO()">📄 Export PO</button>
+  <button onclick="openWhyBuy()" style="background:#1e40af">🔍 Why Buy?</button>
   <button onclick="exportTransferPickingNote()" style="background:#d97706" title="Capel mode = Arklow→Capel transfers. Arklow mode = Capel→Arklow transfers.">⇄ Transfer Note</button>
   <button class="spb-back" onclick="document.getElementById('backBtn').click()">← Back to suppliers</button>
 </div>
@@ -3600,7 +3602,26 @@ function exportPO(){
     const pb = b.stock<=0?0:b.coverStatus==='Critical'?1:b.coverStatus==='Low'?2:3;
     return pa!==pb ? pa-pb : b.buy-a.buy;
   });
-  showPOConfirmation(rows);
+  // Export CSV immediately
+  const supplierLabel = state.activeSupplier || 'ALL_SUPPLIERS';
+  const cols = ['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','_csRequired','_csQtyFloor','coverStatus','stock','target','reason'];
+  const headers = [...cols,'Tax Rate'];
+  const lines = [headers.join(',')];
+  for(const r of rows){lines.push([...cols.map(c=>{let v=r[c];if(typeof v==='boolean') v=v?'YES':'NO';if(typeof v==='number') v=String(v);v=String(v??'');if(/[",\n]/.test(v)) v='"'+v.replace(/"/g,'""')+'"';return v;}),'0'].join(','));}
+  const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`PO_${supplierLabel.replace(/[^a-z0-9]+/gi,'_')}_${document.getElementById('demandMode').value}.csv`;a.click();URL.revokeObjectURL(a.href);
+  // Then show the review screen for sanity checking
+  showPOReview(rows);
+}
+
+function openWhyBuy(){
+  const rows=getFilteredRows().filter(r=>r.buy>0&&(!state.omittedSkus.has(r.SKU)||r._csRequired));
+  if(!rows.length){alert('No buy lines for current view.');return;}
+  rows.sort((a,b)=>{
+    const pa = a.stock<=0?0:a.coverStatus==='Critical'?1:a.coverStatus==='Low'?2:3;
+    const pb = b.stock<=0?0:b.coverStatus==='Critical'?1:b.coverStatus==='Low'?2:3;
+    return pa!==pb ? pa-pb : b.buy-a.buy;
+  });
+  showPOReview(rows);
 }
 
 // ─── FETCH HELPERS ───────────────────────────────────────────────────────────
@@ -4669,7 +4690,7 @@ function buildWhyText(r){
   return parts.join('<br>');
 }
 
-function showPOConfirmation(rows){
+function showPOReview(rows){
   // Make editable copies
   _poReviewRows = rows.map(r => ({...r, editQty: r.buy}));
   
@@ -4679,7 +4700,7 @@ function showPOConfirmation(rows){
   
   overlay.innerHTML = `<div class="po-review-modal">
     <div class="po-review-head">
-      <h3>📋 PO Review — ${esc(state.activeSupplier||'All Suppliers')}</h3>
+      <h3>🔍 PO Review — ${esc(state.activeSupplier||'All Suppliers')}</h3>
       <input type="text" class="po-review-search" placeholder="Search SKU / item…" oninput="filterPOReview(this.value)">
       <button class="close" onclick="this.closest('.po-confirm-overlay').remove()">&times;</button>
     </div>
@@ -4703,8 +4724,8 @@ function showPOConfirmation(rows){
     <div class="po-review-foot">
       <span class="total-label" id="poReviewFootLabel">0 lines · 0 units</span>
       <span class="total-val" id="poReviewFootTotal">€0</span>
-      <button class="secondary" onclick="this.closest('.po-confirm-overlay').remove()">Cancel</button>
-      <button onclick="executePOExport()">✅ Confirm & Export CSV</button>
+      <button class="secondary" onclick="this.closest('.po-confirm-overlay').remove()">Close</button>
+      <button onclick="executePOExport()">📄 Re-export with changes</button>
     </div>
   </div>`;
   
