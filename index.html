@@ -6,20 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <script>
-    // Version gate — helps confirm cache is cleared
-    window.DASH_VERSION = '5.50';
-    window.DASH_BUILD = '2026-04-27';
-    // Unregister any stale service workers
-    if('serviceWorker' in navigator){
-      navigator.serviceWorker.getRegistrations().then(regs=>{
-        regs.forEach(r=>r.unregister());
-      });
-    }
-    // Console banner for debugging cache issues
-    console.log('%c Lenehans Dashboard V' + window.DASH_VERSION + ' loaded ', 'background:#1e3a5f;color:#fff;font-size:14px;padding:4px 12px;border-radius:4px');
-  </script>
-  <title>Lenehans Purchasing Dashboard · V5.50 · INTELLIGENCE</title>
+  <title>Lenehans Purchasing Dashboard · V5.36 · INTELLIGENCE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -300,6 +287,7 @@
     .team-order-done-btn{padding:6px 12px;background:#f0fdf4;border:1.5px solid #4ade80;color:#15803d;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
     .team-order-done-btn.marked{background:#dcfce7}
 
+    .team-buyer-card{background:#fff;border:2px solid #e2e8f0;border-radius:12px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .15s;position:relative}
 
     .team-section-hdr{font-size:12px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;padding:8px 0 4px;margin-top:8px}
     #noosGrid table{width:100%;border-collapse:collapse;font-size:12px}
@@ -504,6 +492,74 @@
     .channel-btn:not(.active){opacity:.7}
 
     @media (max-width:1100px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+    /* ── Deliveries tab ──────────────────────────────────────────── */
+    .del-summary{display:flex;flex-wrap:wrap;gap:6px 20px;align-items:center;
+      background:#fff;border:1.5px solid var(--line);border-radius:8px;
+      padding:10px 16px;margin:10px 0;font-size:13px}
+    .del-stat{display:flex;align-items:center;gap:6px;white-space:nowrap}
+    .del-val{font-size:20px;font-weight:900;color:var(--text)}
+    .del-val.red{color:#dc2626}.del-val.amber{color:#d97706}
+    .del-val.green{color:#16a34a}.del-val.grey{color:#94a3b8}
+    .del-lbl{font-size:11px;color:#64748b;font-weight:600;line-height:1.3}
+    .del-divider{width:1px;height:28px;background:#e2e8f0}
+    .del-value-chip{margin-left:auto;background:#1e3a5f;color:#fff;border-radius:6px;padding:4px 12px;font-size:13px;font-weight:700}
+
+    .del-filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+    .del-filter-btn{padding:6px 14px;border-radius:8px;border:2px solid #cbd5e1;background:#fff;
+      color:#475569;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s}
+    .del-filter-btn:hover{border-color:#1e40af;color:#1e40af}
+    .del-filter-btn.active{background:#1e3a5f;color:#fff;border-color:#1e3a5f}
+
+    .del-supplier-group{margin-bottom:16px;border:1.5px solid var(--line);border-radius:10px;overflow:hidden}
+    .del-supplier-hdr{display:flex;align-items:center;gap:12px;padding:10px 14px;
+      background:#f0f4f8;cursor:pointer;user-select:none;border-bottom:1px solid var(--line)}
+    .del-supplier-hdr:hover{background:#e8eef5}
+    .del-supplier-name{font-size:14px;font-weight:800;color:#1e3a5f;flex:1}
+    .del-supplier-chips{display:flex;gap:6px;flex-wrap:wrap}
+    .del-sup-chip{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
+    .del-sup-chip.overdue{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+    .del-sup-chip.soon{background:#fff7ed;color:#92400e;border:1px solid #fdba74}
+    .del-sup-chip.expected{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}
+    .del-sup-chip.delivered{background:#dcfce7;color:#14532d;border:1px solid #86efac}
+    .del-sup-chip.value{background:#f0f9ff;color:#0369a1;border:1px solid #7dd3fc}
+    .del-supplier-toggle{font-size:11px;color:#64748b;font-weight:600;padding:3px 8px;
+      background:#fff;border:1px solid #cbd5e1;border-radius:5px}
+
+    .del-po-table{width:100%;border-collapse:collapse;font-size:12px}
+    .del-po-table thead th{background:#1e3a5f;color:#fff;padding:7px 9px;
+      text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+      white-space:nowrap;position:sticky;top:0}
+    .del-po-table thead th.r{text-align:right}
+    .del-po-table tbody tr:nth-child(even){background:#f7f9fc}
+    .del-po-table tbody tr:hover{background:#eff6ff}
+    .del-po-table tbody td{padding:8px 9px;border-bottom:1px solid #e2e8f0;vertical-align:middle;font-size:12px}
+    .del-po-table tbody td.r{text-align:right;font-variant-numeric:tabular-nums}
+
+    .del-po-group-hdr{display:flex;align-items:center;gap:10px;padding:7px 14px;
+      background:#f8fafc;border-bottom:1px solid #e2e8f0;font-size:12px;font-weight:800;color:#475569;
+      text-transform:uppercase;letter-spacing:.06em;cursor:pointer;user-select:none}
+    .del-po-group-hdr:hover{background:#f1f5f9}
+    .del-po-group-hdr .po-num{font-family:monospace;font-weight:700;color:#1e3a5f;font-size:12px;text-transform:none;letter-spacing:0}
+
+    .del-status-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;white-space:nowrap}
+    .del-status-badge.overdue{background:#fee2e2;color:#991b1b}
+    .del-status-badge.soon{background:#fff7ed;color:#92400e}
+    .del-status-badge.pending{background:#e0e7ff;color:#3730a3}
+    .del-status-badge.placed{background:#dbeafe;color:#1e40af}
+    .del-status-badge.partial{background:#fef9c3;color:#713f12}
+    .del-status-badge.delivered{background:#dcfce7;color:#14532d}
+    .del-status-badge.other{background:#f1f5f9;color:#475569}
+
+    .del-overdue-days{font-weight:700;color:#dc2626}
+    .del-setup-notice{background:#fff7ed;border:2px solid #f97316;border-radius:10px;
+      padding:20px 24px;margin:16px 0;font-size:13px;color:#92400e;line-height:1.7}
+    .del-setup-notice h3{margin:0 0 10px;font-size:15px;color:#7c2d12}
+    .del-setup-notice code{background:#fef3c7;padding:2px 6px;border-radius:4px;font-size:12px;font-family:monospace}
+    .del-load-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;
+      background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:8px;margin:8px 0;
+      font-size:13px;color:#1e40af;font-weight:600}
+
     /* ── Never Out of Stock modal ─────────────────────────────────── */
     .noos-overlay{position:fixed;inset:0;z-index:200;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center}
     .noos-overlay.open{display:flex}
@@ -527,310 +583,23 @@
     .noos-body .sup-group td{padding:8px 10px;border-bottom:2px solid #e2e8f0}
     .noos-badge-crit{background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700}
     .noos-badge-oos{background:#991b1b;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:800}
-
-    /* ── Data freshness indicator ────────────────────────────────────── */
-    #freshnessBar{
-      display:none;position:sticky;top:47px;z-index:19;
-      padding:5px 20px;font-size:12px;font-weight:600;
-      background:#f0fdf4;border-bottom:1px solid #86efac;color:#15803d;
-      transition:background .3s,color .3s;
-    }
-    #freshnessBar.stale{background:#fff7ed;border-color:#fdba74;color:#92400e}
-    #freshnessBar.old{background:#fee2e2;border-color:#f87171;color:#991b1b}
-
-    /* ── Sticky channel floating badge ───────────────────────────────── */
-    #stickyChannelBadge{
-      position:fixed;top:56px;right:20px;z-index:21;
-      padding:5px 14px;border-radius:0 0 8px 8px;
-      font-size:12px;font-weight:800;letter-spacing:.04em;
-      box-shadow:0 2px 8px rgba(0,0,0,.12);display:none;
-    }
-    #stickyChannelBadge.arklow{background:#1e40af;color:#fff}
-    #stickyChannelBadge.capel{background:#7c3aed;color:#fff}
-
-    /* ── Colour-blind status icons ───────────────────────────────────── */
-    .cb-icon{font-size:10px;margin-right:2px;font-style:normal}
-
-    /* ── Team tab search ─────────────────────────────────────────────── */
-    #teamSearchBox{
-      padding:8px 14px;border:1.5px solid #cbd5e1;border-radius:8px;
-      font-size:13px;width:260px;margin-left:auto;
-    }
-    #teamSearchBox:focus{outline:2px solid var(--accent);border-color:var(--accent)}
-
-    /* ── Keyboard shortcut hint ──────────────────────────────────────── */
-    .kbd-hint{
-      display:inline-block;padding:1px 5px;border-radius:3px;
-      background:#f1f5f9;border:1px solid #cbd5e1;
-      font-size:10px;font-weight:700;color:#64748b;
-      font-family:monospace;margin-left:4px;
-    }
-
-    /* ── Pack size / min order badge ─────────────────────────────────── */
-    .pack-badge{font-size:10px;color:#7c3aed;font-weight:700;white-space:nowrap}
-
-    /* ── Weather strip ───────────────────────────────────────────────── */
-    #weatherStrip{
-      display:none;align-items:center;gap:10px;
-      padding:6px 14px;margin:6px 0;
-      background:#f0f9ff;border:1.5px solid #7dd3fc;border-radius:8px;
-      font-size:12px;color:#0369a1;font-weight:600;
-    }
-    #weatherStrip .wx-temp{font-size:16px;font-weight:900;color:#0c4a6e}
-    #weatherStrip .wx-label{color:#64748b;font-weight:600}
-
-    /* ── PO Review Modal ────────────────────────────────────────────── */
-    .po-confirm-overlay{
-      position:fixed;inset:0;z-index:300;background:rgba(15,23,42,.5);
-      display:flex;align-items:center;justify-content:center;
-    }
-    .po-review-modal{
-      background:#fff;border-radius:14px;max-width:1100px;width:95%;max-height:90vh;
-      display:flex;flex-direction:column;
-      box-shadow:0 20px 60px rgba(0,0,0,.25);
-    }
-    .po-review-head{
-      display:flex;align-items:center;gap:16px;padding:16px 20px;
-      border-bottom:2px solid #e2e8f0;flex-shrink:0;
-    }
-    .po-review-head h3{margin:0;font-size:17px;font-weight:800;color:#1e3a5f;flex:1}
-    .po-review-head button.close{background:none;border:none;font-size:22px;cursor:pointer;color:#64748b;padding:4px 8px}
-    .po-review-summary{
-      display:flex;gap:20px;flex-wrap:wrap;padding:12px 20px;
-      background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-shrink:0;
-      align-items:center;
-    }
-    .po-review-stat{text-align:center}
-    .po-review-stat .val{font-size:20px;font-weight:900;color:#1e3a5f}
-    .po-review-stat .val.red{color:#dc2626}
-    .po-review-stat .val.green{color:#16a34a}
-    .po-review-stat .lbl{font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-    .po-review-body{overflow:auto;flex:1;padding:0}
-    .po-review-body table{width:100%;border-collapse:collapse}
-    .po-review-body thead th{
-      position:sticky;top:0;background:#1e3a5f;color:#fff;
-      padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;
-      letter-spacing:.04em;text-align:left;white-space:nowrap;z-index:1;
-    }
-    .po-review-body thead th.r{text-align:right}
-    .po-review-body tbody td{padding:8px 10px;border-bottom:1px solid #f1f5f9;font-size:13px;vertical-align:middle}
-    .po-review-body tbody tr:nth-child(even) td{background:#f8fafc}
-    .po-review-body tbody tr:hover td{background:#eff6ff}
-    .po-review-body .num{text-align:right;font-variant-numeric:tabular-nums}
-    .po-review-why{
-      font-size:12px;color:#475569;line-height:1.5;max-width:300px;
-    }
-    .po-review-why strong{color:#1e3a5f}
-    .po-review-qty{
-      width:60px;padding:4px 6px;border:2px solid #e2e8f0;border-radius:6px;
-      font-size:14px;font-weight:800;text-align:center;color:#1e3a5f;
-    }
-    .po-review-qty:focus{outline:none;border-color:#1e40af;box-shadow:0 0 0 2px rgba(30,64,175,.15)}
-    .po-review-foot{
-      display:flex;gap:10px;padding:14px 20px;border-top:2px solid #e2e8f0;
-      flex-shrink:0;align-items:center;
-    }
-    .po-review-foot .total-label{font-size:13px;color:#64748b;font-weight:600;flex:1}
-    .po-review-foot .total-val{font-size:18px;font-weight:900;color:#1e3a5f;margin-right:16px}
-    .po-review-search{
-      padding:6px 12px;border:1.5px solid #cbd5e1;border-radius:6px;
-      font-size:12px;width:180px;
-    }
-
-    /* ── Team Leaderboard ────────────────────────────────────────────── */
-    .lb-strip{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
-    .lb-card{
-      flex:1;min-width:150px;max-width:220px;
-      background:#fff;border:2px solid #e2e8f0;border-radius:14px;
-      padding:16px 14px;text-align:center;cursor:pointer;
-      transition:all .2s;position:relative;overflow:hidden;
-    }
-    .lb-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.12)}
-    .lb-card.rank-1{border-color:#fbbf24;background:linear-gradient(180deg,#fffbeb,#fff)}
-    .lb-card.rank-2{border-color:#94a3b8;background:linear-gradient(180deg,#f8fafc,#fff)}
-    .lb-card.rank-3{border-color:#d97706;background:linear-gradient(180deg,#fffbeb,#fff)}
-    .lb-rank{
-      position:absolute;top:8px;left:10px;font-size:11px;font-weight:900;
-      padding:2px 7px;border-radius:10px;
-    }
-    .lb-rank.r1{background:#fef08a;color:#713f12}
-    .lb-rank.r2{background:#e2e8f0;color:#475569}
-    .lb-rank.r3{background:#ffedd5;color:#9a3412}
-    .lb-rank.rn{background:#f1f5f9;color:#94a3b8}
-    .lb-avatar{
-      width:52px;height:52px;border-radius:50%;margin:0 auto 8px;
-      display:flex;align-items:center;justify-content:center;
-      font-size:20px;font-weight:800;color:#fff;
-    }
-    .lb-name{font-size:14px;font-weight:800;color:#1e3a5f;margin-bottom:2px}
-    .lb-pct{font-size:28px;font-weight:900;line-height:1.1;margin-bottom:2px}
-    .lb-pct.green{color:#16a34a}.lb-pct.amber{color:#d97706}.lb-pct.red{color:#dc2626}
-    .lb-sub{font-size:11px;color:#64748b;font-weight:600}
-    .lb-rev{font-size:11px;color:#0369a1;font-weight:700;margin-top:6px}
-    .lb-streak{font-size:11px;margin-top:4px;font-weight:700}
-    .lb-progress{height:6px;background:#e2e8f0;border-radius:3px;margin-top:8px;overflow:hidden}
-    .lb-progress-fill{height:100%;border-radius:3px;transition:width .6s ease-out}
-    .lb-badge{
-      display:inline-block;padding:2px 8px;border-radius:10px;
-      font-size:10px;font-weight:800;margin-top:6px;
-    }
-
-    /* ── Team Summary Bar ────────────────────────────────────────────── */
-    .team-summary{
-      display:flex;gap:16px;flex-wrap:wrap;
-      background:linear-gradient(135deg,#f0f9ff,#e0f2fe);
-      border:1.5px solid #bae6fd;
-      border-radius:12px;padding:16px 20px;margin-bottom:16px;
-      color:#0f172a;align-items:center;
-    }
-    .team-summary-stat{text-align:center}
-    .team-summary-stat .val{font-size:24px;font-weight:900}
-    .team-summary-stat .val.green{color:#16a34a}
-    .team-summary-stat .val.amber{color:#d97706}
-    .team-summary-stat .val.red{color:#dc2626}
-    .team-summary-stat .lbl{font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
-    .team-summary-div{width:1px;background:#bae6fd;align-self:stretch}
-
-    /* ── Today's Orders ──────────────────────────────────────────────── */
-    .team-today-hdr{
-      display:flex;align-items:center;gap:10px;margin-bottom:10px;
-      font-size:15px;font-weight:800;color:#1e3a5f;
-    }
-    .team-order-row{
-      display:flex;align-items:center;gap:12px;
-      padding:10px 14px;border-radius:10px;margin-bottom:6px;
-      background:#fff;border:1.5px solid #e2e8f0;
-      transition:all .15s;
-    }
-    .team-order-row:hover{border-color:#1e40af;background:#f8fafc}
-    .team-order-row.done{opacity:.6;background:#f0fdf4;border-color:#bbf7d0}
-    .team-order-row .sup-name{font-size:13px;font-weight:700;color:#1e3a5f;flex:1}
-    .team-order-row .rev-tag{font-size:11px;color:#0369a1;font-weight:600}
-    .team-status-pill{
-      padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700;
-      white-space:nowrap;
-    }
-    .team-status-pill.done{background:#dcfce7;color:#14532d}
-    .team-status-pill.pending{background:#fee2e2;color:#991b1b}
-    .team-open-btn{
-      padding:5px 12px;background:#1e40af;color:#fff;border:none;
-      border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;
-      white-space:nowrap;
-    }
-    .team-open-btn:hover{background:#1d4ed8}
-
-    /* ── Buyer Detail View ───────────────────────────────────────────── */
-    .buyer-detail-hdr{
-      display:flex;align-items:center;gap:16px;
-      padding:16px 20px;background:linear-gradient(135deg,#f0f9ff,#dbeafe);
-      border:1.5px solid #93c5fd;
-      border-radius:12px;margin-bottom:16px;color:#0f172a;
-    }
-    .buyer-detail-avatar{
-      width:64px;height:64px;border-radius:50%;
-      display:flex;align-items:center;justify-content:center;
-      font-size:26px;font-weight:800;color:#fff;border:3px solid rgba(255,255,255,.5);
-    }
-    .buyer-detail-name{font-size:22px;font-weight:800;color:#1e3a5f}
-    .buyer-detail-stats{display:flex;gap:24px;margin-top:4px}
-    .buyer-detail-stats span{font-size:12px;color:#1e40af;font-weight:600}
-    .buyer-section-hdr{
-      font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
-      padding:10px 0 6px;margin-top:12px;color:#64748b;
-      border-bottom:2px solid #e2e8f0;
-    }
-    .buyer-section-hdr.pending{color:#dc2626;border-color:#fca5a5}
-    .buyer-section-hdr.done{color:#16a34a;border-color:#86efac}
-    /* ── Password gate ───────────────────────────────────────────────── */
-    #authGate{
-      position:fixed;inset:0;z-index:9999;
-      background:linear-gradient(135deg,#0f172a,#1e3a5f);
-      display:flex;align-items:center;justify-content:center;
-    }
-    #authGate.hidden{display:none}
-    .auth-box{
-      background:#fff;border-radius:16px;padding:40px;max-width:380px;width:90%;
-      box-shadow:0 20px 60px rgba(0,0,0,.4);text-align:center;
-    }
-    .auth-box h1{margin:0 0 6px;font-size:22px;font-weight:800;color:#1e3a5f}
-    .auth-box p{margin:0 0 24px;font-size:13px;color:#64748b}
-    .auth-input{
-      width:100%;padding:12px 16px;border:2px solid #cbd5e1;border-radius:10px;
-      font-size:15px;font-weight:600;text-align:center;margin-bottom:12px;
-    }
-    .auth-input:focus{outline:none;border-color:#1e40af;box-shadow:0 0 0 3px rgba(30,64,175,.15)}
-    .auth-btn{
-      width:100%;padding:12px;background:#1e40af;color:#fff;border:none;
-      border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;
-    }
-    .auth-btn:hover{background:#1748c0}
-    .auth-error{color:#dc2626;font-size:13px;font-weight:600;margin-top:8px;display:none}
   </style>
 </head>
 <body>
-
-<!-- Password gate -->
-<div id="authGate">
-  <div class="auth-box">
-    <h1>🔒 Lenehans Purchasing</h1>
-    <p>Enter password to access the dashboard</p>
-    <input type="password" id="authPassword" class="auth-input" placeholder="Password" autofocus
-      onkeydown="if(event.key==='Enter')checkAuth()">
-    <button class="auth-btn" onclick="checkAuth()">Sign In</button>
-    <div class="auth-error" id="authError">Incorrect password. Please try again.</div>
-  </div>
-</div>
-<script>
-const AUTH_HASH='c518c1f2e8d730a732d125a70cb2b2dccff3e310c0bca08662326ffaa7413e64';
-const AUTH_KEY='lenehans_auth';
-const AUTH_TTL=24*60*60*1000; // 24 hours
-
-async function sha256(str){
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-async function checkAuth(){
-  const pwd=document.getElementById('authPassword').value;
-  const hash=await sha256(pwd);
-  if(hash===AUTH_HASH){
-    localStorage.setItem(AUTH_KEY,JSON.stringify({t:Date.now()}));
-    document.getElementById('authGate').classList.add('hidden');
-    document.getElementById('authError').style.display='none';
-  } else {
-    document.getElementById('authError').style.display='block';
-    document.getElementById('authPassword').value='';
-    document.getElementById('authPassword').focus();
-  }
-}
-
-// Check if already authenticated within TTL
-(function(){
-  try{
-    const s=JSON.parse(localStorage.getItem(AUTH_KEY)||'{}');
-    if(s.t && (Date.now()-s.t)<AUTH_TTL){
-      document.getElementById('authGate').classList.add('hidden');
-    }
-  }catch(e){}
-})();
-</script>
-
 <header>
-  <div class="title">Lenehans Purchasing Dashboard · V5.50 · INTELLIGENCE</div>
-  <div class="sub">QueryData_master + CS Shared + PO Status · governance · seasonal look-ahead · momentum · order health · confidence score · weather-aware · pack-size rounding · PO review · <span id="buildStamp" style="color:#60a5fa"></span></div>
+  <div class="title">Lenehans Purchasing Dashboard · V5.34 · INTELLIGENCE</div>
+  <div class="sub">QueryData_master + CS Shared + PO Status · governance · seasonal look-ahead · momentum · order health · confidence score</div>
 </header>
-<script>document.getElementById('buildStamp').textContent='build 2026-04-27';</script>
-<div id="freshnessBar"></div>
-<div id="stickyChannelBadge"></div>
 
 <div class="wrap">
   <!-- Tab navigation -->
   <div class="tab-bar">
-    <button class="tab-btn active" data-tab="buying">📦 Buying <span class="kbd-hint">1</span></button>
-    <button class="tab-btn" data-tab="team">👥 Team <span class="kbd-hint">2</span></button>
-    <button class="tab-btn" data-tab="clearstock">🏷️ Clear Stock <span class="kbd-hint">3</span></button>
-    <button class="tab-btn" data-tab="transfers">🔄 Stock Transfers <span class="kbd-hint">4</span></button>
-    <button class="tab-btn" data-tab="noos">⭐ Never Out of Stock <span class="kbd-hint">5</span></button>
+    <button class="tab-btn active" data-tab="buying">📦 Buying</button>
+    <button class="tab-btn" data-tab="team">👥 Team</button>
+    <button class="tab-btn" data-tab="clearstock">🏷️ Clear Stock</button>
+    <button class="tab-btn" data-tab="transfers">🔄 Stock Transfers</button>
+    <button class="tab-btn" data-tab="noos">⭐ Never Out of Stock</button>
+    <button class="tab-btn" data-tab="deliveries" style="display:none">🚚 Deliveries</button>
   </div>
 
   <!-- TAB 1: Buying -->
@@ -879,7 +648,6 @@ async function checkAuth(){
     <span id="channelNote" style="font-size:12px;color:#0369a1;margin-left:8px">Stock basis: NetStock_Arklow · Demand: Magento online orders</span>
   </div>
 
-  <div id="weatherStrip"></div>
   <div id="basicLoadBar">
     <div class="basic-spinner"></div>
     <span id="basicLoadMsg">Loading data…</span>
@@ -889,11 +657,11 @@ async function checkAuth(){
     <label>Search supplier / SKU / title
       <input id="searchBox" type="text" placeholder="Search supplier, SKU, title">
     </label>
-    <label id="demandModeLabel" title="7D = last 7 days demand&#10;30D = last 30 days demand (default)&#10;Seasonal = 30D demand adjusted by Irish seasonal profile for this month. Non-seasonal items stay at 30D.">Demand mode
+    <label id="demandModeLabel" title="Seasonal = 30D demand adjusted by Irish seasonal profile (default). Non-seasonal items stay at 30D.&#10;30D = last 30 days demand (raw signal, useful as a sanity check).&#10;7D = last 7 days demand (spot short-term spikes).">Demand mode
       <select id="demandMode">
-        <option value="30D" selected>30D</option>
+        <option value="Seasonal" selected>Seasonal</option>
+        <option value="30D">30D</option>
         <option value="7D">7D</option>
-        <option value="Seasonal">Seasonal</option>
       </select>
     </label>
     <label id="leadDaysLabel">Lead time days
@@ -926,7 +694,6 @@ async function checkAuth(){
     <button id="clearRiskFiltersBtn" class="secondary">Clear risk filters</button>
     <button id="exportBtn" class="secondary">Export CSV</button>
     <button id="poExportBtn" class="secondary">Export PO</button>
-    <button id="whyBuyBtn" class="secondary" onclick="openWhyBuy()" title="Review why each SKU is being ordered — stock levels, demand, and reasoning">🔍 Why Buy?</button>
     <button id="xfrPickBtn" class="secondary" onclick="exportTransferPickingNote()" title="Export transfer picking note — only visible when inside a supplier" style="display:none">⇄ Transfer Note</button>
   </div>
 
@@ -1026,7 +793,8 @@ async function checkAuth(){
             <th class="num" title="Cover status and days of stock remaining">Cover</th>
             <th class="num" id="stockColHdr" title="Net stock at current channel location">Stock</th>
             <th class="num" id="otherLocColHdr" title="Stock at the other location + transfer opportunity">Other loc.</th>
-            <th class="num" title="Demand qty in selected period">Demand</th>
+            <th class="num" title="Demand qty in active mode (Seasonal by default — 30D adjusted for Irish seasonal profile)">Demand</th>
+            <th class="num" title="Last 7 days demand — spot spikes vs the 30D baseline. Amber = 1.5× rate, Red = 2× rate">7D</th>
             <th class="num" title="Demand momentum: 7D vs 30D run-rate">Trend</th>
             <th class="num" title="Adjusted daily demand after seasonal multiplier">Daily</th>
             <th class="num" title="Days of cover at current demand rate">Days</th>
@@ -1040,7 +808,7 @@ async function checkAuth(){
     </div>
   </div>
 
-  <div class="footer">V5.50 · Supplier governance · Weather-aware demand · Pack-size rounding · Revenue-weighted ABC · PO review screen · Seasonal look-ahead · Demand momentum · Buyer confidence · Supplier order health · Buyer leaderboard · CS-required lines locked</div>
+  <div class="footer">V5.36 · Seasonal demand mode default · 30D + 7D visible as context columns · 🚚 Deliveries tab · Supplier governance · Demand momentum · Buyer confidence score · stock basis = NetStock_Arklow</div>
   </div><!-- /tab-buying -->
 
   <!-- TAB 2: Clear Stock -->
@@ -1131,36 +899,123 @@ async function checkAuth(){
     </div>
   </div><!-- /tab-noos -->
 
-  <div class="tab-panel" id="tab-team">
-    <div id="teamView" style="padding:16px 0">
-      <!-- Summary bar -->
-      <div class="team-summary" id="teamSummaryBar">
-        <div class="team-summary-stat" style="cursor:pointer" onclick="document.getElementById('teamDoneSection')?.scrollIntoView({behavior:'smooth'})"><div class="val green" id="tsDoneToday">—</div><div class="lbl">Done today ↓</div></div>
-        <div class="team-summary-div"></div>
-        <div class="team-summary-stat" style="cursor:pointer" onclick="document.getElementById('teamPendingSection')?.scrollIntoView({behavior:'smooth'})"><div class="val amber" id="tsPendingToday">—</div><div class="lbl">Pending today ↓</div></div>
-        <div class="team-summary-div"></div>
-        <div class="team-summary-stat"><div class="val" id="tsMonthPct" style="color:#1e40af">—</div><div class="lbl">Month completion</div></div>
-        <div class="team-summary-div"></div>
-        <div class="team-summary-stat"><div class="val red" id="tsRevAtRisk">—</div><div class="lbl">€ rev/day at risk</div></div>
-        <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
-          <input type="text" id="teamSearchBox" placeholder="Search supplier…" oninput="filterTeamOrders(this.value)" style="padding:6px 12px;border:1.5px solid #93c5fd;border-radius:8px;background:#fff;color:#0f172a;font-size:12px;width:180px">
-          <div style="display:flex;align-items:center;gap:6px">
-            <button onclick="shiftTeamDate(-1)" style="width:30px;height:30px;border-radius:50%;border:1.5px solid #93c5fd;background:#fff;color:#1e40af;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">‹</button>
-            <div style="text-align:center;min-width:140px">
-              <div id="teamDateLabel" style="font-size:13px;font-weight:800;color:#1e3a5f"></div>
-              <div id="teamDateSub" style="font-size:10px;color:#64748b"></div>
-            </div>
-            <button onclick="shiftTeamDate(1)" style="width:30px;height:30px;border-radius:50%;border:1.5px solid #93c5fd;background:#fff;color:#1e40af;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">›</button>
-            <button onclick="resetTeamDate()" id="teamTodayBtn" style="display:none;padding:3px 10px;border-radius:12px;border:1px solid #f97316;background:#fff7ed;color:#c2410c;font-size:11px;font-weight:700;cursor:pointer;margin-left:4px">Today</button>
-          </div>
+  <!-- TAB 6: Deliveries -->
+  <div class="tab-panel" id="tab-deliveries">
+    <div style="margin-top:14px">
+
+      <!-- URL config row -->
+      <div id="delLoadCard" class="card" style="margin-bottom:10px">
+        <h3>🚚 Expected Deliveries — PO Tracking</h3>
+        <div class="load-row" style="flex-wrap:wrap;gap:10px;align-items:flex-end">
+          <label style="flex:1;min-width:340px">PO Deliveries CSV URL
+            <input id="delCsvUrl" type="text" placeholder="Paste Google Sheet CSV export URL for PO_Deliveries tab" style="width:100%">
+          </label>
+          <button id="delLoadBtn">Load Deliveries</button>
+          <button id="delRefreshBtn" class="secondary">↻ Refresh</button>
         </div>
+        <div id="delLoadStatus" class="footer" style="margin-top:8px">No delivery data loaded. Set up the PO_Deliveries sheet in Apps Script first — see setup instructions below.</div>
       </div>
 
-      <!-- Leaderboard -->
-      <div class="lb-strip" id="teamLeaderboard"></div>
+      <!-- Loading bar -->
+      <div id="delLoadBar" class="del-load-bar" style="display:none">
+        <div class="basic-spinner"></div>
+        <span id="delLoadMsg">Loading delivery data…</span>
+      </div>
 
-      <!-- Today's orders / buyer detail -->
-      <div id="teamOrdersContainer"></div>
+      <!-- Summary strip -->
+      <div class="del-summary" id="delSummary" style="display:none">
+        <div class="del-stat">
+          <span class="del-val red" id="delCountOverdue">0</span>
+          <span class="del-lbl">🔴 Overdue<br>PO lines</span>
+        </div>
+        <div class="del-divider"></div>
+        <div class="del-stat">
+          <span class="del-val amber" id="delCountSoon">0</span>
+          <span class="del-lbl">🟠 Due<br>this week</span>
+        </div>
+        <div class="del-divider"></div>
+        <div class="del-stat">
+          <span class="del-val green" id="delCountExpected">0</span>
+          <span class="del-lbl">📦 On<br>order</span>
+        </div>
+        <div class="del-divider"></div>
+        <div class="del-stat">
+          <span class="del-val grey" id="delCountDelivered">0</span>
+          <span class="del-lbl">✅ Recently<br>delivered</span>
+        </div>
+        <div class="del-divider"></div>
+        <div class="del-stat">
+          <span class="del-val" id="delCountSuppliers">0</span>
+          <span class="del-lbl">Suppliers<br>with open POs</span>
+        </div>
+        <div class="del-value-chip">Outstanding: <span id="delOutstandingValue">€0</span></div>
+      </div>
+
+      <!-- Filter buttons -->
+      <div class="del-filter-bar" id="delFilterBar" style="display:none">
+        <button class="del-filter-btn active" data-del-filter="all">All</button>
+        <button class="del-filter-btn" data-del-filter="overdue">🔴 Overdue</button>
+        <button class="del-filter-btn" data-del-filter="soon">🟠 Due This Week</button>
+        <button class="del-filter-btn" data-del-filter="expected">📦 On Order</button>
+        <button class="del-filter-btn" data-del-filter="delivered">✅ Delivered</button>
+        <input id="delSearch" type="text" placeholder="Search supplier / PO / SKU…" style="margin-left:auto;padding:6px 12px;border:1.5px solid #8899b0;border-radius:8px;font-size:12px;min-width:220px">
+      </div>
+
+      <!-- Results container -->
+      <div id="delResults"></div>
+
+      <!-- Setup instructions -->
+      <div id="delSetupNotice" class="del-setup-notice">
+        <h3>⚙️ Setup required — PO Deliveries sheet</h3>
+        <p>This tab reads from a <strong>PO_Deliveries</strong> sheet tab in the QueryData spreadsheet, populated by an Apps Script sync. To set it up:</p>
+        <ol style="margin:10px 0 0 16px;padding:0;line-height:2">
+          <li>Open the QueryData sheet → <strong>Extensions → Apps Script</strong></li>
+          <li>Add a second sync function (e.g. <code>syncDeliveries()</code>) using the SQL below</li>
+          <li>Run it once manually to create the <strong>PO_Deliveries</strong> tab and note its sheet GID</li>
+          <li>Get the CSV export URL:<br><code>https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&amp;gid=YOUR_GID</code></li>
+          <li>Paste the URL above and click <strong>Load Deliveries</strong></li>
+          <li>Optionally set a daily trigger on <code>syncDeliveries()</code> to keep it fresh</li>
+        </ol>
+        <details style="margin-top:14px">
+          <summary style="font-weight:700;cursor:pointer;color:#7c2d12">▶ Show SQL for Apps Script</summary>
+          <pre style="margin:10px 0 0;background:#fef3c7;padding:12px;border-radius:6px;font-size:11px;overflow:auto;white-space:pre-wrap;color:#1c1917">DECLARE @TODAY DATETIME = GETDATE();
+DECLARE @PAST  DATETIME = DATEADD(DAY,-90,GETDATE());
+SELECT
+  p.ExternalInvoiceNumber PONumber, s.SupplierName, CAST(' '+si.ItemNumber AS NVARCHAR(51)) SKU,
+  si.ItemTitle, pi.Quantity OrderedQty, pi.Delivered ReceivedQty,
+  pi.Quantity-pi.Delivered OutstandingQty,
+  CAST(pi.Cost AS DECIMAL(10,2)) UnitCost,
+  CAST((pi.Quantity-pi.Delivered)*pi.Cost AS DECIMAL(10,2)) OutstandingValue,
+  CONVERT(VARCHAR(10),p.DateOfPurchase,103) PODate,
+  CONVERT(VARCHAR(10),p.QuotedDeliveryDate,103) ExpectedDelivery,
+  CONVERT(VARCHAR(10),p.DateOfDelivery,103) ActualDelivery,
+  p.Status POStatus,
+  DATEDIFF(DAY,p.QuotedDeliveryDate,@TODAY) DaysOverdue
+FROM Purchase p
+JOIN PurchaseItem pi ON pi.fkPurchasId=p.pkPurchaseID
+JOIN StockItem si ON si.pkStockItemID=pi.fkStockItemId
+JOIN Supplier s ON s.pkSupplierId=p.fkSupplierId
+WHERE p.DateOfPurchase>=@PAST AND pi.Quantity&gt;0 AND p.Status NOT IN('CANCELLED')
+ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL' THEN 3 WHEN 'DELIVERED' THEN 4 ELSE 5 END, p.QuotedDeliveryDate ASC</pre>
+        </details>
+      </div>
+
+    </div>
+  </div><!-- /tab-deliveries -->
+
+  <div class="tab-panel" id="tab-team">
+    <div id="teamView" style="padding:16px 0">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+        <button onclick="shiftTeamDate(-1)" style="width:36px;height:36px;border-radius:50%;border:2px solid #e2e8f0;background:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#1e3a5f">‹</button>
+        <div style="text-align:center;min-width:180px">
+          <div id="teamDateLabel" style="font-size:16px;font-weight:800;color:#1e3a5f"></div>
+          <div id="teamDateSub" style="font-size:11px;color:#94a3b8"></div>
+        </div>
+        <button onclick="shiftTeamDate(1)" style="width:36px;height:36px;border-radius:50%;border:2px solid #e2e8f0;background:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#1e3a5f">›</button>
+        <button onclick="resetTeamDate()" id="teamTodayBtn" style="display:none;padding:4px 12px;border-radius:16px;border:1.5px solid #f97316;background:#fff7ed;color:#c2410c;font-size:12px;font-weight:700;cursor:pointer">Back to today</button>
+      </div>
+      <div id="teamBuyerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:24px"></div>
+      <div id="teamOrderList" style="display:none"></div>
     </div>
   </div><!-- /tab-team -->
 
@@ -1171,7 +1026,6 @@ async function checkAuth(){
   <div class="spb-supplier" id="spbSupplierName">—</div>
   <div class="spb-info" id="spbInfo"></div>
   <button onclick="exportPO()">📄 Export PO</button>
-  <button onclick="openWhyBuy()" style="background:#1e40af">🔍 Why Buy?</button>
   <button onclick="exportTransferPickingNote()" style="background:#d97706" title="Capel mode = Arklow→Capel transfers. Arklow mode = Capel→Arklow transfers.">⇄ Transfer Note</button>
   <button class="spb-back" onclick="document.getElementById('backBtn').click()">← Back to suppliers</button>
 </div>
@@ -1443,12 +1297,6 @@ function classifySlowMover(r){
   if(q180===0) return 'dead';
   if(q90===0)  return 'stale';
   if(q30===0)  return 'slow';
-  // Velocity check: stock with >365 days of cover at current rate = barely moving
-  if(q30>0 && stock>0){
-    const dailyRate = q30/30;
-    const coverDays = stock / dailyRate;
-    if(coverDays > 365) return 'slow'; // will take over a year to sell through
-  }
   return null;
 }
 
@@ -1701,6 +1549,7 @@ const state = {
   monthlyData: {},      // SKU -> { '2024_03': qty, '2024_04': qty, ... }
   monthlyLoaded: false, // true once monthly feed has been attempted
   supplierFallbackOverrides: {}, // supplierName -> '90D' | '180D' | null
+  deliveriesRows: [],            // rows from PO_Deliveries sheet
 };
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
@@ -1734,74 +1583,6 @@ loadFallbackOverrides();
 // PO done statuses → green
 const PO_DONE_STATUSES = ['done','complete','ordered','sent'];
 
-// ─── WEATHER-AWARE DEMAND ─────────────────────────────────────────────────────
-// Fetches Met Éireann 7-day forecast, classifies conditions, applies multiplier
-// to relevant seasonal categories
-const WEATHER_RULES = {
-  warm_dry:   { categories:['GARDEN_TOOLS','WATERING','BBQ','PATIO_CLEANING','LAWN_SEED','FERTILISER','WEED_CONTROL','PAINT_DECOR'], multiplier:1.15, label:'☀️ Warm & dry — garden/outdoor boost' },
-  cold_snap:  { categories:['WINTER_ICE','FIRE_HEAT','RODENT_CONTROL','PLUMBING_SEASON'],                                           multiplier:1.20, label:'❄️ Cold snap — winter prep boost' },
-  wet_windy:  { categories:['TARP_STORM','SECURITY'],                                                                                multiplier:1.10, label:'🌧️ Wet & windy — storm prep boost' },
-  mild:       { categories:[],                                                                                                        multiplier:1.00, label:'🌤️ Mild — no weather adjustment' }
-};
-let weatherData = { condition:'mild', forecast:null, lastFetch:null, tempAvg:null };
-
-async function fetchWeather(){
-  try{
-    // Open-Meteo free API — Dublin coordinates, no API key needed, CORS-friendly
-    const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=53.35&longitude=-6.26&current=temperature_2m,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Europe/Dublin&forecast_days=7');
-    if(!resp.ok) throw new Error('Weather API error');
-    const data = await resp.json();
-    const curTemp = data.current?.temperature_2m || 12;
-    // Average of 7-day max temps for condition classification
-    const maxTemps = data.daily?.temperature_2m_max || [];
-    const avgMax = maxTemps.length ? maxTemps.reduce((a,b)=>a+b,0)/maxTemps.length : curTemp;
-    const avgMin = (data.daily?.temperature_2m_min||[]).reduce((a,b)=>a+b,0)/(data.daily?.temperature_2m_min?.length||1);
-    const totalRain = (data.daily?.precipitation_sum||[]).reduce((a,b)=>a+b,0);
-    // Condition classification based on 7-day outlook
-    let condition = 'mild';
-    if(avgMax >= 18 && totalRain < 10) condition = 'warm_dry';
-    else if(avgMin <= 2) condition = 'cold_snap';
-    else if(totalRain > 30 || (data.current?.wind_speed_10m||0) > 40) condition = 'wet_windy';
-    weatherData = { condition, forecast:data, lastFetch:new Date(), tempAvg:Math.round(curTemp*10)/10, avgMax:Math.round(avgMax), totalRain:Math.round(totalRain) };
-    renderWeatherStrip();
-    return weatherData;
-  }catch(e){
-    console.log('Weather fetch skipped:', e.message);
-    // Fallback: month-based temperature estimate for Ireland
-    const monthTemps = [5,6,7,9,11,14,16,15,13,10,7,5];
-    const estTemp = monthTemps[new Date().getMonth()];
-    let condition = 'mild';
-    if(estTemp >= 16) condition = 'warm_dry';
-    else if(estTemp <= 5) condition = 'cold_snap';
-    weatherData = { condition, forecast:null, lastFetch:new Date(), tempAvg:estTemp };
-    renderWeatherStrip();
-    return weatherData;
-  }
-}
-
-function getWeatherMultiplier(categoryId){
-  const rule = WEATHER_RULES[weatherData.condition];
-  if(!rule || !rule.categories.length) return 1;
-  return rule.categories.includes(categoryId) ? rule.multiplier : 1;
-}
-
-function renderWeatherStrip(){
-  const el = document.getElementById('weatherStrip');
-  if(!el) return;
-  const rule = WEATHER_RULES[weatherData.condition] || WEATHER_RULES.mild;
-  const temp = weatherData.tempAvg != null ? weatherData.tempAvg + '°C' : '—';
-  const rainInfo = weatherData.totalRain != null ? ` · ${weatherData.totalRain}mm rain next 7d` : '';
-  const maxInfo = weatherData.avgMax != null ? ` · Avg high ${weatherData.avgMax}°C` : '';
-  el.style.display = 'flex';
-  el.innerHTML = `<span class="wx-temp">${temp}</span>
-    <span>${rule.label}</span>
-    <span class="wx-label">${maxInfo}${rainInfo}</span>
-    <span class="wx-label" style="margin-left:auto">${rule.multiplier > 1 ? '+' + Math.round((rule.multiplier-1)*100) + '% to ' + rule.categories.length + ' categories' : 'No adjustment'}</span>
-    <span class="wx-label">Updated: ${weatherData.lastFetch ? weatherData.lastFetch.toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'}) : '—'}</span>`;
-}
-
-
-
 // ─── CATEGORY & SEASONAL RULES ───────────────────────────────────────────────
 const CATEGORY_RULES = [
   { id:'BIRD_CONTROL',   label:'Bird Control',    keywords:['bird','hawk','kite','pigeon','scarer','repeller','falcon'],                   seasonalProfile:'SPRING_BIRD',       priority:100 },
@@ -1819,12 +1600,7 @@ const CATEGORY_RULES = [
   { id:'WINTER_ICE',     label:'De-Icer / Salt',  keywords:['rock salt','deicer','de icer','de-icer','ice melt','snow shovel','ice scraper'], seasonalProfile:'WINTER_ICE',     priority:100 },
   { id:'CHRISTMAS',      label:'Christmas',       keywords:['christmas','xmas','tree lights','tree stand','decorations'],                 seasonalProfile:'CHRISTMAS',          priority:100 },
   { id:'TARP_STORM',     label:'Storm Prep',      keywords:['tarpaulin','tarp','rope','bungee'],                                          seasonalProfile:'STORM_AUTUMN',       priority:72  },
-  { id:'FIRE_HEAT',      label:'Fire / Heat',     keywords:['kindling','firelighter','fire lighters','logs','log basket'],                seasonalProfile:'WINTER_FIRE',        priority:78  },
-  { id:'PAINT_DECOR',    label:'Paint & Decorating', keywords:['paint','primer','varnish','stain','roller','brush','filler','wallpaper','decorator','masking'], seasonalProfile:'SPRING_PAINT', priority:68 },
-  { id:'LIGHTING',       label:'Lighting',        keywords:['bulb','lamp','led','spotlight','floodlight','desk light','reading light','lantern'],              seasonalProfile:'WINTER_LIGHTING',    priority:65  },
-  { id:'SECURITY',       label:'Security & Locks', keywords:['lock','padlock','deadbolt','hasp','door chain','security light','alarm','safe'],                seasonalProfile:'AUTUMN_SECURITY',    priority:70  },
-  { id:'ADHESIVES',      label:'Adhesives & Sealants', keywords:['adhesive','glue','sealant','silicone','epoxy','superglue','no more nails','grip fill'],     seasonalProfile:'SPRING_CONSTRUCTION',priority:62  },
-  { id:'PLUMBING_SEASON',label:'Plumbing (seasonal)', keywords:['pipe','lagging','frost','bleed key','radiator key','pipe insulation','stopcock'],            seasonalProfile:'WINTER_PLUMBING',    priority:72  }
+  { id:'FIRE_HEAT',      label:'Fire / Heat',     keywords:['kindling','firelighter','fire lighters','logs','log basket'],                seasonalProfile:'WINTER_FIRE',        priority:78  }
 ];
 
 const SEASONAL_PROFILES = {
@@ -1844,12 +1620,7 @@ const SEASONAL_PROFILES = {
   WINTER_ICE:        { monthly:[2.1,1.9,1.0,1.0,1.0,1.0,1.0,1.0,1.2,2.0,2.5,2.4], note:'Winter de-icer demand' },
   CHRISTMAS:         { monthly:[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.3,1.7,2.5,2.0], note:'Christmas demand' },
   STORM_AUTUMN:      { monthly:[1.1,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.2,1.5,1.6,1.5], note:'Autumn/winter storm demand' },
-  WINTER_FIRE:       { monthly:[1.6,1.2,1.0,1.0,1.0,1.0,1.0,1.0,1.3,1.6,1.8,1.8], note:'Cold season fire demand' },
-  SPRING_PAINT:      { monthly:[1.0,1.3,1.7,2.0,1.9,1.5,1.2,1.0,1.1,1.0,1.0,1.0], note:'Spring decorating season' },
-  WINTER_LIGHTING:   { monthly:[1.3,1.1,1.0,1.0,1.0,1.0,1.0,1.0,1.2,1.5,1.7,1.5], note:'Dark evenings lighting demand' },
-  AUTUMN_SECURITY:   { monthly:[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.2,1.5,1.4,1.2], note:'Autumn clocks-change security demand' },
-  SPRING_CONSTRUCTION:{ monthly:[1.0,1.2,1.5,1.7,1.8,1.6,1.3,1.1,1.1,1.0,1.0,1.0], note:'Construction season adhesive demand' },
-  WINTER_PLUMBING:   { monthly:[1.8,1.5,1.1,1.0,1.0,1.0,1.0,1.0,1.0,1.2,1.6,1.9], note:'Winter burst-pipe plumbing demand' }
+  WINTER_FIRE:       { monthly:[1.6,1.2,1.0,1.0,1.0,1.0,1.0,1.0,1.3,1.6,1.8,1.8], note:'Cold season fire demand' }
 };
 
 // Irish seasonal rules — used for reason text and boost decisions
@@ -1867,12 +1638,7 @@ const IRISH_SEASONAL_RULES = [
   {name:'Storm prep',               keywords:['tarpaulin','tarp','rope','bungee'],                             months:[9,10,11,12,1],    boost:1.1 },
   {name:'Fire / winter heat',       keywords:['kindling','firelighter','log','coal'],                         months:[9,10,11,12,1],    boost:1.1 },
   {name:'Christmas',                keywords:['christmas','xmas','tree light','decor'],                        months:[9,10,11,12],      boost:1.25},
-  {name:'Storage / organisation',   keywords:['storage','shelving','box','crate','garage'],                   months:[1],               boost:1.1 },
-  {name:'Paint / decorating',      keywords:['paint','primer','varnish','stain','roller','filler','wallpaper'], months:[3,4,5,6],       boost:1.15},
-  {name:'Lighting (dark evenings)', keywords:['bulb','lamp','led','spotlight','lantern','desk light'],          months:[9,10,11,12,1],  boost:1.1 },
-  {name:'Security (clocks change)', keywords:['lock','padlock','alarm','security','safe','door chain'],        months:[10,11],           boost:1.12},
-  {name:'Adhesives / construction', keywords:['adhesive','glue','sealant','silicone','epoxy','no more nails'], months:[3,4,5,6,7],     boost:1.1 },
-  {name:'Plumbing (freeze risk)',   keywords:['pipe','lagging','frost','bleed key','stopcock','insulation'],   months:[11,12,1,2],     boost:1.2 }
+  {name:'Storage / organisation',   keywords:['storage','shelving','box','crate','garage'],                   months:[1],               boost:1.1 }
 ];
 
 // ─── UTILITY ─────────────────────────────────────────────────────────────────
@@ -1883,17 +1649,9 @@ function fmtInt(v){ return Math.round(num(v)).toLocaleString('en-IE'); }
 function fmt1(v){ return num(v).toFixed(1); }
 function monthIndex(){ return new Date().getMonth(); }
 function monthLabel(){ return new Date().toLocaleString('en-IE', {month:'long'}); }
-// Locale-safe month string — Safari/Chrome produce different toLocaleDateString output
-// Always uses hardcoded month names to match PO feed format exactly
-const _MONTH_NAMES_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-function currentMonthStr(){ const d=new Date(); return _MONTH_NAMES_SHORT[d.getMonth()]+' '+d.getFullYear(); }
-function formatDateShort(d){ return String(d.getDate()).padStart(2,'0')+' '+_MONTH_NAMES_SHORT[d.getMonth()]; }
 function setStatus(msg,bad){
   const el=document.getElementById('loadStatus');
   if(el){ el.textContent=msg; el.style.color=bad?'var(--bad)':'#14532d'; el.style.background=bad?'#fee2e2':msg.startsWith('✅')?'#dcfce7':'#f1f5f9'; el.style.borderColor=bad?'#f87171':msg.startsWith('✅')?'#4ade80':'var(--line-light)'; }
-  // Track data load time for freshness indicator
-  if(msg.startsWith('✅')&&!bad) state._dataLoadedAt = new Date();
-  updateFreshnessBar();
   // Collapse load card when data loads successfully
   if(msg.startsWith('✅')&&!bad){
     // Hide basic mode loading bar
@@ -1910,47 +1668,6 @@ function setStatus(msg,bad){
 }
 function setLoadMeta(msg,bad){ const el=document.getElementById('loadMeta'); if(el){ el.textContent=msg||''; el.style.color=bad?'var(--bad)':'var(--muted)'; } }
 function setGovStatus(msg){ const el=document.getElementById('govStatus'); if(el) el.textContent=msg||''; }
-
-
-// ─── DATA FRESHNESS INDICATOR ─────────────────────────────────────────────────
-function updateFreshnessBar(){
-  const bar = document.getElementById('freshnessBar');
-  if(!bar) return;
-  if(!state._dataLoadedAt){ bar.style.display='none'; return; }
-  const now = new Date();
-  const diff = now - state._dataLoadedAt;
-  const hrs = Math.floor(diff / 3600000);
-  const mins = Math.floor((diff % 3600000) / 60000);
-  const loadTime = state._dataLoadedAt.toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'});
-  const loadDate = state._dataLoadedAt.toLocaleDateString('en-IE',{day:'numeric',month:'short'});
-  let label = `Data loaded at ${loadTime} on ${loadDate}`;
-  if(hrs > 0) label += ` · ${hrs}h ${mins}m ago`;
-  else if(mins > 0) label += ` · ${mins}m ago`;
-  else label += ' · just now';
-  bar.style.display = 'block';
-  bar.className = hrs >= 48 ? 'old' : (hrs >= 24 ? 'stale' : '');
-  bar.textContent = (hrs >= 48 ? '🔴 ' : hrs >= 24 ? '🟠 ' : '🟢 ') + label;
-}
-// Update freshness every minute
-setInterval(updateFreshnessBar, 60000);
-
-
-// ─── STICKY CHANNEL BADGE ─────────────────────────────────────────────────────
-function updateChannelBadge(){
-  const badge = document.getElementById('stickyChannelBadge');
-  if(!badge) return;
-  const isCapel = state.channel === 'capel';
-  const buyingTab = document.getElementById('tab-buying');
-  const isActive = buyingTab && buyingTab.classList.contains('active');
-  if(!isActive || !state.computedRows || !state.computedRows.length){
-    badge.style.display = 'none';
-    return;
-  }
-  badge.style.display = window.scrollY > 200 ? 'block' : 'none';
-  badge.className = isCapel ? 'capel' : 'arklow';
-  badge.textContent = isCapel ? '🏪 CAPEL STREET' : '🏭 ARKLOW';
-}
-window.addEventListener('scroll', updateChannelBadge, {passive:true});
 
 function toggleWatchlist(){
   const body=document.getElementById('wlBody');
@@ -2124,15 +1841,7 @@ function parsePOFeed(rows){
   // Mar AK Status, Mar AK Done, Mar AK By, Mar CS Status, Mar CS Done, Mar CS By
   // Apr AK Status, Apr AK Done, Apr AK By, Apr CS Status, Apr CS Done, Apr CS By
   // May AK Status, May AK Done, May AK By, May CS Status, May CS Done, May CS By
-  // Auto month rollover — dynamically calculate current + 2 prior months
-  const _mpMonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const _mpNow = new Date();
-  const _mpCur = _mpNow.getMonth(); // 0-based
-  const monthPrefixes = [
-    _mpMonths[(_mpCur - 2 + 12) % 12],
-    _mpMonths[(_mpCur - 1 + 12) % 12],
-    _mpMonths[_mpCur]
-  ];
+  const monthPrefixes = ['Mar','Apr','May'];
 
   function isDoneStatus(s){ return PO_DONE_STATUSES.some(d=>(s||'').toLowerCase().includes(d)); }
   function getCol(prefix, suffix){
@@ -2163,7 +1872,7 @@ function parsePOFeed(rows){
       const dateCS   = csDoneCol   ? String(r[csDoneCol]||'').trim()   : '';
       const personAK = akByCol     ? String(r[akByCol]||'').trim()     : '';
       const personCS = csByCol     ? String(r[csByCol]||'').trim()     : '';
-      const monthLabel = `${prefix} ${_mpNow.getFullYear()}`;
+      const monthLabel = `${prefix} 2026`;
 
       if(statusAK){
         history[supplier].arklow.push({
@@ -2182,14 +1891,11 @@ function parsePOFeed(rows){
 
   // Build map entries — latest status + history array for chip display
   for(const [supplier, h] of Object.entries(history)){
-    // Sort by month descending (most recent first) — locale-safe, no Date parsing
-    const _monthIdx = m => {
-      const parts = (m||'').split(' ');
-      const mi = _mpMonths.indexOf(parts[0]);
-      const yr = parseInt(parts[1]||'0',10);
-      return yr * 12 + (mi >= 0 ? mi : 0);
-    };
-    const sortEntries = arr => arr.sort((a,b) => _monthIdx(b.month) - _monthIdx(a.month));
+    // Sort by month descending (most recent first)
+    const sortEntries = arr => arr.sort((a,b) => {
+      const da = new Date(a.month), db = new Date(b.month);
+      return isNaN(da)||isNaN(db) ? 0 : db-da;
+    });
 
     const akEntries = sortEntries(h.arklow);
     const csEntries = sortEntries(h.capelstreet);
@@ -2559,7 +2265,6 @@ function buildBuyerReason(res){
   if(seasonRule&&!res.seasonalDataUsed) lines.push(`Irish seasonal rule active: ${seasonRule.name}.`);
   const hiddenSeasonal=getHiddenSeasonalSignal(res);
   if(hiddenSeasonal.label!=='Normal') lines.push(`${hiddenSeasonal.label} detected from 180-day versus 30-day sales pattern.`);
-  if(res.wxMultiplier>1.01) lines.push(`Weather adjustment: ${WEATHER_RULES[weatherData.condition]?.label || 'mild'} (+${Math.round((res.wxMultiplier-1)*100)}%).`);
   if(res.seasonalBoostPct>0) lines.push(`Seasonal buy boost applied (+${fmtInt(res.seasonalBoostPct*100)}%) because cover is weak.`);
   if(res.adjustedDaily>0) lines.push(`Current stock is ${fmtInt(res.stock)}, giving about ${fmtInt(res.daysOfCover)} days of cover.`);
   else lines.push(`Current stock is ${fmtInt(res.stock)} and there is no active demand signal right now.`);
@@ -2567,8 +2272,6 @@ function buildBuyerReason(res){
   if(res._csRequired) lines.push(`CS-required line — minimum floor qty ${fmtInt(res._csQtyFloor)}. Cannot be omitted from PO export.${res._csReason?' Reason: '+res._csReason+'.':''}`);
   if(res.minOneFallbackApplied) lines.push(`Minimum order of 1 unit applied because fallback demand exists and stock is zero.`);
   else lines.push(`Recommended order: ${fmtInt(res.buy)} units.`);
-  if(res.packRounded) lines.push(`Rounded up to pack size of ${fmtInt(res.packSize)}.`);
-  if(res.minOrderApplied) lines.push(`Raised to supplier minimum order of ${fmtInt(res.minOrder)}.`);
   if(res.ramp&&res.demandMode!=='7D') lines.push(`A 7-day spike is visible as a signal (${res.demandMode} mode is active).`);
   if(res.capelSignal) lines.push(`<span style="color:#dc2626;font-weight:700">${res.capelSignal}</span>`);
   // Alternative supplier signals
@@ -2702,17 +2405,11 @@ function computeRow(row){
 
   const baseDaily=demandDays>0?demandQty/demandDays:0;
 
-  // Revenue-weighted ABC: blend volume and revenue for better ranking
+  let abcClass='C';
   const qty180=row.QtySold_Online_Total_180d||0;
   const qty30 =row.QtySold_Online_Total_30d||0;
-  const rev180=(row.Revenue_Online_Total_30d||0)*6; // extrapolate 30D rev to 180D
-  // Composite score: 60% revenue + 40% volume (normalised against thresholds)
-  const abcRevScore  = Math.min(rev180 / 500, 1); // €500 in 180D = max revenue score
-  const abcVolScore  = Math.min(qty180 / 100, 1); // 100 units in 180D = max volume score
-  const abcComposite = (abcRevScore * 0.6) + (abcVolScore * 0.4);
-  let abcClass='C';
-  if(abcComposite >= 0.5) abcClass='A';
-  else if(abcComposite >= 0.2) abcClass='B';
+  if(qty180>=100) abcClass='A';
+  else if(qty180>=20) abcClass='B';
 
   const seasonalRatio=qty30>0?(qty180/6)/qty30:0;
   let seasonalSignal='Normal';
@@ -2759,9 +2456,7 @@ function computeRow(row){
   }
   seasonalBoostPct=Math.min(seasonalBoostPct,0.20);
 
-  // Apply weather multiplier for relevant categories
-  const wxMultiplier = getWeatherMultiplier(cls.categoryId);
-  const effectiveDaily=adjustedDaily*(1+seasonalBoostPct)*wxMultiplier;
+  const effectiveDaily=adjustedDaily*(1+seasonalBoostPct);
   const target=ceilNonNeg(effectiveDaily*coverDays);
 
   // CS floor: buy must be at least the CS floor qty if CS-required
@@ -2771,18 +2466,6 @@ function computeRow(row){
   if(row._csRequired&&row._csQtyFloor>0) buy=Math.max(buy,row._csQtyFloor);
   const minOneFallbackApplied=!!fallbackUsed&&stock<=0&&demandQty>0&&buy<=0;
   if(minOneFallbackApplied) buy=1;
-  // Pack-size rounding: round up to nearest pack, enforce supplier minimum
-  const packSize = row.SupplierPackSize || 1;
-  const minOrder = row.SupplierMinOrder || 0;
-  if(buy > 0 && packSize > 1){
-    buy = Math.ceil(buy / packSize) * packSize;
-  }
-  if(buy > 0 && minOrder > 0 && buy < minOrder){
-    buy = minOrder;
-  }
-  // Track if pack rounding was applied for display
-  const packRounded = (packSize > 1 && buy > 0);
-  const minOrderApplied = (minOrder > 0 && rawBuy > 0 && rawBuy < minOrder);
 
   const daysOfCover=effectiveDaily>0?(stock/effectiveDaily):(stock>0?9999:0);
   const rawCoverStatus=effectiveDaily<=0?(stock>0?'No demand':'Out of Stock')
@@ -2802,7 +2485,6 @@ function computeRow(row){
     seasonalMultiplier,seasonalDataUsed,abcClass,seasonalSignal,seasonalBoostPct,
     baseDaily,adjustedDaily:effectiveDaily,daysOfCover,coverStatus,coverDays,
     target,rawBuy,maxBuy,buy,stock,status,ramp,capelSignal,minOneFallbackApplied,
-    packRounded,minOrderApplied,packSize,minOrder:minOrder,wxMultiplier,
     _csRequired:row._csRequired||false,
     _csQtyFloor:row._csQtyFloor||0,
     _csReason:row._csReason||''
@@ -2837,11 +2519,6 @@ function supplierSummaryRows(rows){
     s._skuRows.push(r);
     // Attach PO status from channel-correct map
     if(!s.poStatus && chPoMap[k]) s.poStatus=chPoMap[k];
-    // Extract last done date for display
-    if(s.poStatus && s.poStatus.history && s.poStatus.history.length>0){
-      const lastDone = s.poStatus.history.find(h=>h.isDone);
-      if(lastDone) s.lastDoneDate = lastDone.date || lastDone.month || '';
-    }
   }
   // Also try fuzzy PO status match
   for(const [name, s] of map){
@@ -2855,16 +2532,12 @@ function supplierSummaryRows(rows){
   }
   const arr=[...map.values()];
   for(const s of arr){
-    // Cost-weighted risk: critical A-items with high cost rank above cheap C-items
-    const critCost = s._skuRows.filter(r=>['Critical','Out of Stock'].includes(r.coverStatus))
-      .reduce((sum,r)=>sum + (r.buy||0) * (r._bestKnownCost||r.SupplierCostPrice||0), 0);
-    const riskScore=(s.criticalCount*5)+(s.lowCount*3)+(s.buySkuCount*2)+(s.totalBuy/50)+(critCost/200);
+    const riskScore=(s.criticalCount*5)+(s.lowCount*3)+(s.buySkuCount*2)+(s.totalBuy/50);
     let riskLabel='Low';
     if(riskScore>40) riskLabel='Order now';
     else if(riskScore>25) riskLabel='High';
     else if(riskScore>12) riskLabel='Medium';
     s.riskLabel=riskLabel;
-    s.critCostAtRisk=critCost;
     s.orderHealth = getSupplierOrderHealth(s._skuRows);
     const confScores = s._skuRows.map(r=>r.confidence?r.confidence.score:60);
     const avgConf = confScores.length ? Math.round(confScores.reduce((a,b)=>a+b,0)/confScores.length) : 60;
@@ -2944,7 +2617,6 @@ function recompute(){
   const rankSorted=[...deduped].sort((a,b)=>(b.Revenue_Online_Total_30d||0)-(a.Revenue_Online_Total_30d||0));
   state.skuRankMap=new Map(rankSorted.map((r,i)=>[ r.SKU, i+1 ]));
   render();
-  updateChannelBadge();
   if(document.getElementById('tab-clearstock')?.classList.contains('active')) renderClearStock();
   if(document.getElementById('tab-noos')?.classList.contains('active')) renderNOOS();
 }
@@ -2989,7 +2661,7 @@ function renderOrderPreview(rows, chPoMap){
   const po=chPoMap[state.activeSupplier];
   const poEl=document.getElementById('opPOStatus');
   if(po){
-    const nowMonthStr2 = currentMonthStr();
+    const nowMonthStr2 = new Date().toLocaleDateString('en-IE',{month:'short',year:'numeric'});
     const doneThisMonth2 = po.isDone && po.month && po.month===nowMonthStr2;
     const cls = doneThisMonth2 ? 'po-done' : (po.isDone ? 'po-done-old' : 'po-pending');
     const isCapel=(po.channel||'').toLowerCase().includes('capel');
@@ -3068,7 +2740,7 @@ function renderActionNow(rows){
       const prevDone = po.history.filter(h=>h.date).slice(0,3);
       if(prevDone.length>0){
         html+=`<div style="margin-top:3px;font-size:10px;color:#64748b;line-height:1.6">`;
-        const nowMonth = currentMonthStr();
+        const nowMonth = new Date().toLocaleDateString('en-IE',{month:'short',year:'numeric'});
         prevDone.forEach(h=>{
           const isCurrentMonth = (h.month||'') === nowMonth;
           const histColour = isCurrentMonth ? '#15803d' : '#d97706';
@@ -3184,7 +2856,6 @@ function render(){
       const confBar = `<div class="conf-bar"><div class="conf-track"><div class="conf-fill ${conf.cls}" style="width:${conf.score}%"></div></div><span style="font-size:11px;font-weight:700;color:${conf.cls==='conf-high'?'#166534':conf.cls==='conf-med'?'#d97706':'#dc2626'}">${conf.label}</span></div>`;
       const momChip = `<span class="chip ${mom.chip}" title="7D vs 30D run-rate">${mom.label}</span>`;
       const coverCls=r.coverStatus==='Healthy'?'good-txt':(r.coverStatus==='Low'?'warn-txt':(r.coverStatus==='Critical'||r.coverStatus==='Out of Stock'?'bad':''));
-      const cbIcon=r.coverStatus==='Out of Stock'?'⬤':r.coverStatus==='Critical'?'◆':r.coverStatus==='Low'?'△':r.coverStatus==='Healthy'?'✓':r.coverStatus==='High'?'▲':'·';
       const coverText=r.daysOfCover>=9999?'∞':fmtInt(r.daysOfCover);
       const isOmitted=state.omittedSkus.has(r.SKU)&&!r._csRequired;
       const omitBtn=r._csRequired
@@ -3250,6 +2921,15 @@ function render(){
             </div>`;
         })()}</td>
         <td class="num">${fmtInt(r.demandQty)}</td>
+        <td class="num">${(()=>{
+          const raw7d = r.QtySold_Online_Total_7d || 0;
+          const avg7d = (r.QtySold_Online_Total_30d || 0) / 30 * 7;
+          const ratio = avg7d > 0 ? raw7d / avg7d : 0;
+          const style = ratio >= 2   ? 'font-weight:800;color:#dc2626' :
+                        ratio >= 1.5 ? 'font-weight:700;color:#d97706' : 'color:#52637a';
+          const tip = ratio >= 1.5 ? ` title="${fmt1(ratio)}× above 30D run-rate"` : '';
+          return `<span style="${style}"${tip}>${fmtInt(raw7d)}</span>`;
+        })()}</td>
         <td class="num">${momChip}</td>
         <td class="num">${fmt1(r.adjustedDaily)}</td>
         <td class="num">${coverText}</td>
@@ -3313,7 +2993,7 @@ function render(){
           const personPart=(!isCapel&&po.person)?' · '+esc(po.person):'';
           const datePart=po.date?' · '+esc(po.date):'';
           // Only show green if done date is in current month
-          const nowMonthStr = currentMonthStr();
+          const nowMonthStr = new Date().toLocaleDateString('en-IE',{month:'short',year:'numeric'});
           const doneThisMonth = po.isDone && po.month && po.month===nowMonthStr;
           const chipCls = doneThisMonth ? 'po-done' : (po.isDone ? 'po-done-old' : 'po-pending');
           // Build history lines for previous done months
@@ -3328,9 +3008,22 @@ function render(){
               histHtml += '</div>';
             }
           }
-          return `<div><span class="chip ${chipCls}">${esc(po.raw)}${personPart}${datePart}</span>${histHtml}</div>`;
+          // Mark done button — only show if not already done this month
+          const markDoneBtn = !doneThisMonth && PO_UPDATER_URL
+            ? `<button onclick="event.stopPropagation();markSupplierDone('${esc(s.SupplierName)}')"
+                style="margin-top:4px;padding:2px 8px;font-size:10px;font-weight:700;background:#f0fdf4;border:1.5px solid #4ade80;color:#15803d;border-radius:5px;cursor:pointer;display:block">
+                ✓ Mark done
+              </button>`
+            : '';
+          return `<div><span class="chip ${chipCls}">${esc(po.raw)}${personPart}${datePart}</span>${histHtml}${markDoneBtn}</div>`;
         })()
-        : `<span class="chip po-pending">No PO</span>`;
+        : PO_UPDATER_URL
+          ? `<div><span class="chip po-pending">No PO</span>
+              <button onclick="event.stopPropagation();markSupplierDone('${esc(s.SupplierName)}')"
+                style="margin-top:4px;padding:2px 8px;font-size:10px;font-weight:700;background:#f0fdf4;border:1.5px solid #4ade80;color:#15803d;border-radius:5px;cursor:pointer;display:block">
+                ✓ Mark done
+              </button></div>`
+          : `<span class="chip po-pending">No PO</span>`;
       const health = s.orderHealth || {score:0,label:'—',cls:'conf-low'};
       const conf   = s.avgConfidence || {score:60,label:'Med',cls:'conf-med'};
       const healthBar = `<div class="health-bar"><div class="health-track"><div class="health-fill ${health.cls}" style="width:${health.score}%"></div></div>${health.label}</div>`;
@@ -3596,32 +3289,12 @@ function applyInitialMode(){
 function exportPO(){
   const rows=getFilteredRows().filter(r=>r.buy>0&&(!state.omittedSkus.has(r.SKU)||r._csRequired));
   if(!rows.length){alert('No lines to export for current view.');return;}
-  // Sort: OOS first, then critical, then by buy qty desc
-  rows.sort((a,b)=>{
-    const pa = a.stock<=0?0:a.coverStatus==='Critical'?1:a.coverStatus==='Low'?2:3;
-    const pb = b.stock<=0?0:b.coverStatus==='Critical'?1:b.coverStatus==='Low'?2:3;
-    return pa!==pb ? pa-pb : b.buy-a.buy;
-  });
-  // Export CSV immediately
-  const supplierLabel = state.activeSupplier || 'ALL_SUPPLIERS';
-  const cols = ['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','_csRequired','_csQtyFloor','coverStatus','stock','target','reason'];
-  const headers = [...cols,'Tax Rate'];
-  const lines = [headers.join(',')];
+  const supplierLabel=state.activeSupplier||'ALL_SUPPLIERS';
+  const cols=['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','_csRequired','_csQtyFloor','coverStatus','stock','target','reason'];
+  const headers=[...cols,'Tax Rate'];
+  const lines=[headers.join(',')];
   for(const r of rows){lines.push([...cols.map(c=>{let v=r[c];if(typeof v==='boolean') v=v?'YES':'NO';if(typeof v==='number') v=String(v);v=String(v??'');if(/[",\n]/.test(v)) v='"'+v.replace(/"/g,'""')+'"';return v;}),'0'].join(','));}
   const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`PO_${supplierLabel.replace(/[^a-z0-9]+/gi,'_')}_${document.getElementById('demandMode').value}.csv`;a.click();URL.revokeObjectURL(a.href);
-  // Then show the review screen for sanity checking
-  showPOReview(rows);
-}
-
-function openWhyBuy(){
-  const rows=getFilteredRows().filter(r=>r.buy>0&&(!state.omittedSkus.has(r.SKU)||r._csRequired));
-  if(!rows.length){alert('No buy lines for current view.');return;}
-  rows.sort((a,b)=>{
-    const pa = a.stock<=0?0:a.coverStatus==='Critical'?1:a.coverStatus==='Low'?2:3;
-    const pb = b.stock<=0?0:b.coverStatus==='Critical'?1:b.coverStatus==='Low'?2:3;
-    return pa!==pb ? pa-pb : b.buy-a.buy;
-  });
-  showPOReview(rows);
 }
 
 // ─── FETCH HELPERS ───────────────────────────────────────────────────────────
@@ -3728,13 +3401,6 @@ async function processRawRows(parsedRaw, sourceName){
     : ' · governance feeds unavailable, showing all suppliers';
   setStatus(`✅ Loaded ${fmtInt(normalised.length)} rows from ${sourceName}${govNote}.${missing.length?' Missing columns: '+missing.join(', '):''}`, false);
   setLoadMeta('',false);
-  // Refresh Team tab with latest PO status data
-  renderTeam();
-  // If buyer detail is open, re-render it too
-  const teamContainer = document.getElementById('teamOrdersContainer');
-  if(teamContainer && teamContainer.dataset.drillBuyer){
-    renderBuyerDetail(teamContainer.dataset.drillBuyer);
-  }
 }
 
 async function testUrl(){
@@ -3881,6 +3547,24 @@ function bindEvents(){
   });
   const exportBtn=byId('exportBtn');if(exportBtn) exportBtn.addEventListener('click',exportCSV);
   const poExportBtn=byId('poExportBtn');if(poExportBtn) poExportBtn.addEventListener('click',exportPO);
+  // ── Deliveries tab buttons ─────────────────────────────────────────────────
+  const delLoadBtn=byId('delLoadBtn');
+  if(delLoadBtn) delLoadBtn.addEventListener('click',()=>loadDeliveriesData());
+  const delRefreshBtn=byId('delRefreshBtn');
+  if(delRefreshBtn) delRefreshBtn.addEventListener('click',()=>loadDeliveriesData());
+  document.querySelectorAll('[data-del-filter]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('[data-del-filter]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      delActiveFilter=btn.dataset.delFilter;
+      renderDeliveries();
+    });
+  });
+  const delSearchEl=byId('delSearch');
+  if(delSearchEl){
+    let _delTimer=null;
+    delSearchEl.addEventListener('input',()=>{clearTimeout(_delTimer);_delTimer=setTimeout(renderDeliveries,300);});
+  }
   const xfrExportBtn=byId('xfrExportBtn');
   if(xfrExportBtn) xfrExportBtn.addEventListener('click',()=>{
     const {toCapel, toArklow} = computeTransfers();
@@ -3949,6 +3633,7 @@ function bindEvents(){
       if(btn.dataset.tab==='transfers')  renderTransfers();
       if(btn.dataset.tab==='noos')       renderNOOS();
       if(btn.dataset.tab==='team')       renderTeam();
+      if(btn.dataset.tab==='deliveries') renderDeliveries();
     });
   });
   // ── Clear Stock filter buttons ─────────────────────────────────────────────
@@ -3987,6 +3672,7 @@ function bindEvents(){
 document.addEventListener('DOMContentLoaded',()=>{
   applyInitialMode();
   updateTeamDateUI();
+  renderTeam();
   bindEvents();
   const monthBadge=document.getElementById('monthBadge');
   if(monthBadge) monthBadge.textContent=`Month: ${monthLabel()}`;
@@ -3996,9 +3682,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   const demandEl=document.getElementById('demandMode');
   if(showEl) showEl.value='buy';
   if(excludeEl) excludeEl.value='yes';
-  if(demandEl) demandEl.value='30D';
+  if(demandEl) demandEl.value='Seasonal';
   // Auto-load all feeds immediately on open
-  fetchWeather(); // Weather-aware demand — fires on load, falls back to monthly estimates if API unavailable
   const urlEl=document.getElementById('csvUrl');
   if(urlEl) urlEl.value=DEFAULT_URL;
   setStatus('⏳ Auto-loading all feeds…',false);
@@ -4006,7 +3691,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 // ─── TEAM TAB ────────────────────────────────────────────────────────────────
-const BUYER_SCHEDULE = [{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"104 - J.T. FULLEN","cadence":"Monthly","orderDays":"1st Mon","revDay":2.5,"rev30d":74,"units30d":9,"leadDays":21},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Capel Street","supplier":"104 - J.T. FULLEN","cadence":"Monthly","orderDays":"1st Mon","revDay":2.5,"rev30d":74,"units30d":9,"leadDays":21},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"181","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":22.7,"rev30d":682,"units30d":48,"leadDays":7},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"ABC002 - ABC Abrasives Ltd","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":14.5,"rev30d":435,"units30d":29,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"ABC002 - ABC Abrasives Ltd","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":14.5,"rev30d":435,"units30d":29,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"ADGO","cadence":"Monthly","orderDays":"1st Mon","revDay":8,"rev30d":239,"units30d":27,"leadDays":21},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"ADGO","cadence":"Monthly","orderDays":"1st Mon","revDay":8,"rev30d":239,"units30d":27,"leadDays":21},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"ALD001 - ALDRIDGE SECURITY","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":15.3,"rev30d":460,"units30d":21,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"ALD001 - ALDRIDGE SECURITY","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":15.3,"rev30d":460,"units30d":21,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"ALL7 - EXITEX LIMITED","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":9.1,"rev30d":272,"units30d":22,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"ALL7 - EXITEX LIMITED","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":9.1,"rev30d":272,"units30d":22,"leadDays":3},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"AMIG","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":53.8,"rev30d":1615,"units30d":974,"leadDays":14},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"AMIG","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":53.8,"rev30d":1615,"units30d":974,"leadDays":14},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Arklow","supplier":"ASCOMP001 - AS ESSENTIALS LTD","cadence":"Monthly","orderDays":"1st Mon","revDay":13.2,"rev30d":395,"units30d":6,"leadDays":21},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Capel Street","supplier":"ASCOMP001 - AS ESSENTIALS LTD","cadence":"Monthly","orderDays":"1st Mon","revDay":13.2,"rev30d":395,"units30d":6,"leadDays":21},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"ASH001 - ASHTOWN TRADING","cadence":"2x week","orderDays":"Mon / Wed / Fri","revDay":767.7,"rev30d":23031,"units30d":1373,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"ASH001 - ASHTOWN TRADING","cadence":"3x week","orderDays":"Mon / Wed / Fri","revDay":767.7,"rev30d":23031,"units30d":1373,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"ATKO Group","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":2.8,"rev30d":85,"units30d":16,"leadDays":4},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Arklow","supplier":"BAS017 - LAYDEX","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":18.3,"rev30d":548,"units30d":40,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"BAS017 - LAYDEX","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":18.3,"rev30d":548,"units30d":40,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"BEN001 - BENSON TOOLS","cadence":"Monthly","orderDays":"1st Mon","revDay":20.1,"rev30d":602,"units30d":50,"leadDays":21},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"BEN001 - BENSON TOOLS","cadence":"Monthly","orderDays":"1st Mon","revDay":20.1,"rev30d":602,"units30d":50,"leadDays":21},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"BG15 - B & G Ltd","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":18.8,"rev30d":564,"units30d":36,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"BG15 - B & G Ltd","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":18.8,"rev30d":564,"units30d":36,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"BLA001- BLACKSPUR HAND TOOLS","cadence":"Fortnightly","orderDays":"Mon / Thu","revDay":296.5,"rev30d":8896,"units30d":1255,"leadDays":6},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"BLA001- BLACKSPUR HAND TOOLS","cadence":"2x week","orderDays":"Mon / Thu","revDay":296.5,"rev30d":8896,"units30d":1255,"leadDays":6},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"BLUE002 - BLUESTONE SALES AND DIST LTD","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":19,"rev30d":569,"units30d":21,"leadDays":3},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"BLUE002 - BLUESTONE SALES AND DIST LTD","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":19,"rev30d":569,"units30d":21,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"CARGO001 - CARGO WORKWEAR","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":6.1,"rev30d":184,"units30d":7,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"CARGO001 - CARGO WORKWEAR","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":6.1,"rev30d":184,"units30d":7,"leadDays":2},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"CENT001","cadence":"Weekly","orderDays":"Mon","revDay":39.1,"rev30d":1172,"units30d":319,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"CENT001","cadence":"Weekly","orderDays":"Mon","revDay":39.1,"rev30d":1172,"units30d":319,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"CKEY001 - CENTRAL KEY","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":14.5,"rev30d":436,"units30d":27,"leadDays":3},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"CKEY001 - CENTRAL KEY","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":14.5,"rev30d":436,"units30d":27,"leadDays":3},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"CLA001 - CLASSIC HARDWARE LTD","cadence":"Weekly","orderDays":"Mon / Thu","revDay":102,"rev30d":3060,"units30d":88,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"CLA001 - CLASSIC HARDWARE LTD","cadence":"Weekly","orderDays":"Mon / Thu","revDay":102,"rev30d":3060,"units30d":88,"leadDays":2},{"buyer":"Ashling","email":"ashling@lenehans.ie","channel":"Arklow","supplier":"CON006 - CONTECH","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":10.5,"rev30d":314,"units30d":21,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"CON006 - CONTECH","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":10.5,"rev30d":314,"units30d":21,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"CRO001 - CROSS COUNTRY HARDWARE","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":16.7,"rev30d":500,"units30d":89,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"CRO001 - CROSS COUNTRY HARDWARE","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":16.7,"rev30d":500,"units30d":89,"leadDays":2},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Arklow","supplier":"CUR047 - CURUST INDUSTRIES LTD","cadence":"Weekly","orderDays":"Mon / Thu","revDay":112.7,"rev30d":3382,"units30d":214,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"CUR047 - CURUST INDUSTRIES LTD","cadence":"2x week","orderDays":"Mon / Thu","revDay":112.7,"rev30d":3382,"units30d":214,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"DECOR001 - RELAY GLOBAL LTD","cadence":"2x week","orderDays":"Mon / Thu","revDay":225.9,"rev30d":6778,"units30d":397,"leadDays":3},{"buyer":"Mark","email":"mark@lenehans.ie","channel":"Arklow","supplier":"DECOR001 - RELAY GLOBAL LTD","cadence":"2x week","orderDays":"Mon / Thu","revDay":225.9,"rev30d":6778,"units30d":397,"leadDays":3},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"DELPAC","cadence":"Weekly","orderDays":"Mon","revDay":92.6,"rev30d":2779,"units30d":101,"leadDays":3},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"DELPAC","cadence":"Weekly","orderDays":"Mon","revDay":92.6,"rev30d":2779,"units30d":101,"leadDays":3},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Arklow","supplier":"DOL001 - DOLPHIN DISTRIBUTORS LTD","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":26,"rev30d":780,"units30d":40,"leadDays":3},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"DOL001 - DOLPHIN DISTRIBUTORS LTD","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":26,"rev30d":780,"units30d":40,"leadDays":3},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Arklow","supplier":"DOS182 - DOSCO LTD","cadence":"Weekly","orderDays":"Mon","revDay":90.3,"rev30d":2708,"units30d":178,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"DOS182 - DOSCO LTD","cadence":"Weekly","orderDays":"Mon","revDay":90.3,"rev30d":2708,"units30d":178,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"DRA001 - DRAPER TOOLS (IRELAND) LTD","cadence":"Fortnightly","orderDays":"Mon / Thu","revDay":193,"rev30d":5789,"units30d":202,"leadDays":5},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"DRA001 - DRAPER TOOLS (IRELAND) LTD","cadence":"2x week","orderDays":"Mon / Thu","revDay":193,"rev30d":5789,"units30d":202,"leadDays":5},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"DS001 - DS SUPPLIES LTD","cadence":"Weekly","orderDays":"Mon","revDay":32,"rev30d":960,"units30d":51,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"DS001 - DS SUPPLIES LTD","cadence":"Weekly","orderDays":"Mon","revDay":32,"rev30d":960,"units30d":51,"leadDays":2},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"DUNLEVY001 - DUNLEVY DIST","cadence":"Weekly","orderDays":"Mon","revDay":43.1,"rev30d":1293,"units30d":78,"leadDays":3},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"DUNLEVY001 - DUNLEVY DIST","cadence":"Weekly","orderDays":"Mon","revDay":43.1,"rev30d":1293,"units30d":78,"leadDays":3},{"buyer":"Ashling","email":"ashling@lenehans.ie","channel":"Arklow","supplier":"DY001 - DYCON LTD","cadence":"Weekly","orderDays":"Mon","revDay":67.8,"rev30d":2034,"units30d":122,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"DY001 - DYCON LTD","cadence":"Weekly","orderDays":"Mon","revDay":67.8,"rev30d":2034,"units30d":122,"leadDays":2},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"EA Accessories","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":18,"rev30d":540,"units30d":12,"leadDays":3},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"EARTH","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":8.7,"rev30d":261,"units30d":3,"leadDays":3},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"EDL","cadence":"2x week","orderDays":"Mon / Thu","revDay":111.3,"rev30d":3339,"units30d":40,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"EVO077","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":7.7,"rev30d":232,"units30d":15,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"EVO077","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":7.7,"rev30d":232,"units30d":15,"leadDays":2},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Arklow","supplier":"EXC001 - EXCEL INDUSTRIES","cadence":"Weekly","orderDays":"Mon","revDay":61.8,"rev30d":1855,"units30d":120,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"EXC001 - EXCEL INDUSTRIES","cadence":"Weekly","orderDays":"Mon","revDay":61.8,"rev30d":1855,"units30d":120,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"EXC078 - EXCELLENCE LTD","cadence":"Weekly","orderDays":"Mon / Thu","revDay":137.3,"rev30d":4119,"units30d":184,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"EXC078 - EXCELLENCE LTD","cadence":"Weekly","orderDays":"Mon / Thu","revDay":137.3,"rev30d":4119,"units30d":184,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"FF001- -INTERNATIONAL TOOL INDUSTRIES","cadence":"Weekly","orderDays":"Mon","revDay":96.1,"rev30d":2882,"units30d":134,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"FF001- -INTERNATIONAL TOOL INDUSTRIES","cadence":"Weekly","orderDays":"Mon","revDay":96.1,"rev30d":2882,"units30d":134,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"FITZPATRICK WHOLESALE","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":6.7,"rev30d":202,"units30d":55,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"FLE328 - FLEETWOOD PAINTS LTD","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":8,"rev30d":239,"units30d":20,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"FLE328 - FLEETWOOD PAINTS LTD","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":8,"rev30d":239,"units30d":20,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"FORTUNE","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":6.4,"rev30d":193,"units30d":10,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"FORTUNE","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":6.4,"rev30d":193,"units30d":10,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"GENFITT","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":5.7,"rev30d":171,"units30d":3,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"GENFITT","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":5.7,"rev30d":171,"units30d":3,"leadDays":3},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"HAT001","cadence":"Monthly","orderDays":"1st Mon","revDay":4.4,"rev30d":132,"units30d":23,"leadDays":14},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Capel Street","supplier":"HAT001","cadence":"Monthly","orderDays":"1st Mon","revDay":4.4,"rev30d":132,"units30d":23,"leadDays":14},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"HGW094 - DULUX PAINTS LTD","cadence":"Weekly","orderDays":"Mon","revDay":63.8,"rev30d":1913,"units30d":64,"leadDays":4},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"HGW094 - DULUX PAINTS LTD","cadence":"Weekly","orderDays":"Mon","revDay":63.8,"rev30d":1913,"units30d":64,"leadDays":4},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"HYG001- HYGEIA CHEMICALS LTD","cadence":"Fortnightly","orderDays":"Mon / Thu","revDay":132.5,"rev30d":3976,"units30d":592,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"HYG001- HYGEIA CHEMICALS LTD","cadence":"Fortnightly","orderDays":"Mon / Thu","revDay":132.5,"rev30d":3976,"units30d":592,"leadDays":3},{"buyer":"Ashling","email":"ashling@lenehans.ie","channel":"Arklow","supplier":"IGO106 - IGOE INTERNATIONAL LTD","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":18.3,"rev30d":550,"units30d":14,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"IGO106 - IGOE INTERNATIONAL LTD","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":18.3,"rev30d":550,"units30d":14,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"INNOVA","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":26.4,"rev30d":793,"units30d":33,"leadDays":3},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Arklow","supplier":"IRI118","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":19.9,"rev30d":596,"units30d":90,"leadDays":3},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"IRI118","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":19.9,"rev30d":596,"units30d":90,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"JM - JOSEPH MURPHY","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":19.2,"rev30d":576,"units30d":15,"leadDays":3},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"JML","cadence":"2x week","orderDays":"Mon / Thu","revDay":243.9,"rev30d":7318,"units30d":243,"leadDays":4},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"JML","cadence":"2x week","orderDays":"Mon / Thu","revDay":243.9,"rev30d":7318,"units30d":243,"leadDays":4},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"KAR002","cadence":"Weekly","orderDays":"Mon","revDay":55.1,"rev30d":1654,"units30d":28,"leadDays":7},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"KAR002","cadence":"Weekly","orderDays":"Mon","revDay":55.1,"rev30d":1654,"units30d":28,"leadDays":7},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Arklow","supplier":"LAYDEX","cadence":"Monthly","orderDays":"1st Mon","revDay":2.7,"rev30d":81,"units30d":2,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"LAYDEX","cadence":"Monthly","orderDays":"1st Mon","revDay":2.7,"rev30d":81,"units30d":2,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"LIF001 - LIFFEY ARTEFACTS","cadence":"Monthly","orderDays":"1st Mon","revDay":2.9,"rev30d":88,"units30d":8,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"LODI - LODI UK LIMITED","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":47.1,"rev30d":1414,"units30d":62,"leadDays":14},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"LODI - LODI UK LIMITED","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":47.1,"rev30d":1414,"units30d":62,"leadDays":14},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"LYN001 - DONAL LYNCH","cadence":"Weekly","orderDays":"Mon / Thu","revDay":184.1,"rev30d":5524,"units30d":402,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"LYN001 - DONAL LYNCH","cadence":"Weekly","orderDays":"Mon / Thu","revDay":184.1,"rev30d":5524,"units30d":402,"leadDays":3},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Arklow","supplier":"MAR004 - E A MARTIN & SON LTD","cadence":"Weekly","orderDays":"Mon","revDay":34.5,"rev30d":1034,"units30d":79,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"MAR004 - E A MARTIN & SON LTD","cadence":"Weekly","orderDays":"Mon","revDay":34.5,"rev30d":1034,"units30d":79,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"MCL477 - MICHAEL MCLOUGHLIN & SONS LTD","cadence":"Weekly","orderDays":"Mon / Wed / Fri","revDay":429.5,"rev30d":12884,"units30d":626,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"MCL477 - MICHAEL MCLOUGHLIN & SONS LTD","cadence":"Weekly","orderDays":"Mon / Wed / Fri","revDay":429.5,"rev30d":12884,"units30d":626,"leadDays":2},{"buyer":"Ashling","email":"ashling@lenehans.ie","channel":"Arklow","supplier":"MELON01","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":18.4,"rev30d":551,"units30d":70,"leadDays":3},{"buyer":"Ashling","email":"ashling@lenehans.ie","channel":"Capel Street","supplier":"MELON01","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":18.4,"rev30d":551,"units30d":70,"leadDays":3},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Arklow","supplier":"MOD159","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":5.2,"rev30d":156,"units30d":36,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"MOD159","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":5.2,"rev30d":156,"units30d":36,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"NAT001 - NATIONAL TAPE SALES LTD","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":6,"rev30d":181,"units30d":20,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"NAT001 - NATIONAL TAPE SALES LTD","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":6,"rev30d":181,"units30d":20,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"ORIGO - ORIGO LTD","cadence":"Weekly","orderDays":"Mon","revDay":32.5,"rev30d":976,"units30d":10,"leadDays":4},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"ORIGO - ORIGO LTD","cadence":"Weekly","orderDays":"Mon","revDay":32.5,"rev30d":976,"units30d":10,"leadDays":4},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"POL413 - RAWLPLUG IRELAND LTD","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":6.1,"rev30d":184,"units30d":28,"leadDays":4},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"POL413 - RAWLPLUG IRELAND LTD","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":6.1,"rev30d":184,"units30d":28,"leadDays":4},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"PPG001","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":26.9,"rev30d":806,"units30d":39,"leadDays":4},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"PRI001","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":23.8,"rev30d":713,"units30d":24,"leadDays":7},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Arklow","supplier":"RESTO --VAN ES LTD","cadence":"Monthly","orderDays":"1st Mon","revDay":2.4,"rev30d":71,"units30d":6,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"RESTO --VAN ES LTD","cadence":"Monthly","orderDays":"1st Mon","revDay":2.4,"rev30d":71,"units30d":6,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"RON228 - RONSEAL (IRELAND) LTD","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":29.4,"rev30d":882,"units30d":37,"leadDays":5},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"RON228 - RONSEAL (IRELAND) LTD","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":29.4,"rev30d":882,"units30d":37,"leadDays":5},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"RUBINETA","cadence":"Monthly","orderDays":"1st Mon","revDay":16.9,"rev30d":506,"units30d":11,"leadDays":14},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"RUBINETA","cadence":"Monthly","orderDays":"1st Mon","revDay":16.9,"rev30d":506,"units30d":11,"leadDays":14},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"SHI221 - CHARLIE SHIELS LTD","cadence":"Fortnightly","orderDays":"Mon / Thu","revDay":170.7,"rev30d":5120,"units30d":99,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"SHI221 - CHARLIE SHIELS LTD","cadence":"Fortnightly","orderDays":"Mon / Thu","revDay":170.7,"rev30d":5120,"units30d":99,"leadDays":2},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"SMALL","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":7.7,"rev30d":231,"units30d":32,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"SMALL","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":7.7,"rev30d":231,"units30d":32,"leadDays":2},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"SMALL PAUL - PAUL SMALL WALLCOVERINGS LTD","cadence":"Weekly","orderDays":"Mon","revDay":44.7,"rev30d":1341,"units30d":88,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"SMALL PAUL - PAUL SMALL WALLCOVERINGS LTD","cadence":"Weekly","orderDays":"Mon","revDay":44.7,"rev30d":1341,"units30d":88,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"SMAR001 - SMART GARDEN","cadence":"Fortnightly","orderDays":"Mon / Thu","revDay":297.1,"rev30d":8914,"units30d":704,"leadDays":6},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"SMAR001 - SMART GARDEN","cadence":"2x week","orderDays":"Mon / Thu","revDay":297.1,"rev30d":8914,"units30d":704,"leadDays":6},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"SOUDAL - SOUDAL","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":11.2,"rev30d":335,"units30d":29,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"SOUDAL - SOUDAL","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":11.2,"rev30d":335,"units30d":29,"leadDays":3},{"buyer":"Ashling","email":"ashling@lenehans.ie","channel":"Arklow","supplier":"SOURCEPRO - SUPERB HARDWARE","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":21.1,"rev30d":633,"units30d":40,"leadDays":3},{"buyer":"Ashling","email":"ashling@lenehans.ie","channel":"Capel Street","supplier":"SOURCEPRO - SUPERB HARDWARE","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":21.1,"rev30d":633,"units30d":40,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"SPEC001","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":11.2,"rev30d":335,"units30d":37,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"SPEC001","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":11.2,"rev30d":335,"units30d":37,"leadDays":3},{"buyer":"Mark","email":"mark@lenehans.ie","channel":"Arklow","supplier":"STAX - STAX TRADE CENTRES","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":505.5,"rev30d":15166,"units30d":1574,"leadDays":21},{"buyer":"Mark","email":"mark@lenehans.ie","channel":"Capel Street","supplier":"STAX - STAX TRADE CENTRES","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":505.5,"rev30d":15166,"units30d":1574,"leadDays":21},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"TETROSYL - TETROLSYL IRELAND","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":22.9,"rev30d":688,"units30d":67,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"TETROSYL - TETROLSYL IRELAND","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":22.9,"rev30d":688,"units30d":67,"leadDays":3},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Arklow","supplier":"UEL001 - UPPERCROSS ENTERPRISES","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":29.6,"rev30d":888,"units30d":42,"leadDays":2},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"UEL001 - UPPERCROSS ENTERPRISES","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":29.6,"rev30d":888,"units30d":42,"leadDays":2},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"UI","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":12.4,"rev30d":371,"units30d":9,"leadDays":4},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"UI","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":12.4,"rev30d":371,"units30d":9,"leadDays":4},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"UNI279 - UNICHEM LTD","cadence":"Fortnightly","orderDays":"Mon / Thu","revDay":156.5,"rev30d":4695,"units30d":282,"leadDays":5},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"UNI279 - UNICHEM LTD","cadence":"Fortnightly","orderDays":"Mon / Thu","revDay":156.5,"rev30d":4695,"units30d":282,"leadDays":5},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Arklow","supplier":"VITA001 - VITAVIA GREENHOUSES LTD","cadence":"Monthly","orderDays":"1st Mon","revDay":58.9,"rev30d":1766,"units30d":41,"leadDays":21},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"WILSONS","cadence":"Weekly","orderDays":"Mon","revDay":364.8,"rev30d":10945,"units30d":1308,"leadDays":14},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"WILSONS","cadence":"Weekly","orderDays":"Mon","revDay":364.8,"rev30d":10945,"units30d":1308,"leadDays":14},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Arklow","supplier":"WIPEOUT","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":24.5,"rev30d":734,"units30d":17,"leadDays":3},{"buyer":"Paul","email":"paul@lenehans.ie","channel":"Capel Street","supplier":"WIPEOUT","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":24.5,"rev30d":734,"units30d":17,"leadDays":3},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"ZCEN66 - CENTURION EUROPE LTD","cadence":"Fortnightly","orderDays":"Mon / Thu","revDay":115.5,"rev30d":3466,"units30d":402,"leadDays":5},{"buyer":"Elaine","email":"elaine@lenehans.ie","channel":"Arklow","supplier":"ZCEN66 - CENTURION EUROPE LTD","cadence":"2x week","orderDays":"Mon / Thu","revDay":115.5,"rev30d":3466,"units30d":402,"leadDays":5},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"ZENTRADA","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":255.4,"rev30d":7661,"units30d":530,"leadDays":21},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"ZENTRADA","cadence":"Fortnightly","orderDays":"1st & 3rd Mon","revDay":255.4,"rev30d":7661,"units30d":530,"leadDays":21},{"buyer":"David","email":"david@lenehans.ie","channel":"Arklow","supplier":"ZFFA90 - CQFD PROFILES LTD","cadence":"Monthly","orderDays":"1st Mon","revDay":6.9,"rev30d":207,"units30d":16,"leadDays":21},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Arklow","supplier":"ZJUL00 - JULIANA GREENHOUSES LTD","cadence":"Monthly","orderDays":"1st Mon","revDay":35.9,"rev30d":1077,"units30d":27,"leadDays":21},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Capel Street","supplier":"ZJUL00 - JULIANA GREENHOUSES LTD","cadence":"Monthly","orderDays":"1st Mon","revDay":35.9,"rev30d":1077,"units30d":27,"leadDays":21},{"buyer":"Liane","email":"liane@lenehans.ie","channel":"Arklow","supplier":"ZSC566 - SCHMITT SCHUHBEDARF GMBH","cadence":"Monthly","orderDays":"1st Mon","revDay":1.5,"rev30d":45,"units30d":7,"leadDays":14},{"buyer":"David","email":"david@lenehans.ie","channel":"Capel Street","supplier":"ZSC566 - SCHMITT SCHUHBEDARF GMBH","cadence":"Monthly","orderDays":"1st Mon","revDay":1.5,"rev30d":45,"units30d":7,"leadDays":14}];
+const BUYER_SCHEDULE = [{"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "104 - J.T. FULLEN", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Capel Street", "supplier": "104 - J.T. FULLEN", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "181", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "ABC002 - ABC Abrasives Ltd", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "ABC002 - ABC Abrasives Ltd", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "ADGO", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "ADGO", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "ALD001 - ALDRIDGE SECURITY", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "ALD001 - ALDRIDGE SECURITY", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "ALL7 - EXITEX LIMITED", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "ALL7 - EXITEX LIMITED", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "AMIG", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "AMIG", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Arklow", "supplier": "ASCOMP001 - AS ESSENTIALS LTD", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Capel Street", "supplier": "ASCOMP001 - AS ESSENTIALS LTD", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "ASH001 - ASHTOWN TRADING", "cadence": "2x week", "orderDays": "Mon / Wed / Fri"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "ASH001 - ASHTOWN TRADING", "cadence": "3x week", "orderDays": "Mon / Wed / Fri"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "ATKO Group", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Arklow", "supplier": "BAS017 - LAYDEX", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "BAS017 - LAYDEX", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "BEN001 - BENSON TOOLS", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "BEN001 - BENSON TOOLS", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "BG15 - B & G Ltd", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "BG15 - B & G Ltd", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "BLA001- BLACKSPUR HAND TOOLS", "cadence": "Fortnightly", "orderDays": "Mon / Thu"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "BLA001- BLACKSPUR HAND TOOLS", "cadence": "2x week", "orderDays": "Mon / Thu"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "BLUE002 - BLUESTONE SALES AND DIST LTD", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "BLUE002 - BLUESTONE SALES AND DIST LTD", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "CARGO001 - CARGO WORKWEAR", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "CARGO001 - CARGO WORKWEAR", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "CENT001", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "CENT001", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "CKEY001 - CENTRAL KEY", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "CKEY001 - CENTRAL KEY", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "CLA001 - CLASSIC HARDWARE LTD", "cadence": "Weekly", "orderDays": "Mon / Thu"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "CLA001 - CLASSIC HARDWARE LTD", "cadence": "Weekly", "orderDays": "Mon / Thu"}, {"buyer": "Ashling", "email": "ashling@lenehans.ie", "channel": "Arklow", "supplier": "CON006 - CONTECH", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "CON006 - CONTECH", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "CRO001 - CROSS COUNTRY HARDWARE", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "CRO001 - CROSS COUNTRY HARDWARE", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Arklow", "supplier": "CUR047 - CURUST INDUSTRIES LTD", "cadence": "Weekly", "orderDays": "Mon / Thu"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "CUR047 - CURUST INDUSTRIES LTD", "cadence": "2x week", "orderDays": "Mon / Thu"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "DECOR001 - RELAY GLOBAL LTD", "cadence": "2x week", "orderDays": "Mon / Thu"}, {"buyer": "Mark", "email": "mark@lenehans.ie", "channel": "Arklow", "supplier": "DECOR001 - RELAY GLOBAL LTD", "cadence": "2x week", "orderDays": "Mon / Thu"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "DELPAC", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "DELPAC", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Arklow", "supplier": "DOL001 - DOLPHIN DISTRIBUTORS LTD", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "DOL001 - DOLPHIN DISTRIBUTORS LTD", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Arklow", "supplier": "DOS182 - DOSCO LTD", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "DOS182 - DOSCO LTD", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "DRA001 - DRAPER TOOLS (IRELAND) LTD", "cadence": "Fortnightly", "orderDays": "Mon / Thu"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "DRA001 - DRAPER TOOLS (IRELAND) LTD", "cadence": "2x week", "orderDays": "Mon / Thu"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "DS001 - DS SUPPLIES LTD", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "DS001 - DS SUPPLIES LTD", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "DUNLEVY001 - DUNLEVY DIST", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "DUNLEVY001 - DUNLEVY DIST", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "Ashling", "email": "ashling@lenehans.ie", "channel": "Arklow", "supplier": "DY001 - DYCON LTD", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "DY001 - DYCON LTD", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "EA Accessories", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "EARTH", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "EDL", "cadence": "2x week", "orderDays": "Mon / Thu"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "EVO077", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "EVO077", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Arklow", "supplier": "EXC001 - EXCEL INDUSTRIES", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "EXC001 - EXCEL INDUSTRIES", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "EXC078 - EXCELLENCE LTD", "cadence": "Weekly", "orderDays": "Mon / Thu"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "EXC078 - EXCELLENCE LTD", "cadence": "Weekly", "orderDays": "Mon / Thu"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "FF001- -INTERNATIONAL TOOL INDUSTRIES", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "FF001- -INTERNATIONAL TOOL INDUSTRIES", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "FITZPATRICK WHOLESALE", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "FLE328 - FLEETWOOD PAINTS LTD", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "FLE328 - FLEETWOOD PAINTS LTD", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "FORTUNE", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "FORTUNE", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "GENFITT", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "GENFITT", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "HAT001", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Capel Street", "supplier": "HAT001", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "HGW094 - DULUX PAINTS LTD", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "HGW094 - DULUX PAINTS LTD", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "HYG001- HYGEIA CHEMICALS LTD", "cadence": "Fortnightly", "orderDays": "Mon / Thu"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "HYG001- HYGEIA CHEMICALS LTD", "cadence": "Fortnightly", "orderDays": "Mon / Thu"}, {"buyer": "Ashling", "email": "ashling@lenehans.ie", "channel": "Arklow", "supplier": "IGO106 - IGOE INTERNATIONAL LTD", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "IGO106 - IGOE INTERNATIONAL LTD", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "INNOVA", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Arklow", "supplier": "IRI118", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "IRI118", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "JM - JOSEPH MURPHY", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "JML", "cadence": "2x week", "orderDays": "Mon / Thu"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "JML", "cadence": "2x week", "orderDays": "Mon / Thu"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "KAR002", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "KAR002", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Arklow", "supplier": "LAYDEX", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "LAYDEX", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "LIF001 - LIFFEY ARTEFACTS", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "LODI - LODI UK LIMITED", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "LODI - LODI UK LIMITED", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "LYN001 - DONAL LYNCH", "cadence": "Weekly", "orderDays": "Mon / Thu"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "LYN001 - DONAL LYNCH", "cadence": "Weekly", "orderDays": "Mon / Thu"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Arklow", "supplier": "MAR004 - E A MARTIN & SON LTD", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "MAR004 - E A MARTIN & SON LTD", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "MCL477 - MICHAEL MCLOUGHLIN & SONS LTD", "cadence": "Weekly", "orderDays": "Mon / Wed / Fri"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "MCL477 - MICHAEL MCLOUGHLIN & SONS LTD", "cadence": "Weekly", "orderDays": "Mon / Wed / Fri"}, {"buyer": "Ashling", "email": "ashling@lenehans.ie", "channel": "Arklow", "supplier": "MELON01", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Ashling", "email": "ashling@lenehans.ie", "channel": "Capel Street", "supplier": "MELON01", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Arklow", "supplier": "MOD159", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "MOD159", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "NAT001 - NATIONAL TAPE SALES LTD", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "NAT001 - NATIONAL TAPE SALES LTD", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "ORIGO - ORIGO LTD", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "ORIGO - ORIGO LTD", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "POL413 - RAWLPLUG IRELAND LTD", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "POL413 - RAWLPLUG IRELAND LTD", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "PPG001", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "PRI001", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Arklow", "supplier": "RESTO --VAN ES LTD", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "RESTO --VAN ES LTD", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "RON228 - RONSEAL (IRELAND) LTD", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "RON228 - RONSEAL (IRELAND) LTD", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "RUBINETA", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "RUBINETA", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "SHI221 - CHARLIE SHIELS LTD", "cadence": "Fortnightly", "orderDays": "Mon / Thu"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "SHI221 - CHARLIE SHIELS LTD", "cadence": "Fortnightly", "orderDays": "Mon / Thu"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "SMALL", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "SMALL", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "SMALL PAUL - PAUL SMALL WALLCOVERINGS LTD", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "SMALL PAUL - PAUL SMALL WALLCOVERINGS LTD", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "SMAR001 - SMART GARDEN", "cadence": "Fortnightly", "orderDays": "Mon / Thu"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "SMAR001 - SMART GARDEN", "cadence": "2x week", "orderDays": "Mon / Thu"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "SOUDAL - SOUDAL", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "SOUDAL - SOUDAL", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Ashling", "email": "ashling@lenehans.ie", "channel": "Arklow", "supplier": "SOURCEPRO - SUPERB HARDWARE", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Ashling", "email": "ashling@lenehans.ie", "channel": "Capel Street", "supplier": "SOURCEPRO - SUPERB HARDWARE", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "SPEC001", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "SPEC001", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Mark", "email": "mark@lenehans.ie", "channel": "Arklow", "supplier": "STAX - STAX TRADE CENTRES", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Mark", "email": "mark@lenehans.ie", "channel": "Capel Street", "supplier": "STAX - STAX TRADE CENTRES", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "TETROSYL - TETROLSYL IRELAND", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "TETROSYL - TETROLSYL IRELAND", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Arklow", "supplier": "UEL001 - UPPERCROSS ENTERPRISES", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "UEL001 - UPPERCROSS ENTERPRISES", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "UI", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "UI", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "UNI279 - UNICHEM LTD", "cadence": "Fortnightly", "orderDays": "Mon / Thu"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "UNI279 - UNICHEM LTD", "cadence": "Fortnightly", "orderDays": "Mon / Thu"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Arklow", "supplier": "VITA001 - VITAVIA GREENHOUSES LTD", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "WILSONS", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "WILSONS", "cadence": "Weekly", "orderDays": "Mon"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Arklow", "supplier": "WIPEOUT", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "Paul", "email": "paul@lenehans.ie", "channel": "Capel Street", "supplier": "WIPEOUT", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "ZCEN66 - CENTURION EUROPE LTD", "cadence": "Fortnightly", "orderDays": "Mon / Thu"}, {"buyer": "Elaine", "email": "elaine@lenehans.ie", "channel": "Arklow", "supplier": "ZCEN66 - CENTURION EUROPE LTD", "cadence": "2x week", "orderDays": "Mon / Thu"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "ZENTRADA", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "ZENTRADA", "cadence": "Fortnightly", "orderDays": "1st & 3rd Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Arklow", "supplier": "ZFFA90 - CQFD PROFILES LTD", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Arklow", "supplier": "ZJUL00 - JULIANA GREENHOUSES LTD", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Capel Street", "supplier": "ZJUL00 - JULIANA GREENHOUSES LTD", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "Liane", "email": "liane@lenehans.ie", "channel": "Arklow", "supplier": "ZSC566 - SCHMITT SCHUHBEDARF GMBH", "cadence": "Monthly", "orderDays": "1st Mon"}, {"buyer": "David", "email": "david@lenehans.ie", "channel": "Capel Street", "supplier": "ZSC566 - SCHMITT SCHUHBEDARF GMBH", "cadence": "Monthly", "orderDays": "1st Mon"}];
 
 function shouldFireToday(cadence, date){
   const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -4020,23 +3705,14 @@ function shouldFireToday(cadence, date){
   return false;
 }
 
-
-// ─── TEAM TAB — LEADERBOARD ──────────────────────────────────────────────────
-// Read-only: PO Status sheet is the single source of truth.
-// No toggle buttons — dashboard reflects reality from the sheet.
-
-const BUYER_COLOURS = {
-  David:'#1e40af', Elaine:'#7c3aed', Paul:'#0369a1', 
-  Mark:'#dc2626', Liane:'#d97706', Ashling:'#16a34a'
-};
-const RANK_ICONS = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'];
-
+let teamDoneSet = new Set();
 function nearestWeekday(d){ const day=d.getDay(); if(day===0) d.setDate(d.getDate()+1); if(day===6) d.setDate(d.getDate()-1); return d; }
-let teamDate = nearestWeekday(new Date());
+let teamDate = nearestWeekday(new Date()); // weekdays only
 
 function shiftTeamDate(delta){
   teamDate = new Date(teamDate);
   teamDate.setDate(teamDate.getDate() + delta);
+  // Skip weekends — keep moving in same direction
   while(teamDate.getDay()===0||teamDate.getDay()===6) teamDate.setDate(teamDate.getDate()+delta);
   updateTeamDateUI();
   renderTeam();
@@ -4054,293 +3730,227 @@ function updateTeamDateUI(){
   const lbl = document.getElementById('teamDateLabel');
   const sub = document.getElementById('teamDateSub');
   const btn = document.getElementById('teamTodayBtn');
-  if(lbl) lbl.textContent = teamDate.toLocaleDateString('en-IE',{weekday:'short',day:'numeric',month:'short'});
+  if(lbl) lbl.textContent = teamDate.toLocaleDateString('en-IE',{weekday:'long',day:'numeric',month:'long'});
   if(sub) sub.textContent = isToday ? 'Today' : teamDate > today ? 'Future' : 'Past';
   if(btn) btn.style.display = isToday ? 'none' : 'inline-block';
 }
 
-// Check if a supplier is due on a given date based on cadence
-function shouldFireToday(cadence, date){
-  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const d = days[date.getDay()];
-  const wom = Math.floor((date.getDate()-1)/7);
-  if(cadence==='3x week')     return ['Mon','Wed','Fri'].includes(d);
-  if(cadence==='2x week')     return ['Mon','Thu'].includes(d);
-  if(cadence==='Weekly')      return d==='Mon';
-  if(cadence==='Fortnightly') return d==='Mon' && (wom===0||wom===2);
-  if(cadence==='Monthly')     return d==='Mon' && wom===0;
-  return false;
-}
-
-// Get PO status for a supplier+channel from the live PO map
-function getTeamPOStatus(supplier, channel){
-  const poMap = state.poStatusMap || {};
-  const ch = channel.toLowerCase().includes('capel') ? 'capel street' : 'arklow';
-  const key = supplier + '||' + ch;
-  return poMap[key] || null;
-}
-
-// Build buyer stats for the leaderboard
-function buildBuyerStats(){
-  const poMap = state.poStatusMap || {};
-  const today = teamDate;
-  const monthNow = currentMonthStr();
-  const buyers = {};
-
-  for(const row of BUYER_SCHEDULE){
-    const name = row.buyer;
-    if(!buyers[name]) buyers[name] = {
-      name, email:row.email, colour:BUYER_COLOURS[name]||'#475569',
-      allSuppliers:[], todaySuppliers:[], 
-      doneThisMonth:0, totalThisMonth:0,
-      doneToday:0, totalToday:0,
-      revDay:0, revAtRisk:0
-    };
-    const b = buyers[name];
-    const supKey = row.supplier + '||' + row.channel;
-    
-    // Track all unique supplier+channel combos
-    if(!b.allSuppliers.find(s=>s.key===supKey)){
-      const po = getTeamPOStatus(row.supplier, row.channel);
-      const isDoneMonth = po && po.isDone && po.month === monthNow;
-      b.allSuppliers.push({...row, key:supKey, po, isDoneMonth});
-      b.totalThisMonth++;
-      if(isDoneMonth) b.doneThisMonth++;
-      b.revDay += row.revDay || 0;
-      if(!isDoneMonth) b.revAtRisk += row.revDay || 0;
-    }
-    
-    // Track today's due orders
-    if(shouldFireToday(row.cadence, today)){
-      if(!b.todaySuppliers.find(s=>s.key===supKey)){
-        const po = getTeamPOStatus(row.supplier, row.channel);
-        const isDone = po && po.isDone;
-        b.todaySuppliers.push({...row, key:supKey, po, isDone});
-        b.totalToday++;
-        if(isDone) b.doneToday++;
-      }
-    }
-  }
-
-  // Sort by completion % descending
-  const arr = Object.values(buyers);
-  arr.sort((a,b) => {
-    const pctA = a.totalThisMonth ? a.doneThisMonth/a.totalThisMonth : 0;
-    const pctB = b.totalThisMonth ? b.doneThisMonth/b.totalThisMonth : 0;
-    return pctB - pctA;
-  });
-  return arr;
-}
-
 function renderTeam(){
-  const buyers = buildBuyerStats();
-  const lb = document.getElementById('teamLeaderboard');
-  const container = document.getElementById('teamOrdersContainer');
-  if(!lb) return;
+  const grid = document.getElementById('teamBuyerGrid');
+  const list = document.getElementById('teamOrderList');
+  if(!grid) return;
+  list.style.display='none';
+  grid.style.display='grid';
   updateTeamDateUI();
 
-  // ── Summary bar ──
-  const totalDoneToday = buyers.reduce((s,b)=>s+b.doneToday, 0);
-  const totalPendingToday = buyers.reduce((s,b)=>s+(b.totalToday-b.doneToday), 0);
-  const totalDoneMonth = buyers.reduce((s,b)=>s+b.doneThisMonth, 0);
-  const totalMonth = buyers.reduce((s,b)=>s+b.totalThisMonth, 0);
-  const monthPct = totalMonth ? Math.round(totalDoneMonth/totalMonth*100) : 0;
-  const revAtRisk = buyers.reduce((s,b)=>s+b.revAtRisk, 0);
+  const today = teamDate;
+  const buyers = {};
+  for(const row of BUYER_SCHEDULE){
+    if(!buyers[row.buyer]) buyers[row.buyer]={email:row.email,today:[],all:[]};
+    buyers[row.buyer].all.push(row);
+    if(shouldFireToday(row.cadence,today)) buyers[row.buyer].today.push(row);
+  }
 
-  const tsDone = document.getElementById('tsDoneToday');
-  const tsPend = document.getElementById('tsPendingToday');
-  const tsMonth = document.getElementById('tsMonthPct');
-  const tsRev = document.getElementById('tsRevAtRisk');
-  if(tsDone) tsDone.textContent = totalDoneToday;
-  if(tsPend) tsPend.textContent = totalPendingToday;
-  if(tsMonth) tsMonth.textContent = monthPct + '%';
-  if(tsRev) tsRev.textContent = '€' + fmtInt(revAtRisk);
+  const colours = ['#1e3a5f','#7c3aed','#0369a1','#15803d','#9a3412','#1e40af'];
+  const buyerNames = Object.keys(buyers).sort();
 
-  // ── Leaderboard cards ──
-  lb.innerHTML = buyers.map((b,i)=>{
-    const pct = b.totalThisMonth ? Math.round(b.doneThisMonth/b.totalThisMonth*100) : 0;
-    const pctCls = pct >= 80 ? 'green' : pct >= 50 ? 'amber' : 'red';
-    const rankCls = i===0?'r1':i===1?'r2':i===2?'r3':'rn';
+  // Build leaderboard data — count all done suppliers for current month from poStatusMap
+  const poMap = state.poStatusMap || {};
+  const monthNow = new Date().toLocaleDateString('en-IE',{month:'short',year:'numeric'});
+
+  const lbData = buyerNames.map((name,i)=>{
+    const b = buyers[name];
+    // Seed done from PO map for today's suppliers (per supplier+channel)
+    let doneToday = 0;
+    for(const r of b.today){
+      const ch = r.channel.toLowerCase().includes('capel')?'capel street':'arklow';
+      const po = poMap[r.supplier+'||'+ch];
+      if(po && po.isDone) teamDoneSet.add(r.supplier+'||'+r.channel);
+    }
+    // Count unique supplier+channel combos done today
+    const uniqueKeys = [...new Set(b.today.map(r=>r.supplier+'||'+r.channel))];
+    doneToday = uniqueKeys.filter(k=>teamDoneSet.has(k)).length;
+
+    // Count all done this month across ALL their suppliers (not just today)
+    const allSuppliers = [...new Set(b.all.map(r=>r.supplier))];
+    let doneMonth = 0;
+    for(const sup of allSuppliers){
+      const supRows = b.all.filter(r=>r.supplier===sup);
+      const anyDone = supRows.some(r=>{
+        const ch = r.channel.toLowerCase().includes('capel')?'capel street':'arklow';
+        const po = poMap[sup+'||'+ch];
+        return po && po.isDone && po.month===monthNow;
+      });
+      if(anyDone) doneMonth++;
+    }
+
+    return {name, colour:colours[i%colours.length], uniqueKeys, doneToday,
+            allSuppliers, doneMonth, hasOrders: b.today.length>0};
+  });
+
+  // Write buyer cards to grid
+  grid.innerHTML = lbData.map((b,i)=>{
     const initials = b.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    const todayStatus = b.totalToday > 0 
-      ? (b.doneToday === b.totalToday 
-          ? '<span style="color:#16a34a">✓ All done today</span>'
-          : `<span style="color:#d97706">${b.doneToday}/${b.totalToday} today</span>`)
-      : '<span style="color:#94a3b8">Nothing due</span>';
-    
-    // Badge logic
-    let badge = '';
-    if(pct === 100) badge = '<div class="lb-badge" style="background:#dcfce7;color:#14532d">🏆 Complete</div>';
-    else if(i === 0 && pct > 0) badge = '<div class="lb-badge" style="background:#fef08a;color:#713f12">👑 Leading</div>';
-    else if(b.revAtRisk > 500) badge = `<div class="lb-badge" style="background:#fee2e2;color:#991b1b">⚠ €${fmtInt(b.revAtRisk)}/day at risk</div>`;
-
-    return `<div class="lb-card ${i<3?'rank-'+(i+1):''}" onclick="renderBuyerDetail('${esc(b.name)}')">
-      <span class="lb-rank ${rankCls}">${RANK_ICONS[i]||'#'+(i+1)}</span>
-      <div class="lb-avatar" style="background:linear-gradient(135deg,${b.colour},#3b82f6)">${initials}</div>
-      <div class="lb-name">${esc(b.name)}</div>
-      <div class="lb-pct ${pctCls}">${pct}%</div>
-      <div class="lb-sub">${b.doneThisMonth}/${b.totalThisMonth} this month</div>
-      <div class="lb-progress"><div class="lb-progress-fill" style="width:${pct}%;background:${pctCls==='green'?'#16a34a':pctCls==='amber'?'#d97706':'#dc2626'}"></div></div>
-      <div class="lb-rev">💰 €${fmtInt(b.revDay)}/day</div>
-      <div class="lb-sub">${todayStatus}</div>
-      ${badge}
+    const monthPct = b.allSuppliers.length ? Math.round(b.doneMonth/b.allSuppliers.length*100) : 0;
+    return `<div class="team-buyer-card ${b.hasOrders?'has-orders':'no-orders'}" onclick="renderBuyerOrders('${esc(b.name)}')">
+      <div class="team-buyer-avatar" style="background:linear-gradient(135deg,${b.colour},#3b82f6)">${initials}</div>
+      <div class="team-buyer-name">${esc(b.name)}</div>
+      ${b.hasOrders
+        ? `<div style="font-size:26px;font-weight:900;color:#16a34a;line-height:1.1">${b.doneToday}<span style="font-size:13px;font-weight:600;color:#94a3b8"> / ${b.uniqueKeys.length}</span></div>
+           <div style="font-size:11px;color:#94a3b8;margin-bottom:6px">done today</div>
+           <div style="height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden">
+             <div style="height:100%;width:${monthPct}%;background:#4ade80;border-radius:2px;transition:width .4s"></div>
+           </div>
+           <div style="font-size:10px;color:#94a3b8;margin-top:3px">${monthPct}% this month</div>`
+        : `<div class="team-buyer-none">Nothing due today</div>
+           <div style="height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden;margin-top:6px">
+             <div style="height:100%;width:${monthPct}%;background:#4ade80;border-radius:2px"></div>
+           </div>
+           <div style="font-size:10px;color:#94a3b8;margin-top:3px">${monthPct}% this month</div>`
+      }
     </div>`;
   }).join('');
-
-  // ── Today's orders (all buyers combined) ──
-  if(container && !container.dataset.drillBuyer){
-    const allToday = [];
-    for(const b of buyers){
-      for(const s of b.todaySuppliers){
-        allToday.push({...s, buyerName:b.name, buyerColour:b.colour});
-      }
-    }
-    // Sort: pending first, then by revenue desc
-    allToday.sort((a,b)=>{
-      if(a.isDone && !b.isDone) return 1;
-      if(!a.isDone && b.isDone) return -1;
-      return (b.revDay||0) - (a.revDay||0);
-    });
-
-    const pending = allToday.filter(s=>!s.isDone);
-    const done = allToday.filter(s=>s.isDone);
-
-    let html2 = '';
-    if(pending.length){
-      html2 += `<div class="team-today-hdr" id="teamPendingSection">⏳ ${pending.length} orders due today — not yet completed</div>`;
-      html2 += pending.map(s=>buildTeamOrderRow(s)).join('');
-    }
-    if(done.length){
-      html2 += `<div class="team-today-hdr" id="teamDoneSection" style="color:#16a34a;margin-top:16px">✅ ${done.length} completed this month (due today)</div>`;
-      html2 += done.map(s=>buildTeamOrderRow(s)).join('');
-    }
-    if(!allToday.length){
-      html2 = '<div style="text-align:center;padding:40px;color:#16a34a;font-size:15px;font-weight:700">✓ No orders due today — enjoy the break!</div>';
-    }
-    container.innerHTML = html2;
-  }
 }
 
-function buildTeamOrderRow(s){
-  const isCapel = s.channel.toLowerCase().includes('capel');
-  const channelChip = `<span class="team-order-chip ${isCapel?'capel':'arklow'}" style="font-size:10px;padding:2px 6px">${isCapel?'CS':'AK'}</span>`;
-  const buyerDot = `<span style="width:8px;height:8px;border-radius:50%;background:${s.buyerColour};display:inline-block" title="${esc(s.buyerName)}"></span>`;
-  
-  let statusPill = '';
-  if(s.isDone || s.isDoneMonth){
-    const po = s.po;
-    const detail = po ? (po.date ? po.date : '') + (po.person ? ' · '+po.person : '') : '';
-    statusPill = `<span class="team-status-pill done">✓ Done${detail?' · '+esc(detail):''}</span>`;
-  } else {
-    statusPill = `<span class="team-status-pill pending">⏳ Pending</span>`;
+function renderBuyerOrders(buyerName){
+  const grid = document.getElementById('teamBuyerGrid');
+  const list = document.getElementById('teamOrderList');
+  if(!grid||!list) return;
+  grid.style.display='none';
+  list.style.display='block';
+
+
+  const today = teamDate;
+  const todayRows = BUYER_SCHEDULE.filter(r=>r.buyer===buyerName && shouldFireToday(r.cadence,today));
+
+  // Seed done state from PO Status Map (current month data)
+  const poMap = state.poStatusMap || {};
+  for(const row of todayRows){
+    const ch = row.channel.toLowerCase().includes('capel') ? 'capel street' : 'arklow';
+    const key = row.supplier + '||' + ch;
+    const po = poMap[key];
+    if(po && po.isDone){
+      teamDoneSet.add(row.supplier+'||'+row.channel);
+    }
   }
 
-  return `<div class="team-order-row ${s.isDone?'done':''}" data-supplier="${esc(s.supplier)}">
-    ${buyerDot}
-    <span class="sup-name">${esc(s.supplier)}</span>
-    ${channelChip}
-    <span style="font-size:11px;color:#94a3b8">${esc(s.cadence)}</span>
-    <span class="rev-tag">€${fmtInt(s.revDay||0)}/d</span>
-    ${statusPill}
-    <button class="team-open-btn" onclick="event.stopPropagation();goToSupplier('${esc(s.supplier)}','${esc(s.channel)}')">Open →</button>
+  // One card per supplier+channel combination
+  const bySupplier = {};
+  for(const r of todayRows){
+    const key = r.supplier + '||' + r.channel;
+    if(!bySupplier[key]) bySupplier[key]={supplier:r.supplier,channel:r.channel,channels:[r.channel],cadence:r.cadence};
+  }
+  const suppliers = Object.values(bySupplier);
+
+  const dayName = teamDate.toLocaleDateString('en-IE',{weekday:'long',day:'numeric',month:'long'});
+  const pending = suppliers.filter(s=>!teamDoneSet.has(s.supplier+'||'+s.channel));
+  const done    = suppliers.filter(s=> teamDoneSet.has(s.supplier+'||'+s.channel));
+
+  let html = `<div class="team-order-header">
+    <button class="team-back-btn" onclick="renderTeam()">← Back</button>
+    <div class="team-buyer-title">👤 ${esc(buyerName)}'s orders</div>
+    <div style="font-size:12px;color:#94a3b8;margin-left:8px">${dayName}</div>
+    <div style="margin-left:auto;font-size:12px;color:#64748b;font-weight:600">${done.length}/${suppliers.length} done</div>
+  </div>`;
+
+  if(!suppliers.length){
+    html += `<div style="color:#16a34a;font-size:14px;padding:20px;text-align:center;background:#f0fdf4;border-radius:10px;font-weight:600">✓ Nothing due today</div>`;
+  } else {
+    if(pending.length){
+      html += `<div class="team-section-hdr">${pending.length} to do</div>`;
+      html += pending.map(s=>buildOrderCard(s,false,buyerName)).join('');
+    }
+    if(done.length){
+      html += `<div class="team-section-hdr" style="margin-top:16px">✓ ${done.length} completed</div>`;
+      html += done.map(s=>buildOrderCard(s,true,buyerName)).join('');
+    }
+  }
+  list.innerHTML = html;
+}
+
+function buildOrderCard(s, isDone, buyerName){
+  const isCapelCh = s.channel.toLowerCase().includes('capel');
+  const channelChip = `<span class="team-order-chip ${isCapelCh?'capel':'arklow'}">${esc(s.channel)}</span>`;
+
+  // Get PO done details from poStatusMap for display
+  let doneDetail = '';
+  if(isDone){
+    const poMap = state.poStatusMap || {};
+    const mapKey = s.supplier + '||' + s.channel.toLowerCase();
+    const po = poMap[mapKey];
+    if(po && po.isDone && po.date){
+      doneDetail = `&nbsp;·&nbsp;${esc(po.date)}${po.person?' · '+esc(po.person):''}`;
+    }
+  }
+
+  return `<div class="team-order-card ${isDone?'done':''}" style="border-left:4px solid ${isCapelCh?'#7c3aed':'#1e40af'}">
+    <div class="team-order-info">
+      <div class="team-order-supplier">${esc(s.supplier)}</div>
+      <div class="team-order-meta">${channelChip}&nbsp;·&nbsp;${esc(s.cadence)}${doneDetail?'<span style="color:#15803d;font-weight:600">'+doneDetail+'</span>':''}</div>
+    </div>
+    <button class="team-order-done-btn ${isDone?'marked':''}"
+      onclick="event.stopPropagation();toggleTeamDone('${esc(s.supplier)}',['${esc(s.channel)}'],'${esc(buyerName||'')}')">
+      ${isDone?'✓ Done':'Pending'}
+    </button>
+    <button class="team-order-go"
+      onclick="event.stopPropagation();goToSupplier('${esc(s.supplier)}','${esc(s.channel)}')">Open →</button>
   </div>`;
 }
 
-// ── Buyer detail drill-in ──
-function renderBuyerDetail(buyerName){
-  const container = document.getElementById('teamOrdersContainer');
-  if(!container) return;
-  container.dataset.drillBuyer = buyerName;
+function toggleTeamDone(supplier, channels, buyerName){
+  const allDone = channels.every(ch=>teamDoneSet.has(supplier+'||'+ch));
+  const action = allDone ? 'pending' : 'done';
+  if(allDone) channels.forEach(ch=>teamDoneSet.delete(supplier+'||'+ch));
+  else        channels.forEach(ch=>teamDoneSet.add(supplier+'||'+ch));
+  // Re-render team grid to update month progress counts
+  const grid = document.getElementById('teamBuyerGrid');
+  if(grid && grid.style.display !== 'none') renderTeam();
 
-  const buyers = buildBuyerStats();
-  const b = buyers.find(x=>x.name===buyerName);
-  if(!b) return;
-
-  const pct = b.totalThisMonth ? Math.round(b.doneThisMonth/b.totalThisMonth*100) : 0;
-  const initials = b.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  const colour = b.colour || '#475569';
-
-  // Split into done/pending for this month
-  const pending = b.allSuppliers.filter(s=>!s.isDoneMonth).sort((a,b2)=>(b2.revDay||0)-(a.revDay||0));
-  const done = b.allSuppliers.filter(s=>s.isDoneMonth).sort((a,b2)=>(b2.revDay||0)-(a.revDay||0));
-
-  let html2 = `
-    <div class="buyer-detail-hdr">
-      <button onclick="closeBuyerDetail()" style="background:#fff;border:1.5px solid #93c5fd;color:#1e40af;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer">← Back</button>
-      <div class="buyer-detail-avatar" style="background:linear-gradient(135deg,${colour},#3b82f6)">${initials}</div>
-      <div>
-        <div class="buyer-detail-name">${esc(b.name)}</div>
-        <div class="buyer-detail-stats">
-          <span>📊 ${pct}% complete</span>
-          <span>📦 ${b.doneThisMonth}/${b.totalThisMonth} suppliers</span>
-          <span>💰 €${fmtInt(b.revDay)}/day managed</span>
-          ${b.revAtRisk > 0 ? `<span style="color:#dc2626">⚠ €${fmtInt(b.revAtRisk)}/day at risk</span>` : ''}
-        </div>
-      </div>
-    </div>`;
-
-  if(pending.length){
-    html2 += `<div class="buyer-section-hdr pending">⏳ ${pending.length} pending — €${fmtInt(pending.reduce((s,r)=>s+(r.revDay||0),0))}/day revenue</div>`;
-    html2 += pending.map(s=>{
-      const isCapel = s.channel.toLowerCase().includes('capel');
-      const chip = `<span class="team-order-chip ${isCapel?'capel':'arklow'}" style="font-size:10px;padding:2px 6px">${isCapel?'CS':'AK'}</span>`;
-      return `<div class="team-order-row">
-        <span class="sup-name">${esc(s.supplier)}</span>
-        ${chip}
-        <span style="font-size:11px;color:#94a3b8">${esc(s.cadence)}</span>
-        <span class="rev-tag">€${fmtInt(s.revDay||0)}/d</span>
-        <span class="team-status-pill pending">⏳ Pending</span>
-        <button class="team-open-btn" onclick="event.stopPropagation();goToSupplier('${esc(s.supplier)}','${esc(s.channel)}')">Open →</button>
-      </div>`;
-    }).join('');
+  // Write back to PO Status Log if URL is configured
+  if(PO_UPDATER_URL){
+    channels.forEach(ch=>{
+      const url = PO_UPDATER_URL
+        + '?supplier=' + encodeURIComponent(supplier)
+        + '&channel='  + encodeURIComponent(ch)
+        + '&buyer='    + encodeURIComponent(buyerName||'')
+        + '&action='   + action;
+      fetch(url).catch(()=>{}); // fire and forget
+    });
   }
 
-  if(done.length){
-    html2 += `<div class="buyer-section-hdr done">✅ ${done.length} completed this month</div>`;
-    html2 += done.map(s=>{
-      const isCapel = s.channel.toLowerCase().includes('capel');
-      const chip = `<span class="team-order-chip ${isCapel?'capel':'arklow'}" style="font-size:10px;padding:2px 6px">${isCapel?'CS':'AK'}</span>`;
-      const po = s.po;
-      const detail = po ? (po.date||'') + (po.person?' · '+po.person:'') : '';
-      return `<div class="team-order-row done">
-        <span class="sup-name">${esc(s.supplier)}</span>
-        ${chip}
-        <span style="font-size:11px;color:#94a3b8">${esc(s.cadence)}</span>
-        <span class="rev-tag">€${fmtInt(s.revDay||0)}/d</span>
-        <span class="team-status-pill done">✓ Done${detail?' · '+esc(detail):''}</span>
-        <button class="team-open-btn" onclick="event.stopPropagation();goToSupplier('${esc(s.supplier)}','${esc(s.channel)}')">Open →</button>
-      </div>`;
-    }).join('');
+  const list = document.getElementById('teamOrderList');
+  const hdr  = list&&list.querySelector('.team-buyer-title');
+  if(hdr){
+    const name = hdr.textContent.replace(/^👤\s*/,'').replace(/'s orders$/,'').trim();
+    renderBuyerOrders(name);
   }
-
-  if(!pending.length && !done.length){
-    html2 += '<div style="text-align:center;padding:40px;color:#94a3b8;font-size:14px">No supplier assignments found for this buyer.</div>';
-  }
-
-  container.innerHTML = html2;
 }
 
-function closeBuyerDetail(){
-  const container = document.getElementById('teamOrdersContainer');
-  if(container) delete container.dataset.drillBuyer;
-  renderTeam();
-}
-
-// ─── SILENT PO REFRESH ───────────────────────────────────────────────────────
-async function silentRefreshPO(){
-  try{
-    const poRaw = await fetchCSV(PO_URL, 'PO Status');
-    state.poStatusMap = parsePOFeed(poRaw);
-    recompute();
-    // If a buyer detail is open, refresh it too
-    const container2 = document.getElementById('teamOrdersContainer');
-    if(container2 && container2.dataset.drillBuyer){
-      renderBuyerDetail(container2.dataset.drillBuyer);
-    }
-    renderTeam();
-  }catch(e){
-    // Silent fail — sheet may be temporarily unavailable
-  }
+function markSupplierDone(supplierName){
+  if(!PO_UPDATER_URL) return;
+  const ch = state.channel === 'capel' ? 'Capel Street' : 'Arklow';
+  // Get buyer name from BUYER_SCHEDULE if possible
+  const schedEntry = BUYER_SCHEDULE.find(r=>r.supplier===supplierName && r.channel===ch);
+  const buyer = schedEntry ? schedEntry.buyer : '';
+  const url = PO_UPDATER_URL
+    + '?supplier=' + encodeURIComponent(supplierName)
+    + '&channel='  + encodeURIComponent(ch)
+    + '&buyer='    + encodeURIComponent(buyer)
+    + '&action=done';
+  fetch(url)
+    .then(r=>r.json())
+    .then(data=>{
+      if(data.ok){
+        // Reload PO feed and re-render
+        fetchCSV(PO_URL,'PO Status').then(poRaw=>{
+          state.poStatusMap = parsePOFeed(poRaw);
+          recompute();
+        }).catch(()=>{});
+      } else {
+        alert('Could not update PO status: ' + (data.error||'Unknown error'));
+      }
+    })
+    .catch(()=>alert('Could not reach PO updater. Check your connection.'));
 }
 
 function goToSupplier(supplierName, channel){
@@ -4469,7 +4079,264 @@ function exportNOOS(){
   a.download=`noos_at_risk_${new Date().toISOString().slice(0,10)}.csv`;a.click();
 }
 
-// ─── NEVER OUT OF STOCK ──────────────────────────────────────────────────────
+// ─── DELIVERIES TAB ──────────────────────────────────────────────────────────
+
+const PO_DELIVERIES_URL = ''; // Set via URL input in the tab — paste your PO_Deliveries CSV export URL
+
+function parseDeliveriesRows(rows){
+  // Normalise column names from the SQL query output
+  return rows.map(r=>{
+    const strip = s => String(r[s]||'').trim();
+    const n     = s => { const v=Number(String(r[s]||'0').replace(/[€,]/g,'')); return isNaN(v)?0:v; };
+    // Parse dd/mm/yyyy dates (Linnworks CONVERT 103 format)
+    function parseDate(s){
+      if(!s) return null;
+      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if(m) return new Date(+m[3], +m[2]-1, +m[1]);
+      const d = new Date(s); return isNaN(d)?null:d;
+    }
+    return {
+      PONumber:        strip('PONumber'),
+      SupplierName:    strip('SupplierName'),
+      SKU:             strip('SKU').replace(/^'+/,''),
+      ItemTitle:       strip('ItemTitle'),
+      OrderedQty:      n('OrderedQty'),
+      ReceivedQty:     n('ReceivedQty'),
+      OutstandingQty:  n('OutstandingQty'),
+      UnitCost:        n('UnitCost'),
+      OutstandingValue:n('OutstandingValue'),
+      PODate:          strip('PODate'),
+      ExpectedDelivery:strip('ExpectedDelivery'),
+      ActualDelivery:  strip('ActualDelivery'),
+      POStatus:        strip('POStatus').toUpperCase(),
+      DaysOverdue:     n('DaysOverdue'),
+      _expectedDate:   parseDate(strip('ExpectedDelivery')),
+      _actualDate:     parseDate(strip('ActualDelivery')),
+    };
+  }).filter(r=>r.SupplierName||r.PONumber);
+}
+
+function getDeliveryCategory(row){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const in7   = new Date(today); in7.setDate(in7.getDate()+7);
+  if(row.POStatus==='DELIVERED') return 'delivered';
+  if(row.OutstandingQty<=0 && row.POStatus==='DELIVERED') return 'delivered';
+  if(row.DaysOverdue>0 && row.OutstandingQty>0) return 'overdue';
+  if(row._expectedDate && row._expectedDate<=in7 && row.OutstandingQty>0) return 'soon';
+  if(row.OutstandingQty>0) return 'expected';
+  return 'delivered';
+}
+
+function delStatusBadge(row){
+  const cat=getDeliveryCategory(row);
+  const status=row.POStatus;
+  let cls='other', label=status||'—';
+  if(cat==='overdue')   { cls='overdue'; label=`🔴 ${row.DaysOverdue}d overdue`; }
+  else if(cat==='soon') { cls='soon'; label=`🟠 Due soon`; }
+  else if(status==='PENDING')   { cls='pending'; label='Pending'; }
+  else if(status==='PLACED')    { cls='placed';  label='Placed'; }
+  else if(status==='PARTIAL')   { cls='partial'; label='Partial'; }
+  else if(status==='DELIVERED') { cls='delivered';label='✅ Delivered'; }
+  return `<span class="del-status-badge ${cls}">${esc(label)}</span>`;
+}
+
+let delActiveFilter='all';
+
+function renderDeliveries(){
+  const rows = state.deliveriesRows;
+
+  // If no data, show setup notice only
+  const notice = document.getElementById('delSetupNotice');
+  const summary = document.getElementById('delSummary');
+  const filterBar = document.getElementById('delFilterBar');
+
+  if(!rows.length){
+    if(notice) notice.style.display='block';
+    if(summary) summary.style.display='none';
+    if(filterBar) filterBar.style.display='none';
+    document.getElementById('delResults').innerHTML='';
+    return;
+  }
+
+  if(notice) notice.style.display='none';
+  if(summary) summary.style.display='flex';
+  if(filterBar) filterBar.style.display='flex';
+
+  // Categorise rows
+  const cats = rows.map(r=>({...r, _cat:getDeliveryCategory(r)}));
+  const overdue   = cats.filter(r=>r._cat==='overdue');
+  const soon      = cats.filter(r=>r._cat==='soon');
+  const expected  = cats.filter(r=>r._cat==='expected');
+  const delivered = cats.filter(r=>r._cat==='delivered');
+
+  const openSuppliers = new Set(cats.filter(r=>r._cat!=='delivered').map(r=>r.SupplierName));
+  const outstandingVal = cats.filter(r=>r._cat!=='delivered').reduce((s,r)=>s+r.OutstandingValue,0);
+
+  document.getElementById('delCountOverdue').textContent   = fmtInt(overdue.length);
+  document.getElementById('delCountSoon').textContent      = fmtInt(soon.length);
+  document.getElementById('delCountExpected').textContent  = fmtInt(expected.length);
+  document.getElementById('delCountDelivered').textContent = fmtInt(delivered.length);
+  document.getElementById('delCountSuppliers').textContent = fmtInt(openSuppliers.size);
+  document.getElementById('delOutstandingValue').textContent= '€'+fmtInt(outstandingVal);
+
+  // Search filter
+  const q = (document.getElementById('delSearch')?.value||'').trim().toLowerCase();
+
+  // Apply active filter
+  let filtered = cats;
+  if(delActiveFilter==='overdue')   filtered = overdue;
+  else if(delActiveFilter==='soon') filtered = soon;
+  else if(delActiveFilter==='expected') filtered = expected;
+  else if(delActiveFilter==='delivered') filtered = delivered;
+
+  if(q) filtered = filtered.filter(r=>{
+    const hay = `${r.SupplierName} ${r.PONumber} ${r.SKU} ${r.ItemTitle}`.toLowerCase();
+    return hay.includes(q);
+  });
+
+  if(!filtered.length){
+    document.getElementById('delResults').innerHTML=
+      '<div style="padding:24px;text-align:center;color:#64748b;font-size:13px">No delivery records match the current filter.</div>';
+    return;
+  }
+
+  // Group by supplier
+  const supMap = new Map();
+  for(const r of filtered){
+    if(!supMap.has(r.SupplierName)) supMap.set(r.SupplierName,[]);
+    supMap.get(r.SupplierName).push(r);
+  }
+
+  // Sort suppliers: overdue first, then by most urgent
+  const supArr = [...supMap.entries()].sort((a,b)=>{
+    const score = rows => rows.reduce((s,r)=>{
+      if(r._cat==='overdue')   return s+r.DaysOverdue*100;
+      if(r._cat==='soon')      return s+50;
+      if(r._cat==='expected')  return s+10;
+      return s;
+    },0);
+    return score(b[1])-score(a[1]);
+  });
+
+  let html='';
+  for(const [supplier, supRows] of supArr){
+    const ovd   = supRows.filter(r=>r._cat==='overdue').length;
+    const sn    = supRows.filter(r=>r._cat==='soon').length;
+    const exp   = supRows.filter(r=>r._cat==='expected').length;
+    const dlv   = supRows.filter(r=>r._cat==='delivered').length;
+    const supVal= supRows.filter(r=>r._cat!=='delivered').reduce((s,r)=>s+r.OutstandingValue,0);
+    const supKey= 'delsup_'+encodeURIComponent(supplier).replace(/%/g,'_');
+
+    const chips =
+      (ovd ? `<span class="del-sup-chip overdue">🔴 ${ovd} overdue</span>` : '') +
+      (sn  ? `<span class="del-sup-chip soon">🟠 ${sn} due soon</span>` : '') +
+      (exp ? `<span class="del-sup-chip expected">📦 ${exp} on order</span>` : '') +
+      (dlv ? `<span class="del-sup-chip delivered">✅ ${dlv} delivered</span>` : '') +
+      (supVal>0 ? `<span class="del-sup-chip value">€${fmtInt(supVal)} outstanding</span>` : '');
+
+    // Group rows by PO number within supplier
+    const poMap = new Map();
+    for(const r of supRows){
+      const key=r.PONumber||'(No PO#)';
+      if(!poMap.has(key)) poMap.set(key,[]);
+      poMap.get(key).push(r);
+    }
+
+    let tableHtml='';
+    for(const [poNum, poRows] of poMap){
+      // PO group header
+      const poOvd  = poRows.filter(r=>r._cat==='overdue').length;
+      const poSoon = poRows.filter(r=>r._cat==='soon').length;
+      const poVal  = poRows.filter(r=>r._cat!=='delivered').reduce((s,r)=>s+r.OutstandingValue,0);
+      const poCat  = poOvd?'overdue':poSoon?'soon':poRows[0]._cat;
+      const poBadge= delStatusBadge(poRows[0]);
+      const poDate = poRows[0].PODate ? `<span style="color:#64748b;font-weight:400;font-size:11px;margin-left:8px">Raised: ${esc(poRows[0].PODate)}</span>` : '';
+      const poExp  = poRows[0].ExpectedDelivery ? `<span style="color:#1e40af;font-size:11px;margin-left:8px">Expected: ${esc(poRows[0].ExpectedDelivery)}</span>` : '';
+      const poActual=poRows[0].ActualDelivery && poRows[0].POStatus==='DELIVERED' ? `<span style="color:#15803d;font-size:11px;margin-left:8px">Delivered: ${esc(poRows[0].ActualDelivery)}</span>` : '';
+      const poValHtml=poVal>0?`<span style="margin-left:auto;font-size:12px;font-weight:700;color:#0369a1">€${fmtInt(poVal)} outstanding</span>`:'';
+
+      tableHtml+=`<div class="del-po-group-hdr">
+        <span class="po-num">${esc(poNum)}</span>
+        ${poBadge}
+        ${poDate}${poExp}${poActual}
+        ${poValHtml}
+      </div>`;
+
+      tableHtml+='<table class="del-po-table"><thead><tr>'+
+        '<th>SKU</th><th>Item</th>'+
+        '<th class="r">Ordered</th><th class="r">Received</th><th class="r">Outstanding</th>'+
+        '<th class="r">Unit Cost</th><th class="r">Line Value</th>'+
+        '<th>Status</th>'+
+        '</tr></thead><tbody>';
+
+      for(const r of poRows){
+        const outStyle = r.OutstandingQty>0 ? 'font-weight:700;color:#1e3a5f' : 'color:#94a3b8';
+        const valStyle = r.OutstandingValue>0 ? 'font-weight:700;color:#0369a1' : 'color:#94a3b8';
+        tableHtml+=`<tr>
+          <td style="font-family:monospace;font-size:11px;font-weight:700;color:#1e40af;white-space:nowrap">${esc(r.SKU)}</td>
+          <td style="max-width:280px">${esc(r.ItemTitle)}</td>
+          <td class="r">${fmtInt(r.OrderedQty)}</td>
+          <td class="r">${fmtInt(r.ReceivedQty)}</td>
+          <td class="r" style="${outStyle}">${fmtInt(r.OutstandingQty)}</td>
+          <td class="r">${r.UnitCost>0?'€'+r.UnitCost.toFixed(2):'—'}</td>
+          <td class="r" style="${valStyle}">${r.OutstandingValue>0?'€'+fmtInt(r.OutstandingValue):'—'}</td>
+          <td>${delStatusBadge(r)}</td>
+        </tr>`;
+      }
+      tableHtml+='</tbody></table>';
+    }
+
+    html+=`<div class="del-supplier-group" id="${supKey}">
+      <div class="del-supplier-hdr" onclick="toggleDelSupplier('${supKey}')">
+        <span class="del-supplier-name">📦 ${esc(supplier)}</span>
+        <span class="del-supplier-chips">${chips}</span>
+        <span class="del-supplier-toggle" id="${supKey}_toggle">▲</span>
+      </div>
+      <div id="${supKey}_body">${tableHtml}</div>
+    </div>`;
+  }
+
+  document.getElementById('delResults').innerHTML=html;
+}
+
+function toggleDelSupplier(key){
+  const body=document.getElementById(key+'_body');
+  const tog=document.getElementById(key+'_toggle');
+  if(!body||!tog) return;
+  const visible=body.style.display!=='none';
+  body.style.display=visible?'none':'block';
+  tog.textContent=visible?'▼':'▲';
+}
+
+async function loadDeliveriesData(urlOverride){
+  const urlEl = document.getElementById('delCsvUrl');
+  const url = urlOverride || (urlEl&&urlEl.value.trim()) || '';
+  if(!url){
+    const st=document.getElementById('delLoadStatus');
+    if(st){ st.textContent='❌ Paste the PO_Deliveries CSV URL above first.'; st.style.color='var(--bad)'; }
+    return;
+  }
+  const bar=document.getElementById('delLoadBar');
+  const msg=document.getElementById('delLoadMsg');
+  const st=document.getElementById('delLoadStatus');
+  if(bar) bar.style.display='flex';
+  if(msg) msg.textContent='Fetching delivery data…';
+  if(st){ st.textContent='⏳ Loading…'; st.style.color=''; }
+  try{
+    const rows = await fetchCSV(normalizeGoogleCsvUrl(url),'PO Deliveries');
+    state.deliveriesRows = parseDeliveriesRows(rows);
+    if(st){ st.textContent=`✅ Loaded ${fmtInt(state.deliveriesRows.length)} delivery lines · ${fmtInt(new Set(state.deliveriesRows.map(r=>r.SupplierName)).size)} suppliers`; st.style.color='#14532d'; st.style.background='#dcfce7'; st.style.borderColor='#4ade80'; }
+    renderDeliveries();
+  }catch(e){
+    if(st){ st.textContent=`❌ ${e.message}`; st.style.color='var(--bad)'; }
+    state.deliveriesRows=[];
+    renderDeliveries();
+  }finally{
+    if(bar) bar.style.display='none';
+  }
+}
+
+
 function getNeverOOSRows(){
   if(!state.computedRows||!state.computedRows.length) return [];
   return state.computedRows.filter(r=>
@@ -4585,283 +4452,6 @@ function downloadNoosCsv(rows,label){
   a.click();URL.revokeObjectURL(a.href);
 }
 
-
-// ─── KEYBOARD SHORTCUTS ──────────────────────────────────────────────────────
-document.addEventListener('keydown', function(e){
-  // Don't fire when typing in inputs
-  if(e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
-  
-  switch(e.key){
-    case '1': case '2': case '3': case '4': case '5':
-      e.preventDefault();
-      const tabs = document.querySelectorAll('.tab-btn');
-      const idx = parseInt(e.key) - 1;
-      if(tabs[idx]) tabs[idx].click();
-      break;
-    case 's': case 'S':
-      if(!e.ctrlKey && !e.metaKey){
-        e.preventDefault();
-        const sb = document.getElementById('searchBox');
-        if(sb) sb.focus();
-      }
-      break;
-    case 'Escape':
-      const backBtn = document.getElementById('backBtn');
-      if(backBtn && backBtn.style.display !== 'none') backBtn.click();
-      break;
-    case 'r': case 'R':
-      if(!e.ctrlKey && !e.metaKey){
-        e.preventDefault();
-        const autoBtn = document.getElementById('autoLoadBtn');
-        if(autoBtn) autoBtn.click();
-      }
-      break;
-  }
-});
-
-
-// ─── TEAM TAB SEARCH ─────────────────────────────────────────────────────────
-function filterTeamOrders(query){
-  const q = (query||'').toLowerCase().trim();
-  const cards = document.querySelectorAll('.team-order-card');
-  cards.forEach(card => {
-    const text = card.textContent.toLowerCase();
-    card.style.display = !q || text.includes(q) ? '' : 'none';
-  });
-  // Also filter buyer grid cards
-  const buyerCards = document.querySelectorAll('.team-buyer-card');
-  if(q && buyerCards.length){
-    // Check if any of the buyer's suppliers match
-    buyerCards.forEach(card => {
-      const name = card.querySelector('.team-buyer-name')?.textContent || '';
-      const buyerSuppliers = BUYER_SCHEDULE.filter(r=>r.buyer===name).map(r=>r.supplier.toLowerCase());
-      const match = !q || name.toLowerCase().includes(q) || buyerSuppliers.some(s=>s.includes(q));
-      card.style.display = match ? '' : 'none';
-    });
-  } else {
-    buyerCards.forEach(card => card.style.display = '');
-  }
-}
-
-
-// ─── PO REVIEW SCREEN ─────────────────────────────────────────────────────
-// Full line-by-line review before export — shows stock, qty, and WHY for each SKU
-let _poReviewRows = []; // mutable copy for qty edits
-
-function buildWhyText(r){
-  const parts = [];
-  const isCapel = state.channel === 'capel';
-  const q7  = isCapel ? (r.QtySold_Shop_CapelStreet_7d||0)  : (r.QtySold_Online_Total_7d||0);
-  const q30 = isCapel ? (r.QtySold_Shop_CapelStreet_30d||0) : (r.QtySold_Online_Total_30d||0);
-  const q90 = isCapel ? (r.QtySold_Shop_CapelStreet_90d||0) : (r.QtySold_Online_Total_90d||0);
-  const q180= isCapel ? (r.QtySold_Shop_CapelStreet_180d||0): (r.QtySold_Online_Total_180d||0);
-  
-  // Core demand signal
-  if(q30 > 0) parts.push(`<strong>Sold ${fmtInt(q30)} in last 30 days</strong> (${fmt1(q30/30)}/day)`);
-  else if(q90 > 0) parts.push(`<strong>Sold ${fmtInt(q90)} in last 90 days</strong> (${fmt1(q90/90)}/day) — no 30D sales`);
-  else if(q180 > 0) parts.push(`<strong>Sold ${fmtInt(q180)} in last 180 days</strong> — very slow`);
-  else parts.push(`<strong>No sales recorded</strong>`);
-  
-  // 7D spike
-  if(q30 > 0 && q7 > 0){
-    const ratio = (q7/7) / (q30/30);
-    if(ratio >= 1.5) parts.push(`↑ 7D spike: ${fmtInt(q7)} units this week (${fmt1(ratio)}× avg)`);
-    else if(ratio < 0.5) parts.push(`↓ Slowing: only ${fmtInt(q7)} this week`);
-  }
-  
-  // Stock situation
-  if(r.stock <= 0) parts.push(`🔴 <strong>OUT OF STOCK</strong>`);
-  else if(r.daysOfCover < 14) parts.push(`🔴 Only ${Math.round(r.daysOfCover)} days cover left`);
-  else if(r.daysOfCover < 30) parts.push(`🟠 ${Math.round(r.daysOfCover)} days cover — below target`);
-  
-  // Seasonal
-  if(r.seasonalMultiplier > 1.05) parts.push(`📅 Seasonal uplift: ${fmt1(r.seasonalMultiplier)}× for ${monthLabel()}`);
-  if(r.wxMultiplier > 1.01) parts.push(`🌤️ Weather boost: +${Math.round((r.wxMultiplier-1)*100)}%`);
-  
-  // CS required
-  if(r._csRequired) parts.push(`🔒 CS-required: min ${fmtInt(r._csQtyFloor)} units${r._csReason?' ('+r._csReason+')':''}`);
-  
-  // Pack size
-  if(r.packRounded) parts.push(`📦 Rounded to pack size of ${fmtInt(r.packSize)}`);
-  
-  // Fallback
-  if(r.fallbackUsed) parts.push(`⚠ Using ${r.fallbackUsed==='Fallback180'?'180D':'90D'} fallback demand`);
-  
-  return parts.join('<br>');
-}
-
-function showPOReview(rows){
-  // Make editable copies
-  _poReviewRows = rows.map(r => ({...r, editQty: r.buy}));
-  
-  const overlay = document.createElement('div');
-  overlay.className = 'po-confirm-overlay';
-  overlay.id = 'poReviewOverlay';
-  
-  overlay.innerHTML = `<div class="po-review-modal">
-    <div class="po-review-head">
-      <h3>🔍 PO Review — ${esc(state.activeSupplier||'All Suppliers')}</h3>
-      <input type="text" class="po-review-search" placeholder="Search SKU / item…" oninput="filterPOReview(this.value)">
-      <button class="close" onclick="this.closest('.po-confirm-overlay').remove()">&times;</button>
-    </div>
-    <div class="po-review-summary" id="poReviewSummary"></div>
-    <div class="po-review-body">
-      <table>
-        <thead><tr>
-          <th>SKU</th>
-          <th>Item</th>
-          <th class="r">In Stock</th>
-          <th class="r">Buy Qty</th>
-          <th class="r">Cover</th>
-          <th class="r">ABC</th>
-          <th class="r">Cost</th>
-          <th class="r">Line Total</th>
-          <th>Why this quantity?</th>
-        </tr></thead>
-        <tbody id="poReviewTbody"></tbody>
-      </table>
-    </div>
-    <div class="po-review-foot">
-      <span class="total-label" id="poReviewFootLabel">0 lines · 0 units</span>
-      <span class="total-val" id="poReviewFootTotal">€0</span>
-      <button class="secondary" onclick="this.closest('.po-confirm-overlay').remove()">Close</button>
-      <button onclick="executePOExport()">📄 Re-export with changes</button>
-    </div>
-  </div>`;
-  
-  document.body.appendChild(overlay);
-  overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
-  
-  renderPOReviewTable();
-  updatePOReviewSummary();
-}
-
-function renderPOReviewTable(filter){
-  const tbody = document.getElementById('poReviewTbody');
-  if(!tbody) return;
-  const q = (filter||'').toLowerCase();
-  
-  tbody.innerHTML = _poReviewRows.map((r,idx) => {
-    const hay = `${r.SKU} ${r.ItemTitle}`.toLowerCase();
-    if(q && !hay.includes(q)) return '';
-    
-    const coverCls = r.coverStatus==='Out of Stock'||r.coverStatus==='Critical' ? 'color:#dc2626;font-weight:800' 
-                   : r.coverStatus==='Low' ? 'color:#d97706;font-weight:700' : 'color:#16a34a';
-    const coverText = r.daysOfCover >= 9999 ? '∞' : Math.round(r.daysOfCover) + 'd';
-    const cost = r.SupplierCostPrice || 0;
-    const lineTotal = (r.editQty||0) * cost;
-    const why = buildWhyText(r);
-    const stockWarn = r.stock <= 0 ? 'style="color:#dc2626;font-weight:900"' : r.stock < 10 ? 'style="color:#d97706;font-weight:700"' : '';
-    
-    return `<tr data-idx="${idx}">
-      <td style="font-family:monospace;font-size:12px;font-weight:700;color:#1e40af;white-space:nowrap">${esc(r.SKU)}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.ItemTitle)}">${esc(r.ItemTitle)}</td>
-      <td class="num" ${stockWarn}>${fmtInt(r.stock)}</td>
-      <td class="num"><input type="number" min="0" class="po-review-qty" value="${r.editQty}" data-idx="${idx}" onchange="updatePOReviewQty(this)"></td>
-      <td class="num" style="${coverCls}">${coverText}</td>
-      <td class="num"><strong>${r.abcClass}</strong></td>
-      <td class="num">${cost > 0 ? '€'+fmt1(cost) : '—'}</td>
-      <td class="num" style="font-weight:700">${lineTotal > 0 ? '€'+fmtInt(lineTotal) : '—'}</td>
-      <td><div class="po-review-why">${why}</div></td>
-    </tr>`;
-  }).join('');
-  
-  // Prevent scroll wheel changing inputs
-  tbody.querySelectorAll('.po-review-qty').forEach(inp => {
-    inp.addEventListener('wheel', e => e.preventDefault(), {passive:false});
-  });
-}
-
-function updatePOReviewQty(input){
-  const idx = parseInt(input.dataset.idx, 10);
-  const val = parseInt(input.value, 10);
-  if(isNaN(val) || val < 0){ input.value = 0; _poReviewRows[idx].editQty = 0; }
-  else { _poReviewRows[idx].editQty = val; }
-  updatePOReviewSummary();
-  // Update line total in same row
-  const tr = input.closest('tr');
-  if(tr){
-    const cost = _poReviewRows[idx].SupplierCostPrice || 0;
-    const cells = tr.querySelectorAll('td');
-    if(cells[7]) cells[7].innerHTML = `<span style="font-weight:700">${(val*cost)>0?'€'+fmtInt(val*cost):'—'}</span>`;
-  }
-}
-
-function updatePOReviewSummary(){
-  const active = _poReviewRows.filter(r => r.editQty > 0);
-  const totalUnits = active.reduce((s,r) => s + r.editQty, 0);
-  const totalCost = active.reduce((s,r) => s + r.editQty * (r.SupplierCostPrice||0), 0);
-  const critLines = active.filter(r => ['Critical','Out of Stock'].includes(r.coverStatus)).length;
-  const oosLines = active.filter(r => r.stock <= 0).length;
-  const aItems = active.filter(r => r.abcClass === 'A').length;
-  const removed = _poReviewRows.filter(r => r.editQty <= 0 && r.buy > 0).length;
-  
-  const summary = document.getElementById('poReviewSummary');
-  if(summary) summary.innerHTML = `
-    <div class="po-review-stat"><div class="val">${fmtInt(active.length)}</div><div class="lbl">SKU lines</div></div>
-    <div class="po-review-stat"><div class="val">${fmtInt(totalUnits)}</div><div class="lbl">Total units</div></div>
-    <div class="po-review-stat"><div class="val red">€${fmtInt(totalCost)}</div><div class="lbl">Est. cost</div></div>
-    <div class="po-review-stat"><div class="val red">${fmtInt(oosLines)}</div><div class="lbl">Out of stock</div></div>
-    <div class="po-review-stat"><div class="val" style="color:#d97706">${fmtInt(critLines)}</div><div class="lbl">Critical</div></div>
-    <div class="po-review-stat"><div class="val green">${fmtInt(aItems)}</div><div class="lbl">A-class</div></div>
-    ${removed > 0 ? `<div class="po-review-stat"><div class="val" style="color:#94a3b8">${fmtInt(removed)}</div><div class="lbl">Removed</div></div>` : ''}
-  `;
-  
-  const footLabel = document.getElementById('poReviewFootLabel');
-  const footTotal = document.getElementById('poReviewFootTotal');
-  if(footLabel) footLabel.textContent = `${fmtInt(active.length)} lines · ${fmtInt(totalUnits)} units`;
-  if(footTotal) footTotal.textContent = `€${fmtInt(totalCost)}`;
-}
-
-function filterPOReview(q){
-  renderPOReviewTable(q);
-}
-
-function executePOExport(){
-  // Use edited quantities
-  const active = _poReviewRows.filter(r => r.editQty > 0);
-  if(!active.length){ alert('No lines to export — all quantities are zero.'); return; }
-  
-  const supplierLabel = state.activeSupplier || 'ALL_SUPPLIERS';
-  const cols = ['SupplierName','SKU','ItemTitle','editQty','SupplierCostPrice','_csRequired','_csQtyFloor','coverStatus','stock','target','reason'];
-  const headers = ['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','_csRequired','_csQtyFloor','coverStatus','stock','target','reason','Tax Rate'];
-  const lines = [headers.join(',')];
-  for(const r of active){
-    lines.push([...cols.map(c => {
-      let v = r[c];
-      if(typeof v === 'boolean') v = v ? 'YES' : 'NO';
-      if(typeof v === 'number') v = String(v);
-      v = String(v ?? '');
-      if(/[",\n]/.test(v)) v = '"' + v.replace(/"/g,'""') + '"';
-      return v;
-    }), '0'].join(','));
-  }
-  const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `PO_${supplierLabel.replace(/[^a-z0-9]+/gi,'_')}_${document.getElementById('demandMode').value}.csv`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-  
-  // Close modal
-  const overlay = document.getElementById('poReviewOverlay');
-  if(overlay) overlay.remove();
-}
-
-
-// ─── BACKGROUND AUTO-REFRESH ──────────────────────────────────────────────────
-// Silently refresh PO status every 10 minutes to keep Team tab current
-let _poRefreshInterval = null;
-function startPOAutoRefresh(){
-  if(_poRefreshInterval) clearInterval(_poRefreshInterval);
-  _poRefreshInterval = setInterval(()=>{
-    if(state.poStatusMap && Object.keys(state.poStatusMap).length > 0){
-      silentRefreshPO();
-    }
-  }, 10 * 60 * 1000); // 10 minutes
-}
-
-
 </script>
 
 <!-- Never Out of Stock Modal -->
@@ -4900,3 +4490,4 @@ function startPOAutoRefresh(){
 </div>
 </body>
 </html>
+
