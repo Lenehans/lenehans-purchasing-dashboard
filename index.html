@@ -450,6 +450,7 @@
     body.basic-mode #clearRiskFiltersBtn,
     body.basic-mode #exportBtn,
     body.basic-mode #poExportBtn,
+    body.basic-mode #whyBuyBtn,
     body.basic-mode #neverOosBtn { display:none !important }
     body.basic-mode #fallback90Label { display:inline-flex !important }
     body.basic-mode #fallback180Label { display:inline-flex !important }
@@ -492,6 +493,59 @@
     .channel-btn:not(.active){opacity:.7}
 
     @media (max-width:1100px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+    /* ── Why Buy / PO Review overlay ────────────────────────────────── */
+    .po-review-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;
+      display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
+    .po-review-modal{background:#fff;border-radius:14px;width:100%;max-width:1140px;
+      display:flex;flex-direction:column;max-height:calc(100vh - 48px);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+    .po-review-hdr{padding:16px 20px 12px;border-bottom:2px solid #e2e8f0;flex-shrink:0}
+    .po-review-hdr h3{font-size:16px;font-weight:900;color:#1e3a5f;margin:0 0 8px}
+    .po-review-summary{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:6px}
+    .po-rev-stat{font-size:12px;font-weight:700;padding:3px 10px;border-radius:12px;white-space:nowrap}
+    .po-rev-stat.blue{background:#dbeafe;color:#1e3a8a}
+    .po-rev-stat.red{background:#fee2e2;color:#991b1b}
+    .po-rev-stat.amber{background:#fef3c7;color:#92400e}
+    .po-rev-stat.green{background:#dcfce7;color:#14532d}
+    .po-rev-stat.grey{background:#f1f5f9;color:#475569}
+    .po-review-search{margin-left:auto;padding:5px 12px;border:1.5px solid #8899b0;border-radius:8px;font-size:12px;width:220px}
+    .po-review-body{overflow-y:auto;flex:1}
+    .po-review-table{width:100%;border-collapse:collapse;font-size:12px}
+    .po-review-table thead th{background:#1e3a5f;color:#fff;padding:8px 10px;text-align:left;
+      font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+      white-space:nowrap;position:sticky;top:0;z-index:1}
+    .po-review-table thead th.r{text-align:right}
+    .po-review-table tbody tr{border-bottom:1px solid #e8edf3}
+    .po-review-table tbody tr:nth-child(even){background:#f7f9fc}
+    .po-review-table tbody tr:hover{background:#eff6ff}
+    .po-review-table tbody td{padding:9px 10px;vertical-align:middle}
+    .po-review-table tbody td.r{text-align:right;font-variant-numeric:tabular-nums}
+    .po-rev-sku{font-family:monospace;font-size:11px;font-weight:700;color:#1e40af}
+    .po-rev-cover{display:inline-flex;align-items:center;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:700}
+    .po-rev-cover.oos{background:#fee2e2;color:#991b1b}
+    .po-rev-cover.critical{background:#fff7ed;color:#92400e}
+    .po-rev-cover.low{background:#fef9c3;color:#713f12}
+    .po-rev-cover.ok{background:#dcfce7;color:#14532d}
+    .po-rev-cover.healthy{background:#f0fdf4;color:#166534}
+    .po-rev-why{font-size:11.5px;color:#334155;line-height:1.5}
+    .po-rev-why .why-tag{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;
+      border-radius:10px;font-size:10.5px;font-weight:700;margin:1px 2px;white-space:nowrap}
+    .po-rev-why .why-tag.demand{background:#e0f2fe;color:#075985}
+    .po-rev-why .why-tag.spike{background:#fef3c7;color:#92400e}
+    .po-rev-why .why-tag.seasonal{background:#dcfce7;color:#14532d}
+    .po-rev-why .why-tag.oos{background:#fee2e2;color:#991b1b}
+    .po-rev-why .why-tag.cs{background:#ede9fe;color:#5b21b6}
+    .po-rev-why .why-tag.pack{background:#f1f5f9;color:#475569}
+    .po-rev-why .why-tag.fallback{background:#fff7ed;color:#92400e}
+    .po-rev-why .why-tag.cover{background:#fef9c3;color:#713f12}
+    .po-rev-qty{width:60px;padding:4px 6px;border:1.5px solid #cbd5e1;border-radius:6px;
+      font-size:12px;font-weight:700;text-align:right;color:#1e3a5f;font-variant-numeric:tabular-nums}
+    .po-rev-qty:focus{outline:none;border-color:#1e40af}
+    .po-rev-qty.changed{border-color:#d97706;background:#fefce8}
+    .po-review-ftr{padding:12px 20px;border-top:2px solid #e2e8f0;display:flex;
+      align-items:center;gap:10px;flex-shrink:0;background:#f8fafc;border-radius:0 0 14px 14px}
+    .po-rev-total{font-size:13px;font-weight:700;color:#1e3a5f;flex:1}
+    .po-rev-total span{font-size:18px;color:#1e3a5f}
 
     /* ── Deliveries tab ──────────────────────────────────────────── */
     .del-summary{display:flex;flex-wrap:wrap;gap:6px 20px;align-items:center;
@@ -587,7 +641,7 @@
 </head>
 <body>
 <header>
-  <div class="title">Lenehans Purchasing Dashboard · V5.34 · INTELLIGENCE</div>
+  <div class="title">Lenehans Purchasing Dashboard · V5.36 · INTELLIGENCE</div>
   <div class="sub">QueryData_master + CS Shared + PO Status · governance · seasonal look-ahead · momentum · order health · confidence score</div>
 </header>
 
@@ -694,6 +748,7 @@
     <button id="clearRiskFiltersBtn" class="secondary">Clear risk filters</button>
     <button id="exportBtn" class="secondary">Export CSV</button>
     <button id="poExportBtn" class="secondary">Export PO</button>
+    <button id="whyBuyBtn" class="secondary" title="Review why each SKU is being ordered — stock, demand, and reasoning">🔍 Why Buy?</button>
     <button id="xfrPickBtn" class="secondary" onclick="exportTransferPickingNote()" title="Export transfer picking note — only visible when inside a supplier" style="display:none">⇄ Transfer Note</button>
   </div>
 
@@ -1026,6 +1081,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   <div class="spb-supplier" id="spbSupplierName">—</div>
   <div class="spb-info" id="spbInfo"></div>
   <button onclick="exportPO()">📄 Export PO</button>
+  <button onclick="openWhyBuy()" style="background:#1e40af">🔍 Why Buy?</button>
   <button onclick="exportTransferPickingNote()" style="background:#d97706" title="Capel mode = Arklow→Capel transfers. Arklow mode = Capel→Arklow transfers.">⇄ Transfer Note</button>
   <button class="spb-back" onclick="document.getElementById('backBtn').click()">← Back to suppliers</button>
 </div>
@@ -3289,13 +3345,199 @@ function applyInitialMode(){
 function exportPO(){
   const rows=getFilteredRows().filter(r=>r.buy>0&&(!state.omittedSkus.has(r.SKU)||r._csRequired));
   if(!rows.length){alert('No lines to export for current view.');return;}
+  rows.sort((a,b)=>{
+    const pa=a.stock<=0?0:a.coverStatus==='Critical'?1:a.coverStatus==='Low'?2:3;
+    const pb=b.stock<=0?0:b.coverStatus==='Critical'?1:b.coverStatus==='Low'?2:3;
+    return pa!==pb?pa-pb:b.buy-a.buy;
+  });
+  showPOReview(rows, true);
+}
+
+function openWhyBuy(){
+  const rows=getFilteredRows().filter(r=>r.buy>0&&(!state.omittedSkus.has(r.SKU)||r._csRequired));
+  if(!rows.length){alert('No buy lines in current view.');return;}
+  rows.sort((a,b)=>{
+    const pa=a.stock<=0?0:a.coverStatus==='Critical'?1:a.coverStatus==='Low'?2:3;
+    const pb=b.stock<=0?0:b.coverStatus==='Critical'?1:b.coverStatus==='Low'?2:3;
+    return pa!==pb?pa-pb:b.buy-a.buy;
+  });
+  showPOReview(rows, false);
+}
+
+function buildWhyText(r){
+  const tags=[];
+  // Cover / stock status
+  if(r.stock<=0)
+    tags.push(`<span class="why-tag oos">🔴 Out of stock</span>`);
+  else if(r.coverStatus==='Critical')
+    tags.push(`<span class="why-tag cover">🔴 Only ${fmtInt(r.coverDays)} days cover left</span>`);
+  else if(r.coverStatus==='Low')
+    tags.push(`<span class="why-tag cover">🟠 Low — ${fmtInt(r.coverDays)} days cover</span>`);
+  // Demand signal
+  const d=r.demandQty, days=r.demandDays||30, lbl=r.demandUsed||r.demandMode;
+  if(d>0){
+    const rate=(d/days).toFixed(1);
+    tags.push(`<span class="why-tag demand">Sold ${fmtInt(d)} in ${days}D (${rate}/day)</span>`);
+  }
+  // 7D spike
+  const raw7=r.QtySold_Online_Total_7d||0;
+  const avg7=(r.QtySold_Online_Total_30d||0)/30*7;
+  if(raw7>0 && avg7>0 && raw7/avg7>=1.5)
+    tags.push(`<span class="why-tag spike">↑ 7D spike: ${fmtInt(raw7)} this week (${fmt1(raw7/avg7)}× avg)</span>`);
+  // Seasonal
+  if(r.demandMode==='Seasonal' && r.seasonalMultiplier && r.seasonalMultiplier!==1){
+    const pct=Math.round((r.seasonalMultiplier-1)*100);
+    const dir=pct>0?'+':'';
+    tags.push(`<span class="why-tag seasonal">📅 Seasonal ${dir}${pct}% — ${r.seasonalNote||''}</span>`);
+  }
+  // Fallback
+  if(r.fallbackUsed)
+    tags.push(`<span class="why-tag fallback">⚠ ${esc(r.fallbackUsed)}</span>`);
+  // CS required
+  if(r._csRequired)
+    tags.push(`<span class="why-tag cs">🔒 CS min ${fmtInt(r._csQtyFloor||0)}</span>`);
+  // Pack rounding
+  const packSize=r.PackSize||r.pack_size||0;
+  if(packSize>1)
+    tags.push(`<span class="why-tag pack">Rounded to pack of ${packSize}</span>`);
+  return tags.join(' ') || '<span style="color:#94a3b8;font-size:11px">—</span>';
+}
+
+function coverClass(s){
+  if(!s||s==='OOS') return 'oos';
+  if(s==='Critical') return 'critical';
+  if(s==='Low') return 'low';
+  if(s==='OK') return 'ok';
+  return 'healthy';
+}
+
+function updateReviewSummary(modal){
+  const inputs=modal.querySelectorAll('.po-rev-qty');
+  let lines=0, units=0, cost=0, oos=0, crit=0, aClass=0;
+  inputs.forEach(inp=>{
+    const qty=parseInt(inp.value)||0;
+    if(qty<=0) return;
+    lines++;
+    units+=qty;
+    cost+=qty*(parseFloat(inp.dataset.unitcost)||0);
+    if(inp.dataset.cover==='oos'||inp.dataset.cover==='OOS') oos++;
+    if(inp.dataset.cover==='Critical') crit++;
+    if(inp.dataset.abc==='A') aClass++;
+  });
+  const el=id=>modal.querySelector('#'+id);
+  if(el('prLines'))    el('prLines').textContent=lines+' lines';
+  if(el('prUnits'))    el('prUnits').textContent=fmtInt(units)+' units';
+  if(el('prCost'))     el('prCost').textContent='€'+fmtInt(cost)+' est.';
+  if(el('prOOS'))      el('prOOS').textContent=oos+' OOS';
+  if(el('prCrit'))     el('prCrit').textContent=crit+' critical';
+  if(el('prTotal'))    el('prTotal').textContent='€'+fmtInt(cost);
+}
+
+function showPOReview(rows, autoExport){
+  // Remove any existing overlay
+  document.querySelector('.po-review-overlay')?.remove();
+
+  const supplier=state.activeSupplier||'All Suppliers';
+  const mode=document.getElementById('demandMode')?.value||'Seasonal';
+
+  // Build table rows HTML
+  let tBody='';
+  for(const r of rows){
+    const cc=coverClass(r.coverStatus);
+    const coverLabel=r.stock<=0?'OOS':r.coverDays?fmtInt(r.coverDays)+'d':'—';
+    const abc=r.ABCClass||r.abc||'';
+    const unitCost=r.SupplierCostPrice||r.UnitCost||r.unit_cost||0;
+    tBody+=`<tr>
+      <td><span class="po-rev-sku">${esc(r.SKU)}</span></td>
+      <td style="max-width:260px;font-size:11.5px">${esc(r.ItemTitle||r.title||'')}</td>
+      <td class="r"><span style="font-weight:700;color:${r.stock<=0?'#dc2626':r.stock<10?'#d97706':'#166534'}">${fmtInt(r.stock)}</span></td>
+      <td class="r"><input class="po-rev-qty" type="number" min="0" step="1" value="${r.buy}"
+        data-sku="${esc(r.SKU)}" data-unitcost="${unitCost}" data-cover="${r.coverStatus||''}" data-abc="${abc}"
+        data-orig="${r.buy}" oninput="this.classList.toggle('changed',parseInt(this.value)!==parseInt(this.dataset.orig));updateReviewSummary(this.closest('.po-review-modal'))"></td>
+      <td class="r"><span class="po-rev-cover ${cc}">${coverLabel}</span></td>
+      <td class="r" style="font-size:11px;color:#475569">${abc}</td>
+      <td class="r" style="font-size:11.5px">${unitCost?'€'+(+unitCost).toFixed(2):'—'}</td>
+      <td class="po-rev-why">${buildWhyText(r)}</td>
+    </tr>`;
+  }
+
+  const oos=rows.filter(r=>r.stock<=0).length;
+  const crit=rows.filter(r=>r.coverStatus==='Critical').length;
+  const totalCost=rows.reduce((s,r)=>s+r.buy*(r.SupplierCostPrice||r.UnitCost||r.unit_cost||0),0);
+  const totalUnits=rows.reduce((s,r)=>s+r.buy,0);
+
+  const html=`<div class="po-review-overlay" id="poReviewOverlay" onclick="if(event.target===this)this.remove()">
+  <div class="po-review-modal">
+    <div class="po-review-hdr">
+      <h3>🔍 Why Buy? — ${esc(supplier)} &nbsp;<span style="font-size:12px;font-weight:400;color:#64748b">Demand mode: ${esc(mode)}</span></h3>
+      <div class="po-review-summary">
+        <span class="po-rev-stat blue" id="prLines">${rows.length} lines</span>
+        <span class="po-rev-stat grey" id="prUnits">${fmtInt(totalUnits)} units</span>
+        <span class="po-rev-stat green" id="prCost">€${fmtInt(totalCost)} est.</span>
+        ${oos?`<span class="po-rev-stat red" id="prOOS">${oos} OOS</span>`:'<span class="po-rev-stat red" id="prOOS" style="display:none">0 OOS</span>'}
+        ${crit?`<span class="po-rev-stat amber" id="prCrit">${crit} critical</span>`:'<span class="po-rev-stat amber" id="prCrit" style="display:none">0 critical</span>'}
+        <input class="po-review-search" type="text" placeholder="Search SKU / item…" oninput="filterPOReview(this.value)">
+      </div>
+    </div>
+    <div class="po-review-body">
+      <table class="po-review-table" id="poReviewTable">
+        <thead><tr>
+          <th>SKU</th><th>Item</th>
+          <th class="r">In stock</th><th class="r">Buy qty</th>
+          <th class="r">Cover</th><th class="r">ABC</th><th class="r">Unit cost</th>
+          <th>Why this quantity?</th>
+        </tr></thead>
+        <tbody>${tBody}</tbody>
+      </table>
+    </div>
+    <div class="po-review-ftr">
+      <div class="po-rev-total">Total: <span id="prTotal">€${fmtInt(totalCost)}</span></div>
+      <button class="secondary" onclick="document.getElementById('poReviewOverlay').remove()">Close</button>
+      <button onclick="executePOExport()">📄 Export PO CSV</button>
+    </div>
+  </div>
+</div>`;
+
+  document.body.insertAdjacentHTML('beforeend', html);
+  if(autoExport) executePOExport();
+}
+
+function filterPOReview(q){
+  const tbody=document.querySelector('#poReviewTable tbody');
+  if(!tbody) return;
+  const lq=q.toLowerCase();
+  tbody.querySelectorAll('tr').forEach(tr=>{
+    const sku=tr.querySelector('.po-rev-sku')?.textContent.toLowerCase()||'';
+    const desc=tr.querySelectorAll('td')[1]?.textContent.toLowerCase()||'';
+    tr.style.display=(q===''||sku.includes(lq)||desc.includes(lq))?'':'none';
+  });
+}
+
+function executePOExport(){
+  const modal=document.querySelector('.po-review-modal');
   const supplierLabel=state.activeSupplier||'ALL_SUPPLIERS';
+  const mode=document.getElementById('demandMode')?.value||'Seasonal';
+  const rows=getFilteredRows().filter(r=>r.buy>0&&(!state.omittedSkus.has(r.SKU)||r._csRequired));
+  const qtyMap={};
+  if(modal) modal.querySelectorAll('.po-rev-qty').forEach(inp=>{ qtyMap[inp.dataset.sku]=parseInt(inp.value)||0; });
+
+  const exportRows=rows.map(r=>({...r, buy: qtyMap[r.SKU]!==undefined?qtyMap[r.SKU]:r.buy}))
+    .filter(r=>r.buy>0);
+  if(!exportRows.length){alert('No lines with qty > 0 to export.');return;}
+
   const cols=['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','_csRequired','_csQtyFloor','coverStatus','stock','target','reason'];
   const headers=[...cols,'Tax Rate'];
   const lines=[headers.join(',')];
-  for(const r of rows){lines.push([...cols.map(c=>{let v=r[c];if(typeof v==='boolean') v=v?'YES':'NO';if(typeof v==='number') v=String(v);v=String(v??'');if(/[",\n]/.test(v)) v='"'+v.replace(/"/g,'""')+'"';return v;}),'0'].join(','));}
-  const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`PO_${supplierLabel.replace(/[^a-z0-9]+/gi,'_')}_${document.getElementById('demandMode').value}.csv`;a.click();URL.revokeObjectURL(a.href);
+  for(const r of exportRows){
+    lines.push([...cols.map(c=>{let v=r[c];if(typeof v==='boolean') v=v?'YES':'NO';if(typeof v==='number') v=String(v);v=String(v??'');if(/[",\n]/.test(v)) v='"'+v.replace(/"/g,'""')+'"';return v;}),'0'].join(','));
+  }
+  const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`PO_${supplierLabel.replace(/[^a-z0-9]+/gi,'_')}_${mode}.csv`;
+  a.click();URL.revokeObjectURL(a.href);
 }
+
 
 // ─── FETCH HELPERS ───────────────────────────────────────────────────────────
 async function fetchWithTimeout(url,ms){
@@ -3547,6 +3789,7 @@ function bindEvents(){
   });
   const exportBtn=byId('exportBtn');if(exportBtn) exportBtn.addEventListener('click',exportCSV);
   const poExportBtn=byId('poExportBtn');if(poExportBtn) poExportBtn.addEventListener('click',exportPO);
+  const whyBuyBtn=byId('whyBuyBtn');if(whyBuyBtn) whyBuyBtn.addEventListener('click',openWhyBuy);
   // ── Deliveries tab buttons ─────────────────────────────────────────────────
   const delLoadBtn=byId('delLoadBtn');
   if(delLoadBtn) delLoadBtn.addEventListener('click',()=>loadDeliveriesData());
