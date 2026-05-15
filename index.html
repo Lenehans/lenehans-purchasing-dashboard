@@ -290,7 +290,62 @@
     .lb-month-bar{width:100%;height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden;margin-top:4px}
     .lb-month-fill{height:100%;border-radius:2px;transition:width .5s ease}
     .lb-month-lbl{font-size:10px;color:#94a3b8;margin-top:2px}
+    /* ── Leaderboard cards ─────────────────────────────────────── */
+    .lb-card{background:#fff;border:2px solid #e2e8f0;border-radius:14px;padding:18px 16px 14px;
+      cursor:pointer;transition:all .18s;text-align:center;min-width:155px;flex:1;position:relative;
+      display:flex;flex-direction:column;align-items:center;gap:4px}
+    .lb-card:hover{border-color:#1e40af;transform:translateY(-3px);box-shadow:0 6px 18px rgba(30,64,175,.15)}
+    .lb-card.rank-1{border-color:#f59e0b;box-shadow:0 0 0 1px #fcd34d;padding:24px 20px 18px;min-width:185px;flex:1.4}
+    .lb-card.rank-2{border-color:#94a3b8;padding:22px 18px 16px;min-width:170px;flex:1.2}
+    .lb-card.rank-3{border-color:#b45309;padding:20px 17px 15px;min-width:160px;flex:1.1}
+    .lb-card.all-done{background:#f0fdf4}
+    .lb-medal{position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:20px;line-height:1}
+    .lb-ring{position:relative;width:70px;height:70px;margin:6px auto 0}
+    .lb-card.rank-1 .lb-ring{width:84px;height:84px}
+    .lb-card.rank-2 .lb-ring{width:78px;height:78px}
+    .lb-ring svg{transform:rotate(-90deg)}
+    .lb-ring-bg{fill:none;stroke:#e2e8f0;stroke-width:6}
+    .lb-ring-fill{fill:none;stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset .6s ease}
+    .lb-ring-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+      font-size:15px;font-weight:900;color:#1e3a5f}
+    .lb-card.rank-1 .lb-ring-pct{font-size:18px}
+    .lb-name{font-size:14px;font-weight:800;color:#1e3a5f;margin-top:6px}
+    .lb-card.rank-1 .lb-name{font-size:16px}
+    .lb-card.rank-2 .lb-name{font-size:15px}
+    .lb-today{font-size:22px;font-weight:900;color:#16a34a;line-height:1.1}
+    .lb-card.rank-1 .lb-today{font-size:30px}
+    .lb-card.rank-2 .lb-today{font-size:26px}
+    .lb-today-lbl{font-size:10px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+    .lb-month-bar{width:100%;height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden;margin-top:4px}
+    .lb-month-fill{height:100%;border-radius:2px;transition:width .5s ease}
+    .lb-month-lbl{font-size:10px;color:#94a3b8;margin-top:2px}
     .lb-none{font-size:11px;color:#94a3b8;margin-top:4px}
+
+    /* ── Leaderboard robot animation ────────────────────────────── */
+    .lb-legs{display:flex;gap:5px;margin-top:1px}
+    .lb-leg{width:5px;height:10px;background:#0f1e3c;border-radius:0 0 3px 3px;transform-origin:top center}
+    .lb-leg.l{animation:lb-leg-swing .35s ease-in-out infinite alternate}
+    .lb-leg.r{animation:lb-leg-swing .35s ease-in-out infinite alternate-reverse}
+    @keyframes lb-leg-swing{from{transform:rotate(-25deg)}to{transform:rotate(25deg)}}
+    .lb-leg.stopped{animation:none !important;transform:rotate(0) !important}
+    /* Flag planted on winning card */
+    .lb-card-flag{position:absolute;top:-36px;left:50%;transform:translateX(-50%);
+      pointer-events:none;z-index:10;
+      animation:lb-flag-land .5s cubic-bezier(.34,1.56,.64,1) forwards;
+      display:flex;flex-direction:column;align-items:flex-start}
+    @keyframes lb-flag-land{
+      from{opacity:0;transform:translateX(-50%) translateY(24px) scale(.3)}
+      to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+    .lb-card-flag-pole{width:2.5px;height:28px;background:#374151;border-radius:1px;margin-left:4px}
+    .lb-card-flag-fabric{width:20px;height:13px;background:#dc2626;position:absolute;
+      top:1px;left:7px;border-radius:0 3px 3px 0;
+      clip-path:polygon(0 0,100% 15%,100% 85%,0 100%);
+      animation:lb-flag-wave .65s ease-in-out .5s infinite alternate}
+    @keyframes lb-flag-wave{
+      from{clip-path:polygon(0 0,100% 15%,100% 85%,0 100%)}
+      to{clip-path:polygon(0 8%,100% 0,100% 100%,0 92%)}}
+
+    .team-buyer-card{background:#fff;border:2px solid #e2e8f0;border-radius:12px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .15s;position:relative}
     .team-buyer-name{font-size:15px;font-weight:800;color:#1e3a5f;margin-bottom:4px}
     .team-buyer-count{font-size:12px;font-weight:600;color:#f97316}
     .team-buyer-none{font-size:12px;color:#94a3b8}
@@ -311,10 +366,6 @@
     .team-order-go:hover{background:#2d4a6f}
     .team-order-done-btn{padding:6px 12px;background:#f0fdf4;border:1.5px solid #4ade80;color:#15803d;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
     .team-order-done-btn.marked{background:#dcfce7}
-
-    .team-buyer-card{background:#fff;border:2px solid #e2e8f0;border-radius:12px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .15s;position:relative}
-
-    .team-section-hdr{font-size:12px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;padding:8px 0 4px;margin-top:8px}
     #noosGrid table{width:100%;border-collapse:collapse;font-size:12px}
     #noosGrid th{background:#1e3a5f;color:#fff;padding:6px 8px;text-align:left;font-size:11px;font-weight:700;position:sticky;top:0}
     #noosGrid td{padding:5px 8px;border-bottom:1px solid #e2e8f0;vertical-align:middle}
@@ -4234,46 +4285,49 @@ function renderTeam(){
   // Sort by monthPct desc, then doneToday desc
   stats.sort((a,b)=>b.monthPct-a.monthPct||b.doneToday-a.doneToday);
 
-  // Summary bar
   const totalToday = stats.reduce((s,b)=>s+b.todayKeys.length,0);
   const doneToday  = stats.reduce((s,b)=>s+b.doneToday,0);
   const totalMonth = stats.reduce((s,b)=>s+b.allKeys.length,0);
   const doneMonth  = stats.reduce((s,b)=>s+b.doneMonth,0);
+
+  const teamPct = totalMonth ? Math.round(doneMonth/totalMonth*100) : 0;
+  const pctCol  = teamPct>=80?'#16a34a':teamPct>=50?'#d97706':'#dc2626';
+
   const sumBar = document.getElementById('teamSummaryBar');
   if(sumBar) sumBar.innerHTML = `
     <span style="font-weight:700;color:#1e3a5f">${doneToday}/${totalToday}</span> done today
     &nbsp;·&nbsp;
     <span style="font-weight:700;color:#16a34a">${doneMonth}/${totalMonth}</span> done this month
     &nbsp;·&nbsp;
-    <span style="font-weight:700;color:${doneMonth/totalMonth>0.8?'#16a34a':doneMonth/totalMonth>0.5?'#d97706':'#dc2626'}">${Math.round(doneMonth/totalMonth*100)||0}%</span>`;
+    <span style="font-weight:700;color:${pctCol}">${teamPct}%</span>`;
 
   const MEDALS = ['🥇','🥈','🥉'];
-  const CIRCUMFERENCE = 2 * Math.PI * 28; // r=28
+  const CIRC   = 2 * Math.PI * 28;
 
   lb.innerHTML = stats.map((b,i)=>{
-    const colour = BUYER_COLOURS[b.name] || '#1e3a5f';
-    const initials = b.name.slice(0,2).toUpperCase();
-    const allDone = b.todayKeys.length>0 && b.doneToday===b.todayKeys.length;
+    const colour    = BUYER_COLOURS[b.name] || '#1e3a5f';
+    const allDone   = b.todayKeys.length>0 && b.doneToday===b.todayKeys.length;
     const rankClass = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
-    const medal = i<3 ? `<div class="lb-medal">${MEDALS[i]}</div>` : '';
+    const medal     = i<3 ? `<div class="lb-medal">${MEDALS[i]}</div>` : '';
     const ringColor = b.monthPct>=80?'#16a34a':b.monthPct>=50?'#f97316':'#dc2626';
-    const dash = ((b.monthPct/100)*CIRCUMFERENCE).toFixed(1);
-    const gap  = (CIRCUMFERENCE-dash).toFixed(1);
+    const rSize = i===0?84:i===1?78:70;
+    const r     = i===0?35:i===1?32:28;
+    const circ  = 2*Math.PI*r;
+    const dash  = ((b.monthPct/100)*circ).toFixed(1);
+    const gap   = (circ-dash).toFixed(1);
     return `<div class="lb-card ${rankClass}${allDone?' all-done':''}" onclick="renderBuyerOrders('${esc(b.name)}')">
       ${medal}
-      <div class="lb-ring">
-        <svg width="70" height="70" viewBox="0 0 70 70">
-          <circle class="lb-ring-bg" cx="35" cy="35" r="28"/>
-          <circle class="lb-ring-fill" cx="35" cy="35" r="28"
-            stroke="${ringColor}"
-            stroke-dasharray="${dash} ${gap}"
-            stroke-dashoffset="0"/>
+      <div class="lb-ring" style="width:${rSize}px;height:${rSize}px">
+        <svg width="${rSize}" height="${rSize}" viewBox="0 0 ${rSize} ${rSize}">
+          <circle class="lb-ring-bg" cx="${rSize/2}" cy="${rSize/2}" r="${r}"/>
+          <circle class="lb-ring-fill" cx="${rSize/2}" cy="${rSize/2}" r="${r}"
+            stroke="${ringColor}" stroke-dasharray="${dash} ${gap}" stroke-dashoffset="0"/>
         </svg>
         <div class="lb-ring-pct">${b.monthPct}%</div>
       </div>
       <div class="lb-name">${esc(b.name)}</div>
       ${b.hasOrders
-        ? `<div class="lb-today">${b.doneToday}<span style="font-size:13px;font-weight:600;color:#94a3b8"> / ${b.todayKeys.length}</span></div>
+        ? `<div class="lb-today">${b.doneToday}<span style="font-size:${i===0?16:i===1?14:13}px;font-weight:600;color:#94a3b8"> / ${b.todayKeys.length}</span></div>
            <div class="lb-today-lbl">done today</div>`
         : `<div class="lb-none">Nothing due today</div>`}
       <div class="lb-month-bar">
@@ -4282,6 +4336,9 @@ function renderTeam(){
       <div class="lb-month-lbl">${b.doneMonth} / ${b.allKeys.length} this month</div>
     </div>`;
   }).join('');
+
+  // Animate the robot after cards render
+  requestAnimationFrame(()=>requestAnimationFrame(animateLeaderRobot));
 }
 
 function renderBuyerOrders(buyerName){
@@ -4868,6 +4925,97 @@ function renderDeliveries(){
   }
 
   document.getElementById('delResults').innerHTML=html;
+}
+
+function animateLeaderRobot(){
+  const lb       = document.getElementById('teamLeaderboard');
+  const topCard  = lb?.querySelector('.lb-card.rank-1');
+  if(!lb || !topCard) return;
+
+  document.getElementById('lb-robot-wrap')?.remove();
+  topCard.querySelector('.lb-card-flag')?.remove();
+
+  lb.style.position = 'relative';
+  lb.style.overflow  = 'visible';
+
+  const lbRect   = lb.getBoundingClientRect();
+  const allCards = [...lb.querySelectorAll('.lb-card')];
+  const lastCard = allCards[allCards.length - 1] || topCard;
+  const lastRect = lastCard.getBoundingClientRect();
+  const topRect  = topCard.getBoundingClientRect();
+
+  // Start: just right of the last card. End: centre of 1st card.
+  const startX = Math.round(lastRect.left - lbRect.left + lastRect.width/2 - 18);
+  const endX   = Math.round(topRect.left  - lbRect.left + topRect.width/2  - 18);
+
+  const walkDist = Math.abs(endX - startX);
+  const walkMs   = Math.max(1000, Math.min(2800, walkDist * 3));
+
+  // Robot faces LEFT when walking from right to left
+  const facingLeft = endX < startX;
+
+  const wrap = document.createElement('div');
+  wrap.id = 'lb-robot-wrap';
+  wrap.style.cssText = `position:absolute;bottom:6px;left:${startX}px;pointer-events:none;z-index:30;display:flex;flex-direction:column;align-items:center;transition:left ${walkMs}ms cubic-bezier(.4,0,.2,1)`;
+  if(facingLeft) wrap.style.transform = 'scaleX(-1)';
+
+  wrap.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center">
+      <svg viewBox="0 0 28 38" width="38" height="50" xmlns="http://www.w3.org/2000/svg">
+        <line x1="14" y1="1" x2="14" y2="5" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="14" cy="1" r="2" fill="#3b82f6"/><circle cx="14" cy="1" r="1" fill="#93c5fd"/>
+        <rect x="5" y="5" width="18" height="13" rx="4" fill="#0f172a"/>
+        <rect x="7" y="7" width="14" height="8" rx="2.5" fill="#1e3a5f"/>
+        <circle cx="10.5" cy="11" r="2.2" fill="#22d3ee"/><circle cx="17.5" cy="11" r="2.2" fill="#22d3ee"/>
+        <circle cx="11.2" cy="10.3" r="0.7" fill="white"/><circle cx="18.2" cy="10.3" r="0.7" fill="white"/>
+        <path d="M10 14 Q14 16.5 18 14" stroke="#22d3ee" stroke-width="1" fill="none" stroke-linecap="round"/>
+        <rect x="11" y="18" width="6" height="2.5" rx="1" fill="#0f172a"/>
+        <rect x="4" y="20" width="20" height="13" rx="3.5" fill="#0f172a"/>
+        <rect x="7" y="22" width="14" height="8" rx="2" fill="#1e3a5f"/>
+        <circle cx="10" cy="25" r="1.3" fill="#4ade80"/>
+        <circle cx="14" cy="25" r="1.3" fill="#fbbf24"/>
+        <circle cx="18" cy="25" r="1.3" fill="#f87171"/>
+        <rect x="0" y="21" width="4" height="3.5" rx="1.8" fill="#0f172a"/>
+        <rect x="24" y="21" width="4" height="3.5" rx="1.8" fill="#0f172a"/>
+      </svg>
+    </div>
+    <div class="lb-legs">
+      <div class="lb-leg l" id="lb-leg-l"></div>
+      <div class="lb-leg r" id="lb-leg-r"></div>
+    </div>`;
+
+  lb.appendChild(wrap);
+
+  // Kick off CSS transition to walk to winner
+  requestAnimationFrame(()=> requestAnimationFrame(()=>{
+    wrap.style.left = endX + 'px';
+  }));
+
+  // After walk: stop legs, plant flag, exit
+  setTimeout(()=>{
+    // Stop leg animation
+    wrap.querySelectorAll('.lb-leg').forEach(l => l.classList.add('stopped'));
+
+    // Plant flag on the card
+    setTimeout(()=>{
+      topCard.style.position = 'relative';
+      topCard.style.overflow  = 'visible';
+      const flag = document.createElement('div');
+      flag.className = 'lb-card-flag';
+      flag.innerHTML = `<div class="lb-card-flag-pole"></div><div class="lb-card-flag-fabric"></div>`;
+      topCard.appendChild(flag);
+
+      // Robot walks off screen after planting
+      setTimeout(()=>{
+        wrap.style.transition = `left .7s ease-in, opacity .5s ease-in`;
+        wrap.style.opacity    = '0';
+        wrap.style.left       = (facingLeft ? endX - 80 : endX + 80) + 'px';
+        setTimeout(()=> wrap.remove(), 750);
+      }, 350);
+
+    }, 250);
+
+  }, walkMs + 50);
 }
 
 function toggleDelSupplier(key){
