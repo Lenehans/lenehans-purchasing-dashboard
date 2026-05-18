@@ -2441,6 +2441,7 @@ function buildBuyerReason(res){
   if(raw30dCover > 90 && !res.spikeFactored && res.buy === 0 && res.rawBuy > 0){
     lines.push(`✋ Buy suppressed — stock covers ${fmtInt(raw30dCover)} days on live 30D demand rate (>90d threshold). Seasonal multiplier was inflating the target.`);
   }
+  const seasonRule=detectSeasonalRule(res.ItemTitle);
   if(seasonRule&&!res.seasonalDataUsed){
     if(seasonRule.leadTime){
       lines.push(`⚠ Lead time buy — ${res.categoryLabel} peaks Oct–Mar. Ordering now for autumn stock.`);
