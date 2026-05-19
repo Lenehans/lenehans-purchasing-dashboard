@@ -746,22 +746,25 @@
 </head>
 <body>
 <header>
-  <div class="title">Lenehans Purchasing Dashboard · V6.2 · INTELLIGENCE</div>
-  <div class="sub">QueryData_master + CS Shared + PO Status · governance · seasonal look-ahead · momentum · order health · confidence score</div>
+  <div class="title">Lenehans Purchasing</div>
+  <div class="sub">V6.2 · Seasonal · Signal-stack · Governance</div>
 </header>
 
 <div class="wrap">
-  <!-- Stock Alert Panel — auto-populated after data loads -->
-  <div id="stockAlertPanel" style="display:none;margin-bottom:10px"></div>
 
   <!-- Tab navigation -->
   <div class="tab-bar">
     <button class="tab-btn active" data-tab="buying">📦 Buying</button>
     <button class="tab-btn" data-tab="team">👥 Team</button>
+    <button class="tab-btn" data-tab="alerts" id="alertsTabBtn">⚡ Alerts</button>
     <button class="tab-btn" data-tab="clearstock">🏷️ Clear Stock</button>
-    <button class="tab-btn" data-tab="transfers">🔄 Stock Transfers</button>
-    <button class="tab-btn" data-tab="noos">⭐ Never Out of Stock</button>
+    <button class="tab-btn" data-tab="transfers">🔄 Transfers</button>
+    <button class="tab-btn" data-tab="noos">⭐ Never OOS</button>
     <button class="tab-btn" data-tab="deliveries" style="display:none">🚚 Deliveries</button>
+    <div id="weatherChip" style="display:none;margin-left:auto;align-self:center;
+      padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;
+      background:#f0fdf4;color:#15803d;border:1.5px solid #86efac;cursor:pointer"
+      onclick="switchTab('alerts')" title="Click to open Alerts tab"></div>
   </div>
 
   <!-- TAB 1: Buying -->
@@ -819,9 +822,6 @@
     </span>
     <span id="channelNote" style="font-size:12px;color:#0369a1;margin-left:8px">Stock basis: NetStock_Arklow · Demand: Magento online orders</span>
   </div>
-
-  <!-- Weather strip — auto-populated on load -->
-  <div id="weatherStrip"></div>
 
   <div id="basicLoadBar">
     <div class="basic-spinner"></div>
@@ -1198,6 +1198,21 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       <div id="teamOrderList" style="display:none"></div>
     </div>
   </div><!-- /tab-team -->
+
+  <!-- TAB: Alerts -->
+  <div class="tab-panel" id="tab-alerts">
+    <div style="padding:16px 0">
+      <!-- Weather section -->
+      <div id="weatherStrip" style="margin-bottom:16px"></div>
+      <!-- Spike alerts -->
+      <div id="stockAlertPanel"></div>
+      <div id="alertsEmpty" style="display:none;text-align:center;padding:48px 0;color:#94a3b8">
+        <div style="font-size:32px;margin-bottom:8px">✅</div>
+        <div style="font-size:15px;font-weight:700;color:#64748b">No alerts right now</div>
+        <div style="font-size:13px;margin-top:4px">No demand spikes with under 5 days stock · load data to refresh</div>
+      </div>
+    </div>
+  </div><!-- /tab-alerts -->
 
 </div><!-- /wrap -->
 
@@ -1929,6 +1944,16 @@ function renderWeatherStrip(){
     <span class="wx-divider"></span>
     ${boost}
     <span class="wx-label" style="margin-left:auto">Updated ${upd}</span>`;
+
+  // Update the persistent weather chip in the tab bar
+  const chip = document.getElementById('weatherChip');
+  if(chip){
+    chip.style.display = 'flex';
+    chip.style.background = rule.class==='warm-dry'?'#fefce8':rule.class==='cold-snap'?'#eff6ff':rule.class==='wet-windy'?'#f0f9ff':'#f0fdf4';
+    chip.style.borderColor = rule.class==='warm-dry'?'#fde047':rule.class==='cold-snap'?'#93c5fd':rule.class==='wet-windy'?'#7dd3fc':'#86efac';
+    chip.style.color = rule.class==='warm-dry'?'#854d0e':rule.class==='cold-snap'?'#1e40af':rule.class==='wet-windy'?'#0369a1':'#15803d';
+    chip.textContent = `${rule.icon} ${temp}`;
+  }
 }
 
 const IRISH_SEASONAL_RULES = [
@@ -4971,7 +4996,21 @@ function renderStockAlerts(){
   const panel = document.getElementById('stockAlertPanel');
   if(!panel) return;
   const { critical=[], watch=[] } = state.stockAlerts || {};
-  if(!critical.length && !watch.length){ panel.style.display='none'; return; }
+  // Update tab badge
+  const btn = document.getElementById('alertsTabBtn');
+  const empty = document.getElementById('alertsEmpty');
+  if(!critical.length && !watch.length){
+    if(btn) btn.textContent = '⚡ Alerts';
+    if(empty) empty.style.display = 'block';
+    panel.style.display = 'none';
+    return;
+  }
+  if(btn){
+    const total = critical.length + watch.length;
+    btn.innerHTML = `⚡ Alerts <span style="background:#dc2626;color:#fff;border-radius:10px;
+      padding:1px 7px;font-size:10px;font-weight:800;margin-left:4px">${total}</span>`;
+  }
+  if(empty) empty.style.display = 'none';
   panel.style.display = 'block';
 
   function coverColour(c){ return c<=0?'#dc2626':c<=2?'#dc2626':'#d97706'; }
