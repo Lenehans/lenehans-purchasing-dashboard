@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V6.1 · INTELLIGENCE</title>
+  <title>Lenehans Purchasing Dashboard · V6.2 · INTELLIGENCE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -491,6 +491,23 @@
     /* ── Channel toggle ─────────────────────────────────────────────────── */
     .channel-bar{display:flex;align-items:center;gap:8px;background:#f0f9ff;border:2px solid #bae6fd;border-radius:10px;padding:8px 14px;margin-bottom:10px}
     .channel-bar .lbl{font-size:12px;font-weight:800;color:#0369a1;text-transform:uppercase;letter-spacing:.05em;margin-right:4px}
+
+    /* ── Weather strip ────────────────────────────────────────────── */
+    #weatherStrip{display:none;align-items:center;gap:10px;padding:7px 14px;
+      border-radius:8px;margin-bottom:10px;font-size:12.5px;flex-wrap:wrap;
+      border:1.5px solid var(--wx-border,#e2e8f0);background:var(--wx-bg,#f8fafc)}
+    #weatherStrip.warm-dry{--wx-bg:#fefce8;--wx-border:#fde047}
+    #weatherStrip.cold-snap{--wx-bg:#eff6ff;--wx-border:#93c5fd}
+    #weatherStrip.wet-windy{--wx-bg:#f0f9ff;--wx-border:#7dd3fc}
+    #weatherStrip.mild{--wx-bg:#f0fdf4;--wx-border:#86efac}
+    .wx-icon{font-size:18px;flex-shrink:0}
+    .wx-temp{font-size:18px;font-weight:900;color:#0f172a;letter-spacing:-.02em}
+    .wx-label{font-size:11.5px;color:#64748b;font-weight:600}
+    .wx-boost{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;
+      font-size:11px;font-weight:700;background:#dcfce7;color:#14532d;margin-left:2px}
+    .wx-boost.cold{background:#dbeafe;color:#1e40af}
+    .wx-boost.wet{background:#e0f2fe;color:#0369a1}
+    .wx-divider{width:1px;height:18px;background:#e2e8f0;flex-shrink:0}
     /* ── Basic mode ─────────────────────────── */
     body.basic-mode .controls > label:not(#basicKeep):not(#fallback90Label):not(#fallback180Label),
     body.basic-mode #demandModeLabel,
@@ -729,7 +746,7 @@
 </head>
 <body>
 <header>
-  <div class="title">Lenehans Purchasing Dashboard · V6.1 · INTELLIGENCE</div>
+  <div class="title">Lenehans Purchasing Dashboard · V6.2 · INTELLIGENCE</div>
   <div class="sub">QueryData_master + CS Shared + PO Status · governance · seasonal look-ahead · momentum · order health · confidence score</div>
 </header>
 
@@ -802,6 +819,9 @@
     </span>
     <span id="channelNote" style="font-size:12px;color:#0369a1;margin-left:8px">Stock basis: NetStock_Arklow · Demand: Magento online orders</span>
   </div>
+
+  <!-- Weather strip — auto-populated on load -->
+  <div id="weatherStrip"></div>
 
   <div id="basicLoadBar">
     <div class="basic-spinner"></div>
@@ -964,7 +984,7 @@
     </div>
   </div>
 
-  <div class="footer">V6.1 · Signal-stack architecture — 30D base × Seasonal × 7D spike × Cover pressure · Why Buy popup with full signal breakdown · Seasonal rules always-on · Irish seasonal profiles · stock basis = NetStock_Arklow</div>
+  <div class="footer">V6.2 · Signal-stack architecture — 30D base × Seasonal × 7D spike × Cover pressure · Why Buy popup with full signal breakdown · Seasonal rules always-on · Irish seasonal profiles · stock basis = NetStock_Arklow</div>
   </div><!-- /tab-buying -->
 
   <!-- TAB 2: Clear Stock -->
@@ -1804,6 +1824,112 @@ const SEASONAL_PROFILES = {
   WINTER_FIRE:       { monthly:[1.6,1.2,1.0,1.0,1.0,1.0,1.0,1.0,1.3,1.6,1.8,1.8], note:'Cold season fire demand' },
   WINTER_HEAT:       { monthly:[2.0,1.5,1.0,0.8,0.5,0.5,0.5,0.5,1.0,1.8,2.2,2.3], note:'Winter heating demand — order May–Aug for autumn stock' }
 };
+
+// ─── WEATHER ─────────────────────────────────────────────────────────────────
+// Dublin coordinates — Open-Meteo, free, no API key needed
+const DUBLIN_LAT = 53.3498, DUBLIN_LON = -6.2603;
+
+const WEATHER_RULES = {
+  warm_dry: {
+    label: '☀️ Warm & dry',
+    icon:  '☀️',
+    class: 'warm-dry',
+    multiplier: 1.15,
+    boost_class: '',
+    categories: ['WEED_CONTROL','WATERING','BBQ','GARDEN_TOOLS','PATIO_CLEANING',
+                 'COMPOST','FERTILISER','SLUG_CONTROL','INSECT_CONTROL','PAINT']
+  },
+  cold_snap: {
+    label: '🥶 Cold snap',
+    icon:  '🥶',
+    class: 'cold-snap',
+    multiplier: 1.20,
+    boost_class: 'cold',
+    categories: ['WINTER_ICE','HEATING','FIRE_HEAT','RODENT_CONTROL','TARP_STORM']
+  },
+  wet_windy: {
+    label: '🌧️ Wet & windy',
+    icon:  '🌧️',
+    class: 'wet-windy',
+    multiplier: 1.10,
+    boost_class: 'wet',
+    categories: ['TARP_STORM','HEATING','FIRE_HEAT','ELECTRICAL','PAINT']
+  },
+  mild: {
+    label: '🌤️ Mild',
+    icon:  '🌤️',
+    class: 'mild',
+    multiplier: 1.0,
+    boost_class: '',
+    categories: []
+  }
+};
+
+let weatherData = { condition:'mild', forecast:null, lastFetch:null, tempAvg:null, totalRain:null, avgMax:null };
+
+async function fetchWeather(){
+  try{
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${DUBLIN_LAT}&longitude=${DUBLIN_LON}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max&timezone=Europe%2FDublin&forecast_days=7`;
+    const r=await fetch(url);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data=await r.json();
+    const maxTemps  = data.daily.temperature_2m_max  || [];
+    const minTemps  = data.daily.temperature_2m_min  || [];
+    const rains     = data.daily.precipitation_sum   || [];
+    const winds     = data.daily.windspeed_10m_max   || [];
+    const avgMax    = maxTemps.length ? Math.round(maxTemps.reduce((a,b)=>a+b,0)/maxTemps.length*10)/10 : 12;
+    const avgMin    = minTemps.length ? Math.round(minTemps.reduce((a,b)=>a+b,0)/minTemps.length*10)/10 : 8;
+    const totalRain = Math.round(rains.reduce((a,b)=>a+b,0));
+    const maxWind   = winds.length ? Math.max(...winds) : 0;
+    const avgTemp   = Math.round((avgMax+avgMin)/2*10)/10;
+
+    let condition = 'mild';
+    if(avgMax>=18 && totalRain<10)                    condition='warm_dry';
+    else if(avgMin<=2)                                condition='cold_snap';
+    else if(totalRain>30 || maxWind>40)               condition='wet_windy';
+
+    weatherData = { condition, forecast:data, lastFetch:new Date(), tempAvg:avgTemp, totalRain, avgMax };
+  }catch(e){
+    console.log('Weather fetch fallback:', e.message);
+    // Fallback: estimate from Irish monthly averages
+    const monthAvg=[5,6,7,9,11,14,16,15,13,10,7,5];
+    const est=monthAvg[new Date().getMonth()];
+    weatherData = { condition:est>=16?'warm_dry':est<=4?'cold_snap':'mild',
+      forecast:null, lastFetch:new Date(), tempAvg:est, totalRain:null, avgMax:null };
+  }
+  renderWeatherStrip();
+  // Re-render buying tab if data is loaded — weather affects buy quantities
+  if(state.computedRows?.length) recomputeAndRender();
+}
+
+function getWeatherMultiplier(categoryId){
+  const rule=WEATHER_RULES[weatherData.condition];
+  if(!rule||!rule.categories.length) return 1;
+  return rule.categories.includes(categoryId) ? rule.multiplier : 1;
+}
+
+function renderWeatherStrip(){
+  const el=document.getElementById('weatherStrip');
+  if(!el) return;
+  const rule=WEATHER_RULES[weatherData.condition]||WEATHER_RULES.mild;
+  const temp=weatherData.tempAvg!=null?weatherData.tempAvg+'°C':'—';
+  const rainTxt=weatherData.totalRain!=null?` · ${weatherData.totalRain}mm rain / 7 days`:'';
+  const maxTxt=weatherData.avgMax!=null?` · High ${weatherData.avgMax}°C`:'';
+  const boost=rule.multiplier>1
+    ?`<span class="wx-boost ${rule.boost_class}">+${Math.round((rule.multiplier-1)*100)}% on ${rule.categories.length} categories</span>`
+    :`<span class="wx-boost" style="background:#f1f5f9;color:#64748b">No weather adjustment</span>`;
+  const upd=weatherData.lastFetch?weatherData.lastFetch.toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'}):'—';
+  el.className='';el.classList.add(rule.class);
+  el.style.display='flex';
+  el.innerHTML=`
+    <span class="wx-icon">${rule.icon}</span>
+    <span class="wx-temp">${temp}</span>
+    <span class="wx-divider"></span>
+    <span>${rule.label}${maxTxt}${rainTxt}</span>
+    <span class="wx-divider"></span>
+    ${boost}
+    <span class="wx-label" style="margin-left:auto">Updated ${upd}</span>`;
+}
 
 const IRISH_SEASONAL_RULES = [
   {name:'Slug / pest control',      keywords:['slug','pellet','snail'],                                        months:[3,4,5,6,9,10],    boost:1.25},
@@ -2725,7 +2851,12 @@ function computeRow(row){
     if(blended > adjustedDaily){ adjustedDaily = blended; spikeFactored = true; }
   }
 
-  // Signal 5: cover pressure boost (always active, not mode-gated)
+  // Signal 5: Weather multiplier — live Irish weather boosts relevant categories
+  const weatherMult = getWeatherMultiplier(cls.categoryId);
+  const weatherActive = weatherMult > 1;
+  if(weatherActive) adjustedDaily = adjustedDaily * weatherMult;
+
+  // Signal 6: cover pressure boost (always active, not mode-gated)
   const preBoostDaysOfCover=adjustedDaily>0?(stock/adjustedDaily):(stock>0?9999:0);
   const preBoostCoverStatus=adjustedDaily<=0?(stock>0?'No demand':'Out of Stock')
     :(preBoostDaysOfCover<14?'Critical':(preBoostDaysOfCover<30?'Low':(preBoostDaysOfCover<=60?'Healthy':'High')));
@@ -2788,6 +2919,7 @@ function computeRow(row){
     seasonalProfile:cls.seasonalProfile,seasonalNote,
     seasonalMultiplier,seasonalDataUsed,abcClass,seasonalSignal,seasonalBoostPct,
     spikeRatio, spikeFactored,                           // 7D spike signals
+    weatherMult, weatherActive,                          // weather signal
     baseDaily:base30dDaily, adjustedDaily:effectiveDaily, daysOfCover,coverStatus,coverDays,
     target,rawBuy,maxBuy,buy,stock,status,ramp,capelSignal,minOneFallbackApplied,
     _csRequired:row._csRequired||false,
@@ -3657,7 +3789,7 @@ function buildWhyText(r){
     </div>`);
   }
 
-  // ── Signal 4: Seasonal ────────────────────────────────────────────────────
+  // ── Signal 5: Seasonal ────────────────────────────────────────────────────
   if(r.seasonalMultiplier>1.05){
     const pct=Math.round((r.seasonalMultiplier-1)*100);
     const src=r.seasonalDataUsed?'actual data':'category profile';
@@ -3700,6 +3832,16 @@ function buildWhyText(r){
         <span class="wbs-val" style="color:#64748b">Normal — ${fmt1(ratio)}× the 30D rate</span>
       </div>`);
     }
+  }
+
+  // ── Signal 6: Weather ────────────────────────────────────────────────────
+  if(r.weatherActive && r.weatherMult>1){
+    const rule=WEATHER_RULES[weatherData.condition]||WEATHER_RULES.mild;
+    rows.push(`<div class="wbs-row">
+      <span class="wbs-icon">${rule.icon}</span>
+      <span class="wbs-lbl">Weather</span>
+      <span class="wbs-val" style="color:#0369a1;font-weight:600">${rule.label} — +${Math.round((r.weatherMult-1)*100)}% applied to ${esc(r.categoryLabel||'this category')}</span>
+    </div>`);
   }
 
   // ── Divider ───────────────────────────────────────────────────────────────
@@ -4250,6 +4392,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   updateTeamDateUI();
   renderTeam();
   bindEvents();
+  fetchWeather(); // non-blocking — fetches Dublin weather, updates strip + buy quantities
   const monthBadge=document.getElementById('monthBadge');
   if(monthBadge) monthBadge.textContent=`Month: ${monthLabel()}`;
   // Enforce default filter state explicitly — Buy > 0, Exclude healthy, 30D
