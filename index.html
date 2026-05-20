@@ -5638,12 +5638,15 @@ function openQuickOrder(supplierName) {
   _qo.rows     = [];
 
   if (window.state && state.computedRows) {
-    _qo.rows = state.computedRows
-      .filter(function(r){ return r.SupplierName === supplierName; })
-      .sort(function(a,b){
-        var rank = function(r){ return r.coverStatus==='Out of Stock'?0:r.coverStatus==='Critical'?1:r.coverStatus==='Low'?2:3; };
-        return rank(a)-rank(b) || (a.daysOfCover||0)-(b.daysOfCover||0);
-      });
+    // Try exact match first, then trim/case-insensitive fallback
+    var exactRows = state.computedRows.filter(function(r){ return r.SupplierName === supplierName; });
+    var matchRows = exactRows.length ? exactRows : state.computedRows.filter(function(r){
+      return (r.SupplierName||'').trim().toLowerCase() === supplierName.trim().toLowerCase();
+    });
+    _qo.rows = matchRows.sort(function(a,b){
+      var rank = function(r){ return r.coverStatus==='Out of Stock'?0:r.coverStatus==='Critical'?1:r.coverStatus==='Low'?2:3; };
+      return rank(a)-rank(b) || (a.daysOfCover||0)-(b.daysOfCover||0);
+    });
     _qo.rows.forEach(function(r){ if(r.buy>0) _qo.qtys[r.SKU]=r.buy; });
   }
 
@@ -5689,7 +5692,7 @@ function _qoRenderBody() {
   if (critCount) parts.push('🔴 ' + critCount + ' critical');
   if (lowCount)  parts.push('🟡 ' + lowCount + ' low');
   if (!parts.length) parts.push('✓ All healthy');
-  document.getElementById('qoSubline').textContent = 'Top 500 · ' + parts.join(' · ');
+  document.getElementById('qoSubline').textContent = _qo.rows.length + ' SKUs · ' + parts.join(' · ');
 
   if (!visible.length) {
     body.innerHTML = '<div class="qo-empty">✅ No critical lines for this supplier right now.</div>';
