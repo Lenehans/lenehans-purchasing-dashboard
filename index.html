@@ -5612,7 +5612,7 @@ function downloadNoosCsv(rows,label){
   <div class="qo-filter-bar">
     <span style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em">Show:</span>
     <button class="qo-filter-btn active" data-qof="critical" onclick="setQoFilter('critical')">🔴 Critical only</button>
-    <button class="qo-filter-btn" data-qof="all" onclick="setQoFilter('all')">All top-500 SKUs</button>
+    <button class="qo-filter-btn" data-qof="all" onclick="setQoFilter('all')">All supplier SKUs</button>
   </div>
   <div class="qo-body" id="qoBody"></div>
   <div class="qo-footer">
@@ -5637,16 +5637,9 @@ function openQuickOrder(supplierName) {
   _qo.qtys     = {};
   _qo.rows     = [];
 
-  // Build top-500 set and filter rows for this supplier
   if (window.state && state.computedRows) {
-    var all = state.computedRows;
-    var sorted = all.slice()
-      .filter(function(r){ return (r.Revenue_Online_Total_30d||0)>0 || (r.QtySold_Online_Total_90d||0)>0; })
-      .sort(function(a,b){ return (b.Revenue_Online_Total_30d||0)-(a.Revenue_Online_Total_30d||0); })
-      .slice(0,500);
-    var top500 = {};
-    sorted.forEach(function(r){ top500[r.SKU]=1; });
-    _qo.rows = all.filter(function(r){ return r.SupplierName===supplierName && top500[r.SKU]; })
+    _qo.rows = state.computedRows
+      .filter(function(r){ return r.SupplierName === supplierName; })
       .sort(function(a,b){
         var rank = function(r){ return r.coverStatus==='Out of Stock'?0:r.coverStatus==='Critical'?1:r.coverStatus==='Low'?2:3; };
         return rank(a)-rank(b) || (a.daysOfCover||0)-(b.daysOfCover||0);
