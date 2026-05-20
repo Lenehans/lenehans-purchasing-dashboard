@@ -5637,7 +5637,7 @@ function openQuickOrder(supplierName) {
   _qo.qtys     = {};
   _qo.rows     = [];
 
-  if (window.state && state.computedRows) {
+  if (state && state.computedRows) {
     // Try exact match first, then trim/case-insensitive fallback
     var exactRows = state.computedRows.filter(function(r){ return r.SupplierName === supplierName; });
     var matchRows = exactRows.length ? exactRows : state.computedRows.filter(function(r){
@@ -5711,7 +5711,7 @@ function _qoRenderBody() {
     var rowCls    = r.coverStatus==='Out of Stock'?'oos':r.coverStatus==='Critical'?'crit':'low';
     var badgeCls  = rowCls;
     var badgeTxt  = r.coverStatus==='Out of Stock'?'OOS':r.coverStatus==='Critical'?(Math.round(r.daysOfCover||0)+'d cover'):(Math.round(r.daysOfCover||0)+'d');
-    var rank      = (window.state&&state.skuRankMap) ? (state.skuRankMap.get(r.SKU)||9999) : 9999;
+    var rank      = (state&&state.skuRankMap) ? (state.skuRankMap.get(r.SKU)||9999) : 9999;
     var rankBadge = rank<=100 ? '<span class="qo-badge rank-star">⭐ #'+rank+'</span>' : rank<=500 ? '<span class="qo-badge rank-top">Top 500 #'+rank+'</span>' : '';
     var qty       = (_qo.qtys[r.SKU]!=null) ? _qo.qtys[r.SKU] : (r.buy||0);
     var cost      = parseFloat(r.SupplierCostPrice)||0;
@@ -5798,7 +5798,7 @@ function quickOrderExport() {
 
 function quickOrderGoFull() {
   closeQuickOrder();
-  if (window.state) state.activeSupplier = _qo.supplier;
+  if (state) state.activeSupplier = _qo.supplier;
   if (window.render) render();
   setTimeout(function(){ var el=document.getElementById('detailTable'); if(el) el.scrollIntoView({behavior:'smooth'}); }, 80);
 }
