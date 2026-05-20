@@ -5612,7 +5612,7 @@ function downloadNoosCsv(rows,label){
   <div class="qo-filter-bar">
     <span style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em">Show:</span>
     <button class="qo-filter-btn active" data-qof="critical" onclick="setQoFilter('critical')">🔴 Critical only</button>
-    <button class="qo-filter-btn" data-qof="all" onclick="setQoFilter('all')">All supplier SKUs</button>
+    <button class="qo-filter-btn" data-qof="all" onclick="setQoFilter('all')">All top-500 SKUs</button>
   </div>
   <div class="qo-body" id="qoBody"></div>
   <div class="qo-footer">
@@ -5643,6 +5643,10 @@ function openQuickOrder(supplierName) {
     var matchRows = exactRows.length ? exactRows : state.computedRows.filter(function(r){
       return (r.SupplierName||'').trim().toLowerCase() === supplierName.trim().toLowerCase();
     });
+    // Keep only top-500 SKUs using the already-computed rank map
+    if (state.skuRankMap) {
+      matchRows = matchRows.filter(function(r){ return (state.skuRankMap.get(r.SKU)||9999) <= 500; });
+    }
     _qo.rows = matchRows.sort(function(a,b){
       var rank = function(r){ return r.coverStatus==='Out of Stock'?0:r.coverStatus==='Critical'?1:r.coverStatus==='Low'?2:3; };
       return rank(a)-rank(b) || (a.daysOfCover||0)-(b.daysOfCover||0);
