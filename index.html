@@ -259,6 +259,9 @@
     .wl-card-btn{display:block;width:100%;padding:7px 0;background:#1e40af;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;text-align:center;transition:background .15s}
     .wl-card-btn:hover{background:#1d4ed8}
     .wl-card-btn.green{background:#16a34a}.wl-card-btn.green:hover{background:#15803d}
+    .wl-card-actions{display:flex;gap:6px;margin-top:4px}
+    .wl-card-actions .wl-card-btn{width:auto;flex:1}
+    .wl-card-btn-icon{flex:0 0 36px!important;background:#f1f5f9;color:#1e3a5f;border:1.5px solid #cbd5e1;font-size:14px;padding:7px 0}
     .wl-healthy-bar{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:8px 14px;font-size:12px;color:#15803d;font-weight:600;margin-top:10px}
     .health-track{width:54px;height:7px;background:#d1d9e3;border-radius:4px;overflow:hidden;border:1px solid #94a3b8}
     .team-buyer-card{background:#fff;border:2px solid #e2e8f0;border-radius:12px;padding:20px 16px;text-align:center;cursor:pointer;transition:all .15s}
@@ -2685,9 +2688,9 @@ function renderActionNow(rows){
       <div class="wl-card-signals">${signals.join('')}</div>
       ${revHtml}
       <div class="wl-card-po">${poText(s.name)}</div>
-      <div style="display:flex;gap:6px;margin-top:2px">
-        <button class="wl-card-btn ${btnCls}" style="flex:1" data-action="quick">${colour==='green'?'✓ View SKUs':'⚡ Quick Order'}</button>
-        <button class="wl-card-btn secondary" style="flex:0 0 auto;background:#f1f5f9;color:#1e3a5f;font-size:11px;padding:7px 10px" data-action="full" title="Open full supplier view">⊞</button>
+      <div class="wl-card-actions">
+        <button class="wl-card-btn ${btnCls}" data-action="quick">${colour==='green'?'✓ View SKUs':'⚡ Quick Order'}</button>
+        <button class="wl-card-btn wl-card-btn-icon" data-action="full" title="Open full supplier view">⊞</button>
       </div>
     </div>`;
   }
