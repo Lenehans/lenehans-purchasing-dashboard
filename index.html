@@ -5626,138 +5626,188 @@ function downloadNoosCsv(rows,label){
   </div>
 </div>
 <script>
-(function(){
-  var _supplier='',_filter='critical',_rows=[],_qtys={};
-  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-  function fmtInt(n){return Math.round(n||0).toLocaleString('en-IE');}
-  function num(v){return parseFloat(v)||0;}
+// ── Quick Order Drawer ────────────────────────────────────────────────────────
+var _qo = {
+  supplier: '', filter: 'critical', rows: [], qtys: {}
+};
 
-  window.openQuickOrder=function(supplierName){
-    _supplier=supplierName;_filter='critical';_qtys={};_rows=[];
-    if(window.state&&window.state.computedRows){
-      var allRows=state.computedRows;
-      var top500Set=new Set(
-        allRows.slice().filter(function(r){return(r.Revenue_Online_Total_30d||0)>0||(r.QtySold_Online_Total_90d||0)>0;})
-          .sort(function(a,b){return(b.Revenue_Online_Total_30d||0)-(a.Revenue_Online_Total_30d||0);})
-          .slice(0,500).map(function(r){return r.SKU;})
-      );
-      _rows=allRows.filter(function(r){return r.SupplierName===supplierName&&top500Set.has(r.SKU);})
-        .sort(function(a,b){
-          var u=function(r){return r.coverStatus==='Out of Stock'?0:r.coverStatus==='Critical'?1:r.coverStatus==='Low'?2:3;};
-          return u(a)-u(b)||(a.daysOfCover||0)-(b.daysOfCover||0);
-        });
-      _rows.forEach(function(r){if(r.buy>0)_qtys[r.SKU]=r.buy;});
-    }
-    document.getElementById('qoSupplierName').textContent=supplierName;
-    _renderPoBar();
-    document.querySelectorAll('.qo-filter-btn').forEach(function(b){b.classList.toggle('active',b.dataset.qof===_filter);});
-    _renderBody();
-    document.getElementById('qoBackdrop').classList.add('open');
-    document.getElementById('qoDrawer').classList.add('open');
-    document.body.style.overflow='hidden';
-  };
+function openQuickOrder(supplierName) {
+  _qo.supplier = supplierName;
+  _qo.filter   = 'critical';
+  _qo.qtys     = {};
+  _qo.rows     = [];
 
-  function _renderPoBar(){
-    var bar=document.getElementById('qoPoBar');
-    if(window.getChannelPOMap){
-      var poMap=getChannelPOMap(),po=poMap[_supplier];
-      if(!po){for(var k in poMap){if(k.indexOf('||')===-1&&k.toLowerCase()===_supplier.toLowerCase()){po=poMap[k];break;}}}
-      bar.innerHTML=po?'PO on record: <strong>'+(po.isDone?'✅':'🔴')+' '+esc(po.raw)+'</strong>'+(po.date?' · '+esc(po.date):'')+(po.person?' · '+esc(po.person):''):'<span style="color:#d97706">⚠ No PO on record</span>';
-      bar.style.display='block';
-    }else{bar.style.display='none';}
+  // Build top-500 set and filter rows for this supplier
+  if (window.state && state.computedRows) {
+    var all = state.computedRows;
+    var sorted = all.slice()
+      .filter(function(r){ return (r.Revenue_Online_Total_30d||0)>0 || (r.QtySold_Online_Total_90d||0)>0; })
+      .sort(function(a,b){ return (b.Revenue_Online_Total_30d||0)-(a.Revenue_Online_Total_30d||0); })
+      .slice(0,500);
+    var top500 = {};
+    sorted.forEach(function(r){ top500[r.SKU]=1; });
+    _qo.rows = all.filter(function(r){ return r.SupplierName===supplierName && top500[r.SKU]; })
+      .sort(function(a,b){
+        var rank = function(r){ return r.coverStatus==='Out of Stock'?0:r.coverStatus==='Critical'?1:r.coverStatus==='Low'?2:3; };
+        return rank(a)-rank(b) || (a.daysOfCover||0)-(b.daysOfCover||0);
+      });
+    _qo.rows.forEach(function(r){ if(r.buy>0) _qo.qtys[r.SKU]=r.buy; });
   }
 
-  function _getVisible(){
-    if(_filter==='critical'){
-      var crit=_rows.filter(function(r){return r.coverStatus==='Out of Stock'||r.coverStatus==='Critical';});
-      return crit.length?crit:_rows.filter(function(r){return r.coverStatus==='Low';});
+  // Header
+  document.getElementById('qoSupplierName').textContent = supplierName;
+
+  // PO bar
+  var bar = document.getElementById('qoPoBar');
+  if (window.getChannelPOMap) {
+    var pom = getChannelPOMap(), po = pom[supplierName];
+    if (!po) { for (var k in pom) { if (k.indexOf('||')===-1 && k.toLowerCase()===supplierName.toLowerCase()) { po=pom[k]; break; } } }
+    if (po) {
+      bar.innerHTML = 'PO: <strong>' + (po.isDone?'✅':'🔴') + ' ' + (po.raw||'') + '</strong>' + (po.date?' · '+po.date:'') + (po.person?' · '+po.person:'');
+      bar.style.display = 'block';
+    } else {
+      bar.innerHTML = '<span style="color:#d97706">⚠ No PO on record</span>';
+      bar.style.display = 'block';
     }
-    return _rows;
+  } else {
+    bar.style.display = 'none';
   }
 
-  function _renderBody(){
-    var body=document.getElementById('qoBody'),visible=_getVisible();
-    var critCount=_rows.filter(function(r){return r.coverStatus==='Out of Stock'||r.coverStatus==='Critical';}).length;
-    var lowCount=_rows.filter(function(r){return r.coverStatus==='Low';}).length;
-    var parts=[];
-    if(critCount)parts.push('🔴 '+critCount+' critical');
-    if(lowCount)parts.push('🟡 '+lowCount+' low');
-    if(!parts.length)parts.push('✓ All healthy');
-    document.getElementById('qoSubline').textContent='Top 500 · '+parts.join(' · ');
-    if(!visible.length){body.innerHTML='<div class="qo-empty">✅ No critical lines for this supplier right now.</div>';_updateFooter([]);return;}
-    var html='',lastBucket='';
-    for(var i=0;i<visible.length;i++){
-      var r=visible[i];
-      var bucket=r.coverStatus==='Out of Stock'?'Out of Stock':r.coverStatus==='Critical'?'Critical':'Low Cover';
-      if(bucket!==lastBucket){html+='<div class="qo-section-label">'+(bucket==='Out of Stock'?'🔴':bucket==='Critical'?'🟠':'🟡')+' '+bucket+'</div>';lastBucket=bucket;}
-      var rowCls=r.coverStatus==='Out of Stock'?'oos':r.coverStatus==='Critical'?'crit':'low';
-      var badgeCls=r.coverStatus==='Out of Stock'?'oos':r.coverStatus==='Critical'?'crit':'low';
-      var badgeText=r.coverStatus==='Out of Stock'?'OOS':r.coverStatus==='Critical'?(Math.round(r.daysOfCover||0)+'d cover'):(Math.round(r.daysOfCover||0)+'d');
-      var rank=window.state&&window.state.skuRankMap?window.state.skuRankMap.get(r.SKU)||9999:9999;
-      var rankBadge=rank<=100?'<span class="qo-badge rank-star">⭐ #'+rank+'</span>':rank<=500?'<span class="qo-badge rank-top">Top 500 #'+rank+'</span>':'';
-      var qty=_qtys[r.SKU]!=null?_qtys[r.SKU]:(r.buy||0);
-      var cost=num(r.SupplierCostPrice);
-      html+='<div class="qo-row '+rowCls+'">'+
-        '<div>'+
-          '<div class="qo-item-title">'+esc(r.ItemTitle||r.SKU)+'</div>'+
-          '<div class="qo-item-sku">'+esc(r.SKU)+'</div>'+
-          '<div class="qo-item-meta"><span class="qo-badge '+badgeCls+'">'+badgeText+'</span>'+rankBadge+(r.stock!=null?'<span style="font-size:10px;color:#94a3b8">Stock: '+fmtInt(r.stock)+'</span>':'')+'</div>'+
-        '</div>'+
-        '<div class="qo-qty-wrap"><div class="qo-qty-lbl">Qty</div>'+
-          '<input class="qo-qty-input" type="number" min="0" step="1" value="'+qty+'" data-sku="'+esc(r.SKU)+'" oninput="window._qoQtyChange(this)"></div>'+
-        '<div class="qo-cost"><span style="font-size:10px;color:#94a3b8">line</span><strong>€'+(qty*cost).toFixed(2)+'</strong>'+(cost>0?'<div style="font-size:10px;color:#94a3b8">@€'+cost.toFixed(2)+'</div>':'')+'</div>'+
-      '</div>';
-    }
-    body.innerHTML=html;
-    _updateFooter(visible);
+  // Filter buttons
+  document.querySelectorAll('.qo-filter-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.qof === _qo.filter);
+  });
+
+  _qoRenderBody();
+
+  // Open drawer
+  document.getElementById('qoBackdrop').classList.add('open');
+  document.getElementById('qoDrawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function _qoRenderBody() {
+  var body    = document.getElementById('qoBody');
+  var visible = _qoGetVisible();
+
+  var critCount = _qo.rows.filter(function(r){ return r.coverStatus==='Out of Stock'||r.coverStatus==='Critical'; }).length;
+  var lowCount  = _qo.rows.filter(function(r){ return r.coverStatus==='Low'; }).length;
+  var parts = [];
+  if (critCount) parts.push('🔴 ' + critCount + ' critical');
+  if (lowCount)  parts.push('🟡 ' + lowCount + ' low');
+  if (!parts.length) parts.push('✓ All healthy');
+  document.getElementById('qoSubline').textContent = 'Top 500 · ' + parts.join(' · ');
+
+  if (!visible.length) {
+    body.innerHTML = '<div class="qo-empty">✅ No critical lines for this supplier right now.</div>';
+    _qoUpdateFooter([]);
+    return;
   }
 
-  window._qoQtyChange=function(input){
-    var sku=input.dataset.sku,v=parseInt(input.value,10);
-    _qtys[sku]=isNaN(v)||v<0?0:v;
-    var r=_rows.filter(function(x){return x.SKU===sku;})[0];
-    if(r){var el=input.closest('.qo-row')&&input.closest('.qo-row').querySelector('.qo-cost strong');if(el)el.textContent='€'+((_qtys[sku]||0)*num(r.SupplierCostPrice)).toFixed(2);}
-    _updateFooter(_getVisible());
-  };
-
-  window.setQoFilter=function(f){
-    _filter=f;_qtys={};_rows.forEach(function(r){if(r.buy>0)_qtys[r.SKU]=r.buy;});
-    document.querySelectorAll('.qo-filter-btn').forEach(function(b){b.classList.toggle('active',b.dataset.qof===f);});
-    _renderBody();
-  };
-
-  window.closeQuickOrder=function(){
-    document.getElementById('qoBackdrop').classList.remove('open');
-    document.getElementById('qoDrawer').classList.remove('open');
-    document.body.style.overflow='';
-  };
-
-  window.quickOrderExport=function(){
-    var lines=_getVisible().filter(function(r){return(_qtys[r.SKU]||0)>0;});
-    if(!lines.length){alert('No lines with qty > 0');return;}
-    var headers=['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','coverStatus','stock','target','reason','Tax Rate'];
-    var csv=[headers.join(',')];
-    for(var i=0;i<lines.length;i++){
-      var r=lines[i];
-      var vals=[r.SupplierName,r.SKU,r.ItemTitle,_qtys[r.SKU]||r.buy,r.SupplierCostPrice||0,r.coverStatus,r.stock||0,r.target||0,r.reason||'','0']
-        .map(function(v){v=String(v==null?'':v);if(/[",\n]/.test(v))v='"'+v.replace(/"/g,'""')+'"';return v;});
-      csv.push(vals.join(','));
+  var html = '', lastBucket = '';
+  for (var i = 0; i < visible.length; i++) {
+    var r = visible[i];
+    var bucket = r.coverStatus==='Out of Stock' ? 'Out of Stock' : r.coverStatus==='Critical' ? 'Critical' : 'Low Cover';
+    if (bucket !== lastBucket) {
+      html += '<div class="qo-section-label">' + (bucket==='Out of Stock'?'🔴':bucket==='Critical'?'🟠':'🟡') + ' ' + bucket + '</div>';
+      lastBucket = bucket;
     }
-    var a=document.createElement('a');
-    a.href=URL.createObjectURL(new Blob([csv.join('\n')],{type:'text/csv;charset=utf-8;'}));
-    a.download='QuickOrder_'+_supplier.replace(/[^a-z0-9]+/gi,'_')+'.csv';
-    a.click();URL.revokeObjectURL(a.href);
-  };
+    var rowCls    = r.coverStatus==='Out of Stock'?'oos':r.coverStatus==='Critical'?'crit':'low';
+    var badgeCls  = rowCls;
+    var badgeTxt  = r.coverStatus==='Out of Stock'?'OOS':r.coverStatus==='Critical'?(Math.round(r.daysOfCover||0)+'d cover'):(Math.round(r.daysOfCover||0)+'d');
+    var rank      = (window.state&&state.skuRankMap) ? (state.skuRankMap.get(r.SKU)||9999) : 9999;
+    var rankBadge = rank<=100 ? '<span class="qo-badge rank-star">⭐ #'+rank+'</span>' : rank<=500 ? '<span class="qo-badge rank-top">Top 500 #'+rank+'</span>' : '';
+    var qty       = (_qo.qtys[r.SKU]!=null) ? _qo.qtys[r.SKU] : (r.buy||0);
+    var cost      = parseFloat(r.SupplierCostPrice)||0;
+    var skuSafe   = (r.SKU||'').replace(/"/g,'&quot;');
+    html += '<div class="qo-row ' + rowCls + '">' +
+      '<div>' +
+        '<div class="qo-item-title">' + (r.ItemTitle||r.SKU||'') + '</div>' +
+        '<div class="qo-item-sku">' + (r.SKU||'') + '</div>' +
+        '<div class="qo-item-meta"><span class="qo-badge '+badgeCls+'">'+badgeTxt+'</span>' + rankBadge +
+          (r.stock!=null ? '<span style="font-size:10px;color:#94a3b8">Stock: '+Math.round(r.stock)+'</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="qo-qty-wrap"><div class="qo-qty-lbl">Qty</div>' +
+        '<input class="qo-qty-input" type="number" min="0" step="1" value="' + qty + '" data-sku="' + skuSafe + '" oninput="_qoQtyChange(this)">' +
+      '</div>' +
+      '<div class="qo-cost"><span style="font-size:10px;color:#94a3b8">line</span>' +
+        '<strong>€' + (qty*cost).toFixed(2) + '</strong>' +
+        (cost>0 ? '<div style="font-size:10px;color:#94a3b8">@€'+cost.toFixed(2)+'</div>' : '') +
+      '</div>' +
+    '</div>';
+  }
+  body.innerHTML = html;
+  _qoUpdateFooter(visible);
+}
 
-  window.quickOrderGoFull=function(){
-    closeQuickOrder();
-    if(window.state)state.activeSupplier=_supplier;
-    if(window.render)render();
-    setTimeout(function(){var el=document.getElementById('detailTable');if(el)el.scrollIntoView({behavior:'smooth'});},80);
-  };
+function _qoGetVisible() {
+  if (_qo.filter === 'critical') {
+    var crit = _qo.rows.filter(function(r){ return r.coverStatus==='Out of Stock'||r.coverStatus==='Critical'; });
+    return crit.length ? crit : _qo.rows.filter(function(r){ return r.coverStatus==='Low'; });
+  }
+  return _qo.rows;
+}
 
-  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeQuickOrder();});
-})();
+function _qoUpdateFooter(visible) {
+  var lines = visible.filter(function(r){ return (_qo.qtys[r.SKU]||0)>0; });
+  var units = lines.reduce(function(s,r){ return s+(_qo.qtys[r.SKU]||0); }, 0);
+  var val   = lines.reduce(function(s,r){ return s+(_qo.qtys[r.SKU]||0)*(parseFloat(r.SupplierCostPrice)||0); }, 0);
+  document.getElementById('qoTotalVal').textContent   = '€' + val.toFixed(2);
+  document.getElementById('qoTotalLines').textContent = lines.length + ' line' + (lines.length!==1?'s':'') + ' · ' + Math.round(units).toLocaleString('en-IE') + ' units';
+}
+
+function _qoQtyChange(input) {
+  var sku = input.dataset.sku;
+  var v   = parseInt(input.value, 10);
+  _qo.qtys[sku] = (isNaN(v)||v<0) ? 0 : v;
+  var r = _qo.rows.filter(function(x){ return x.SKU===sku; })[0];
+  if (r) {
+    var el = input.closest('.qo-row') && input.closest('.qo-row').querySelector('.qo-cost strong');
+    if (el) el.textContent = '€' + ((_qo.qtys[sku]||0) * (parseFloat(r.SupplierCostPrice)||0)).toFixed(2);
+  }
+  _qoUpdateFooter(_qoGetVisible());
+}
+
+function setQoFilter(f) {
+  _qo.filter = f;
+  _qo.qtys   = {};
+  _qo.rows.forEach(function(r){ if(r.buy>0) _qo.qtys[r.SKU]=r.buy; });
+  document.querySelectorAll('.qo-filter-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.qof===f); });
+  _qoRenderBody();
+}
+
+function closeQuickOrder() {
+  document.getElementById('qoBackdrop').classList.remove('open');
+  document.getElementById('qoDrawer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function quickOrderExport() {
+  var lines = _qoGetVisible().filter(function(r){ return (_qo.qtys[r.SKU]||0)>0; });
+  if (!lines.length) { alert('No lines with qty > 0'); return; }
+  var headers = ['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','coverStatus','stock','target','reason','Tax Rate'];
+  var csv = [headers.join(',')];
+  for (var i=0; i<lines.length; i++) {
+    var r = lines[i];
+    var vals = [r.SupplierName,r.SKU,r.ItemTitle,_qo.qtys[r.SKU]||r.buy,r.SupplierCostPrice||0,r.coverStatus,r.stock||0,r.target||0,r.reason||'','0']
+      .map(function(v){ v=String(v==null?'':v); if(/[",\r\n]/.test(v)) v='"'+v.replace(/"/g,'""')+'"'; return v; });
+    csv.push(vals.join(','));
+  }
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv.join('\n')], {type:'text/csv;charset=utf-8;'}));
+  a.download = 'QuickOrder_' + _qo.supplier.replace(/[^a-z0-9]+/gi,'_') + '.csv';
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+function quickOrderGoFull() {
+  closeQuickOrder();
+  if (window.state) state.activeSupplier = _qo.supplier;
+  if (window.render) render();
+  setTimeout(function(){ var el=document.getElementById('detailTable'); if(el) el.scrollIntoView({behavior:'smooth'}); }, 80);
+}
+
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuickOrder(); });
 </script>
 </body>
 </html>
