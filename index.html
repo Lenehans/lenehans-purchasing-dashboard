@@ -5962,6 +5962,9 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
 const EI_KLAVIYO_BASE   = 'https://a.klaviyo.com/api';
 const EI_HARDCODED_KEY  = 'pk_RpgXNK_8c18d362a762b68a8af896246a2e41da8e';
 
+// Safe global helper (byId is only locally scoped in V6 init block)
+function eiById(id){ return document.getElementById(id); }
+
 const eiState = { campaigns:[], skuHistory:{}, loaded:false };
 
 const EI_THEME_SUBJECTS = {
@@ -6137,11 +6140,11 @@ function eiRenderSummary(){
     const row=(state.computedRows||[]).find(r=>eiNormSku(r.SKU)===eiNormSku(sku));
     if(row&&eiCoverDays(row)<30) lowStock++;
   }
-  byId('eiStatCampaigns').textContent=camps.length;
-  byId('eiStatRecipients').textContent=avgRec?avgRec.toLocaleString('en-IE'):'—';
-  byId('eiStatSkusFeatured').textContent=skusFeatured;
-  byId('eiStatOpps').textContent=eiGetOpportunities().length;
-  byId('eiStatLowStock').textContent=lowStock;
+  eiById('eiStatCampaigns').textContent=camps.length;
+  eiById('eiStatRecipients').textContent=avgRec?avgRec.toLocaleString('en-IE'):'—';
+  eiById('eiStatSkusFeatured').textContent=skusFeatured;
+  eiById('eiStatOpps').textContent=eiGetOpportunities().length;
+  eiById('eiStatLowStock').textContent=lowStock;
 }
 
 function eiRenderCampaigns(){
@@ -6240,7 +6243,8 @@ function eiRenderOpportunities(){
 function eiOpenBrief(theme){
   const opp=eiGetOpportunities().find(o=>o.theme===theme);if(!opp)return;
   const skuList=opp.promotable.slice(0,8).map(r=>eiNormSku(r.SKU)).join(', ');
-  sendPrompt(`Write a Klaviyo email campaign brief for Lenehans hardware.\nTheme: ${eiThemeLabel(theme)}\nSubject: "${opp.tpl.subject}"\nHook: "${opp.tpl.hook}"\nTop SKUs: ${skuList}\nAvg cover: ${opp.avgCover}d · Last sent: ${opp.daysSince<999?opp.daysSince+'d ago':'never'}\nInclude: subject line options, preview text, email structure, product sections, CTA.`);
+  const brief=`Klaviyo campaign brief — Lenehans hardware\nTheme: ${eiThemeLabel(theme)}\nSubject: "${opp.tpl.subject}"\nHook: "${opp.tpl.hook}"\nTop SKUs: ${skuList}\nAvg cover: ${opp.avgCover}d · Last sent: ${opp.daysSince<999?opp.daysSince+'d ago':'never'}\n\nPlease write: subject line options, preview text, email structure, product highlight sections, and a CTA.`;
+  navigator.clipboard.writeText(brief).then(()=>alert('Campaign brief copied to clipboard — paste into Claude or your email tool.')).catch(()=>alert(brief));
 }
 
 function eiRenderSkuTable(){
