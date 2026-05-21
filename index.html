@@ -5950,7 +5950,8 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
   'use strict';
 
   var EI_KEY  = 'pk_RpgXNK_8c18d362a762b68a8af896246a2e41da8e';
-  var EI_BASE = 'https://a.klaviyo.com/api';
+  // Klaviyo is called via the Apps Script proxy (avoids browser CORS block)
+  var EI_PROXY = 'https://script.google.com/macros/s/AKfycbwds8N7-nMBGfVJp30rlxZ9Y9k6ncoDeATcKrIpnApqVqvwTkOmNIJfFBlFm6OOD1Z_/exec';
   var eiSt    = { campaigns: [], hist: {}, loaded: false };
 
   var EI_TPL = {
@@ -6096,29 +6097,23 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
     var key = EI_KEY;
     if (!key) { eiSetStatus('No API key configured.', 'error'); return; }
     eiSetLoading(true);
-    eiSetStatus('Connecting to Klaviyo...', 'loading');
-    var since = new Date();
-    since.setFullYear(since.getFullYear() - 1);
-    var url = EI_BASE + "/campaigns/?filter=equals(messages.channel,'email'),greater-than(send_time,'" + since.toISOString().slice(0, 10) + "')&sort=-send_time&page[size]=50";
-    fetch(url, {
-      headers: {
-        'Authorization': 'Klaviyo-API-Key ' + key,
-        'revision': '2024-02-15',
-        'Accept': 'application/json'
-      }
-    })
+    eiSetStatus('Connecting to Klaviyo via proxy...', 'loading');
+
+    // Call Apps Script proxy — it fetches Klaviyo server-side (no CORS)
+    var url = EI_PROXY + '?action=klaviyo';
+
+    fetch(url)
     .then(function(res) {
-      if (!res.ok) {
-        return res.json().catch(function() { return {}; }).then(function(e) {
-          throw new Error((e.errors && e.errors[0] && e.errors[0].detail) || 'HTTP ' + res.status);
-        });
-      }
+      if (!res.ok) throw new Error('Proxy returned HTTP ' + res.status);
       return res.json();
     })
     .then(function(data) {
+      // Apps Script follows redirects, so data is the raw Klaviyo response
       var raw = data.data || [];
+      if (data.error) throw new Error(data.error);
+
       eiSt.campaigns = raw.map(function(c) {
-        var a = c.attributes || {};
+        var a    = c.attributes || {};
         var tags = a.tags || [];
         return {
           id:         c.id,
@@ -6130,6 +6125,7 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
           theme:      eiThemeFromText(a.name || '')
         };
       });
+
       eiSt.hist = {};
       eiSt.campaigns.forEach(function(c) {
         (c.skus || []).forEach(function(sku) {
@@ -6137,13 +6133,13 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
           eiSt.hist[sku].push({ sentAt: c.sent_at, recipients: c.recipients, subject: c.subject });
         });
       });
+
       eiSt.loaded = true;
-      try { localStorage.setItem('lenehans_klaviyo_key', key); } catch(e2) {}
-      eiSetStatus('Loaded ' + eiSt.campaigns.length + ' campaigns. ' + Object.keys(eiSt.hist).length + ' SKUs tracked. Last sync: ' + new Date().toLocaleTimeString('en-IE'), 'ok');
+      eiSetStatus('Loaded ' + eiSt.campaigns.length + ' campaigns. ' + Object.keys(eiSt.hist).length + ' SKUs tracked via tags. Synced: ' + new Date().toLocaleTimeString('en-IE'), 'ok');
       eiRenderAll();
     })
     .catch(function(e) {
-      eiSetStatus('Klaviyo error: ' + e.message, 'error');
+      eiSetStatus('Error: ' + e.message, 'error');
       console.error('eiLoadKlaviyo', e);
     })
     .finally(function() {
