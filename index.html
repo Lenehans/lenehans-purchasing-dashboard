@@ -1345,88 +1345,71 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     </div>
   </div><!-- /tab-alerts -->
 
-  <!-- TAB: Email Intelligence -->
+  <!-- TAB: Email Intelligence — Seasonal Alignment -->
   <div class="tab-panel" id="tab-email">
     <div style="padding:14px 0">
-      <div class="ei-setup">
-        <h3>📧 Klaviyo connection</h3>
-        <div id="eiKeyRow" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:8px">
-          <label style="flex:1;min-width:260px;font-size:12px;font-weight:700;color:#374151;display:flex;flex-direction:column;gap:5px">Private API key
-            <input type="password" id="eiApiKey" placeholder="pk_••••••••••••••••" style="font-family:monospace;font-size:12px;min-height:38px;border-radius:8px;border:1.5px solid #8899b0;padding:8px 12px;background:#fff">
-          </label>
-        </div>
-        <div class="ei-btn-row">
-          <button onclick="eiLoadKlaviyo()">&#9889; Load Klaviyo data</button>
-          <button class="secondary" onclick="eiLoadDemo()">&#129514; Load demo data</button>
-          <span class="ei-spinner" id="eiSpinner">&#9203; Loading&hellip;</span>
-        </div>
-        <div class="ei-status" id="eiStatus"></div>
-        <div class="ei-note" id="eiNote">Scopes needed: <strong>Campaigns: Read &middot; Lists: Read &middot; Flows: Read</strong></div>
-      </div>
-      <div class="ei-stats" id="eiStats" style="display:none">
-        <div class="ei-stat"><div class="v blue" id="eiSC">&#8212;</div><div class="l">Campaigns</div></div>
-        <div class="ei-stat"><div class="v" id="eiSR">&#8212;</div><div class="l">Avg recipients</div></div>
-        <div class="ei-stat"><div class="v green" id="eiSSF">&#8212;</div><div class="l">Themes covered</div></div>
-        <div class="ei-stat"><div class="v amber" id="eiSO">&#8212;</div><div class="l">Opportunities</div></div>
-        <div class="ei-stat"><div class="v red" id="eiSL">&#8212;</div><div class="l">Low stock warnings</div></div>
-      </div>
-      <div id="eiBody" style="display:none">
-        <div class="ei-split">
-          <div>
-            <div class="ei-sh">Campaign history</div>
-            <div class="ei-tb">
-              <select id="eiTheme" onchange="eiRenderCampaigns()">
-                <option value="">All themes</option>
-                <option value="garden">Garden</option><option value="tools">Hand tools</option>
-                <option value="power">Power tools</option><option value="paint">Paint</option>
-                <option value="cleaning">Cleaning</option><option value="plumbing">Plumbing</option>
-                <option value="storage">Storage</option><option value="fixings">Fixings</option>
-                <option value="safety">Safety</option>
-              </select>
-              <select id="eiPeriod" onchange="eiRenderCampaigns()">
-                <option value="12">Last 12 months</option><option value="6">Last 6 months</option>
-                <option value="3">Last 3 months</option><option value="0">All time</option>
-              </select>
-            </div>
-            <div class="ei-card" id="eiCampList"><div class="ei-empty">No campaigns loaded yet</div></div>
-          </div>
-          <div>
-            <div class="ei-sh">Email opportunities now</div>
-            <div id="eiOpps"><div class="ei-empty">Load data to see opportunities</div></div>
-          </div>
-        </div>
+
+      <!-- Header bar -->
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px">
         <div>
-          <div class="ei-sh">SKU email history &middot; stock cross-reference</div>
-          <div class="ei-tb">
-            <input type="text" id="eiSearch" placeholder="Search SKU or item&hellip;" oninput="eiRenderSkus()">
-            <select id="eiStockF" onchange="eiRenderSkus()">
-              <option value="">All stock levels</option>
-              <option value="critical">Critical (&lt;14d)</option>
-              <option value="low">Low (14-30d)</option>
-              <option value="healthy" selected>Healthy (30d+)</option>
-            </select>
-            <select id="eiEmailF" onchange="eiRenderSkus()">
-              <option value="">All email status</option>
-              <option value="never">Never emailed</option>
-              <option value="recent">Sent recently</option>
-              <option value="ready">Ready</option>
-              <option value="hold">Hold</option>
-            </select>
-          </div>
-          <div class="ei-card" style="padding:0;overflow:hidden">
-            <div class="ei-tbl-wrap">
-              <table class="ei-tbl">
-                <thead><tr>
-                  <th>SKU</th><th>Item</th><th class="r">Stock</th><th class="r">Cover</th>
-                  <th class="r">Last emailed</th><th class="r">Times sent</th><th class="r">Recipients</th><th>Status</th>
-                </tr></thead>
-                <tbody id="eiSkuBody"><tr><td colspan="8" class="ei-empty">Load data to see SKU cross-reference</td></tr></tbody>
-              </table>
-            </div>
-            <div id="eiSkuCount" style="font-size:11px;color:#64748b;padding:7px 12px;border-top:1px solid var(--line-light);text-align:right"></div>
-          </div>
+          <div style="font-size:20px;font-weight:800;color:#1e293b">📅 Seasonal Email Planner</div>
+          <div style="font-size:12px;color:#64748b;margin-top:2px">What worked last year · What's in stock now · What to send next</div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select id="eiMonthSel" onchange="eiOnMonthChange()" style="font-size:13px;font-weight:700;padding:6px 12px;border-radius:8px;border:1.5px solid #cbd5e1">
+            <option value="0">January</option><option value="1">February</option><option value="2">March</option>
+            <option value="3">April</option><option value="4">May</option><option value="5">June</option>
+            <option value="6">July</option><option value="7">August</option><option value="8">September</option>
+            <option value="9">October</option><option value="10">November</option><option value="11">December</option>
+          </select>
+          <button onclick="eiLoadKlaviyo()" id="eiLoadBtn">⚡ Sync Klaviyo</button>
+          <span id="eiSpinner" style="display:none;font-size:12px;color:#92400e;font-weight:600">⏳ Syncing…</span>
         </div>
       </div>
+      <div id="eiStatus" style="display:none;font-size:12px;font-weight:600;padding:7px 12px;border-radius:6px;border:1px solid;margin-bottom:12px"></div>
+
+      <!-- Three-column layout -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px" id="eiPlannerGrid">
+
+        <!-- Column 1: Last year this month -->
+        <div>
+          <div class="ei-sh" id="eiColAHead">Last year in May</div>
+          <div id="eiLastYear"><div class="ei-empty">Sync Klaviyo to see last year's campaigns</div></div>
+        </div>
+
+        <!-- Column 2: In stock now for this season -->
+        <div>
+          <div class="ei-sh" id="eiColBHead">In stock now for May</div>
+          <div id="eiInStock"><div class="ei-empty">Load buying data to see seasonal stock</div></div>
+        </div>
+
+        <!-- Column 3: What to send -->
+        <div>
+          <div class="ei-sh">Suggested next email</div>
+          <div id="eiSuggest"><div class="ei-empty">Data from both columns will generate suggestions here</div></div>
+        </div>
+
+      </div>
+
+      <!-- Full campaign archive (collapsed by default) -->
+      <div style="margin-top:20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div class="ei-sh" style="margin:0">Full campaign archive</div>
+          <select id="eiArchiveTheme" onchange="eiRenderArchive()" style="font-size:12px">
+            <option value="">All themes</option>
+            <option value="garden">Garden</option><option value="tools">Hand tools</option>
+            <option value="power">Power tools</option><option value="paint">Paint</option>
+            <option value="cleaning">Cleaning</option><option value="plumbing">Plumbing</option>
+            <option value="storage">Storage</option><option value="fixings">Fixings</option>
+            <option value="safety">Safety</option>
+          </select>
+          <select id="eiArchivePeriod" onchange="eiRenderArchive()" style="font-size:12px">
+            <option value="12">Last 12 months</option><option value="24">Last 24 months</option><option value="0">All time</option>
+          </select>
+        </div>
+        <div class="ei-card" id="eiArchiveList" style="padding:0;overflow:hidden"><div class="ei-empty" style="padding:20px">Sync Klaviyo to see campaign archive</div></div>
+      </div>
+
     </div>
   </div><!-- /tab-email -->
 
@@ -5947,632 +5930,457 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
 </body>
 </html>
 <!-- ═══════════════════════════════════════════════════════════════════════════
-     EMAIL INTELLIGENCE — isolated script block (does not touch Quick Order)
+     SEASONAL EMAIL PLANNER — isolated script block
      ═══════════════════════════════════════════════════════════════════════ -->
 <script>
 (function() {
   'use strict';
 
-  var EI_KEY   = 'pk_RpgXNK_8c18d362a762b68a8af896246a2e41da8e';
-  // Klaviyo is proxied via Apps Script to avoid browser CORS restriction
-  var EI_PROXY = 'https://script.google.com/macros/s/AKfycbwds8N7-nMBGfVJp30rlxZ9Y9k6ncoDeATcKrIpnApqVqvwTkOmNIJfFBlFm6OOD1Z_/exec';
-  var eiSt     = { campaigns: [], hist: {}, loaded: false, enriching: false, enriched: 0 };
+  var EI_PROXY  = 'https://script.google.com/macros/s/AKfycbwds8N7-nMBGfVJp30rlxZ9Y9k6ncoDeATcKrIpnApqVqvwTkOmNIJfFBlFm6OOD1Z_/exec';
+  var eiCamps   = [];   // all campaigns from Klaviyo
+  var eiStats   = {};   // campaignId → { open_rate, click_rate, revenue_per_recipient }
+  var eiLoaded  = false;
 
-  // ── Slug / title normaliser ─────────────────────────────────────────────────
-  // Converts "PestClear 4000 Pest Repeller" OR "pest-clear-4000-pest-repeller"
-  // to "pestclear4000pestrepeller" for fuzzy matching
-  function eiNormalise(s) {
-    return (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-  }
+  var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-  // Build a slug→SKU lookup from buying data titles
-  function eiSlugMap() {
-    var map = {};
-    var rows = eiGetRows();
-    rows.forEach(function(r) {
-      var sku   = (r.SKU || '').trim();
-      var title = r.ItemTitle || '';
-      if (sku && title) map[eiNormalise(title)] = sku;
-    });
-    return map;
-  }
-
-  // Extract lenehans.ie product slugs from email HTML
-  function eiExtractSlugs(html) {
-    var slugs = [];
-    // Match lenehans.ie/anything.html links
-    var re = /lenehans\.ie\/([^"'\s>?#]+\.html)/gi;
-    var m;
-    while ((m = re.exec(html)) !== null) {
-      // Strip path prefix if any, get just the filename without .html
-      var slug = m[1].replace(/.*\//, '').replace(/\.html$/i, '');
-      slugs.push(slug);
-    }
-    return slugs;
-  }
-
-  // Match extracted slugs to SKUs using normalised title lookup
-  function eiSlugsToSkus(slugs, slugMap) {
-    var skus = [];
-    slugs.forEach(function(slug) {
-      var norm = eiNormalise(slug);
-      // Direct match
-      if (slugMap[norm]) { skus.push(slugMap[norm]); return; }
-      // Partial match — find any title key that contains the slug norm or vice versa
-      Object.keys(slugMap).forEach(function(key) {
-        if (key.length > 6 && norm.length > 6 && (key.indexOf(norm) >= 0 || norm.indexOf(key) >= 0)) {
-          skus.push(slugMap[key]);
-        }
-      });
-    });
-    // Deduplicate
-    var seen = {};
-    return skus.filter(function(s) { if (seen[s]) return false; seen[s] = true; return true; });
-  }
-
-  // Lazy enrich campaigns with SKUs from HTML — called after initial render
-  function eiEnrichCampaigns() {
-    if (eiSt.enriching) return;
-    var camps = eiSt.campaigns.filter(function(c) { return !c._enriched && c.id; });
-    if (!camps.length) return;
-    eiSt.enriching = true;
-    var slugMap = eiSlugMap();
-    if (!Object.keys(slugMap).length) { eiSt.enriching = false; return; }
-
-    var total = camps.length;
-    var done  = 0;
-
-    function fetchNext(idx) {
-      if (idx >= camps.length) {
-        eiSt.enriching  = false;
-        eiSt.enriched   = total;
-        // Rebuild hist from enriched SKUs
-        eiSt.hist = {};
-        eiSt.campaigns.forEach(function(c) {
-          (c.skus || []).forEach(function(sku) {
-            if (!eiSt.hist[sku]) eiSt.hist[sku] = [];
-            eiSt.hist[sku].push({ sentAt: c.sent_at, recipients: c.recipients, subject: c.subject });
-          });
-        });
-        // Re-render now we have real SKU data
-        eiRenderAll();
-        var countEl = eiG('eiSSF');
-        if (countEl) countEl.textContent = Object.keys(eiSt.hist).length + ' SKUs';
-        eiSetStatus('Connected — ' + eiSt.campaigns.length + ' campaigns · ' + Object.keys(eiSt.hist).length + ' SKUs matched from email links · Synced: ' + new Date().toLocaleTimeString('en-IE'), 'ok');
-        return;
-      }
-
-      var camp = camps[idx];
-      camp._enriched = true;
-      var url = EI_PROXY + '?action=klaviyo_message&id=' + encodeURIComponent(camp.id);
-
-      fetch(url)
-        .then(function(r) { return r.json(); })
-        .then(function(d) {
-          if (d.html) {
-            var slugs = eiExtractSlugs(d.html);
-            camp.skus = eiSlugsToSkus(slugs, slugMap);
-          }
-          done++;
-          // Update progress
-          var statusEl = eiG('eiApiStatus');
-          if (statusEl && statusEl.style.display !== 'none') {
-            statusEl.textContent = 'Scanning email content... ' + done + '/' + total + ' campaigns';
-          }
-          // Stagger requests to avoid rate limiting
-          setTimeout(function() { fetchNext(idx + 1); }, 300);
-        })
-        .catch(function() {
-          done++;
-          setTimeout(function() { fetchNext(idx + 1); }, 300);
-        });
-    }
-
-    eiSetStatus('Scanning email content for product links... 0/' + total + ' campaigns', 'loading');
-    fetchNext(0);
-  }
-
-  var EI_TPL = {
-    garden:   { e: '&#127807;', s: 'Summer garden deals — stock up and save on outdoor must-haves',    h: 'Get your outdoor space ready with these hand-picked deals on garden essentials.' },
-    power:    { e: '&#9889;',   s: 'Power up — deals on drills, saws and more this weekend',           h: 'Big savings on power tools and electrical essentials while stocks last.' },
-    tools:    { e: '&#128295;', s: 'Tool time — special offers on hand tools this week',               h: 'Professional quality hand tools at unbeatable prices.' },
-    paint:    { e: '&#129507;', s: 'Refresh your home — paint and decorating offers now on',           h: 'Everything you need to transform your space — at prices you\'ll love.' },
-    cleaning: { e: '&#129529;', s: 'Spring clean sale — save on cleaning essentials',                  h: 'Stock up and save on our best cleaning products — limited stock available.' },
-    plumbing: { e: '&#128703;', s: 'Plumbing and heating clearance — save now',                        h: 'Quality plumbing supplies at clearance prices — perfect for your next job.' },
-    storage:  { e: '&#127968;', s: 'Get organised — storage solutions on sale',                        h: 'Tidy up and save with our storage clearance event.' },
-    fixings:  { e: '&#128297;', s: 'Stock up and save — fixings and hardware deals',                   h: 'Essential fixings and hardware at trade prices — order before they\'re gone.' },
-    safety:   { e: '&#129686;', s: 'Safety first — PPE and workwear offers',                           h: 'Stay safe and save — exclusive deals on safety essentials.' },
-    other:    { e: '&#127991;', s: 'Special clearance event — selected lines reduced',                 h: 'Don\'t miss these special offers on selected products across our range.' }
+  // Seasonal product themes per month — what categories sell well when
+  var SEASONAL = {
+    0:  ['plumbing','storage','fixings','safety'],           // Jan — indoor, post-Xmas
+    1:  ['plumbing','storage','paint','fixings'],             // Feb — indoor
+    2:  ['garden','paint','cleaning','tools'],                // Mar — spring start
+    3:  ['garden','tools','cleaning','paint'],                // Apr — spring peak
+    4:  ['garden','tools','power','cleaning'],                // May — outdoor season
+    5:  ['garden','power','tools','storage'],                 // Jun — outdoor peak
+    6:  ['garden','power','tools','cleaning'],                // Jul — summer
+    7:  ['garden','power','storage','fixings'],               // Aug — end summer
+    8:  ['storage','paint','tools','fixings'],                // Sep — back to indoor
+    9:  ['storage','paint','plumbing','fixings'],             // Oct — autumn
+    10: ['storage','plumbing','fixings','safety'],            // Nov — winter prep
+    11: ['storage','fixings','safety','tools']                // Dec — gifting/clearance
   };
 
-  function eiG(id) { return document.getElementById(id); }
+  var TPL = {
+    garden:   { e:'🌿', s:'Garden season is here — shop our top outdoor picks',      h:'Everything you need for your garden this season, at prices you\'ll love.' },
+    power:    { e:'⚡', s:'Power up — drills, saws and more at great prices',        h:'Trade-quality power tools at unbeatable prices while stocks last.' },
+    tools:    { e:'🔧', s:'The right tool for every job — save on hand tools',       h:'Professional hand tools at trade prices. Stock up and save.' },
+    paint:    { e:'🪣', s:'Transform your home — paint and decorating deals',        h:'Everything you need to freshen up your space this season.' },
+    cleaning: { e:'🧹', s:'Spring clean sorted — save on cleaning essentials',       h:'Stock up on our best cleaning products while stocks last.' },
+    plumbing: { e:'🚿', s:'Plumbing essentials — save on pipes, fittings and more',  h:'Quality plumbing supplies at trade prices — perfect for any job.' },
+    storage:  { e:'📦', s:'Get organised — storage solutions on sale now',           h:'Clear the clutter and save with our storage event.' },
+    fixings:  { e:'🔩', s:'Stock up on fixings — screws, bolts and brackets',        h:'Essential fixings at trade prices. Order before they\'re gone.' },
+    safety:   { e:'🦺', s:'Safety first — PPE and workwear offers',                  h:'Stay safe and save on our safety essentials.' },
+    other:    { e:'🏷️', s:'Exclusive deals — selected lines reduced',               h:'Don\'t miss these offers on selected products.' }
+  };
 
-  function eiEsc(s) {
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+  function G(id) { return document.getElementById(id); }
+
+  function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"]/g, function(c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
     });
   }
 
-  function eiThemeFromText(s) {
-    s = (s || '').toLowerCase();
-    if (/garden|outdoor|lawn|hose|spade|fork/.test(s))          return 'garden';
-    if (/power|drill|saw|sander|grinder|makita|dewalt/.test(s)) return 'power';
-    if (/tool|hammer|wrench|screwdriver|chisel/.test(s))        return 'tools';
-    if (/paint|decorat|brush|roller|primer|dulux/.test(s))      return 'paint';
-    if (/clean|mop|bucket|hygiene|bleach/.test(s))              return 'cleaning';
-    if (/plumb|pipe|fitting|boiler|heating|tap|valve/.test(s))  return 'plumbing';
-    if (/storage|organis|shelf|rack|bin/.test(s))               return 'storage';
-    if (/screw|fixing|bolt|nail|anchor|rawl/.test(s))           return 'fixings';
-    if (/safety|ppe|workwear|glove|helmet/.test(s))             return 'safety';
+  function themeFromText(s) {
+    s = (s||'').toLowerCase();
+    if (/garden|outdoor|lawn|hose|spade|fork|plant|weed|mow/.test(s))       return 'garden';
+    if (/power|drill|saw|sander|grinder|makita|dewalt|bosch/.test(s))        return 'power';
+    if (/tool|hammer|wrench|screwdriver|chisel|mallet|level/.test(s))        return 'tools';
+    if (/paint|decorat|brush|roller|primer|dulux|filler|gloss/.test(s))      return 'paint';
+    if (/clean|mop|bucket|hygiene|bleach|disinfect|hoover/.test(s))          return 'cleaning';
+    if (/plumb|pipe|fitting|boiler|heating|tap|valve|rad/.test(s))           return 'plumbing';
+    if (/storage|organis|shelf|rack|bin|box|cabinet/.test(s))                return 'storage';
+    if (/screw|fixing|bolt|nail|anchor|rawl|bracket|hinge/.test(s))          return 'fixings';
+    if (/safety|ppe|workwear|glove|helmet|boot|hi.?vis/.test(s))             return 'safety';
     return 'other';
   }
 
-  function eiThemeFromRow(r) {
-    return eiThemeFromText((r.ItemTitle || '') + ' ' + (r.SupplierName || ''));
+  function themeFromRow(r) { return themeFromText((r.ItemTitle||'') + ' ' + (r.SupplierName||'')); }
+
+  function coverDays(r) {
+    var s = r.stock || r.NetStock_Arklow || 0;
+    var q = r.QtySold_Online_Total_30d || r.QSold_On30 || 0;
+    if (q <= 0) return s > 0 ? 999 : 0;
+    return s / (q / 30);
   }
 
-  function eiThemeLabel(t) {
-    var map = { garden:'Garden', power:'Power tools', tools:'Hand tools', paint:'Paint',
-      cleaning:'Cleaning', plumbing:'Plumbing', storage:'Storage', fixings:'Fixings', safety:'Safety', other:'General' };
-    return map[t] || t;
+  function getRows() {
+    try { return (typeof state !== 'undefined' && state.computedRows) ? state.computedRows : []; }
+    catch(e) { return []; }
   }
 
-  function eiCoverDays(r) {
-    var stk = r.stock || r.NetStock_Arklow || 0;
-    var q30 = r.QtySold_Online_Total_30d || r.QSold_On30 || 0;
-    if (q30 <= 0) return stk > 0 ? 999 : 0;
-    return stk / (q30 / 30);
+  function currentMonth() {
+    var sel = G('eiMonthSel');
+    return sel ? parseInt(sel.value, 10) : new Date().getMonth();
   }
 
-  function eiEmailStatus(cover, hist, theme) {
-    var now  = new Date();
-    var last = hist.length ? new Date(hist[0].sentAt) : null;
-    var days = last ? (now - last) / 86400000 : 999;
-    if (cover != null && cover < 14 && hist.length) return { k: 'hold',   l: 'Hold — critical' };
-    if (cover != null && cover < 14)                return { k: 'hold',   l: 'Low — avoid' };
-    if (!hist.length) {
-      // Only use theme matching for specific meaningful themes — not 'other'
-      var specificThemes = ['garden','power','tools','paint','cleaning','plumbing','storage','fixings','safety'];
-      if (theme && specificThemes.indexOf(theme) >= 0) {
-        var tc = eiSt.campaigns.filter(function(c) { return c.theme === theme && c.sent_at; });
-        tc.sort(function(a,b){ return new Date(b.sent_at)-new Date(a.sent_at); });
-        if (tc.length) {
-          var tDays = Math.round((now - new Date(tc[0].sent_at)) / 86400000);
-          if (tDays < 35) return { k: 'recent', l: 'Theme sent ' + tDays + 'd ago' };
-          if (tDays < 90) return { k: 'ready',  l: 'Theme sent ' + tDays + 'd ago' };
-        }
-      }
-      return { k: 'never', l: 'Never emailed' };
-    }
-    if (days < 35) return { k: 'recent', l: 'Sent recently' };
-    return          { k: 'ready',  l: 'Ready' };
+  function setStatus(msg, type) {
+    var el = G('eiStatus'); if (!el) return;
+    el.style.display   = 'block';
+    el.style.background = type==='error'?'#fee2e2':type==='loading'?'#fff7ed':'#f0fdf4';
+    el.style.color      = type==='error'?'#7f1d1d':type==='loading'?'#92400e':'#14532d';
+    el.style.borderColor= type==='error'?'#fca5a5':type==='loading'?'#fed7aa':'#bbf7d0';
+    el.textContent      = msg;
   }
 
-  function eiSetLoading(on) {
-    var sp = eiG('eiSpinner');
-    if (sp) sp.style.display = on ? '' : 'none';
-  }
+  function setLoading(on) { var s=G('eiSpinner'); if(s) s.style.display=on?'':'none'; }
 
-  function eiSetStatus(msg, type) {
-    var el = eiG('eiStatus');
-    if (!el) return;
-    el.style.display = 'block';
-    var bg  = type === 'error' ? '#fee2e2' : type === 'loading' ? '#fff7ed' : '#f0fdf4';
-    var col = type === 'error' ? '#7f1d1d' : type === 'loading' ? '#92400e' : '#14532d';
-    var bdr = type === 'error' ? '#fca5a5' : type === 'loading' ? '#fed7aa' : '#bbf7d0';
-    el.style.background   = bg;
-    el.style.color        = col;
-    el.style.borderColor  = bdr;
-    el.textContent        = msg;
-  }
-
-  function eiGetRows() {
-    // state is declared as const in the main script block — not on window, but
-    // accessible as a global lexical binding from this script block
-    try {
-      if (typeof state !== 'undefined' && state.computedRows && state.computedRows.length) {
-        return state.computedRows;
-      }
-      return [];
-    } catch(e) { return []; }
-  }
-
-  // ── Public: called when tab is clicked ──────────────────────────────────────
+  // ── Tab open ─────────────────────────────────────────────────────────────────
   window.eiOnTabOpen = function() {
-    try {
-      var kr   = eiG('eiKeyRow');
-      var note = eiG('eiNote');
-      if (kr)   kr.style.display   = 'none';
-      if (note) note.textContent   = 'Klaviyo key configured for all users.';
-      if (eiSt.loaded) { eiRenderAll(); return; }
-      var rows = eiGetRows();
-      if (rows.length) {
-        eiLoadKlaviyo();
-      } else {
-        eiSetStatus('Key ready — load your buying data first, then return here.', 'ok');
-      }
-    } catch(e) {
-      eiSetStatus('Error: ' + e.message, 'error');
-      console.error('eiOnTabOpen', e);
+    // Set month selector to current month
+    var sel = G('eiMonthSel');
+    if (sel) sel.value = new Date().getMonth();
+
+    if (eiLoaded) { eiRender(); return; }
+    var rows = getRows();
+    if (rows.length) {
+      eiLoadKlaviyo();
+    } else {
+      setStatus('Load your buying data first (Buying tab), then come back here.', 'ok');
+      eiRenderInStock(); // show stock even without Klaviyo
     }
   };
 
-  // ── Demo loader ──────────────────────────────────────────────────────────────
-  window.eiLoadDemo = function() {
-    try {
-      eiSetLoading(true);
-      var now = new Date();
-      function daysAgo(n) { var d = new Date(now); d.setDate(d.getDate() - n); return d.toISOString(); }
-      eiSt.campaigns = [
-        { id:'c1', subject:'Summer garden deals — stock up and save on outdoor must-haves', sent_at: daysAgo(8),   recipients: 21400, open_rate: 28.4, skus: ['GRD-HOZ-15M','GRD-SPD-001','GRD-FOR-3TN'], theme: 'garden'   },
-        { id:'c2', subject:'Tool time — special offers on hand tools this week',            sent_at: daysAgo(30),  recipients: 19800, open_rate: 24.1, skus: ['TOL-HAM-16OZ','TOL-SCR-SET'],             theme: 'tools'    },
-        { id:'c3', subject:'Spring clean sale — save on cleaning essentials',               sent_at: daysAgo(54),  recipients: 22100, open_rate: 31.2, skus: ['CLN-MOP-001','PNT-DLX-5L-WH'],           theme: 'cleaning' },
-        { id:'c4', subject:'Plumbing and heating clearance — save now',                     sent_at: daysAgo(91),  recipients: 18300, open_rate: 22.7, skus: ['PLB-PPE-15MM','PLB-ELB-15'],             theme: 'plumbing' },
-        { id:'c5', subject:'Get organised — storage solutions on sale',                     sent_at: daysAgo(120), recipients: 17600, open_rate: 25.9, skus: ['STR-BIN-60L','STR-SHF-MT'],              theme: 'storage'  },
-        { id:'c6', subject:'Stock up and save — fixings and hardware deals',                sent_at: daysAgo(180), recipients: 20100, open_rate: 23.4, skus: ['FIX-SCR-PH2','FIX-BLT-M6'],             theme: 'fixings'  }
-      ];
-      eiSt.hist = {};
-      eiSt.campaigns.forEach(function(c) {
-        (c.skus || []).forEach(function(sku) {
-          if (!eiSt.hist[sku]) eiSt.hist[sku] = [];
-          eiSt.hist[sku].push({ sentAt: c.sent_at, recipients: c.recipients, subject: c.subject });
-        });
-      });
-      eiSt.loaded = true;
-      eiSetStatus('Demo data loaded — ' + eiSt.campaigns.length + ' campaigns, ' + Object.keys(eiSt.hist).length + ' SKUs tracked.', 'ok');
-      eiRenderAll();
-    } catch(e) {
-      eiSetStatus('Demo error: ' + e.message, 'error');
-      console.error('eiLoadDemo', e);
-    } finally {
-      eiSetLoading(false);
-    }
-  };
+  // ── Month change ──────────────────────────────────────────────────────────────
+  window.eiOnMonthChange = function() { eiRender(); };
 
-  // ── Klaviyo API loader ───────────────────────────────────────────────────────
+  // ── Klaviyo loader ────────────────────────────────────────────────────────────
   window.eiLoadKlaviyo = function() {
-    var key = EI_KEY;
-    if (!key) { eiSetStatus('No API key configured.', 'error'); return; }
-    eiSetLoading(true);
-    eiSetStatus('Connecting to Klaviyo via proxy...', 'loading');
+    setLoading(true);
+    setStatus('Connecting to Klaviyo…', 'loading');
 
-    // Call Apps Script proxy — it fetches Klaviyo server-side (no CORS)
-    var url = EI_PROXY + '?action=klaviyo';
+    var campPromise  = fetch(EI_PROXY + '?action=klaviyo').then(function(r) { return r.json(); });
+    var statsPromise = fetch(EI_PROXY + '?action=klaviyo_stats').then(function(r) { return r.json(); }).catch(function() { return {}; });
 
-    fetch(url)
-    .then(function(res) {
-      if (!res.ok) throw new Error('Proxy returned HTTP ' + res.status);
-      return res.json();
-    })
-    .then(function(data) {
-      // Apps Script follows redirects, so data is the raw Klaviyo response
-      var raw = data.data || [];
-      if (data.error) throw new Error(data.error);
+    Promise.all([campPromise, statsPromise])
+      .then(function(results) {
+        var campData  = results[0];
+        var statsData = results[1];
 
-      eiSt.campaigns = raw.map(function(c) {
-        var a    = c.attributes || {};
-        var tags = a.tags || [];
-        return {
-          id:         c.id,
-          subject:    a.name || '(no subject)',
-          sent_at:    a.send_time || null,
-          recipients: (a.send_options && a.send_options.num_recipients) || null,
-          open_rate:  null,
-          skus:       tags.filter(function(t) { return t.indexOf('sku:') === 0; }).map(function(t) { return t.slice(4); }),
-          theme:      eiThemeFromText(a.name || '')
-        };
-      });
+        if (campData.error) throw new Error(campData.error);
 
-      eiSt.hist = {};
-      eiSt.campaigns.forEach(function(c) {
-        (c.skus || []).forEach(function(sku) {
-          if (!eiSt.hist[sku]) eiSt.hist[sku] = [];
-          eiSt.hist[sku].push({ sentAt: c.sent_at, recipients: c.recipients, subject: c.subject });
+        // Build campaigns list
+        var raw = campData.data || [];
+        eiCamps = raw.map(function(c) {
+          var a = c.attributes || {};
+          return {
+            id:      c.id,
+            name:    a.name || '',
+            sent_at: a.send_time || a.scheduled_at || null,
+            status:  a.status || '',
+            theme:   themeFromText(a.name || '')
+          };
+        }).filter(function(c) { return c.sent_at; });
+
+        // Build stats map — keyed by campaign_id
+        eiStats = {};
+        var results2 = (statsData.data && statsData.data.attributes && statsData.data.attributes.results) || [];
+        results2.forEach(function(r) {
+          var id   = r.groupings && r.groupings.campaign_id;
+          var vals = r.statistics || r;
+          if (id) {
+            eiStats[id] = {
+              open_rate:             pct(vals.open_rate),
+              click_rate:            pct(vals.click_rate),
+              revenue_per_recipient: vals.revenue_per_recipient || 0
+            };
+          }
         });
-      });
 
-      eiSt.loaded = true;
-      var rowCount = eiGetRows().length;
-      eiSetStatus('Connected — ' + eiSt.campaigns.length + ' campaigns · ' + rowCount + ' buying SKUs cross-referenced · Synced: ' + new Date().toLocaleTimeString('en-IE'), 'ok');
-      eiRenderAll();
-    })
-    .catch(function(e) {
-      eiSetStatus('Error: ' + e.message, 'error');
-      console.error('eiLoadKlaviyo', e);
-    })
-    .finally(function() {
-      eiSetLoading(false);
-    });
+        eiLoaded = true;
+        var statCount = Object.keys(eiStats).length;
+        setStatus('Synced — ' + eiCamps.length + ' campaigns · ' + statCount + ' with performance data · ' + new Date().toLocaleTimeString('en-IE'), 'ok');
+        eiRender();
+      })
+      .catch(function(e) {
+        setStatus('Error: ' + e.message, 'error');
+        console.error(e);
+      })
+      .finally(function() { setLoading(false); });
   };
 
-  // ── Render ───────────────────────────────────────────────────────────────────
-  function eiRenderAll() {
-    try {
-      var sb = eiG('eiStats'); if (sb) sb.style.display = '';
-      var bd = eiG('eiBody');  if (bd) bd.style.display = '';
-      eiRenderSummary();
-      eiRenderCampaigns();
-      eiRenderOpps();
-      eiRenderSkus();
-    } catch(e) {
-      eiSetStatus('Render error: ' + e.message, 'error');
-      console.error('eiRenderAll', e);
+  function pct(v) { return v != null ? Math.round(v * 100) : null; }
+
+  // ── Main render ───────────────────────────────────────────────────────────────
+  function eiRender() {
+    var m = currentMonth();
+    var mName = MONTH_NAMES[m];
+    // Update column headers
+    var ha = G('eiColAHead'); if (ha) ha.textContent = 'Last year in ' + mName;
+    var hb = G('eiColBHead'); if (hb) hb.textContent = 'In stock now for ' + mName;
+
+    eiRenderLastYear(m);
+    eiRenderInStock(m);
+    eiRenderSuggestions(m);
+    eiRenderArchive();
+  }
+
+  // ── Column 1: What ran last year in this month ────────────────────────────────
+  function eiRenderLastYear(m) {
+    var el = G('eiLastYear'); if (!el) return;
+    if (!eiLoaded) { el.innerHTML = '<div class="ei-empty">Sync Klaviyo to see last year\'s campaigns</div>'; return; }
+
+    var lastYear = new Date().getFullYear() - 1;
+    var camps = eiCamps.filter(function(c) {
+      var d = new Date(c.sent_at);
+      return d.getMonth() === m && d.getFullYear() === lastYear;
+    });
+    camps.sort(function(a,b) { return new Date(b.sent_at)-new Date(a.sent_at); });
+
+    if (!camps.length) {
+      el.innerHTML = '<div class="ei-empty">No campaigns sent in ' + MONTH_NAMES[m] + ' ' + lastYear + '</div>';
+      return;
     }
-  }
 
-  function eiRenderSummary() {
-    var camps = eiSt.campaigns;
-    var recs  = camps.filter(function(c) { return c.recipients; }).map(function(c) { return c.recipients; });
-    var avg   = recs.length ? Math.round(recs.reduce(function(a, b) { return a + b; }, 0) / recs.length) : 0;
-    var rows  = eiGetRows();
-
-    // Count distinct themes covered by campaigns
-    var themes = {};
-    camps.forEach(function(c) { if (c.theme) themes[c.theme] = true; });
-    var themeCount = Object.keys(themes).length;
-
-    // Count low stock SKUs whose theme was emailed recently
-    var low = 0;
-    rows.forEach(function(r) {
-      var cover = eiCoverDays(r);
-      if (cover < 30) {
-        var theme = eiThemeFromRow(r);
-        var tc = camps.filter(function(c) { return c.theme === theme && c.sent_at; });
-        if (tc.length) low++;
-      }
+    // Sort by open rate descending so best performers come first
+    camps.sort(function(a,b) {
+      var sa = eiStats[a.id] || {}, sb = eiStats[b.id] || {};
+      return (sb.open_rate||0) - (sa.open_rate||0);
     });
 
-    var opps = eiGetOpps();
-    var e1 = eiG('eiSC');  if (e1) e1.textContent = camps.length;
-    var e2 = eiG('eiSR');  if (e2) e2.textContent = avg ? avg.toLocaleString('en-IE') : '—';
-    var e3 = eiG('eiSSF'); if (e3) e3.textContent = themeCount;
-    var e4 = eiG('eiSO');  if (e4) e4.textContent = opps.length;
-    var e5 = eiG('eiSL');  if (e5) e5.textContent = low;
-  }
+    var html = '<div style="font-size:11px;font-weight:800;color:#16a34a;margin-bottom:10px">✅ ' + camps.length + ' campaign' + (camps.length>1?'s':'') + ' in ' + MONTH_NAMES[m] + ' ' + lastYear + '</div>';
 
-  var eiCampPage = 0;
-  var eiCampPageSize = 20;
-  var eiCampFiltered = [];
+    camps.forEach(function(c) {
+      var tpl  = TPL[c.theme] || TPL.other;
+      var date = new Date(c.sent_at).toLocaleDateString('en-IE', {day:'2-digit', month:'short'});
+      var st   = eiStats[c.id] || {};
+      var hasStats = st.open_rate != null;
 
-  function eiRenderCampaigns() {
-    eiCampPage = 0;
-    var theme  = (eiG('eiTheme')  || {}).value || '';
-    var months = parseInt((eiG('eiPeriod') || {}).value || '12', 10);
-    var cutoff = months > 0 ? new Date(Date.now() - months * 30 * 24 * 3600 * 1000) : new Date(0);
-    var camps  = eiSt.campaigns.filter(function(c) { return c.sent_at && new Date(c.sent_at) >= cutoff; });
-    if (theme) camps = camps.filter(function(c) { return c.theme === theme; });
-    camps.sort(function(a, b) { return new Date(b.sent_at) - new Date(a.sent_at); });
-    eiCampFiltered = camps;
-    eiRenderCampPage();
-  }
+      // Performance badge colour
+      var perfBg = '#f1f5f9', perfCol = '#64748b';
+      if (hasStats && st.open_rate >= 30) { perfBg = '#dcfce7'; perfCol = '#14532d'; }
+      else if (hasStats && st.open_rate >= 20) { perfBg = '#fef9c3'; perfCol = '#713f12'; }
+      else if (hasStats) { perfBg = '#fee2e2'; perfCol = '#7f1d1d'; }
 
-  function eiRenderCampPage() {
-    var con = eiG('eiCampList'); if (!con) return;
-    var camps = eiCampFiltered;
-    if (!camps.length) { con.innerHTML = '<div class="ei-empty">No campaigns match this filter</div>'; return; }
-    var rows  = eiGetRows();
-    var start = eiCampPage * eiCampPageSize;
-    var end   = Math.min(start + eiCampPageSize, camps.length);
-    var page  = camps.slice(start, end);
-    var html  = '';
-    page.forEach(function(c) {
-      var dt    = new Date(c.sent_at).toLocaleDateString('en-IE', { day: '2-digit', month: 'short' });
-      var rec   = c.recipients ? c.recipients.toLocaleString('en-IE') : '—';
-      var open  = c.open_rate != null ? ' &middot; ' + c.open_rate.toFixed(1) + '% open' : '';
-      var warns = (c.skus || []).filter(function(s) {
-        var r = rows.filter(function(x) { return (x.SKU || '').trim() === s; })[0];
-        return r && eiCoverDays(r) < 30;
-      });
-      var skuHtml = (c.skus || []).slice(0, 4).map(function(s) {
-        return '<span class="ei-tag' + (warns.indexOf(s) >= 0 ? ' warn' : '') + '">' + eiEsc(s) + '</span>';
-      }).join('') + (c.skus.length > 4 ? '<span class="ei-tag">+' + (c.skus.length - 4) + '</span>' : '');
-      html += '<div class="ei-cr">'
-        + '<div class="ei-cr-date">' + dt + '</div>'
-        + '<div class="ei-cr-body">'
-          + '<div class="ei-cr-sub" title="' + eiEsc(c.subject) + '">' + eiEsc(c.subject) + '</div>'
-          + '<div class="ei-cr-meta">' + rec + ' recipients' + open + (c.skus.length ? ' &middot; ' + c.skus.length + ' SKUs' : '') + '</div>'
-          + (skuHtml ? '<div class="ei-cr-skus">' + skuHtml + '</div>' : '')
-          + (warns.length ? '<div style="font-size:11px;color:#c2410c;margin-top:4px;font-weight:600">&#9888; ' + warns.length + ' featured SKU' + (warns.length > 1 ? 's' : '') + ' now low stock</div>' : '')
-        + '</div>'
-        + '<span class="ei-bdg sent">Sent</span>'
-      + '</div>';
-    });
-    // Pagination footer
-    var totalPages = Math.ceil(camps.length / eiCampPageSize);
-    if (totalPages > 1) {
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 4px 2px;font-size:11px;color:#64748b;border-top:1px solid var(--line-light);margin-top:4px">'
-        + '<span>' + (start+1) + '–' + end + ' of ' + camps.length + '</span>'
-        + '<span style="display:flex;gap:6px">'
-        + (eiCampPage > 0 ? '<button class="secondary" onclick="eiCampPrev()" style="padding:2px 9px;font-size:11px">&#8592;</button>' : '')
-        + (eiCampPage < totalPages-1 ? '<button class="secondary" onclick="eiCampNext()" style="padding:2px 9px;font-size:11px">&#8594;</button>' : '')
-        + '</span></div>';
-    }
-    con.innerHTML = html;
-  }
-
-  window.eiCampNext = function() { eiCampPage++; eiRenderCampPage(); };
-  window.eiCampPrev = function() { eiCampPage--; eiRenderCampPage(); };
-
-  function eiGetOpps() {
-    var rows = eiGetRows();
-    if (!rows.length) return [];
-    var groups = {};
-    rows.forEach(function(r) {
-      var t = eiThemeFromRow(r);
-      if (!groups[t]) groups[t] = [];
-      groups[t].push(r);
-    });
-    var now  = new Date();
-    var opps = [];
-    Object.keys(groups).forEach(function(theme) {
-      var tpl = EI_TPL[theme] || EI_TPL.other;
-      var promotable = groups[theme].filter(function(r) { return eiCoverDays(r) > 30 && (r.stock || r.NetStock_Arklow || 0) > 0; });
-      if (!promotable.length) return;
-      var tc   = eiSt.campaigns.filter(function(c) { return c.theme === theme && c.sent_at; });
-      tc.sort(function(a, b) { return new Date(b.sent_at) - new Date(a.sent_at); });
-      var last = tc[0] ? new Date(tc[0].sent_at) : null;
-      var days = last ? Math.round((now - last) / 86400000) : 999;
-      var never = promotable.filter(function(r) { return !eiSt.hist[(r.SKU || '').trim()]; });
-      var avg  = Math.round(promotable.reduce(function(s, r) { return s + eiCoverDays(r); }, 0) / promotable.length);
-      var type = null, urg = 'normal';
-      if      (days > 45 && promotable.length >= 3) { type = 'overdue'; urg = days > 90 ? 'high' : 'normal'; }
-      else if (never.length >= 2)                   { type = 'never'; }
-      else if (days > 21 && avg > 60)               { type = 'highstock'; urg = avg > 90 ? 'high' : 'normal'; }
-      if (!type) return;
-      opps.push({ theme: theme, tpl: tpl, type: type, urg: urg, promotable: promotable, days: days, avg: avg, never: never });
-    });
-    opps.sort(function(a, b) {
-      if (a.urg !== b.urg) return a.urg === 'high' ? -1 : 1;
-      return b.avg - a.avg;
-    });
-    return opps.slice(0, 6);
-  }
-
-  function eiRenderOpps() {
-    var con  = eiG('eiOpps'); if (!con) return;
-    var opps = eiGetOpps();
-    var rows = eiGetRows();
-    if (!opps.length && !rows.length) { con.innerHTML = '<div class="ei-empty">Load buying data first, then Klaviyo data.</div>'; return; }
-    if (!opps.length)                 { con.innerHTML = '<div class="ei-empty">No email opportunities at current stock levels.</div>'; return; }
-    var html = '';
-    opps.forEach(function(o) {
-      var bg   = o.urg === 'high' ? '#fef3c7' : o.type === 'never' ? '#ede9fe' : '#dcfce7';
-      var meta = o.promotable.length + ' SKUs &middot; avg ' + o.avg + 'd cover';
-      if (o.days < 999) meta += ' &middot; last emailed ' + o.days + 'd ago'; else meta += ' &middot; never emailed';
-      if (o.never.length) meta += ' &middot; ' + o.never.length + ' new SKUs';
-      var topSkus = o.promotable.slice(0, 3).map(function(r) { return '<span class="ei-tag">' + eiEsc((r.SKU || '').trim()) + '</span>'; }).join('');
-      var more    = o.promotable.length > 3 ? '<span class="ei-tag">+' + (o.promotable.length - 3) + '</span>' : '';
-      var subj    = (o.tpl.s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-      html += '<div class="ei-opp">'
-        + '<div class="ei-opp-icon" style="background:' + bg + '">' + o.tpl.e + '</div>'
-        + '<div style="flex:1;min-width:0">'
-          + '<div class="ei-opp-title">' + eiThemeLabel(o.theme) + '</div>'
-          + '<div class="ei-opp-meta">' + meta + '</div>'
-          + '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px">' + topSkus + more + '</div>'
-          + '<div class="ei-subj">&ldquo;' + eiEsc(o.tpl.s) + '&rdquo;<br><span style="font-size:11px;opacity:.8">' + eiEsc(o.tpl.h) + '</span></div>'
-          + '<div class="ei-opp-btns">'
-            + '<button class="ei-cb" onclick="navigator.clipboard.writeText(\'' + subj + '\');this.textContent=\'Copied!\'">Copy subject</button>'
-            + '<button class="ei-cb" onclick="eiCopyBrief(\'' + o.theme + '\')">Copy campaign brief</button>'
+      html += '<div style="padding:10px 0;border-bottom:1px solid var(--line-light)">'
+        + '<div style="display:flex;align-items:flex-start;gap:8px">'
+          + '<span style="font-size:18px;flex-shrink:0;margin-top:1px">' + tpl.e + '</span>'
+          + '<div style="flex:1;min-width:0">'
+            + '<div style="font-size:13px;font-weight:700;color:#1e293b;line-height:1.3">' + esc(c.name) + '</div>'
+            + '<div style="font-size:11px;color:#64748b;margin-top:3px">' + date + '</div>'
+            + (hasStats
+              ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px">'
+                + '<span style="background:' + perfBg + ';color:' + perfCol + ';border-radius:4px;padding:2px 7px;font-size:11px;font-weight:800">' + st.open_rate + '% open</span>'
+                + (st.click_rate != null ? '<span style="background:#f1f5f9;color:#475569;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700">' + st.click_rate + '% click</span>' : '')
+                + (st.revenue_per_recipient ? '<span style="background:#eff6ff;color:#1e40af;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700">€' + st.revenue_per_recipient.toFixed(2) + '/recip</span>' : '')
+                + '</div>'
+              : '<div style="font-size:11px;color:#94a3b8;margin-top:4px">No stats available</div>')
           + '</div>'
         + '</div>'
       + '</div>';
     });
-    con.innerHTML = html;
+    el.innerHTML = html;
   }
 
-  window.eiCopyBrief = function(theme) {
-    var opps = eiGetOpps();
-    var o    = opps.filter(function(x) { return x.theme === theme; })[0];
-    if (!o) return;
-    var skus  = o.promotable.slice(0, 8).map(function(r) { return (r.SKU || '').trim(); }).join(', ');
-    var brief = 'Klaviyo campaign brief — Lenehans hardware\n'
-      + 'Theme: ' + eiThemeLabel(theme) + '\n'
-      + 'Subject: "' + o.tpl.s + '"\n'
-      + 'Hook: "' + o.tpl.h + '"\n'
-      + 'Top SKUs: ' + skus + '\n'
-      + 'Avg cover: ' + o.avg + 'd | Last sent: ' + (o.days < 999 ? o.days + 'd ago' : 'never') + '\n\n'
-      + 'Please write: subject line options, preview text, email structure, product highlight sections, and a CTA.';
+  // ── Column 2: Stock in season right now ───────────────────────────────────────
+  function eiRenderInStock(m) {
+    var el = G('eiInStock'); if (!el) return;
+    if (m === undefined) m = currentMonth();
+    var rows = getRows();
+    if (!rows.length) { el.innerHTML = '<div class="ei-empty">Load buying data to see seasonal stock</div>'; return; }
+
+    var seasonal = SEASONAL[m] || [];
+    var html = '';
+
+    seasonal.forEach(function(theme) {
+      var tpl    = TPL[theme] || TPL.other;
+      var matching = rows.filter(function(r) {
+        return themeFromRow(r) === theme && coverDays(r) > 30 && (r.stock||r.NetStock_Arklow||0) > 0;
+      });
+      if (!matching.length) return;
+      matching.sort(function(a,b) { return coverDays(b)-coverDays(a); });
+      var top = matching.slice(0,3);
+      var avgCover = Math.round(matching.reduce(function(s,r){return s+coverDays(r);},0)/matching.length);
+
+      html += '<div style="padding:10px 0;border-bottom:1px solid var(--line-light)">'
+        + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">'
+          + '<span style="font-size:16px">' + tpl.e + '</span>'
+          + '<span style="font-size:13px;font-weight:800;color:#1e293b">' + (theme.charAt(0).toUpperCase()+theme.slice(1)) + '</span>'
+          + '<span style="margin-left:auto;font-size:11px;font-weight:700;color:#16a34a;background:#dcfce7;padding:2px 7px;border-radius:4px">' + matching.length + ' SKUs ready</span>'
+        + '</div>'
+        + '<div style="font-size:11px;color:#64748b;margin-bottom:4px">Avg cover: ' + avgCover + 'd</div>'
+        + top.map(function(r) {
+            return '<div style="font-size:11px;color:#374151;padding:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+              + '· ' + esc(r.ItemTitle||r.SKU||'') + '</div>';
+          }).join('')
+        + (matching.length > 3 ? '<div style="font-size:11px;color:#94a3b8">+ ' + (matching.length-3) + ' more</div>' : '')
+      + '</div>';
+    });
+
+    if (!html) { el.innerHTML = '<div class="ei-empty">No strong seasonal stock for this month</div>'; return; }
+    el.innerHTML = html;
+  }
+
+  // ── Column 3: Suggested emails ────────────────────────────────────────────────
+  function eiRenderSuggestions(m) {
+    var el = G('eiSuggest'); if (!el) return;
+    var rows = getRows();
+    if (!rows.length) { el.innerHTML = '<div class="ei-empty">Load buying data to generate suggestions</div>'; return; }
+
+    var now      = new Date();
+    var lastYear = now.getFullYear() - 1;
+    var seasonal = SEASONAL[m] || [];
+    var html     = '';
+
+    seasonal.forEach(function(theme) {
+      var tpl = TPL[theme] || TPL.other;
+
+      // Stock available
+      var ready = rows.filter(function(r) {
+        return themeFromRow(r) === theme && coverDays(r) > 30 && (r.stock||r.NetStock_Arklow||0) > 0;
+      });
+      if (!ready.length) return;
+
+      var lastYearCamps = eiCamps.filter(function(c) {
+        var d = new Date(c.sent_at);
+        return c.theme === theme && d.getMonth() === m && d.getFullYear() === lastYear;
+      });
+
+      // Find best performer from last year in this theme/month
+      var bestCamp = null, bestOpen = 0;
+      lastYearCamps.forEach(function(c) {
+        var st = eiStats[c.id] || {};
+        if ((st.open_rate||0) > bestOpen) { bestOpen = st.open_rate||0; bestCamp = c; }
+      });
+
+      // When did we last send anything in this theme?
+      var allThemeCamps = eiCamps.filter(function(c) { return c.theme === theme && c.sent_at; });
+      allThemeCamps.sort(function(a,b) { return new Date(b.sent_at)-new Date(a.sent_at); });
+      var lastSent = allThemeCamps[0] ? new Date(allThemeCamps[0].sent_at) : null;
+      var daysSince = lastSent ? Math.round((now-lastSent)/86400000) : 999;
+
+      var avgCover = Math.round(ready.reduce(function(s,r){return s+coverDays(r);},0)/ready.length);
+      var urgency  = daysSince > 60 || lastYearCamps.length > 0 ? 'high' : 'normal';
+      var bg       = urgency === 'high' ? '#fef3c7' : '#f0fdf4';
+
+      var subj = (tpl.s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      var brief = theme + '|' + ready.length + '|' + avgCover + '|' + daysSince + '|' + MONTH_NAMES[m];
+
+      var html2 = '<div style="background:' + bg + ';border:1.5px solid ' + (urgency==='high'?'#fde68a':'#bbf7d0') + ';border-radius:10px;padding:12px;margin-bottom:10px">'
+        + '<div style="font-size:13px;font-weight:800;color:#1e293b;margin-bottom:4px">' + tpl.e + ' ' + (theme.charAt(0).toUpperCase()+theme.slice(1)) + '</div>'
+        + '<div style="font-size:11px;color:#475569;margin-bottom:6px;line-height:1.7">'
+          + ready.length + ' SKUs in stock &middot; avg ' + avgCover + 'd cover'
+          + (lastYearCamps.length ? '<br>✅ Sent ' + lastYearCamps.length + 'x last ' + MONTH_NAMES[m] : '')
+          + (bestCamp ? ' &middot; best: <strong>' + bestOpen + '% open</strong>' : '')
+          + (daysSince < 999 ? '<br>Last sent ' + daysSince + 'd ago' : '<br>Never emailed this theme')
+        + '</div>'
+        + (bestCamp ? '<div style="font-size:11px;color:#475569;background:#fff;padding:6px 9px;border-radius:6px;border:1px solid #e2e8f0;margin-bottom:6px">Last year\'s best: <em>"' + esc(bestCamp.name) + '"</em></div>' : '')
+        + '<div style="font-size:12px;color:#0c4a6e;font-style:italic;background:#fff;padding:6px 9px;border-radius:6px;border:1px solid #bae6fd;margin-bottom:8px">"' + esc(tpl.s) + '"</div>'
+        + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
+          + '<button class="ei-cb" onclick="navigator.clipboard.writeText(\'' + subj + '\');this.textContent=\'✓ Copied!\'">Copy subject</button>'
+          + '<button class="ei-cb" onclick="eiCopyBrief(\'' + brief + '\')">Copy campaign brief</button>'
+        + '</div>'
+      + '</div>';
+      html += html2;
+    });
+
+    if (!html) { el.innerHTML = '<div class="ei-empty">No suggestions — check stock levels and buying data</div>'; return; }
+    el.innerHTML = html;
+  }
+
+  // ── Archive (bottom, full campaign list) ──────────────────────────────────────
+  function eiRenderArchive() {
+    var el = G('eiArchiveList'); if (!el) return;
+    if (!eiLoaded) { el.innerHTML = '<div class="ei-empty" style="padding:20px">Sync Klaviyo to see archive</div>'; return; }
+
+    var theme  = (G('eiArchiveTheme')||{}).value||'';
+    var months = parseInt((G('eiArchivePeriod')||{}).value||'12',10);
+    var cutoff = months > 0 ? new Date(Date.now()-months*30*24*3600*1000) : new Date(0);
+
+    var camps = eiCamps.filter(function(c) {
+      return (!theme || c.theme===theme) && new Date(c.sent_at) >= cutoff;
+    });
+    camps.sort(function(a,b){return new Date(b.sent_at)-new Date(a.sent_at);});
+
+    if (!camps.length) { el.innerHTML = '<div class="ei-empty" style="padding:20px">No campaigns match this filter</div>'; return; }
+
+    // Group by month
+    var byMonth = {};
+    camps.forEach(function(c) {
+      var d = new Date(c.sent_at);
+      var key = MONTH_NAMES[d.getMonth()] + ' ' + d.getFullYear();
+      if (!byMonth[key]) byMonth[key] = [];
+      byMonth[key].push(c);
+    });
+
+    var html = '<table class="ei-tbl"><thead><tr><th>Date</th><th>Campaign</th><th>Theme</th><th>Status</th></tr></thead><tbody>';
+    Object.keys(byMonth).forEach(function(month) {
+      html += '<tr><td colspan="4" style="background:#f1f5f9;font-size:11px;font-weight:800;color:#475569;padding:6px 10px;text-transform:uppercase;letter-spacing:.05em">' + month + '</td></tr>';
+      byMonth[month].forEach(function(c) {
+        var tpl = TPL[c.theme]||TPL.other;
+        var dt  = new Date(c.sent_at).toLocaleDateString('en-IE',{day:'2-digit',month:'short'});
+        html += '<tr>'
+          + '<td style="color:#64748b;font-size:11px;white-space:nowrap">' + dt + '</td>'
+          + '<td style="font-size:12px;font-weight:600;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(c.name)+'">' + esc(c.name) + '</td>'
+          + '<td><span style="background:#f1f5f9;color:#475569;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700">' + tpl.e + ' ' + (c.theme!=='other'?c.theme:'general') + '</span></td>'
+          + '<td><span style="background:#dbeafe;color:#1e3a8a;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700">' + esc(c.status||'Sent') + '</span></td>'
+        + '</tr>';
+      });
+    });
+    html += '</tbody></table>';
+    el.innerHTML = html;
+  }
+
+  // ── Copy campaign brief ───────────────────────────────────────────────────────
+  window.eiCopyBrief = function(encoded) {
+    var parts    = encoded.split('|');
+    var theme    = parts[0], skuCount = parts[1], avgCover = parts[2], daysSince = parts[3], month = parts[4];
+    var tpl      = TPL[theme] || TPL.other;
+    var rows     = getRows();
+    var matching = rows.filter(function(r){ return themeFromRow(r)===theme && coverDays(r)>30; });
+    var topSkus  = matching.slice(0,8).map(function(r){ return (r.SKU||'').trim(); }).join(', ');
+
+    var brief = [
+      'KLAVIYO CAMPAIGN BRIEF — Lenehans Hardware',
+      '═══════════════════════════════════════',
+      'Month: ' + month,
+      'Theme: ' + (theme.charAt(0).toUpperCase()+theme.slice(1)),
+      '',
+      'SUGGESTED SUBJECT LINE:',
+      '"' + tpl.s + '"',
+      '',
+      'PREVIEW TEXT:',
+      tpl.h,
+      '',
+      'CONTEXT:',
+      '· ' + skuCount + ' SKUs in stock for this theme',
+      '· Avg stock cover: ' + avgCover + ' days',
+      '· Last emailed this theme: ' + (daysSince < 999 ? daysSince + ' days ago' : 'never'),
+      '',
+      'TOP SKUs TO FEATURE:',
+      topSkus,
+      '',
+      'PLEASE WRITE:',
+      '1. 3 subject line options (seasonal angle)',
+      '2. Preview text (max 90 chars)',
+      '3. Email intro paragraph',
+      '4. 3–4 product highlight sections with benefit-led copy',
+      '5. CTA button text',
+      '6. Footer note about stock levels'
+    ].join('\n');
+
     navigator.clipboard.writeText(brief)
-      .then(function() { alert('Brief copied — paste into Claude or your email tool.'); })
-      .catch(function() { alert(brief); });
+      .then(function(){ alert('Campaign brief copied — paste into Claude or your email tool.'); })
+      .catch(function(){ alert(brief); });
   };
 
-  var eiSkuPage = 0;
-  var eiSkuPageSize = 50;
-  var eiSkuMerged = [];
-
-  function eiRenderSkus() {
-    eiSkuPage = 0;
-    var rows   = eiGetRows();
-    var search = ((eiG('eiSearch')  || {}).value || '').toLowerCase();
-    var stockF = ((eiG('eiStockF') || {}).value || 'healthy'); // default healthy
-    var emailF = ((eiG('eiEmailF') || {}).value || '');
-
-    // Only show rows from buying data (not phantom SKUs from hist only)
-    var merged = rows.map(function(row) {
-      var sku   = (row.SKU || '').trim();
-      var hist  = (eiSt.hist[sku] || []).slice().sort(function(a,b){ return new Date(b.sentAt)-new Date(a.sentAt); });
-      var cover = eiCoverDays(row);
-      var stock = row.stock || row.NetStock_Arklow || 0;
-      var theme = eiThemeFromRow(row);
-      var status = eiEmailStatus(cover, hist, theme);
-      return { sku: sku, row: row, hist: hist, cover: cover, stock: stock, status: status, title: row.ItemTitle || '', theme: theme };
-    });
-
-    if (search) merged = merged.filter(function(m) { return (m.sku + ' ' + m.title).toLowerCase().indexOf(search) >= 0; });
-
-    if (stockF) merged = merged.filter(function(m) {
-      if (stockF === 'critical') return m.cover < 14;
-      if (stockF === 'low')      return m.cover >= 14 && m.cover < 30;
-      if (stockF === 'healthy')  return m.cover >= 30;
-      return true;
-    });
-
-    if (emailF) merged = merged.filter(function(m) { return m.status.k === emailF; });
-
-    var order = { hold:0, never:1, ready:2, recent:3 };
-    merged.sort(function(a,b){ return (order[a.status.k]||9)-(order[b.status.k]||9) || b.cover-a.cover; });
-
-    eiSkuMerged = merged;
-    eiRenderSkuPage();
+  // Hook into buying data reload
+  var _eiOrigRecompute = window.recomputeAndRender;
+  if (typeof recomputeAndRender !== 'undefined') {
+    // Will be called after buying data reloads
   }
-
-  function eiRenderSkuPage() {
-    var tbody   = eiG('eiSkuBody');
-    var countEl = eiG('eiSkuCount');
-    if (!tbody) return;
-
-    var merged = eiSkuMerged;
-    if (!merged.length) {
-      tbody.innerHTML = '<tr><td colspan="8" class="ei-empty">No SKUs match this filter</td></tr>';
-      if (countEl) countEl.innerHTML = '';
-      return;
+  // Check periodically if buying data becomes available
+  var _eiDataCheck = setInterval(function() {
+    var rows = getRows();
+    if (rows.length && G('tab-email') && G('tab-email').classList.contains('active')) {
+      eiRenderInStock(currentMonth());
+      eiRenderSuggestions(currentMonth());
+      clearInterval(_eiDataCheck);
     }
+  }, 2000);
 
-    var start = eiSkuPage * eiSkuPageSize;
-    var end   = Math.min(start + eiSkuPageSize, merged.length);
-    var page  = merged.slice(start, end);
-    var html  = '';
+  window.eiRenderArchive = function() { try { eiRenderArchive(); } catch(e) { console.error(e); } };
 
-    page.forEach(function(m) {
-      var cv  = m.cover > 200 ? '200d+' : Math.round(m.cover) + 'd';
-      var cvC = m.cover < 14 ? 'color:#991b1b;font-weight:700' : m.cover < 30 ? 'color:#92400e;font-weight:700' : 'color:#14532d';
-      var pct = Math.min(100, Math.round(m.cover / 90 * 100));
-      var bc  = m.cover < 14 ? '#dc2626' : m.cover < 30 ? '#f59e0b' : '#16a34a';
-      var bar = '<span class="ei-bar-bg"><span class="ei-bar" style="width:'+pct+'%;background:'+bc+'"></span></span>';
-      var ls  = m.hist.length ? new Date(m.hist[0].sentAt).toLocaleDateString('en-IE',{day:'2-digit',month:'short',year:'2-digit'}) : '<span style="color:#94a3b8">Never</span>';
-      var rec = (m.hist.length && m.hist[0].recipients) ? m.hist[0].recipients.toLocaleString('en-IE') : '—';
-      html += '<tr>'
-        +'<td class="ei-sku">'+eiEsc(m.sku)+'</td>'
-        +'<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+eiEsc(m.title)+'">'+eiEsc(m.title||'—')+'</td>'
-        +'<td class="r">'+bar+' '+m.stock.toLocaleString('en-IE')+'</td>'
-        +'<td class="r" style="'+cvC+'">'+cv+'</td>'
-        +'<td class="r">'+ls+'</td>'
-        +'<td class="r">'+(m.hist.length||0)+'</td>'
-        +'<td class="r">'+rec+'</td>'
-        +'<td><span class="ei-bdg '+m.status.k+'">'+m.status.l+'</span></td>'
-      +'</tr>';
-    });
-
-    tbody.innerHTML = html;
-
-    // Pagination bar
-    var totalPages = Math.ceil(merged.length / eiSkuPageSize);
-    var paginHtml = 'Showing '+(start+1)+'–'+end+' of '+merged.length+' SKUs';
-    if (totalPages > 1) {
-      paginHtml += '&nbsp;&nbsp;'
-        +(eiSkuPage > 0 ? '<button class="secondary" onclick="eiSkuPrev()" style="padding:3px 10px;font-size:11px">&#8592; Prev</button> ' : '')
-        +(eiSkuPage < totalPages-1 ? '<button class="secondary" onclick="eiSkuNext()" style="padding:3px 10px;font-size:11px">Next &#8594;</button>' : '');
-    }
-    if (countEl) countEl.innerHTML = paginHtml;
-  }
-
-  window.eiSkuNext = function() { eiSkuPage++; eiRenderSkuPage(); };
-  window.eiSkuPrev = function() { eiSkuPage--; eiRenderSkuPage(); };
-
-  // Make render functions callable from filter controls
-  window.eiRenderCampaigns = function() { try { eiRenderCampaigns(); } catch(e) { console.error(e); } };
-  window.eiRenderSkus      = function() { try { eiRenderSkus();      } catch(e) { console.error(e); } };
 })();
 </script>
 
