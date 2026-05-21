@@ -1671,6 +1671,10 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
                   ? '<span style="background:#fef9c3;color:#713f12;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:700">+'+(st.open_rate-BENCH_OPEN)+'pp vs benchmark</span>'
                   : '')
             + '</div>'
+            + '<div style="margin-top:8px">'
+              + '<button onclick="eiToggleProducts(\''+c.id+'\',\''+c.sent_at+'\',this)" style="padding:4px 11px;font-size:11px;font-weight:700;background:#fff;border:1.5px solid #bfdbfe;color:#1e40af;border-radius:6px;cursor:pointer">📦 What sold?</button>'
+            + '</div>'
+            + '<div id="eiProd_'+c.id+'" data-open="0"></div>'
           + '</div>'
         + '</div>'
       + '</div>';
@@ -1939,6 +1943,77 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   }
 
   // ── Copy campaign brief ───────────────────────────────────────────────────────
+  // ── Product drill-down ────────────────────────────────────────────────────────
+  var eiProductCache = {};
+
+  window.eiToggleProducts = function(campId, sentAt, btn) {
+    var el = document.getElementById('eiProd_' + campId);
+    if (!el) return;
+    if (el.dataset.open === '1') {
+      el.innerHTML = ''; el.dataset.open = '0'; btn.textContent = '📦 What sold?'; return;
+    }
+    if (eiProductCache[campId]) { eiShowProducts(campId, eiProductCache[campId]); btn.textContent = '▲ Hide'; return; }
+    btn.textContent = '⏳ Loading…'; btn.disabled = true;
+    var after  = sentAt.slice(0,10);
+    var d = new Date(sentAt); d.setDate(d.getDate()+7);
+    var before = d.toISOString().slice(0,10);
+    fetch(PROXY + '?action=klaviyo_products&after=' + after + '&before=' + before)
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        eiProductCache[campId] = data.products || [];
+        eiShowProducts(campId, eiProductCache[campId]);
+        btn.textContent = '▲ Hide'; btn.disabled = false;
+        el.dataset.open = '1';
+      })
+      .catch(function(e){
+        el.innerHTML = '<div style="font-size:11px;color:#dc2626;padding:6px 0">'+e.message+'</div>';
+        btn.textContent = '📦 What sold?'; btn.disabled = false;
+      });
+  };
+
+  function eiShowProducts(campId, products) {
+    var el = document.getElementById('eiProd_' + campId); if (!el) return;
+    var rows = getRows();
+    el.dataset.open = '1';
+    if (!products.length) {
+      el.innerHTML = '<div style="font-size:11px;color:#94a3b8;padding:8px 0">No product orders tracked for this send window.</div>'; return;
+    }
+    var html = '<div style="margin-top:10px;border-top:1px solid var(--line-light);padding-top:10px">'
+      + '<div style="font-size:10px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Products ordered in 7 days after this email · '+products.length+' found</div>'
+      + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
+      + '<thead><tr style="background:#f1f5f9"><th style="text-align:left;padding:5px 8px">Product</th><th style="text-align:right;padding:5px 8px">Sold</th><th style="text-align:right;padding:5px 8px">Revenue</th><th style="text-align:right;padding:5px 8px">Stock now</th><th style="padding:5px 8px">Re-promote?</th></tr></thead><tbody>';
+    products.slice(0,12).forEach(function(p) {
+      var buyRow = null;
+      var sku = (p.sku||'').trim().toLowerCase();
+      if (sku) buyRow = rows.filter(function(r){ return (r.SKU||'').trim().toLowerCase()===sku; })[0];
+      if (!buyRow && p.name) {
+        var n = p.name.toLowerCase().replace(/[^a-z0-9]/g,'');
+        buyRow = rows.filter(function(r){
+          var t = (r.ItemTitle||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+          return t.length>5 && (t.indexOf(n)>=0 || n.indexOf(t)>=0);
+        })[0];
+      }
+      var stock = buyRow ? (buyRow.stock||buyRow.NetStock_Arklow||0) : null;
+      var cov   = buyRow ? Math.round(coverDays(buyRow)) : null;
+      var sStr  = stock===null ? '—' : stock.toLocaleString('en-IE');
+      var badge, badgeBg;
+      if (stock===null)  { badge='Not in system'; badgeBg='#f1f5f9'; }
+      else if (stock<=0) { badge='Out of stock';  badgeBg='#fee2e2'; }
+      else if (cov>45)   { badge='✅ Ready to send'; badgeBg='#dcfce7'; }
+      else if (cov>14)   { badge='⚠ Low — '+(cov)+'d cover'; badgeBg='#fef9c3'; }
+      else               { badge='❌ Critical stock'; badgeBg='#fee2e2'; }
+      html += '<tr style="border-top:1px solid var(--line-light)">'
+        +'<td style="padding:5px 8px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(p.name||p.sku)+'">'+esc(p.name||p.sku||'—')+'</td>'
+        +'<td style="text-align:right;padding:5px 8px;font-weight:700">'+p.qty+'</td>'
+        +'<td style="text-align:right;padding:5px 8px;color:#14532d;font-weight:700">€'+p.revenue.toFixed(0)+'</td>'
+        +'<td style="text-align:right;padding:5px 8px">'+sStr+'</td>'
+        +'<td style="padding:5px 8px"><span style="background:'+badgeBg+';border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700">'+badge+'</span></td>'
+      +'</tr>';
+    });
+    html += '</tbody></table></div>';
+    el.innerHTML = html;
+  }
+
   window.eiCopyBrief = function(enc) {
     var p = enc.split('|');
     var theme=p[0], skuCount=p[1], avgCov=p[2], daysSince=p[3], month=p[4], lyOpen=p[5], topSkus=p.slice(6).join(',');
