@@ -1567,7 +1567,19 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       rows2.forEach(function(r) {
         var id  = r.groupings && r.groupings.campaign_id;
         var v   = r.statistics || {};
-        if (id) eiStMap[id] = { open_rate: pct(v.open_rate), click_rate: pct(v.click_rate), rev: v.revenue_per_recipient||0 };
+      // Build stats map — calculate rates from raw counts
+        if (id) {
+          var deliveries = v.deliveries || 0;
+          var opens      = v.opens_unique || v.open_rate || 0;
+          var clicks     = v.clicks_unique || v.click_rate || 0;
+          var revenue    = v.revenue || v.revenue_per_recipient || 0;
+          eiStMap[id] = {
+            open_rate:  deliveries > 0 ? Math.round(opens  / deliveries * 100) : (opens  < 1 ? pct(opens)  : opens),
+            click_rate: deliveries > 0 ? Math.round(clicks / deliveries * 100) : (clicks < 1 ? pct(clicks) : clicks),
+            rev:        revenue,
+            deliveries: deliveries
+          };
+        }
       });
 
       eiReady = true;
@@ -1758,8 +1770,10 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   function eiRenderSuggestions(m) {
     var el = G('eiSuggest'); if (!el) return;
     var rows = getRows();
-    if (!rows.length || !eiReady) {
-      el.innerHTML = '<div class="ei-empty">Load buying data and sync Klaviyo to generate recommendations</div>'; return;
+
+    // Show something useful even before Klaviyo is synced
+    if (!rows.length) {
+      el.innerHTML = '<div class="ei-empty">Load your buying data (Buying tab) to generate recommendations</div>'; return;
     }
 
     var now       = new Date();
@@ -1817,7 +1831,24 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
 
     if (!top.length) { el.innerHTML = '<div class="ei-empty">No strong recommendations — check buying data is loaded</div>'; return; }
 
-    var html = '<div style="display:grid;gap:12px">';
+    // Build a "send this week" nudge for current month
+    var isCurrentMonth = (m === now.getMonth());
+    var nudgeHtml = '';
+    if (isCurrentMonth && top.length) {
+      var t = top[0];
+      nudgeHtml = '<div style="background:#1e40af;color:#fff;border-radius:10px;padding:14px 16px;margin-bottom:14px">'
+        + '<div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;opacity:.8;margin-bottom:4px">💡 Send this week</div>'
+        + '<div style="font-size:15px;font-weight:800;margin-bottom:4px">' + t.cat.e + ' ' + t.cat.label + ' campaign</div>'
+        + '<div style="font-size:12px;opacity:.85;line-height:1.6">'
+          + t.ready.length + ' SKUs ready to promote · avg ' + t.avgCov + 'd cover'
+          + (t.lyBest ? ' · <strong>worked last ' + MN[m] + '</strong>' : '')
+          + (t.lastSentDays > 60 ? ' · ' + t.lastSentDays + ' days since last ' + t.cat.label + ' email' : '')
+        + '</div>'
+        + (t.subjects[0] ? '<div style="margin-top:8px;font-size:13px;font-style:italic;background:rgba(255,255,255,.15);padding:7px 10px;border-radius:6px">"' + t.subjects[0].s + '"</div>' : '')
+      + '</div>';
+    }
+
+    var html = nudgeHtml + '<div style="display:grid;gap:12px">';
     top.forEach(function(r, i) {
       var urgency  = r.lastSentDays > 60 || r.lyBest;
       var bg       = i===0 ? '#fffbeb' : '#fff';
