@@ -6131,14 +6131,15 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
     if (cover != null && cover < 14 && hist.length) return { k: 'hold',   l: 'Hold — critical' };
     if (cover != null && cover < 14)                return { k: 'hold',   l: 'Low — avoid' };
     if (!hist.length) {
-      // No direct SKU history — check if theme was emailed recently via campaign names
-      if (theme) {
+      // Only use theme matching for specific meaningful themes — not 'other'
+      var specificThemes = ['garden','power','tools','paint','cleaning','plumbing','storage','fixings','safety'];
+      if (theme && specificThemes.indexOf(theme) >= 0) {
         var tc = eiSt.campaigns.filter(function(c) { return c.theme === theme && c.sent_at; });
         tc.sort(function(a,b){ return new Date(b.sent_at)-new Date(a.sent_at); });
         if (tc.length) {
           var tDays = Math.round((now - new Date(tc[0].sent_at)) / 86400000);
-          if (tDays < 35)  return { k: 'recent', l: 'Theme sent ' + tDays + 'd ago' };
-          if (tDays < 90)  return { k: 'ready',  l: 'Theme sent ' + tDays + 'd ago' };
+          if (tDays < 35) return { k: 'recent', l: 'Theme sent ' + tDays + 'd ago' };
+          if (tDays < 90) return { k: 'ready',  l: 'Theme sent ' + tDays + 'd ago' };
         }
       }
       return { k: 'never', l: 'Never emailed' };
@@ -6272,10 +6273,8 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
 
       eiSt.loaded = true;
       var rowCount = eiGetRows().length;
-      eiSetStatus('Connected — ' + eiSt.campaigns.length + ' campaigns loaded · ' + rowCount + ' SKUs cross-referenced by theme · Synced: ' + new Date().toLocaleTimeString('en-IE'), 'ok');
+      eiSetStatus('Connected — ' + eiSt.campaigns.length + ' campaigns · ' + rowCount + ' buying SKUs cross-referenced · Synced: ' + new Date().toLocaleTimeString('en-IE'), 'ok');
       eiRenderAll();
-      // Now scan email HTML to match product URLs → SKUs (runs in background)
-      setTimeout(eiEnrichCampaigns, 500);
     })
     .catch(function(e) {
       eiSetStatus('Error: ' + e.message, 'error');
@@ -6331,18 +6330,32 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
     var e5 = eiG('eiSL');  if (e5) e5.textContent = low;
   }
 
+  var eiCampPage = 0;
+  var eiCampPageSize = 20;
+  var eiCampFiltered = [];
+
   function eiRenderCampaigns() {
-    var con = eiG('eiCampList'); if (!con) return;
+    eiCampPage = 0;
     var theme  = (eiG('eiTheme')  || {}).value || '';
     var months = parseInt((eiG('eiPeriod') || {}).value || '12', 10);
     var cutoff = months > 0 ? new Date(Date.now() - months * 30 * 24 * 3600 * 1000) : new Date(0);
     var camps  = eiSt.campaigns.filter(function(c) { return c.sent_at && new Date(c.sent_at) >= cutoff; });
     if (theme) camps = camps.filter(function(c) { return c.theme === theme; });
     camps.sort(function(a, b) { return new Date(b.sent_at) - new Date(a.sent_at); });
+    eiCampFiltered = camps;
+    eiRenderCampPage();
+  }
+
+  function eiRenderCampPage() {
+    var con = eiG('eiCampList'); if (!con) return;
+    var camps = eiCampFiltered;
     if (!camps.length) { con.innerHTML = '<div class="ei-empty">No campaigns match this filter</div>'; return; }
-    var rows = eiGetRows();
-    var html = '';
-    camps.forEach(function(c) {
+    var rows  = eiGetRows();
+    var start = eiCampPage * eiCampPageSize;
+    var end   = Math.min(start + eiCampPageSize, camps.length);
+    var page  = camps.slice(start, end);
+    var html  = '';
+    page.forEach(function(c) {
       var dt    = new Date(c.sent_at).toLocaleDateString('en-IE', { day: '2-digit', month: 'short' });
       var rec   = c.recipients ? c.recipients.toLocaleString('en-IE') : '—';
       var open  = c.open_rate != null ? ' &middot; ' + c.open_rate.toFixed(1) + '% open' : '';
@@ -6364,8 +6377,21 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
         + '<span class="ei-bdg sent">Sent</span>'
       + '</div>';
     });
+    // Pagination footer
+    var totalPages = Math.ceil(camps.length / eiCampPageSize);
+    if (totalPages > 1) {
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 4px 2px;font-size:11px;color:#64748b;border-top:1px solid var(--line-light);margin-top:4px">'
+        + '<span>' + (start+1) + '–' + end + ' of ' + camps.length + '</span>'
+        + '<span style="display:flex;gap:6px">'
+        + (eiCampPage > 0 ? '<button class="secondary" onclick="eiCampPrev()" style="padding:2px 9px;font-size:11px">&#8592;</button>' : '')
+        + (eiCampPage < totalPages-1 ? '<button class="secondary" onclick="eiCampNext()" style="padding:2px 9px;font-size:11px">&#8594;</button>' : '')
+        + '</span></div>';
+    }
     con.innerHTML = html;
   }
+
+  window.eiCampNext = function() { eiCampPage++; eiRenderCampPage(); };
+  window.eiCampPrev = function() { eiCampPage--; eiRenderCampPage(); };
 
   function eiGetOpps() {
     var rows = eiGetRows();
@@ -6547,7 +6573,6 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
   // Make render functions callable from filter controls
   window.eiRenderCampaigns = function() { try { eiRenderCampaigns(); } catch(e) { console.error(e); } };
   window.eiRenderSkus      = function() { try { eiRenderSkus();      } catch(e) { console.error(e); } };
-
 })();
 </script>
 
