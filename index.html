@@ -3297,6 +3297,10 @@ function recompute(){
   render();
   if(document.getElementById('tab-clearstock')?.classList.contains('active')) renderClearStock();
   if(document.getElementById('tab-noos')?.classList.contains('active')) renderNOOS();
+  // Refresh email intelligence opportunities if data already loaded
+  if(typeof eiSt !== 'undefined' && eiSt.loaded) {
+    try { eiRenderAll(); } catch(e) {}
+  }
 }
 
 // ─── ORDER PREVIEW ───────────────────────────────────────────────────────────
@@ -6036,8 +6040,14 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
   }
 
   function eiGetRows() {
-    try { return (window.state && window.state.computedRows) ? window.state.computedRows : []; }
-    catch(e) { return []; }
+    // state is declared as const in the main script block — not on window, but
+    // accessible as a global lexical binding from this script block
+    try {
+      if (typeof state !== 'undefined' && state.computedRows && state.computedRows.length) {
+        return state.computedRows;
+      }
+      return [];
+    } catch(e) { return []; }
   }
 
   // ── Public: called when tab is clicked ──────────────────────────────────────
