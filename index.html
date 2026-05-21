@@ -1366,7 +1366,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       <div class="ei-stats" id="eiStats" style="display:none">
         <div class="ei-stat"><div class="v blue" id="eiSC">&#8212;</div><div class="l">Campaigns</div></div>
         <div class="ei-stat"><div class="v" id="eiSR">&#8212;</div><div class="l">Avg recipients</div></div>
-        <div class="ei-stat"><div class="v green" id="eiSSF">&#8212;</div><div class="l">SKUs featured</div></div>
+        <div class="ei-stat"><div class="v green" id="eiSSF">&#8212;</div><div class="l">Themes covered</div></div>
         <div class="ei-stat"><div class="v amber" id="eiSO">&#8212;</div><div class="l">Opportunities</div></div>
         <div class="ei-stat"><div class="v red" id="eiSL">&#8212;</div><div class="l">Low stock warnings</div></div>
       </div>
@@ -5953,10 +5953,124 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
 (function() {
   'use strict';
 
-  var EI_KEY  = 'pk_RpgXNK_8c18d362a762b68a8af896246a2e41da8e';
-  // Klaviyo is called via the Apps Script proxy (avoids browser CORS block)
+  var EI_KEY   = 'pk_RpgXNK_8c18d362a762b68a8af896246a2e41da8e';
+  // Klaviyo is proxied via Apps Script to avoid browser CORS restriction
   var EI_PROXY = 'https://script.google.com/macros/s/AKfycbwds8N7-nMBGfVJp30rlxZ9Y9k6ncoDeATcKrIpnApqVqvwTkOmNIJfFBlFm6OOD1Z_/exec';
-  var eiSt    = { campaigns: [], hist: {}, loaded: false };
+  var eiSt     = { campaigns: [], hist: {}, loaded: false, enriching: false, enriched: 0 };
+
+  // ── Slug / title normaliser ─────────────────────────────────────────────────
+  // Converts "PestClear 4000 Pest Repeller" OR "pest-clear-4000-pest-repeller"
+  // to "pestclear4000pestrepeller" for fuzzy matching
+  function eiNormalise(s) {
+    return (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  // Build a slug→SKU lookup from buying data titles
+  function eiSlugMap() {
+    var map = {};
+    var rows = eiGetRows();
+    rows.forEach(function(r) {
+      var sku   = (r.SKU || '').trim();
+      var title = r.ItemTitle || '';
+      if (sku && title) map[eiNormalise(title)] = sku;
+    });
+    return map;
+  }
+
+  // Extract lenehans.ie product slugs from email HTML
+  function eiExtractSlugs(html) {
+    var slugs = [];
+    // Match lenehans.ie/anything.html links
+    var re = /lenehans\.ie\/([^"'\s>?#]+\.html)/gi;
+    var m;
+    while ((m = re.exec(html)) !== null) {
+      // Strip path prefix if any, get just the filename without .html
+      var slug = m[1].replace(/.*\//, '').replace(/\.html$/i, '');
+      slugs.push(slug);
+    }
+    return slugs;
+  }
+
+  // Match extracted slugs to SKUs using normalised title lookup
+  function eiSlugsToSkus(slugs, slugMap) {
+    var skus = [];
+    slugs.forEach(function(slug) {
+      var norm = eiNormalise(slug);
+      // Direct match
+      if (slugMap[norm]) { skus.push(slugMap[norm]); return; }
+      // Partial match — find any title key that contains the slug norm or vice versa
+      Object.keys(slugMap).forEach(function(key) {
+        if (key.length > 6 && norm.length > 6 && (key.indexOf(norm) >= 0 || norm.indexOf(key) >= 0)) {
+          skus.push(slugMap[key]);
+        }
+      });
+    });
+    // Deduplicate
+    var seen = {};
+    return skus.filter(function(s) { if (seen[s]) return false; seen[s] = true; return true; });
+  }
+
+  // Lazy enrich campaigns with SKUs from HTML — called after initial render
+  function eiEnrichCampaigns() {
+    if (eiSt.enriching) return;
+    var camps = eiSt.campaigns.filter(function(c) { return !c._enriched && c.id; });
+    if (!camps.length) return;
+    eiSt.enriching = true;
+    var slugMap = eiSlugMap();
+    if (!Object.keys(slugMap).length) { eiSt.enriching = false; return; }
+
+    var total = camps.length;
+    var done  = 0;
+
+    function fetchNext(idx) {
+      if (idx >= camps.length) {
+        eiSt.enriching  = false;
+        eiSt.enriched   = total;
+        // Rebuild hist from enriched SKUs
+        eiSt.hist = {};
+        eiSt.campaigns.forEach(function(c) {
+          (c.skus || []).forEach(function(sku) {
+            if (!eiSt.hist[sku]) eiSt.hist[sku] = [];
+            eiSt.hist[sku].push({ sentAt: c.sent_at, recipients: c.recipients, subject: c.subject });
+          });
+        });
+        // Re-render now we have real SKU data
+        eiRenderAll();
+        var countEl = eiG('eiSSF');
+        if (countEl) countEl.textContent = Object.keys(eiSt.hist).length + ' SKUs';
+        eiSetStatus('Connected — ' + eiSt.campaigns.length + ' campaigns · ' + Object.keys(eiSt.hist).length + ' SKUs matched from email links · Synced: ' + new Date().toLocaleTimeString('en-IE'), 'ok');
+        return;
+      }
+
+      var camp = camps[idx];
+      camp._enriched = true;
+      var url = EI_PROXY + '?action=klaviyo_message&id=' + encodeURIComponent(camp.id);
+
+      fetch(url)
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.html) {
+            var slugs = eiExtractSlugs(d.html);
+            camp.skus = eiSlugsToSkus(slugs, slugMap);
+          }
+          done++;
+          // Update progress
+          var statusEl = eiG('eiApiStatus');
+          if (statusEl && statusEl.style.display !== 'none') {
+            statusEl.textContent = 'Scanning email content... ' + done + '/' + total + ' campaigns';
+          }
+          // Stagger requests to avoid rate limiting
+          setTimeout(function() { fetchNext(idx + 1); }, 300);
+        })
+        .catch(function() {
+          done++;
+          setTimeout(function() { fetchNext(idx + 1); }, 300);
+        });
+    }
+
+    eiSetStatus('Scanning email content for product links... 0/' + total + ' campaigns', 'loading');
+    fetchNext(0);
+  }
 
   var EI_TPL = {
     garden:   { e: '&#127807;', s: 'Summer garden deals — stock up and save on outdoor must-haves',    h: 'Get your outdoor space ready with these hand-picked deals on garden essentials.' },
@@ -6157,8 +6271,11 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
       });
 
       eiSt.loaded = true;
-      eiSetStatus('Loaded ' + eiSt.campaigns.length + ' campaigns. ' + Object.keys(eiSt.hist).length + ' SKUs tracked via tags. Synced: ' + new Date().toLocaleTimeString('en-IE'), 'ok');
+      var rowCount = eiGetRows().length;
+      eiSetStatus('Connected — ' + eiSt.campaigns.length + ' campaigns loaded · ' + rowCount + ' SKUs cross-referenced by theme · Synced: ' + new Date().toLocaleTimeString('en-IE'), 'ok');
       eiRenderAll();
+      // Now scan email HTML to match product URLs → SKUs (runs in background)
+      setTimeout(eiEnrichCampaigns, 500);
     })
     .catch(function(e) {
       eiSetStatus('Error: ' + e.message, 'error');
@@ -6189,15 +6306,27 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
     var recs  = camps.filter(function(c) { return c.recipients; }).map(function(c) { return c.recipients; });
     var avg   = recs.length ? Math.round(recs.reduce(function(a, b) { return a + b; }, 0) / recs.length) : 0;
     var rows  = eiGetRows();
-    var low   = 0;
-    Object.keys(eiSt.hist).forEach(function(sku) {
-      var r = rows.filter(function(x) { return (x.SKU || '').trim() === sku; })[0];
-      if (r && eiCoverDays(r) < 30) low++;
+
+    // Count distinct themes covered by campaigns
+    var themes = {};
+    camps.forEach(function(c) { if (c.theme) themes[c.theme] = true; });
+    var themeCount = Object.keys(themes).length;
+
+    // Count low stock SKUs whose theme was emailed recently
+    var low = 0;
+    rows.forEach(function(r) {
+      var cover = eiCoverDays(r);
+      if (cover < 30) {
+        var theme = eiThemeFromRow(r);
+        var tc = camps.filter(function(c) { return c.theme === theme && c.sent_at; });
+        if (tc.length) low++;
+      }
     });
+
     var opps = eiGetOpps();
     var e1 = eiG('eiSC');  if (e1) e1.textContent = camps.length;
     var e2 = eiG('eiSR');  if (e2) e2.textContent = avg ? avg.toLocaleString('en-IE') : '—';
-    var e3 = eiG('eiSSF'); if (e3) e3.textContent = Object.keys(eiSt.hist).length;
+    var e3 = eiG('eiSSF'); if (e3) e3.textContent = themeCount;
     var e4 = eiG('eiSO');  if (e4) e4.textContent = opps.length;
     var e5 = eiG('eiSL');  if (e5) e5.textContent = low;
   }
