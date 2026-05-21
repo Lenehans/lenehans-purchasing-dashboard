@@ -1403,7 +1403,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
               <option value="">All stock levels</option>
               <option value="critical">Critical (&lt;14d)</option>
               <option value="low">Low (14-30d)</option>
-              <option value="healthy">Healthy (30d+)</option>
+              <option value="healthy" selected>Healthy (30d+)</option>
             </select>
             <select id="eiEmailF" onchange="eiRenderSkus()">
               <option value="">All email status</option>
@@ -6010,15 +6010,27 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
     return stk / (q30 / 30);
   }
 
-  function eiEmailStatus(cover, hist) {
+  function eiEmailStatus(cover, hist, theme) {
     var now  = new Date();
     var last = hist.length ? new Date(hist[0].sentAt) : null;
     var days = last ? (now - last) / 86400000 : 999;
     if (cover != null && cover < 14 && hist.length) return { k: 'hold',   l: 'Hold — critical' };
     if (cover != null && cover < 14)                return { k: 'hold',   l: 'Low — avoid' };
-    if (!hist.length)                               return { k: 'never',  l: 'Never emailed' };
-    if (days < 35)                                  return { k: 'recent', l: 'Sent recently' };
-    return                                                 { k: 'ready',  l: 'Ready' };
+    if (!hist.length) {
+      // No direct SKU history — check if theme was emailed recently via campaign names
+      if (theme) {
+        var tc = eiSt.campaigns.filter(function(c) { return c.theme === theme && c.sent_at; });
+        tc.sort(function(a,b){ return new Date(b.sent_at)-new Date(a.sent_at); });
+        if (tc.length) {
+          var tDays = Math.round((now - new Date(tc[0].sent_at)) / 86400000);
+          if (tDays < 35)  return { k: 'recent', l: 'Theme sent ' + tDays + 'd ago' };
+          if (tDays < 90)  return { k: 'ready',  l: 'Theme sent ' + tDays + 'd ago' };
+        }
+      }
+      return { k: 'never', l: 'Never emailed' };
+    }
+    if (days < 35) return { k: 'recent', l: 'Sent recently' };
+    return          { k: 'ready',  l: 'Ready' };
   }
 
   function eiSetLoading(on) {
@@ -6310,60 +6322,98 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
       .catch(function() { alert(brief); });
   };
 
+  var eiSkuPage = 0;
+  var eiSkuPageSize = 50;
+  var eiSkuMerged = [];
+
   function eiRenderSkus() {
-    var tbody  = eiG('eiSkuBody');
-    var countEl = eiG('eiSkuCount');
-    if (!tbody) return;
-    var search = ((eiG('eiSearch')  || {}).value || '').toLowerCase();
-    var stockF = ((eiG('eiStockF') || {}).value || '');
-    var emailF = ((eiG('eiEmailF') || {}).value || '');
+    eiSkuPage = 0;
     var rows   = eiGetRows();
-    var allSkus = {};
-    rows.forEach(function(r) { allSkus[(r.SKU || '').trim()] = true; });
-    Object.keys(eiSt.hist).forEach(function(s) { allSkus[s.trim()] = true; });
-    var merged = Object.keys(allSkus).map(function(sku) {
-      var row    = rows.filter(function(r) { return (r.SKU || '').trim() === sku; })[0];
-      var hist   = (eiSt.hist[sku] || []).slice().sort(function(a, b) { return new Date(b.sentAt) - new Date(a.sentAt); });
-      var cover  = row ? eiCoverDays(row) : null;
-      var stock  = row ? (row.stock || row.NetStock_Arklow || 0) : 0;
-      var status = eiEmailStatus(cover, hist);
-      return { sku: sku, row: row, hist: hist, cover: cover, stock: stock, status: status, title: row ? (row.ItemTitle || '') : '' };
+    var search = ((eiG('eiSearch')  || {}).value || '').toLowerCase();
+    var stockF = ((eiG('eiStockF') || {}).value || 'healthy'); // default healthy
+    var emailF = ((eiG('eiEmailF') || {}).value || '');
+
+    // Only show rows from buying data (not phantom SKUs from hist only)
+    var merged = rows.map(function(row) {
+      var sku   = (row.SKU || '').trim();
+      var hist  = (eiSt.hist[sku] || []).slice().sort(function(a,b){ return new Date(b.sentAt)-new Date(a.sentAt); });
+      var cover = eiCoverDays(row);
+      var stock = row.stock || row.NetStock_Arklow || 0;
+      var theme = eiThemeFromRow(row);
+      var status = eiEmailStatus(cover, hist, theme);
+      return { sku: sku, row: row, hist: hist, cover: cover, stock: stock, status: status, title: row.ItemTitle || '', theme: theme };
     });
+
     if (search) merged = merged.filter(function(m) { return (m.sku + ' ' + m.title).toLowerCase().indexOf(search) >= 0; });
+
     if (stockF) merged = merged.filter(function(m) {
-      if (m.cover == null) return stockF === 'critical' || stockF === 'low';
       if (stockF === 'critical') return m.cover < 14;
       if (stockF === 'low')      return m.cover >= 14 && m.cover < 30;
       if (stockF === 'healthy')  return m.cover >= 30;
       return true;
     });
+
     if (emailF) merged = merged.filter(function(m) { return m.status.k === emailF; });
-    var order = { hold: 0, never: 1, ready: 2, recent: 3 };
-    merged.sort(function(a, b) { return (order[a.status.k] || 9) - (order[b.status.k] || 9); });
-    if (!merged.length) { tbody.innerHTML = '<tr><td colspan="8" class="ei-empty">No SKUs match this filter</td></tr>'; return; }
-    var html = '';
-    merged.slice(0, 200).forEach(function(m) {
-      var cv  = m.cover != null ? (m.cover > 200 ? '200d+' : Math.round(m.cover) + 'd') : '—';
-      var cvC = m.cover == null ? '' : m.cover < 14 ? 'color:#991b1b;font-weight:700' : m.cover < 30 ? 'color:#92400e;font-weight:700' : 'color:#14532d';
-      var pct = m.cover != null ? Math.min(100, Math.round(m.cover / 90 * 100)) : 0;
-      var bc  = m.cover == null ? '#e2e8f0' : m.cover < 14 ? '#dc2626' : m.cover < 30 ? '#f59e0b' : '#16a34a';
-      var bar = '<span class="ei-bar-bg"><span class="ei-bar" style="width:' + pct + '%;background:' + bc + '"></span></span>';
-      var ls  = m.hist.length ? new Date(m.hist[0].sentAt).toLocaleDateString('en-IE', { day: '2-digit', month: 'short', year: '2-digit' }) : '<span style="color:#94a3b8">Never</span>';
+
+    var order = { hold:0, never:1, ready:2, recent:3 };
+    merged.sort(function(a,b){ return (order[a.status.k]||9)-(order[b.status.k]||9) || b.cover-a.cover; });
+
+    eiSkuMerged = merged;
+    eiRenderSkuPage();
+  }
+
+  function eiRenderSkuPage() {
+    var tbody   = eiG('eiSkuBody');
+    var countEl = eiG('eiSkuCount');
+    if (!tbody) return;
+
+    var merged = eiSkuMerged;
+    if (!merged.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="ei-empty">No SKUs match this filter</td></tr>';
+      if (countEl) countEl.innerHTML = '';
+      return;
+    }
+
+    var start = eiSkuPage * eiSkuPageSize;
+    var end   = Math.min(start + eiSkuPageSize, merged.length);
+    var page  = merged.slice(start, end);
+    var html  = '';
+
+    page.forEach(function(m) {
+      var cv  = m.cover > 200 ? '200d+' : Math.round(m.cover) + 'd';
+      var cvC = m.cover < 14 ? 'color:#991b1b;font-weight:700' : m.cover < 30 ? 'color:#92400e;font-weight:700' : 'color:#14532d';
+      var pct = Math.min(100, Math.round(m.cover / 90 * 100));
+      var bc  = m.cover < 14 ? '#dc2626' : m.cover < 30 ? '#f59e0b' : '#16a34a';
+      var bar = '<span class="ei-bar-bg"><span class="ei-bar" style="width:'+pct+'%;background:'+bc+'"></span></span>';
+      var ls  = m.hist.length ? new Date(m.hist[0].sentAt).toLocaleDateString('en-IE',{day:'2-digit',month:'short',year:'2-digit'}) : '<span style="color:#94a3b8">Never</span>';
       var rec = (m.hist.length && m.hist[0].recipients) ? m.hist[0].recipients.toLocaleString('en-IE') : '—';
       html += '<tr>'
-        + '<td class="ei-sku">'  + eiEsc(m.sku)          + '</td>'
-        + '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + eiEsc(m.title) + '">' + eiEsc(m.title || '—') + '</td>'
-        + '<td class="r">'       + bar + ' ' + m.stock.toLocaleString('en-IE') + '</td>'
-        + '<td class="r" style="' + cvC + '">' + cv  + '</td>'
-        + '<td class="r">'       + ls  + '</td>'
-        + '<td class="r">'       + (m.hist.length || 0) + '</td>'
-        + '<td class="r">'       + rec + '</td>'
-        + '<td><span class="ei-bdg ' + m.status.k + '">' + m.status.l + '</span></td>'
-      + '</tr>';
+        +'<td class="ei-sku">'+eiEsc(m.sku)+'</td>'
+        +'<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+eiEsc(m.title)+'">'+eiEsc(m.title||'—')+'</td>'
+        +'<td class="r">'+bar+' '+m.stock.toLocaleString('en-IE')+'</td>'
+        +'<td class="r" style="'+cvC+'">'+cv+'</td>'
+        +'<td class="r">'+ls+'</td>'
+        +'<td class="r">'+(m.hist.length||0)+'</td>'
+        +'<td class="r">'+rec+'</td>'
+        +'<td><span class="ei-bdg '+m.status.k+'">'+m.status.l+'</span></td>'
+      +'</tr>';
     });
+
     tbody.innerHTML = html;
-    if (countEl) countEl.textContent = Math.min(200, merged.length) + ' of ' + merged.length + ' SKUs shown';
+
+    // Pagination bar
+    var totalPages = Math.ceil(merged.length / eiSkuPageSize);
+    var paginHtml = 'Showing '+(start+1)+'–'+end+' of '+merged.length+' SKUs';
+    if (totalPages > 1) {
+      paginHtml += '&nbsp;&nbsp;'
+        +(eiSkuPage > 0 ? '<button class="secondary" onclick="eiSkuPrev()" style="padding:3px 10px;font-size:11px">&#8592; Prev</button> ' : '')
+        +(eiSkuPage < totalPages-1 ? '<button class="secondary" onclick="eiSkuNext()" style="padding:3px 10px;font-size:11px">Next &#8594;</button>' : '');
+    }
+    if (countEl) countEl.innerHTML = paginHtml;
   }
+
+  window.eiSkuNext = function() { eiSkuPage++; eiRenderSkuPage(); };
+  window.eiSkuPrev = function() { eiSkuPage--; eiRenderSkuPage(); };
 
   // Make render functions callable from filter controls
   window.eiRenderCampaigns = function() { try { eiRenderCampaigns(); } catch(e) { console.error(e); } };
