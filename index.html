@@ -1481,14 +1481,17 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     return s / (q / 30);
   }
 
-  var _eiLocalRows = []; // local cache — populated by eiOnDataReady push from main script
+  var _eiLocalRows = [];
 
   function getRows() {
-    // Try local cache first (populated by push from main script)
     if (_eiLocalRows.length) return _eiLocalRows;
-    // Fallbacks
-    try { if (window._eiRows && window._eiRows.length) return window._eiRows; } catch(e){}
-    try { if (typeof state !== 'undefined' && state.computedRows && state.computedRows.length) return state.computedRows; } catch(e){}
+    try { if (window._eiRows && window._eiRows.length) { _eiLocalRows = window._eiRows; return _eiLocalRows; } } catch(e){}
+    try {
+      if (typeof state !== 'undefined' && state.computedRows && state.computedRows.length) {
+        _eiLocalRows = state.computedRows; // cache it
+        return _eiLocalRows;
+      }
+    } catch(e){}
     return [];
   }
 
@@ -1624,7 +1627,16 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       el.innerHTML = '<div style="background:#f8fafc;border:1.5px solid var(--line);border-radius:10px;padding:20px;text-align:center">'
         + '<div style="font-size:14px;font-weight:700;color:#374151;margin-bottom:8px">📊 Buying data needed</div>'
         + '<div style="font-size:12px;color:#64748b;margin-bottom:14px">Go to the <strong>Buying</strong> tab and wait for your data to load, then click below.</div>'
-        + '<button onclick="window.eiOnTabOpen()" style="padding:8px 18px;background:#1e40af;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer">🔄 Reload recommendations</button>'
+        + '<button onclick="(function(){'
+          + 'try{'
+            + 'if(typeof state!==\'undefined\'&&state.computedRows&&state.computedRows.length){'
+              + '_eiLocalRows=state.computedRows;'
+              + 'window.eiOnTabOpen();'
+            + '}else{'
+              + 'alert(\'Still no data — computedRows: \'+(typeof state!==\'undefined\'?state.computedRows.length:\'state not found\'));'
+            + '}'
+          + '}catch(e){alert(\'Error: \'+e.message);}'
+        + '})()" style="padding:8px 18px;background:#1e40af;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer">🔄 Reload recommendations</button>'
         + '<div style="font-size:10px;color:#94a3b8;margin-top:10px;font-family:monospace">' + dbg + '</div>'
         + '</div>';
       return;
