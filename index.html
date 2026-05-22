@@ -1512,37 +1512,10 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   window.eiOnTabOpen = function() {
     var sel = G('eiMonthSel'); if (sel) sel.value = new Date().getMonth();
     if (eiReady) { eiRender(); return; }
-
-    // Try immediately
-    var rows = getRows();
-    if (rows.length) {
-      eiRenderSendThis(new Date().getMonth()); // show stock instantly
-      eiLoadKlaviyo();                          // then sync Klaviyo
-      return;
-    }
-
-    // Buying data not loaded yet — show helpful message and poll
-    var el = G('eiSendThis');
-    if (el) el.innerHTML = '<div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:14px 16px;font-size:13px;color:#92400e;font-weight:600">'
-      + '⏳ Waiting for buying data to load…<br>'
-      + '<span style="font-size:11px;font-weight:400;color:#b45309">If data doesn\'t appear in 10 seconds, click the <strong>Buying</strong> tab to load it first.</span>'
-      + '</div>';
-
-    // Poll every second for up to 15s
-    var attempts = 0;
-    var poll = setInterval(function() {
-      attempts++;
-      var r = getRows();
-      if (r.length) {
-        clearInterval(poll);
-        eiRenderSendThis(new Date().getMonth());
-        if (!eiReady) eiLoadKlaviyo();
-      } else if (attempts >= 15) {
-        clearInterval(poll);
-        var e2 = G('eiSendThis');
-        if (e2) e2.innerHTML = '<div class="ei-empty">No buying data found. Load your CSV on the Buying tab first, then return here.</div>';
-      }
-    }, 1000);
+    // Always try to render - getRows handles empty gracefully
+    eiRenderSendThis(new Date().getMonth());
+    // Auto-sync if we have data
+    if (getRows().length && !eiReady) eiLoadKlaviyo();
   };
 
   window.eiOnMonthChange = function() {
@@ -1630,7 +1603,14 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   function eiRenderSendThis(m) {
     var el = G('eiSendThis'); if (!el) return;
     var rows = getRows();
-    if (!rows.length) { el.innerHTML = '<div class="ei-empty">Load your buying data (Buying tab) to see recommendations</div>'; return; }
+    if (!rows.length) {
+      el.innerHTML = '<div style="background:#f8fafc;border:1.5px solid var(--line);border-radius:10px;padding:20px;text-align:center">'
+        + '<div style="font-size:14px;font-weight:700;color:#374151;margin-bottom:8px">📊 Buying data needed</div>'
+        + '<div style="font-size:12px;color:#64748b;margin-bottom:14px">Go to the <strong>Buying</strong> tab and wait for your data to load, then click below.</div>'
+        + '<button onclick="window.eiOnTabOpen()" style="padding:8px 18px;background:#1e40af;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer">🔄 Reload recommendations</button>'
+        + '</div>';
+      return;
+    }
 
     var now      = new Date();
     var ly       = now.getFullYear() - 1;
