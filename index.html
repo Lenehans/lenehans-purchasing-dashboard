@@ -1672,7 +1672,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
                   : '')
             + '</div>'
             + '<div style="margin-top:8px">'
-              + '<button onclick="eiToggleProducts(\''+c.id+'\',\''+c.sent_at+'\',this)" style="padding:4px 11px;font-size:11px;font-weight:700;background:#fff;border:1.5px solid #bfdbfe;color:#1e40af;border-radius:6px;cursor:pointer">📦 What sold?</button>'
+              + '<button onclick="eiToggleProducts(\''+c.id+'\',\''+c.theme+'\',\''+esc(c.name).replace(/'/g,'&#39;')+'\',this)" style="padding:4px 11px;font-size:11px;font-weight:700;background:#fff;border:1.5px solid #bfdbfe;color:#1e40af;border-radius:6px;cursor:pointer">📦 What to send next</button>'
             + '</div>'
             + '<div id="eiProd_'+c.id+'" data-open="0"></div>'
           + '</div>'
@@ -1943,8 +1943,103 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   }
 
   // ── Copy campaign brief ───────────────────────────────────────────────────────
-  // ── Product drill-down ────────────────────────────────────────────────────────
-  var eiProductCache = {};
+  // ── Smart SKU suggestions from buying data ───────────────────────────────────
+  window.eiToggleProducts = function(campId, theme, campName, btn) {
+    var el = document.getElementById('eiProd_' + campId);
+    if (!el) return;
+    if (el.dataset.open === '1') {
+      el.innerHTML = ''; el.dataset.open = '0';
+      btn.textContent = '📦 What to send next'; return;
+    }
+    el.dataset.open = '1';
+    btn.textContent = '▲ Hide';
+    eiShowSkuSuggestions(el, theme, campName);
+  };
+
+  function eiShowSkuSuggestions(el, theme, campName) {
+    var rows = getRows();
+    if (!rows.length) {
+      el.innerHTML = '<div style="font-size:11px;color:#94a3b8;padding:8px 0">Load buying data to see SKU suggestions.</div>'; return;
+    }
+
+    // Get SKUs for this theme with stock
+    var themed = rows.filter(function(r) {
+      return themeFromRow(r) === theme
+        && (r.stock || r.NetStock_Arklow || 0) > 0
+        && coverDays(r) > 21;
+    });
+
+    // If theme is 'other' or too narrow, broaden by campaign name keywords
+    if (themed.length < 5) {
+      var words = campName.toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(' ').filter(function(w){ return w.length > 3; });
+      themed = rows.filter(function(r) {
+        var title = (r.ItemTitle||'').toLowerCase();
+        return (r.stock||r.NetStock_Arklow||0) > 0
+          && coverDays(r) > 21
+          && words.some(function(w){ return title.indexOf(w) >= 0; });
+      });
+    }
+
+    if (!themed.length) {
+      el.innerHTML = '<div style="font-size:11px;color:#94a3b8;padding:8px 0">No matching stock found for this theme.</div>'; return;
+    }
+
+    // Score each SKU
+    themed = themed.map(function(r) {
+      var vel    = r.QtySold_Online_Total_30d || r.QSold_On30 || 0;
+      var cov    = coverDays(r);
+      var stock  = r.stock || r.NetStock_Arklow || 0;
+      // Score: velocity (main driver) + stock depth bonus
+      var score  = (vel * 10) + (cov > 60 ? 5 : 0) + (cov > 90 ? 5 : 0);
+      return { r: r, vel: vel, cov: Math.round(cov), stock: stock, score: score };
+    });
+
+    // Sort by score (velocity-led)
+    themed.sort(function(a,b){ return b.score - a.score; });
+
+    var top     = themed.slice(0, 10);
+    var catInfo = CAT[theme] || CAT.other;
+
+    var html = '<div style="margin-top:10px;border-top:1px solid var(--line-light);padding-top:10px">'
+      + '<div style="font-size:11px;font-weight:800;color:#1e40af;margin-bottom:3px">📦 Top ' + catInfo.label + ' SKUs to feature in your next email</div>'
+      + '<div style="font-size:11px;color:#64748b;margin-bottom:8px">Ranked by sales velocity · filtered to 21d+ stock cover</div>'
+      + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
+      + '<thead><tr style="background:#f1f5f9">'
+        + '<th style="text-align:left;padding:5px 8px;font-size:11px;font-weight:700">SKU</th>'
+        + '<th style="text-align:left;padding:5px 8px;font-size:11px;font-weight:700">Product</th>'
+        + '<th style="text-align:right;padding:5px 8px;font-size:11px;font-weight:700">30d sales</th>'
+        + '<th style="text-align:right;padding:5px 8px;font-size:11px;font-weight:700">Stock</th>'
+        + '<th style="text-align:right;padding:5px 8px;font-size:11px;font-weight:700">Cover</th>'
+        + '<th style="padding:5px 8px;font-size:11px;font-weight:700">Promote?</th>'
+      + '</tr></thead><tbody>';
+
+    top.forEach(function(item, i) {
+      var r       = item.r;
+      var badge   = '', badgeBg = '';
+      if      (item.cov > 90) { badge = '✅ Strong';     badgeBg = '#dcfce7'; }
+      else if (item.cov > 45) { badge = '✅ Good';        badgeBg = '#f0fdf4'; }
+      else                    { badge = '⚠ ' + item.cov + 'd'; badgeBg = '#fef9c3'; }
+
+      var velBg = item.vel >= 5 ? '#dcfce7' : item.vel >= 2 ? '#f1f5f9' : '#fff';
+
+      html += '<tr style="border-top:1px solid var(--line-light);' + (i===0?'background:#fffbeb':'')+'">'
+        + '<td style="padding:5px 8px;font-family:monospace;font-size:11px;font-weight:700;color:#1e40af">' + esc(r.SKU||'') + '</td>'
+        + '<td style="padding:5px 8px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(r.ItemTitle||'')+'">' + esc(r.ItemTitle||'—') + '</td>'
+        + '<td style="text-align:right;padding:5px 8px;background:'+velBg+';font-weight:700">' + item.vel + '</td>'
+        + '<td style="text-align:right;padding:5px 8px">' + item.stock.toLocaleString('en-IE') + '</td>'
+        + '<td style="text-align:right;padding:5px 8px;font-weight:600;color:' + (item.cov>45?'#14532d':'#92400e') + '">' + item.cov + 'd</td>'
+        + '<td style="padding:5px 8px"><span style="background:'+badgeBg+';border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700">'+badge+'</span></td>'
+      + '</tr>';
+    });
+
+    html += '</tbody></table>'
+      + '<div style="margin-top:8px;font-size:11px;color:#64748b">'
+        + themed.length + ' ' + catInfo.label.toLowerCase() + ' SKUs with stock · showing top 10 by sales velocity'
+      + '</div>'
+    + '</div>';
+
+    el.innerHTML = html;
+  }
 
   window.eiToggleProducts = function(campId, sentAt, btn) {
     var el = document.getElementById('eiProd_' + campId);
@@ -1960,6 +2055,10 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     fetch(PROXY + '?action=klaviyo_products&after=' + after + '&before=' + before)
       .then(function(r){ return r.json(); })
       .then(function(data){
+        if (data.error) {
+          el.innerHTML = '<div style="font-size:11px;color:#dc2626;padding:8px 0;font-weight:600">⚠ '+esc(data.error)+(data.detail?' — '+esc(data.detail):'')+'</div>';
+          btn.textContent = '📦 What sold?'; btn.disabled = false; return;
+        }
         eiProductCache[campId] = data.products || [];
         eiShowProducts(campId, eiProductCache[campId]);
         btn.textContent = '▲ Hide'; btn.disabled = false;
