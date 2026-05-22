@@ -1506,10 +1506,37 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   window.eiOnTabOpen = function() {
     var sel = G('eiMonthSel'); if (sel) sel.value = new Date().getMonth();
     if (eiReady) { eiRender(); return; }
+
+    // Try immediately
     var rows = getRows();
-    if (rows.length) { eiLoadKlaviyo(); return; }
-    setStatus('Load your buying data first (Buying tab), then sync Klaviyo.', 'ok');
-    eiRenderSendThis(new Date().getMonth()); // show stock-based suggestions even without Klaviyo
+    if (rows.length) {
+      eiRenderSendThis(new Date().getMonth()); // show stock instantly
+      eiLoadKlaviyo();                          // then sync Klaviyo
+      return;
+    }
+
+    // Buying data not loaded yet — show helpful message and poll
+    var el = G('eiSendThis');
+    if (el) el.innerHTML = '<div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:14px 16px;font-size:13px;color:#92400e;font-weight:600">'
+      + '⏳ Waiting for buying data to load…<br>'
+      + '<span style="font-size:11px;font-weight:400;color:#b45309">If data doesn\'t appear in 10 seconds, click the <strong>Buying</strong> tab to load it first.</span>'
+      + '</div>';
+
+    // Poll every second for up to 15s
+    var attempts = 0;
+    var poll = setInterval(function() {
+      attempts++;
+      var r = getRows();
+      if (r.length) {
+        clearInterval(poll);
+        eiRenderSendThis(new Date().getMonth());
+        if (!eiReady) eiLoadKlaviyo();
+      } else if (attempts >= 15) {
+        clearInterval(poll);
+        var e2 = G('eiSendThis');
+        if (e2) e2.innerHTML = '<div class="ei-empty">No buying data found. Load your CSV on the Buying tab first, then return here.</div>';
+      }
+    }, 1000);
   };
 
   window.eiOnMonthChange = function() {
@@ -3842,10 +3869,17 @@ function recompute(){
   render();
   if(document.getElementById('tab-clearstock')?.classList.contains('active')) renderClearStock();
   if(document.getElementById('tab-noos')?.classList.contains('active')) renderNOOS();
-  // Refresh email intelligence opportunities if data already loaded
-  if(typeof eiSt !== 'undefined' && eiSt.loaded) {
-    try { eiRenderAll(); } catch(e) {}
-  }
+  // Refresh email intelligence when buying data reloads
+  try {
+    var eiTab = document.getElementById('tab-email');
+    if (eiTab && eiTab.classList.contains('active')) {
+      if (typeof eiRender === 'function' && typeof eiReady !== 'undefined' && eiReady) {
+        eiRender();
+      } else if (typeof eiRenderSendThis === 'function') {
+        eiRenderSendThis(new Date().getMonth());
+      }
+    }
+  } catch(e) {}
 }
 
 // ─── ORDER PREVIEW ───────────────────────────────────────────────────────────
