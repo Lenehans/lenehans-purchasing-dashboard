@@ -1742,9 +1742,14 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       var lastSentDays = tc[0]?Math.round((now-new Date(tc[0].sent_at))/86400000):999;
       var avgCov = Math.round(ready.reduce(function(s,r){return s+coverDays(r);},0)/ready.length);
 
-      var score = cat.score*10 + (lyBest?30:0) + (lyBestOpen>BENCH_OPEN?20:0) + (lastSentDays>60?15:0) + (avgCov>90?10:0);
+      // Score: boost heavily if this theme had a campaign last year THIS SPECIFIC MONTH
+      var score = cat.score*10
+        + (lyBest ? 50 : 0)                           // strong boost for last-year same-month match
+        + (lyBestOpen > BENCH_OPEN ? 20 : 0)           // above benchmark
+        + (lastSentDays > 60 ? 15 : 0)                 // overdue
+        + (avgCov > 90 ? 5 : 0);                       // good stock
       if (!bestRec || score > bestRec.score) {
-        bestRec = { theme:theme, cat:cat, ready:ready, lyBest:lyBest, lyBestOpen:lyBestOpen, lastSentDays:lastSentDays, avgCov:avgCov, score:score };
+        bestRec = { theme:theme, cat:cat, ready:ready, lyBest:lyBest, lyBestOpen:lyBestOpen, lastSentDays:lastSentDays, avgCov:avgCov, score:score, lyCount: eiCamps.filter(function(c){ var d=new Date(c.sent_at); return c.theme===theme&&d.getMonth()===m&&d.getFullYear()===ly; }).length };
       }
     });
 
@@ -1753,18 +1758,30 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     var r = bestRec;
     var tpl = TPL[r.theme] || TPL.other;
 
-    // Top products by sales velocity
-    var scored = r.ready.map(function(row) {
+    // Top products — ranked by sales velocity, capped at realistic cover
+    var scored = r.ready.filter(function(row){
+      return coverDays(row) < 400; // exclude SKUs with 400d+ cover (likely inactive)
+    }).map(function(row) {
       var vel = row.QtySold_Online_Total_30d || row.QSold_On30 || 0;
       var cov = Math.round(coverDays(row));
       var stk = row.stock || row.NetStock_Arklow || 0;
-      return { row:row, vel:vel, cov:cov, stk:stk, score: vel*10 + (cov>90?10:0) + (cov>60?5:0) };
+      return { row:row, vel:vel, cov:cov, stk:stk, score: vel*10 + (cov>90?5:0) + (cov>45?3:0) };
     }).sort(function(a,b){ return b.score-a.score; });
+
+    // If lyBest campaign exists, try to boost SKUs that match its name keywords
+    if (r.lyBest) {
+      var campWords = r.lyBest.name.toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(' ').filter(function(w){ return w.length > 3; });
+      scored = scored.map(function(p) {
+        var title = (p.row.ItemTitle||'').toLowerCase();
+        var keywordBoost = campWords.some(function(w){ return title.indexOf(w) >= 0; }) ? 30 : 0;
+        return { row:p.row, vel:p.vel, cov:p.cov, stk:p.stk, score:p.score + keywordBoost };
+      }).sort(function(a,b){ return b.score-a.score; });
+    }
 
     var topProducts = scored.slice(0,8);
     var isCurrentMonth = (m === now.getMonth());
     var dataNote = eiReady
-      ? (r.lyBest ? '✅ Based on last ' + MN[m] + ' performance + current stock' : '📊 Based on current stock · sync Klaviyo to add last year\'s data')
+      ? (r.lyBest ? '✅ Matched to "' + r.lyBest.name + '" (' + r.lyBestOpen + '% open last ' + MN[m] + ')' : '📊 Based on current stock · no matching campaign found for last ' + MN[m])
       : '📊 Based on current stock only · click Sync Klaviyo to add last year\'s performance data';
 
     // Subject line for brief
