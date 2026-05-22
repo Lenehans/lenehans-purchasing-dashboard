@@ -1483,6 +1483,20 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
 
   var _eiLocalRows = [];
 
+  // Email subject line + hook templates per category
+  var TPL = {
+    garden:   { e:'🌿', s:'Garden season is here — shop our top outdoor picks',          h:'Everything you need for your garden this season, at prices you\'ll love.' },
+    power:    { e:'⚡', s:'Power up — drills, saws and more at great prices',             h:'Trade-quality power tools at unbeatable prices while stocks last.' },
+    tools:    { e:'🔧', s:'The right tool for every job — save on hand tools',            h:'Professional hand tools at trade prices. Stock up and save.' },
+    paint:    { e:'🪣', s:'Transform your home — paint and decorating deals',             h:'Everything you need to freshen up your space this season.' },
+    cleaning: { e:'🧹', s:'Spring clean sorted — save on cleaning essentials',            h:'Stock up on our best cleaning products while stocks last.' },
+    plumbing: { e:'🚿', s:'Plumbing essentials — save on pipes, fittings and more',       h:'Quality plumbing supplies at trade prices — perfect for any job.' },
+    storage:  { e:'📦', s:'Get organised — storage solutions on sale now',                h:'Clear the clutter and save with our storage event.' },
+    fixings:  { e:'🔩', s:'Stock up on fixings — screws, bolts and brackets',             h:'Essential fixings at trade prices. Order before they\'re gone.' },
+    safety:   { e:'🦺', s:'Safety first — PPE and workwear offers',                       h:'Stay safe and save on our safety essentials.' },
+    other:    { e:'🏷️', s:'Exclusive deals — selected lines reduced',                    h:'Don\'t miss these offers on selected products.' }
+  };
+
   function getRows() {
     if (_eiLocalRows.length) return _eiLocalRows;
     try { if (window._eiRows && window._eiRows.length) { _eiLocalRows = window._eiRows; return _eiLocalRows; } } catch(e){}
