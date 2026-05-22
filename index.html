@@ -1604,10 +1604,17 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     var el = G('eiSendThis'); if (!el) return;
     var rows = getRows();
     if (!rows.length) {
+      // Debug: show exactly what we can see
+      var dbg = '';
+      try { dbg += 'window._eiRows: ' + (window._eiRows ? window._eiRows.length + ' rows' : 'not set') + ' | '; } catch(e){}
+      try { dbg += 'typeof state: ' + typeof state + ' | '; } catch(e){ dbg += 'state error: ' + e.message + ' | '; }
+      try { if(typeof state !== 'undefined') dbg += 'computedRows: ' + (state.computedRows ? state.computedRows.length : 'empty'); } catch(e){ dbg += 'cr error: ' + e.message; }
+
       el.innerHTML = '<div style="background:#f8fafc;border:1.5px solid var(--line);border-radius:10px;padding:20px;text-align:center">'
         + '<div style="font-size:14px;font-weight:700;color:#374151;margin-bottom:8px">📊 Buying data needed</div>'
         + '<div style="font-size:12px;color:#64748b;margin-bottom:14px">Go to the <strong>Buying</strong> tab and wait for your data to load, then click below.</div>'
         + '<button onclick="window.eiOnTabOpen()" style="padding:8px 18px;background:#1e40af;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer">🔄 Reload recommendations</button>'
+        + '<div style="font-size:10px;color:#94a3b8;margin-top:10px;font-family:monospace">' + dbg + '</div>'
         + '</div>';
       return;
     }
