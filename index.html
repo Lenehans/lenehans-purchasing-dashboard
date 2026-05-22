@@ -1573,6 +1573,64 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     eiRenderSendThis(m);
   };
 
+  // ── Klaviyo loader ────────────────────────────────────────────────────────────
+  window.eiLoadKlaviyo = function() {
+    setBusy(true);
+    setStatus('Connecting to Klaviyo…', 'loading');
+    var statusEl = G('eiStatus');
+    if (statusEl) statusEl.style.display = 'block';
+
+    var p1 = fetch(PROXY + '?action=klaviyo').then(function(r){ return r.json(); });
+    var p2 = fetch(PROXY + '?action=klaviyo_stats').then(function(r){ return r.json(); }).catch(function(){ return {}; });
+
+    Promise.all([p1, p2]).then(function(res) {
+      var cData = res[0], sData = res[1];
+      if (cData.error) throw new Error(cData.error);
+
+      var raw = cData.data || [];
+      eiCamps = raw.map(function(c) {
+        var a = c.attributes || {};
+        return {
+          id:      c.id,
+          name:    a.name || '',
+          sent_at: a.send_time || a.scheduled_at || null,
+          status:  a.status || '',
+          theme:   themeFrom(a.name || '')
+        };
+      }).filter(function(c){ return c.sent_at; });
+
+      eiStMap = {};
+      var r2 = (sData.data && sData.data.attributes && sData.data.attributes.results) || [];
+      r2.forEach(function(r) {
+        var id  = r.groupings && r.groupings.campaign_id;
+        var v   = r.statistics || {};
+        if (id) eiStMap[id] = {
+          open_rate:  v.open_rate  != null ? Math.round(v.open_rate  * 100) : null,
+          click_rate: v.click_rate != null ? Math.round(v.click_rate * 100) : null,
+          rev:        v.revenue_per_recipient || 0
+        };
+      });
+
+      eiReady = true;
+      var sc = Object.keys(eiStMap).length;
+      setStatus('Synced — ' + eiCamps.length + ' campaigns · ' + sc + ' with stats · ' + new Date().toLocaleTimeString('en-IE'), 'ok');
+      eiRender();
+    }).catch(function(e) {
+      setStatus('Klaviyo error: ' + e.message + ' — check Apps Script is deployed', 'error');
+      console.error('eiLoadKlaviyo', e);
+    }).finally(function(){ setBusy(false); });
+  };
+
+  function eiRender() {
+    var m = curMonth();
+    var ly = new Date().getFullYear() - 1;
+    var hA = G('eiColAHead'); if (hA) hA.textContent = 'Last ' + MN[m] + ' ' + ly + ' — what you sent';
+    var hB = G('eiColBHead'); if (hB) hB.textContent = 'Send this — top picks for ' + MN[m];
+    eiRenderLastYear(m);
+    eiRenderSendThis(m);
+    eiRenderArchive();
+  }
+
   function eiRender() {
     var m = curMonth();
     var ly = new Date().getFullYear() - 1;
@@ -1705,6 +1763,9 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
 
     var topProducts = scored.slice(0,8);
     var isCurrentMonth = (m === now.getMonth());
+    var dataNote = eiReady
+      ? (r.lyBest ? '✅ Based on last ' + MN[m] + ' performance + current stock' : '📊 Based on current stock · sync Klaviyo to add last year\'s data')
+      : '📊 Based on current stock only · click Sync Klaviyo to add last year\'s performance data';
 
     // Subject line for brief
     var subj0 = tpl.s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
@@ -1716,11 +1777,12 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     html += '<div style="background:'+(isCurrentMonth?'#1e40af':'#f8fafc')+';border-radius:12px;padding:14px 16px;margin-bottom:14px;color:'+(isCurrentMonth?'#fff':'#1e293b')+'">'
       + '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;opacity:.7;margin-bottom:4px">'+(isCurrentMonth?'💡 Send this week':'💡 Best bet for '+MN[m])+'</div>'
       + '<div style="font-size:16px;font-weight:800;margin-bottom:4px">'+tpl.e+' '+r.cat.label+' email</div>'
-      + '<div style="font-size:11px;opacity:.85;line-height:1.7;margin-bottom:8px">'
+      + '<div style="font-size:11px;opacity:.85;line-height:1.7;margin-bottom:4px">'
         + r.ready.length+' SKUs in stock · avg '+r.avgCov+'d cover'
         + (r.lyBest?' · <strong>sent last '+MN[m]+', '+(r.lyBestOpen?r.lyBestOpen+'% open':'good results')+'</strong>':'')
         + (r.lastSentDays<999?' · last sent '+r.lastSentDays+'d ago':'')
       + '</div>'
+      + '<div style="font-size:10px;opacity:.65;margin-bottom:8px">'+dataNote+'</div>'
       + '<div style="background:rgba(255,255,255,.15);border-radius:7px;padding:8px 10px;font-size:12px;font-style:italic;margin-bottom:10px">&ldquo;'+esc(tpl.s)+'&rdquo;</div>'
       + '<div style="display:flex;gap:7px;flex-wrap:wrap">'
         + '<button onclick="navigator.clipboard.writeText(\''+subj0+'\');this.textContent=\'✓ Copied!\'" style="padding:5px 12px;font-size:11px;font-weight:700;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);border-radius:6px;color:'+(isCurrentMonth?'#fff':'#1e40af')+';cursor:pointer">Copy subject</button>'
