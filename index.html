@@ -1496,25 +1496,101 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   // This is the intelligence layer — campaign name → what products to feature
   function campaignProductKeywords(campName) {
     var n = (campName||'').toLowerCase();
-    if (/father|dad\b|dads|for him/.test(n))
-      return { label:'Gifts for Dad', keywords:['tool','drill','saw','workwear','torch','knife','multi','socket','ratchet','level','tape','box','storage'], why:'Father\'s Day gifts — tools, gadgets and practical items men love' };
-    if (/mother|mum\b|for her/.test(n))
-      return { label:'Home essentials', keywords:['clean','organis','storage','candle','spray','freshener','basket','hook','shelf'], why:'Practical home products' };
-    if (/christmas|xmas|gift/.test(n))
-      return { label:'Christmas gifts', keywords:['tool','drill','torch','multi','knife','socket','workwear','glove','box'], why:'Christmas gift ideas — tools and gadgets' };
-    if (/moth/.test(n))
-      return { label:'Moth control', keywords:['moth','lavender','cedar','closet','wardrobe','hanger','trap'], why:'Moth prevention and control products' };
-    if (/fly|flies/.test(n))
-      return { label:'Fly control', keywords:['fly','insect','bug','spray','trap','zapper','killer','electric'], why:'Fly and insect control products' };
-    if (/bed bug/.test(n))
-      return { label:'Bed bug control', keywords:['bed bug','mattress','spray','pest','killer','protector'], why:'Bed bug treatment products' };
-    if (/pest|wasp|rat|mice|mouse|vermin/.test(n))
-      return { label:'Pest control', keywords:['pest','killer','trap','spray','repel','bait','poison'], why:'Pest control and prevention products' };
-    if (/weed|lawn|grass/.test(n))
-      return { label:'Lawn & weed control', keywords:['weed','lawn','grass','seed','feed','killer','mow','edge'], why:'Lawn care and weed control' };
-    if (/clearance|warehouse|save|slash|budget/.test(n))
-      return { label:'High-value clearance', keywords:[], why:'Mixed clearance — pick high-velocity SKUs across all categories' };
-    return null; // use broad theme
+
+    // ── Father's Day ─────────────────────────────────────────────────────────
+    if (/father|dad\b|dads|for him|for men|men'?s gift/.test(n)) return {
+      label: 'Gifts for Dad',
+      keywords: [
+        // Tool brands
+        'draper','stanley','dewalt','makita','bosch','bahco','irwin','fiskars','leatherman','gerber',
+        // Tool types
+        'drill','saw','hammer','screwdriver','wrench','spanner','plier','socket','ratchet',
+        'chisel','mallet','level','tape measure','torch','multi.?tool','toolbox','tool bag',
+        'multimeter','stud finder','workbench','clamp','vice','knife','penknife',
+        // Workwear/accessories
+        'work glove','safety boot','knee pad','work trouser'
+      ],
+      why: 'Father\'s Day — tools, gadgets and practical gifts men actually want'
+    };
+
+    // ── Mother's Day ─────────────────────────────────────────────────────────
+    if (/mother|mum\b|mums|for her|women/.test(n)) return {
+      label: 'Gifts for Mum',
+      keywords: ['candle','diffuser','organis','basket','hook','shelf','mirror','storage box','cleaning','spray bottle','freshener','laundry','ironing'],
+      why: 'Mother\'s Day — home organisation and practical gifts'
+    };
+
+    // ── Christmas / gifting ───────────────────────────────────────────────────
+    if (/christmas|xmas|santa|stocking|gift/.test(n)) return {
+      label: 'Christmas gifts',
+      keywords: ['draper','stanley','dewalt','makita','torch','multi.?tool','toolbox','tool bag','socket','drill','knife','leatherman','workwear','glove'],
+      why: 'Christmas gifts — tools and gadgets for the DIY enthusiast'
+    };
+
+    // ── Pest control — specific bugs ─────────────────────────────────────────
+    if (/moth/.test(n)) return {
+      label: 'Moth control',
+      keywords: ['moth','cedar','lavender','wardrobe','closet','hanger','sachet','clothes protection','pest.*cloth','zero in','rentokil'],
+      why: 'Moth prevention — wardrobe protection and moth killer products in stock'
+    };
+
+    if (/fly|flies|flie/.test(n)) return {
+      label: 'Fly & insect control',
+      keywords: ['fly','insect','bug zapper','electric.*insect','uv.*trap','sticky','fly.*strip','fly.*killer','window.*fly','rentokil','zero in','pest stop'],
+      why: 'Fly and flying insect control — traps, zappers and sprays in stock'
+    };
+
+    if (/bed bug/.test(n)) return {
+      label: 'Bed bug control',
+      keywords: ['bed bug','mattress.*prot','encasement','pest','rentokil','spray.*bed'],
+      why: 'Bed bug treatment and prevention products'
+    };
+
+    if (/wasp/.test(n)) return {
+      label: 'Wasp control',
+      keywords: ['wasp','nest','hornet','rentokil','zero in','defenders'],
+      why: 'Wasp and nest control products'
+    };
+
+    if (/rat|mice|mouse|rodent|vermin/.test(n)) return {
+      label: 'Rodent control',
+      keywords: ['rat','mouse','mice','rodent','trap','bait','poison','rentokil','defenders','pest stop'],
+      why: 'Rodent control — traps, bait and repellents in stock'
+    };
+
+    if (/pest|bug\b|insect/.test(n)) return {
+      label: 'Pest control',
+      keywords: ['pest','insect','bug','killer','trap','spray','repel','bait','rentokil','zero in','pest stop','defenders','slugs','ant','cockroach'],
+      why: 'Pest control products — targeted to what\'s in the email'
+    };
+
+    // ── Garden specific angles ────────────────────────────────────────────────
+    if (/weed/.test(n)) return {
+      label: 'Weed control',
+      keywords: ['weed','roundup','glyphosate','weedkiller','weed.*killer','burner','torch.*weed','path.*clear'],
+      why: 'Weed control products — sprays, killers and burners in stock'
+    };
+
+    if (/lawn|grass/.test(n)) return {
+      label: 'Lawn care',
+      keywords: ['lawn','grass','mow','seed','feed','fertiliser','scarif','aerat','edg'],
+      why: 'Lawn care products in stock'
+    };
+
+    if (/solar|light.*garden|garden.*light/.test(n)) return {
+      label: 'Garden lighting',
+      keywords: ['solar','garden.*light','spike.*light','path.*light','outdoor.*light','led.*garden'],
+      why: 'Garden lighting and solar products'
+    };
+
+    // ── Clearance / sale ─────────────────────────────────────────────────────
+    if (/clearance|warehouse|super saver|slash|budget/.test(n)) return {
+      label: 'High-value clearance picks',
+      keywords: [], // empty = show top velocity across all
+      why: 'Clearance email — feature your fastest-moving overstock lines'
+    };
+
+    return null; // fall through to broad theme
   }
 
   function coverDays(r) {
@@ -1966,12 +2042,15 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     var themed, sectionLabel, whyNote;
 
     if (intel && intel.keywords.length > 0) {
-      // Keyword-driven match — find SKUs whose titles match the specific campaign intent
+      // Build regex patterns from keywords for better matching
+      var patterns = intel.keywords.map(function(kw) { return new RegExp(kw, 'i'); });
       themed = rows.filter(function(r) {
-        var title = (r.ItemTitle||'').toLowerCase();
-        var stock = r.stock || r.NetStock_Arklow || 0;
+        var title    = (r.ItemTitle||'').toLowerCase();
+        var supplier = (r.SupplierName||'').toLowerCase();
+        var combined = title + ' ' + supplier;
+        var stock    = r.stock || r.NetStock_Arklow || 0;
         return stock > 0 && coverDays(r) > 14
-          && intel.keywords.some(function(kw){ return title.indexOf(kw) >= 0; });
+          && patterns.some(function(p){ return p.test(combined); });
       });
       sectionLabel = '📦 ' + intel.label + ' — top in-stock products';
       whyNote = intel.why;
