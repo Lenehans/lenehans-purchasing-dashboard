@@ -1481,15 +1481,26 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     return s / (q / 30);
   }
 
+  var _eiLocalRows = []; // local cache — populated by eiOnDataReady push from main script
+
   function getRows() {
-    try {
-      // window._eiRows is set by the main script when buying data loads
-      if (window._eiRows && window._eiRows.length) return window._eiRows;
-      // fallback: try state.computedRows directly
-      if (typeof state !== 'undefined' && state.computedRows && state.computedRows.length) return state.computedRows;
-      return [];
-    } catch(e) { return []; }
+    // Try local cache first (populated by push from main script)
+    if (_eiLocalRows.length) return _eiLocalRows;
+    // Fallbacks
+    try { if (window._eiRows && window._eiRows.length) return window._eiRows; } catch(e){}
+    try { if (typeof state !== 'undefined' && state.computedRows && state.computedRows.length) return state.computedRows; } catch(e){}
+    return [];
   }
+
+  // Called by main script when buying data loads/reloads
+  window.eiOnDataReady = function(rows) {
+    _eiLocalRows = rows || [];
+    var tab = document.getElementById('tab-email');
+    if (tab && tab.classList.contains('active')) {
+      eiRenderSendThis(curMonth());
+      if (!eiReady) eiLoadKlaviyo();
+    }
+  };
 
   function curMonth() { var s=G('eiMonthSel'); return s ? parseInt(s.value,10) : new Date().getMonth(); }
 
@@ -3855,7 +3866,8 @@ function recompute(){
   }
 
   state.computedRows=deduped;
-  window._eiRows=deduped; // expose for email intelligence (const state not on window)
+  window._eiRows=deduped;
+  if(typeof window.eiOnDataReady==='function') window.eiOnDataReady(deduped);
 
   // ── Build global revenue rank map (all governed SKUs by 30D revenue) ────────
   const rankSorted=[...deduped].sort((a,b)=>(b.Revenue_Online_Total_30d||0)-(a.Revenue_Online_Total_30d||0));
