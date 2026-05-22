@@ -1345,59 +1345,49 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     </div>
   </div><!-- /tab-alerts -->
 
-  <!-- TAB: Email Intelligence — Seasonal Planner -->
+  <!-- TAB: Email Intelligence -->
   <div class="tab-panel" id="tab-email">
     <div style="padding:14px 0">
 
-      <!-- Header -->
-      <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:16px">
+      <!-- Header row -->
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+        <div style="font-size:16px;font-weight:800;color:#1e293b">📅 Email Intelligence</div>
+        <select id="eiMonthSel" onchange="eiOnMonthChange()" style="font-size:12px;font-weight:700;padding:5px 10px;border-radius:7px;border:1.5px solid #cbd5e1;margin-left:4px">
+          <option value="0">January</option><option value="1">February</option><option value="2">March</option>
+          <option value="3">April</option><option value="4">May</option><option value="5">June</option>
+          <option value="6">July</option><option value="7">August</option><option value="8">September</option>
+          <option value="9">October</option><option value="10">November</option><option value="11">December</option>
+        </select>
+        <button onclick="eiLoadKlaviyo()" id="eiSyncBtn" style="margin-left:4px">⚡ Sync Klaviyo</button>
+        <span id="eiSpinner" style="display:none;font-size:12px;color:#92400e;font-weight:600">⏳ Syncing…</span>
+        <div id="eiStatus" style="display:none;font-size:11px;font-weight:600;padding:5px 10px;border-radius:6px;border:1px solid;margin-left:4px"></div>
+      </div>
+
+      <!-- Two-column layout -->
+      <div style="display:grid;grid-template-columns:380px 1fr;gap:16px;align-items:start">
+
+        <!-- LEFT: What ran last year -->
         <div>
-          <div style="font-size:18px;font-weight:800;color:#1e293b">📅 Email Intelligence</div>
-          <div style="font-size:12px;color:#64748b;margin-top:2px">What worked · What's in stock · What to send next</div>
+          <div class="ei-sh" id="eiColAHead">Last May — what you sent</div>
+          <div id="eiLastYear" style="max-height:600px;overflow-y:auto">
+            <div class="ei-empty">Sync Klaviyo to see last year's campaigns</div>
+          </div>
         </div>
-        <div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <label style="font-size:12px;font-weight:700;color:#374151">View month:
-            <select id="eiMonthSel" onchange="eiOnMonthChange()" style="font-size:12px;font-weight:700;margin-left:4px;padding:5px 10px;border-radius:7px;border:1.5px solid #cbd5e1">
-              <option value="0">January</option><option value="1">February</option><option value="2">March</option>
-              <option value="3">April</option><option value="4">May</option><option value="5">June</option>
-              <option value="6">July</option><option value="7">August</option><option value="8">September</option>
-              <option value="9">October</option><option value="10">November</option><option value="11">December</option>
-            </select>
-          </label>
-          <button onclick="eiLoadKlaviyo()" id="eiSyncBtn">⚡ Sync Klaviyo</button>
-          <span id="eiSpinner" style="display:none;font-size:12px;color:#92400e;font-weight:600">⏳ Syncing…</span>
-        </div>
-      </div>
-      <div id="eiStatus" style="display:none;font-size:12px;font-weight:600;padding:8px 12px;border-radius:7px;border:1px solid;margin-bottom:14px;line-height:1.5"></div>
 
-      <!-- SECTION 1: What worked last year -->
-      <div style="margin-bottom:20px">
-        <div class="ei-sh" id="eiSec1Head">What you sent last May — and what worked</div>
-        <div id="eiLastYear"><div class="ei-empty">Sync Klaviyo to load last year's campaign performance</div></div>
-      </div>
-
-      <!-- SECTION 2: Two-column opportunity -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px" id="eiOppGrid">
+        <!-- RIGHT: What to send + products -->
         <div>
-          <div class="ei-sh" id="eiSec2Head">In stock now · high-value for May</div>
-          <div id="eiInStock"><div class="ei-empty">Load buying data to see seasonal stock alignment</div></div>
+          <div class="ei-sh" id="eiColBHead">Send this — top picks for May</div>
+          <div id="eiSendThis">
+            <div class="ei-empty">Load buying data and sync Klaviyo to generate recommendations</div>
+          </div>
         </div>
-        <div>
-          <div class="ei-sh">Seasonal &amp; market context</div>
-          <div id="eiContext"></div>
-        </div>
+
       </div>
 
-      <!-- SECTION 3: Smart recommendations -->
-      <div style="margin-bottom:20px">
-        <div class="ei-sh">Send this — smart recommendations</div>
-        <div id="eiSuggest"><div class="ei-empty">Load both Klaviyo data and buying data to generate recommendations</div></div>
-      </div>
-
-      <!-- SECTION 4: Full archive -->
-      <details style="margin-top:4px">
-        <summary style="font-size:11px;font-weight:800;color:#52637a;text-transform:uppercase;letter-spacing:.07em;cursor:pointer;padding:6px 0;border-bottom:1.5px solid var(--line-light);list-style:none;display:flex;align-items:center;gap:6px">
-          <span>▶</span> Full campaign archive
+      <!-- Archive (collapsed) -->
+      <details style="margin-top:16px">
+        <summary style="font-size:11px;font-weight:800;color:#52637a;text-transform:uppercase;letter-spacing:.07em;cursor:pointer;padding:6px 0;border-top:1.5px solid var(--line-light);list-style:none;display:flex;align-items:center;gap:8px">
+          <span id="eiArchiveArrow">▶</span> Full campaign archive
           <select id="eiArchiveTheme" onchange="eiRenderArchive()" onclick="event.stopPropagation()" style="font-size:11px;margin-left:8px">
             <option value="">All themes</option>
             <option value="garden">Garden</option><option value="tools">Hand tools</option>
@@ -1511,396 +1501,209 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   function setBusy(on) { var s=G('eiSpinner');if(s)s.style.display=on?'':'none'; var b=G('eiSyncBtn');if(b)b.disabled=on; }
 
   // ── Tab entry ─────────────────────────────────────────────────────────────────
+
+  // ── Tab open ──────────────────────────────────────────────────────────────────
   window.eiOnTabOpen = function() {
-    var sel = G('eiMonthSel');
-    if (sel) sel.value = new Date().getMonth();
-    eiRenderContext(curMonth());
-    eiRenderInStock(curMonth());
+    var sel = G('eiMonthSel'); if (sel) sel.value = new Date().getMonth();
     if (eiReady) { eiRender(); return; }
     var rows = getRows();
-    if (rows.length) eiLoadKlaviyo();
-    else setStatus('Load your buying data first (Buying tab), then come back here to sync Klaviyo.', 'ok');
+    if (rows.length) { eiLoadKlaviyo(); return; }
+    setStatus('Load your buying data first (Buying tab), then sync Klaviyo.', 'ok');
+    eiRenderSendThis(new Date().getMonth()); // show stock-based suggestions even without Klaviyo
   };
 
   window.eiOnMonthChange = function() {
     var m = curMonth();
-    eiUpdateHeaders(m);
-    eiRenderContext(m);
-    eiRenderInStock(m);
-    if (eiReady) { eiRenderLastYear(m); eiRenderSuggestions(m); }
-  };
-
-  function eiUpdateHeaders(m) {
     var ly = new Date().getFullYear() - 1;
-    var el1=G('eiSec1Head'); if(el1) el1.textContent = 'What you sent in ' + MN[m] + ' ' + ly + ' — and what worked';
-    var el2=G('eiSec2Head'); if(el2) el2.textContent = 'In stock now · high-value for ' + MN[m];
-  }
-
-  // ── Load Klaviyo (campaigns + stats in parallel) ──────────────────────────────
-  window.eiLoadKlaviyo = function() {
-    setBusy(true);
-    setStatus('Connecting to Klaviyo — fetching all campaigns and performance data…', 'loading');
-
-    var p1 = fetch(PROXY + '?action=klaviyo').then(function(r){return r.json();});
-    var p2 = fetch(PROXY + '?action=klaviyo_stats').then(function(r){return r.json();}).catch(function(){return {};});
-
-    Promise.all([p1, p2]).then(function(res) {
-      var cData = res[0], sData = res[1];
-      if (cData.error) throw new Error(cData.error);
-
-      // Build campaign list
-      var raw = cData.data || [];
-      eiCamps = raw.map(function(c) {
-        var a = c.attributes || {};
-        return {
-          id:      c.id,
-          name:    a.name || '',
-          sent_at: a.send_time || a.scheduled_at || null,
-          status:  a.status   || '',
-          theme:   themeFrom(a.name || '')
-        };
-      }).filter(function(c) { return c.sent_at; });
-
-      // Build stats map
-      eiStMap = {};
-      var rows2 = (sData.data && sData.data.attributes && sData.data.attributes.results) || [];
-      rows2.forEach(function(r) {
-        var id  = r.groupings && r.groupings.campaign_id;
-        var v   = r.statistics || {};
-      // Build stats map — calculate rates from raw counts
-        if (id) {
-          var deliveries = v.deliveries || 0;
-          var opens      = v.opens_unique || v.open_rate || 0;
-          var clicks     = v.clicks_unique || v.click_rate || 0;
-          var revenue    = v.revenue || v.revenue_per_recipient || 0;
-          eiStMap[id] = {
-            open_rate:  deliveries > 0 ? Math.round(opens  / deliveries * 100) : (opens  < 1 ? pct(opens)  : opens),
-            click_rate: deliveries > 0 ? Math.round(clicks / deliveries * 100) : (clicks < 1 ? pct(clicks) : clicks),
-            rev:        revenue,
-            deliveries: deliveries
-          };
-        }
-      });
-
-      eiReady = true;
-      var statCount = Object.keys(eiStMap).length;
-      setStatus(
-        'Synced — ' + eiCamps.length + ' campaigns loaded · ' + statCount + ' with open rate data · Last sync: ' + new Date().toLocaleTimeString('en-IE'),
-        'ok'
-      );
-      eiRender();
-    }).catch(function(e) {
-      setStatus('Error: ' + e.message, 'error');
-      console.error(e);
-    }).finally(function() { setBusy(false); });
+    var hA = G('eiColAHead'); if (hA) hA.textContent = 'Last ' + MN[m] + ' ' + ly + ' — what you sent';
+    var hB = G('eiColBHead'); if (hB) hB.textContent = 'Send this — top picks for ' + MN[m];
+    if (eiReady) eiRenderLastYear(m);
+    eiRenderSendThis(m);
   };
 
-  // ── Main render ───────────────────────────────────────────────────────────────
   function eiRender() {
     var m = curMonth();
-    eiUpdateHeaders(m);
+    var ly = new Date().getFullYear() - 1;
+    var hA = G('eiColAHead'); if (hA) hA.textContent = 'Last ' + MN[m] + ' ' + ly + ' — what you sent';
+    var hB = G('eiColBHead'); if (hB) hB.textContent = 'Send this — top picks for ' + MN[m];
     eiRenderLastYear(m);
-    eiRenderInStock(m);
-    eiRenderContext(m);
-    eiRenderSuggestions(m);
+    eiRenderSendThis(m);
     eiRenderArchive();
   }
 
-  // ── Section 1: Last year performance ─────────────────────────────────────────
+  // ── Left: compact campaign cards ─────────────────────────────────────────────
   function eiRenderLastYear(m) {
     var el = G('eiLastYear'); if (!el) return;
-    if (!eiReady) { el.innerHTML = '<div class="ei-empty">Sync Klaviyo to load performance data</div>'; return; }
-
+    if (!eiReady) { el.innerHTML = '<div class="ei-empty">Sync Klaviyo to load last year\'s campaigns</div>'; return; }
     var ly    = new Date().getFullYear() - 1;
     var camps = eiCamps.filter(function(c) {
       var d = new Date(c.sent_at);
       return d.getMonth() === m && d.getFullYear() === ly && c.status !== 'Draft';
     });
-
-    // Also check for campaigns 2 years back if nothing last year
     if (!camps.length) {
+      // Try two years back
       var ly2 = ly - 1;
       camps = eiCamps.filter(function(c) {
-        var d = new Date(c.sent_at);
-        return d.getMonth() === m && d.getFullYear() === ly2;
+        var d = new Date(c.sent_at); return d.getMonth() === m && d.getFullYear() === ly2;
       });
     }
+    camps.sort(function(a,b){ return (eiStMap[b.id]||{}).open_rate||0 - (eiStMap[a.id]||{}).open_rate||0; });
+    if (!camps.length) { el.innerHTML = '<div class="ei-empty">No campaigns found for ' + MN[m] + ' ' + ly + '</div>'; return; }
 
-    camps.sort(function(a,b) {
-      var sa = eiStMap[a.id]||{}, sb = eiStMap[b.id]||{};
-      return (sb.open_rate||0) - (sa.open_rate||0); // best open rate first
-    });
+    var topOpen = 0;
+    camps.forEach(function(c){ var o=(eiStMap[c.id]||{}).open_rate||0; if(o>topOpen)topOpen=o; });
 
-    if (!camps.length) {
-      el.innerHTML = '<div class="ei-empty">No campaigns found for ' + MN[m] + ' — try a different month</div>';
-      return;
-    }
+    var html = '';
+    camps.forEach(function(c) {
+      var st   = eiStMap[c.id] || {};
+      var cat  = CAT[c.theme]  || CAT.other;
+      var date = new Date(c.sent_at).toLocaleDateString('en-IE',{day:'2-digit',month:'short'});
+      var isTop = st.open_rate === topOpen && topOpen > 0;
 
-    var topOpen  = Math.max.apply(null, camps.map(function(c){return (eiStMap[c.id]||{}).open_rate||0;}));
-    var hasStats = camps.some(function(c){ return (eiStMap[c.id]||{}).open_rate != null; });
+      var ob='#f1f5f9',oc='#64748b';
+      if (st.open_rate!=null){ if(st.open_rate>=BENCH_OPEN+8){ob='#dcfce7';oc='#14532d';} else if(st.open_rate>=BENCH_OPEN){ob='#fef9c3';oc='#713f12';} else{ob='#fee2e2';oc='#7f1d1d';} }
 
-    var html = '<div style="display:grid;gap:10px">';
-    camps.forEach(function(c, i) {
-      var st      = eiStMap[c.id] || {};
-      var cat     = CAT[c.theme]  || CAT.other;
-      var date    = new Date(c.sent_at).toLocaleDateString('en-IE',{day:'2-digit',month:'short',year:'2-digit'});
-      var isTop   = hasStats && st.open_rate === topOpen && topOpen > 0;
-
-      // Open rate colour
-      var ob='#f1f5f9', oc='#64748b';
-      if (st.open_rate != null) {
-        if (st.open_rate >= BENCH_OPEN + 8) { ob='#dcfce7'; oc='#14532d'; }
-        else if (st.open_rate >= BENCH_OPEN) { ob='#fef9c3'; oc='#713f12'; }
-        else { ob='#fee2e2'; oc='#7f1d1d'; }
-      }
-
-      html += '<div style="background:#fff;border:1.5px solid '+(isTop?'#34d399':'var(--line)')+';border-radius:10px;padding:12px 14px;'+(isTop?'box-shadow:0 0 0 2px #d1fae5;':'')+'">'
-        + (isTop ? '<div style="font-size:10px;font-weight:800;color:#16a34a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">🏆 Best performer last '+MN[m]+'</div>' : '')
-        + '<div style="display:flex;align-items:flex-start;gap:10px">'
-          + '<span style="font-size:20px;margin-top:1px">' + cat.e + '</span>'
+      html += '<div style="background:#fff;border:1.5px solid '+(isTop?'#34d399':'var(--line)')+';border-radius:9px;padding:10px 12px;margin-bottom:8px'+(isTop?';box-shadow:0 0 0 2px #d1fae5':'')+'">'
+        + (isTop?'<div style="font-size:9px;font-weight:800;color:#16a34a;text-transform:uppercase;margin-bottom:4px">🏆 Best performer</div>':'')
+        + '<div style="display:flex;gap:8px;align-items:flex-start">'
+          + '<span style="font-size:16px;margin-top:1px">'+cat.e+'</span>'
           + '<div style="flex:1;min-width:0">'
-            + '<div style="font-size:13px;font-weight:700;color:#1e293b;line-height:1.3;margin-bottom:3px">' + esc(c.name) + '</div>'
-            + '<div style="font-size:11px;color:#64748b;margin-bottom:6px">' + date + ' &middot; ' + cat.label + '</div>'
-            + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
-              + (st.open_rate != null
-                  ? '<span style="background:'+ob+';color:'+oc+';border-radius:4px;padding:2px 8px;font-size:12px;font-weight:800">'+st.open_rate+'% open</span>'
-                  : '<span style="background:#f1f5f9;color:#94a3b8;border-radius:4px;padding:2px 8px;font-size:11px">No stats</span>')
-              + (st.click_rate != null ? '<span style="background:#f1f5f9;color:#475569;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600">'+st.click_rate+'% click</span>' : '')
-              + (st.rev > 0 ? '<span style="background:#eff6ff;color:#1e40af;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600">€'+st.rev.toFixed(2)+'/recip</span>' : '')
-              + (st.open_rate != null && st.open_rate >= BENCH_OPEN
-                  ? '<span style="background:#fef9c3;color:#713f12;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:700">+'+(st.open_rate-BENCH_OPEN)+'pp vs benchmark</span>'
-                  : '')
+            + '<div style="font-size:12px;font-weight:700;color:#1e293b;line-height:1.3;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(c.name)+'">'+esc(c.name)+'</div>'
+            + '<div style="font-size:11px;color:#64748b;margin-bottom:5px">'+date+'</div>'
+            + '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px">'
+              + (st.open_rate!=null?'<span style="background:'+ob+';color:'+oc+';border-radius:4px;padding:2px 7px;font-size:11px;font-weight:800">'+st.open_rate+'% open</span>':'<span style="background:#f1f5f9;color:#94a3b8;border-radius:4px;padding:2px 7px;font-size:11px">No stats</span>')
+              + (st.click_rate!=null?'<span style="background:#f1f5f9;color:#475569;border-radius:4px;padding:2px 7px;font-size:11px">'+st.click_rate+'% click</span>':'')
+              + (st.rev>0?'<span style="background:#eff6ff;color:#1e40af;border-radius:4px;padding:2px 7px;font-size:11px">€'+st.rev.toFixed(2)+'/r</span>':'')
             + '</div>'
-            + '<div style="margin-top:8px">'
-              + '<button onclick="eiToggleProducts(\''+c.id+'\',\''+c.theme+'\',\''+esc(c.name).replace(/'/g,'&#39;')+'\',this)" style="padding:4px 11px;font-size:11px;font-weight:700;background:#fff;border:1.5px solid #bfdbfe;color:#1e40af;border-radius:6px;cursor:pointer">📦 What to send next</button>'
-            + '</div>'
-            + '<div id="eiProd_'+c.id+'" data-open="0"></div>'
+            + '<button onclick="eiToggleProducts(\''+c.id+'\',this)" style="padding:3px 9px;font-size:10px;font-weight:700;background:#fff;border:1.5px solid #bfdbfe;color:#1e40af;border-radius:5px;cursor:pointer">📦 What to send next</button>'
           + '</div>'
         + '</div>'
-      + '</div>';
-    });
-    html += '</div>';
-
-    if (hasStats) {
-      var avgOpen = Math.round(camps.filter(function(c){return (eiStMap[c.id]||{}).open_rate!=null;}).reduce(function(s,c){return s+(eiStMap[c.id].open_rate||0);},0) / camps.filter(function(c){return (eiStMap[c.id]||{}).open_rate!=null;}).length);
-      html = '<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">'
-        + '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;padding:8px 12px;font-size:12px;color:#14532d;font-weight:700">' + camps.length + ' campaigns sent</div>'
-        + '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:8px 12px;font-size:12px;color:#1e40af;font-weight:700">Avg open: ' + avgOpen + '% <span style="font-weight:400;color:#64748b">(benchmark: '+BENCH_OPEN+'%)</span></div>'
-        + '<div style="background:#fef9c3;border:1px solid #fde68a;border-radius:7px;padding:8px 12px;font-size:12px;color:#713f12;font-weight:700">Best: ' + topOpen + '%</div>'
-      + '</div>' + html;
-    }
-
-    el.innerHTML = html;
-  }
-
-  // ── Section 2a: High-value stock for this season ──────────────────────────────
-  function eiRenderInStock(m) {
-    var el = G('eiInStock'); if (!el) return;
-    var rows = getRows();
-    if (!rows.length) { el.innerHTML = '<div class="ei-empty">Load buying data to see seasonal stock</div>'; return; }
-
-    var seasonal  = SEASON[m] || [];
-    var qualified = seasonal.filter(function(t) { return (CAT[t]||{}).score >= 5; }); // only high-value categories
-    var html      = '<div style="display:grid;gap:8px">';
-    var any       = false;
-
-    qualified.forEach(function(theme) {
-      var cat = CAT[theme] || CAT.other;
-      var matching = rows.filter(function(r) {
-        return themeFromRow(r) === theme && coverDays(r) > 30 && (r.stock||r.NetStock_Arklow||0) > 0;
-      });
-      if (!matching.length) return;
-      any = true;
-
-      matching.sort(function(a,b){ return coverDays(b)-coverDays(a); });
-      var avg = Math.round(matching.reduce(function(s,r){return s+coverDays(r);},0)/matching.length);
-      var top = matching.slice(0,3);
-
-      // Last sent this theme
-      var tc = eiCamps.filter(function(c){return c.theme===theme && c.sent_at;});
-      tc.sort(function(a,b){return new Date(b.sent_at)-new Date(a.sent_at);});
-      var lastSentDays = tc[0] ? Math.round((new Date()-new Date(tc[0].sent_at))/86400000) : 999;
-
-      html += '<div style="background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:11px 13px">'
-        + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">'
-          + '<span style="font-size:16px">' + cat.e + '</span>'
-          + '<span style="font-size:13px;font-weight:800;color:#1e293b">' + cat.label + '</span>'
-          + '<span style="margin-left:auto;background:#dcfce7;color:#14532d;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700">' + matching.length + ' SKUs</span>'
-        + '</div>'
-        + '<div style="font-size:11px;color:#64748b;margin-bottom:4px">Avg cover: ' + avg + 'd &middot; Last emailed: ' + (lastSentDays<999 ? lastSentDays+'d ago' : 'never') + '</div>'
-        + '<div style="font-size:11px;color:#374151">' + top.map(function(r){return '· '+esc(r.ItemTitle||r.SKU);}).join('<br>') + (matching.length>3 ? '<br><span style="color:#94a3b8">+ '+(matching.length-3)+' more</span>':'') + '</div>'
+        + '<div id="eiProd_'+c.id+'" data-open="0"></div>'
       + '</div>';
     });
 
-    html += '</div>';
-    el.innerHTML = any ? html : '<div class="ei-empty">No high-value stock available for ' + MN[m] + '</div>';
-  }
-
-  // ── Section 2b: Seasonal & market context ────────────────────────────────────
-  function eiRenderContext(m) {
-    var el = G('eiContext'); if (!el) return;
-
-    var contexts = {
-      0:  { icon:'🧊', title:'January — post-Christmas reset',    body:'Quiet month. Focus on plumbing (freeze damage), storage (new year organising). Avoid garden/outdoor entirely. Smaller, targeted sends perform better than broad blasts.' },
-      1:  { icon:'🌦️', title:'February — early planning season',  body:'Homeowners start researching spring projects. Paint and planning content works well. Low competition in inbox — good time to be visible. Open rates trend higher than average.' },
-      2:  { icon:'🌱', title:'March — spring awakens',            body:'Garden products start moving. Exterior paint demand begins. Best practice: lead with transformation ("get your home ready") angle. First-of-season emails get strong open rates.' },
-      3:  { icon:'🌸', title:'April — spring peak',               body:'Biggest month for garden and outdoor. Bank holiday drives DIY projects. Power tools perform well (project season). Paint + garden combo campaigns work strongly in Ireland.' },
-      4:  { icon:'☀️', title:'May — outdoor season open',         body:'May is prime time for garden, outdoor living, and power tools. Irish consumers are primed after a long winter. Subject lines with urgency ("before summer") or aspiration ("transform your garden") outperform. Benchmark open rate: 23%+.' },
-      5:  { icon:'🌞', title:'June — peak summer',                body:'Garden at peak demand. BBQ season. Power tools for summer projects. Long daylight hours = people doing DIY. Lifestyle angle ("enjoy your garden") outperforms product-led copy.' },
-      6:  { icon:'🏖️', title:'July — summer maintenance',        body:'Garden maintenance products. Storage for outdoor/shed. Some slowdown as people holiday. Keep sends lean — quality over quantity. Shorter subject lines perform best.' },
-      7:  { icon:'🍂', title:'August — end of summer prep',       body:'Transition month. Garden still active but end-of-season prep angle works. Start teasing autumn/indoor projects. Paint campaigns begin performing. Good for clearance on summer stock.' },
-      8:  { icon:'🍁', title:'September — back to projects',      body:'Strong DIY month — summer distractions gone, people back to home projects. Paint and interior work peaks. Plumbing/heating prep begins. Good month for "project season" framing.' },
-      9:  { icon:'🌧️', title:'October — autumn push',            body:'Heating and plumbing peak (boiler prep, draught exclusion). Interior paint strong. Power tools for indoor projects. "Winter-proof your home" angle works well. Pre-Halloween engagement dip mid-month.' },
-      10: { icon:'🎁', title:'November — winter + gifting',       body:'Power tools and hand tools shift to gifting. Black Friday/Cyber Monday opportunity. Plumbing/heating urgency. Two audiences: gift buyers (tools) and problem-solvers (heating). Segment if possible.' },
-      11: { icon:'🎄', title:'December — gifting season',         body:'Power tools and hand tools peak for Christmas gifting. Early December strong, drops sharply after 20th. St Stephen\'s Day sale campaigns perform well (26th Dec). Keep subject lines gift-focused.' }
-    };
-
-    var ctx = contexts[m] || contexts[4];
-    // Try to pull weather from existing dashboard widget
-    var weatherEl = document.querySelector('.weather-display, [class*="weather"], #weatherTemp');
-    var weatherStr = weatherEl ? ' · Current: ' + weatherEl.textContent.trim() : '';
-
-    el.innerHTML = '<div style="background:#f8fafc;border:1.5px solid var(--line);border-radius:10px;padding:14px">'
-      + '<div style="font-size:16px;margin-bottom:6px">' + ctx.icon + ' <strong>' + ctx.title + '</strong>' + weatherStr + '</div>'
-      + '<div style="font-size:12px;color:#374151;line-height:1.7;margin-bottom:10px">' + ctx.body + '</div>'
-      + '<div style="border-top:1px solid var(--line-light);padding-top:8px;font-size:11px;color:#64748b">'
-        + '<strong style="color:#374151">Industry benchmark:</strong> Hardware email · Open rate: ' + BENCH_OPEN + '% · Click rate: ' + BENCH_CLICK + '%'
-        + '<br><strong style="color:#374151">Best send days:</strong> Tuesday–Thursday · <strong>Best time:</strong> 9–11am or 7–9pm'
-      + '</div>'
+    // Summary bar
+    var withStats = camps.filter(function(c){return (eiStMap[c.id]||{}).open_rate!=null;});
+    var avgOpen = withStats.length ? Math.round(withStats.reduce(function(s,c){return s+(eiStMap[c.id].open_rate||0);},0)/withStats.length) : 0;
+    var summary = '<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">'
+      + '<span style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;color:#14532d">'+camps.length+' campaigns sent</span>'
+      + (avgOpen?'<span style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;color:#1e40af">Avg open: '+avgOpen+'% <span style="font-weight:400;color:#64748b">(bench: '+BENCH_OPEN+'%)</span></span>':'')
+      + (topOpen?'<span style="background:#fef9c3;border:1px solid #fde68a;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;color:#713f12">Best: '+topOpen+'%</span>':'')
     + '</div>';
+    el.innerHTML = summary + html;
   }
 
-  // ── Section 3: Smart recommendations ─────────────────────────────────────────
-  function eiRenderSuggestions(m) {
-    var el = G('eiSuggest'); if (!el) return;
+  // ── Right: product-led "Send this" recommendation ────────────────────────────
+  function eiRenderSendThis(m) {
+    var el = G('eiSendThis'); if (!el) return;
     var rows = getRows();
+    if (!rows.length) { el.innerHTML = '<div class="ei-empty">Load your buying data (Buying tab) to see recommendations</div>'; return; }
 
-    // Show something useful even before Klaviyo is synced
-    if (!rows.length) {
-      el.innerHTML = '<div class="ei-empty">Load your buying data (Buying tab) to generate recommendations</div>'; return;
-    }
+    var now      = new Date();
+    var ly       = now.getFullYear() - 1;
+    var seasonal = SEASON[m] || [];
 
-    var now       = new Date();
-    var ly        = now.getFullYear() - 1;
-    var seasonal  = SEASON[m] || [];
-    var recs      = [];
-
+    // Find the best category to recommend
+    var bestRec = null;
     seasonal.forEach(function(theme) {
       var cat = CAT[theme]; if (!cat || cat.score < 5) return;
-
-      // Stock available
       var ready = rows.filter(function(r){ return themeFromRow(r)===theme && coverDays(r)>30 && (r.stock||r.NetStock_Arklow||0)>0; });
-      if (ready.length < 3) return; // need meaningful stock
+      if (ready.length < 3) return;
 
-      // Best performer last year this month
       var lyBest = null, lyBestOpen = 0;
-      eiCamps.filter(function(c){ var d=new Date(c.sent_at); return c.theme===theme && d.getMonth()===m && d.getFullYear()===ly; })
+      eiCamps.filter(function(c){ var d=new Date(c.sent_at); return c.theme===theme&&d.getMonth()===m&&d.getFullYear()===ly; })
         .forEach(function(c){ var st=eiStMap[c.id]||{}; if((st.open_rate||0)>lyBestOpen){lyBestOpen=st.open_rate||0;lyBest=c;} });
 
-      // Last sent this theme (any time)
       var tc = eiCamps.filter(function(c){return c.theme===theme&&c.sent_at;}).sort(function(a,b){return new Date(b.sent_at)-new Date(a.sent_at);});
-      var lastSentDays = tc[0] ? Math.round((now-new Date(tc[0].sent_at))/86400000) : 999;
-
+      var lastSentDays = tc[0]?Math.round((now-new Date(tc[0].sent_at))/86400000):999;
       var avgCov = Math.round(ready.reduce(function(s,r){return s+coverDays(r);},0)/ready.length);
 
-      // Score this recommendation
-      var score = cat.score * 10;
-      if (lyBest)               score += 30; // worked last year
-      if (lyBestOpen > BENCH_OPEN) score += 20; // above benchmark
-      if (lastSentDays > 60)    score += 15; // overdue
-      if (avgCov > 90)          score += 10; // plenty of stock
-
-      // Subject line ideas based on last year's best OR template
-      var subjects = [];
-      if (lyBest) {
-        // Variation on what worked
-        subjects.push({ s: esc(lyBest.name) + ' — back by popular demand', note: '🔁 Similar to your best performer last ' + MN[m] });
+      var score = cat.score*10 + (lyBest?30:0) + (lyBestOpen>BENCH_OPEN?20:0) + (lastSentDays>60?15:0) + (avgCov>90?10:0);
+      if (!bestRec || score > bestRec.score) {
+        bestRec = { theme:theme, cat:cat, ready:ready, lyBest:lyBest, lyBestOpen:lyBestOpen, lastSentDays:lastSentDays, avgCov:avgCov, score:score };
       }
-      // Fresh angle
-      var templates = {
-        garden:   ['Your garden is waiting — deals on outdoor essentials', 'Get outside this ' + MN[m] + ' — garden event on now'],
-        power:    ['Power up this ' + MN[m] + ' — drills, saws & more', 'Trade prices on power tools — this week only'],
-        paint:    ['Time to transform — paint & decorating deals', MN[m] + ' refresh: paint, primer and more on sale'],
-        plumbing: ['Sort your plumbing now — great prices on pipes & fittings', 'Plumbing essentials — trade prices, fast delivery'],
-        storage:  ['Get organised this ' + MN[m] + ' — storage on sale', 'Clear the clutter — storage solutions at great prices'],
-        tools:    ['The right tool for every job — hand tool deals', MN[m] + ' offers: professional hand tools at trade prices']
-      };
-      (templates[theme]||[]).forEach(function(s){ subjects.push({s:esc(s),note:''}); });
-
-      recs.push({ theme:theme, cat:cat, ready:ready, avgCov:avgCov, lyBest:lyBest, lyBestOpen:lyBestOpen, lastSentDays:lastSentDays, subjects:subjects, score:score });
     });
 
-    recs.sort(function(a,b){return b.score-a.score;});
-    var top = recs.slice(0,3);
+    if (!bestRec) { el.innerHTML = '<div class="ei-empty">No strong recommendations — check buying data is loaded</div>'; return; }
 
-    if (!top.length) { el.innerHTML = '<div class="ei-empty">No strong recommendations — check buying data is loaded</div>'; return; }
+    var r = bestRec;
+    var tpl = TPL[r.theme] || TPL.other;
 
-    // Build a "send this week" nudge for current month
+    // Top products by sales velocity
+    var scored = r.ready.map(function(row) {
+      var vel = row.QtySold_Online_Total_30d || row.QSold_On30 || 0;
+      var cov = Math.round(coverDays(row));
+      var stk = row.stock || row.NetStock_Arklow || 0;
+      return { row:row, vel:vel, cov:cov, stk:stk, score: vel*10 + (cov>90?10:0) + (cov>60?5:0) };
+    }).sort(function(a,b){ return b.score-a.score; });
+
+    var topProducts = scored.slice(0,8);
     var isCurrentMonth = (m === now.getMonth());
-    var nudgeHtml = '';
-    if (isCurrentMonth && top.length) {
-      var t = top[0];
-      nudgeHtml = '<div style="background:#1e40af;color:#fff;border-radius:10px;padding:14px 16px;margin-bottom:14px">'
-        + '<div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;opacity:.8;margin-bottom:4px">💡 Send this week</div>'
-        + '<div style="font-size:15px;font-weight:800;margin-bottom:4px">' + t.cat.e + ' ' + t.cat.label + ' campaign</div>'
-        + '<div style="font-size:12px;opacity:.85;line-height:1.6">'
-          + t.ready.length + ' SKUs ready to promote · avg ' + t.avgCov + 'd cover'
-          + (t.lyBest ? ' · <strong>worked last ' + MN[m] + '</strong>' : '')
-          + (t.lastSentDays > 60 ? ' · ' + t.lastSentDays + ' days since last ' + t.cat.label + ' email' : '')
-        + '</div>'
-        + (t.subjects[0] ? '<div style="margin-top:8px;font-size:13px;font-style:italic;background:rgba(255,255,255,.15);padding:7px 10px;border-radius:6px">"' + t.subjects[0].s + '"</div>' : '')
+
+    // Subject line for brief
+    var subj0 = tpl.s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    var briefEnc = r.theme+'|'+r.ready.length+'|'+r.avgCov+'|'+r.lastSentDays+'|'+MN[m]+'|'+(r.lyBestOpen||0)+'|'+topProducts.slice(0,5).map(function(p){return (p.row.SKU||'').trim();}).join(',');
+
+    var html = '';
+
+    // "Send this" hero card
+    html += '<div style="background:'+(isCurrentMonth?'#1e40af':'#f8fafc')+';border-radius:12px;padding:14px 16px;margin-bottom:14px;color:'+(isCurrentMonth?'#fff':'#1e293b')+'">'
+      + '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;opacity:.7;margin-bottom:4px">'+(isCurrentMonth?'💡 Send this week':'💡 Best bet for '+MN[m])+'</div>'
+      + '<div style="font-size:16px;font-weight:800;margin-bottom:4px">'+tpl.e+' '+r.cat.label+' email</div>'
+      + '<div style="font-size:11px;opacity:.85;line-height:1.7;margin-bottom:8px">'
+        + r.ready.length+' SKUs in stock · avg '+r.avgCov+'d cover'
+        + (r.lyBest?' · <strong>sent last '+MN[m]+', '+(r.lyBestOpen?r.lyBestOpen+'% open':'good results')+'</strong>':'')
+        + (r.lastSentDays<999?' · last sent '+r.lastSentDays+'d ago':'')
+      + '</div>'
+      + '<div style="background:rgba(255,255,255,.15);border-radius:7px;padding:8px 10px;font-size:12px;font-style:italic;margin-bottom:10px">&ldquo;'+esc(tpl.s)+'&rdquo;</div>'
+      + '<div style="display:flex;gap:7px;flex-wrap:wrap">'
+        + '<button onclick="navigator.clipboard.writeText(\''+subj0+'\');this.textContent=\'✓ Copied!\'" style="padding:5px 12px;font-size:11px;font-weight:700;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);border-radius:6px;color:'+(isCurrentMonth?'#fff':'#1e40af')+';cursor:pointer">Copy subject</button>'
+        + '<button onclick="eiCopyBrief(\''+briefEnc+'\')" style="padding:5px 12px;font-size:11px;font-weight:700;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);border-radius:6px;color:'+(isCurrentMonth?'#fff':'#1e40af')+';cursor:pointer">📋 Copy campaign brief</button>'
+      + '</div>'
+    + '</div>';
+
+    // Top products table
+    html += '<div style="font-size:11px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Top products to feature — ranked by sales velocity</div>'
+      + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
+      + '<thead><tr style="background:#f1f5f9"><th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">#</th><th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">SKU</th><th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">Product</th><th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">30d sales</th><th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">Stock</th><th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">Cover</th><th style="padding:6px 8px;font-size:10px;font-weight:800">Status</th></tr></thead><tbody>';
+
+    topProducts.forEach(function(p, i) {
+      var badge, badgeBg;
+      if      (p.cov > 90) { badge = '✅ Go';       badgeBg = '#dcfce7'; }
+      else if (p.cov > 45) { badge = '✅ Good';      badgeBg = '#f0fdf4'; }
+      else                  { badge = '⚠ '+p.cov+'d'; badgeBg = '#fef9c3'; }
+      var velBg = p.vel >= 5 ? '#dcfce7' : p.vel >= 2 ? '#f1f5f9' : 'transparent';
+      var rowBg = i === 0 ? '#fffbeb' : (i % 2 === 0 ? '#f7f9fc' : '#fff');
+
+      html += '<tr style="border-top:1px solid var(--line-light);background:'+rowBg+'">'
+        + '<td style="padding:6px 8px;font-size:11px;font-weight:800;color:#94a3b8">'+(i+1)+'</td>'
+        + '<td style="padding:6px 8px;font-family:monospace;font-size:11px;font-weight:700;color:#1e40af;white-space:nowrap">'+esc(p.row.SKU||'')+'</td>'
+        + '<td style="padding:6px 8px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="'+esc(p.row.ItemTitle||'')+'">'+esc(p.row.ItemTitle||'—')+'</td>'
+        + '<td style="text-align:right;padding:6px 8px;background:'+velBg+';font-weight:700;font-size:12px">'+p.vel+'</td>'
+        + '<td style="text-align:right;padding:6px 8px;font-size:12px">'+p.stk.toLocaleString('en-IE')+'</td>'
+        + '<td style="text-align:right;padding:6px 8px;font-weight:600;font-size:12px;color:'+(p.cov>45?'#14532d':'#92400e')+'">'+p.cov+'d</td>'
+        + '<td style="padding:6px 8px"><span style="background:'+badgeBg+';border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700">'+badge+'</span></td>'
+      + '</tr>';
+    });
+
+    html += '</tbody></table>';
+
+    // Other categories briefly
+    var others = seasonal.filter(function(t){ return t!==r.theme && (CAT[t]||{}).score>=5; }).slice(0,3);
+    if (others.length) {
+      html += '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">'
+        + '<div style="font-size:11px;font-weight:700;color:#64748b;padding-top:4px">Also consider:</div>'
+        + others.map(function(t){
+            var c=CAT[t]||CAT.other;
+            var cnt=rows.filter(function(row){return themeFromRow(row)===t&&coverDays(row)>30&&(row.stock||row.NetStock_Arklow||0)>0;}).length;
+            return '<span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;color:#374151">'+c.e+' '+c.label+' · '+cnt+' SKUs</span>';
+          }).join('')
       + '</div>';
     }
 
-    var html = nudgeHtml + '<div style="display:grid;gap:12px">';
-    top.forEach(function(r, i) {
-      var urgency  = r.lastSentDays > 60 || r.lyBest;
-      var bg       = i===0 ? '#fffbeb' : '#fff';
-      var border   = i===0 ? '#fde68a' : 'var(--line)';
-      var topSkus  = r.ready.slice(0,5).map(function(row){return (row.SKU||'').trim();}).join(', ');
-      var subj0    = r.subjects[0] ? r.subjects[0].s : '';
-      var subj0raw = subj0.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"');
-      var subj0esc = subj0raw.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-
-      html += '<div style="background:'+bg+';border:1.5px solid '+border+';border-radius:12px;padding:14px 16px">'
-        + (i===0 ? '<div style="font-size:10px;font-weight:800;color:#92400e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">🎯 Top recommendation for '+MN[m]+'</div>' : '')
-        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
-          + '<span style="font-size:20px">' + r.cat.e + '</span>'
-          + '<div>'
-            + '<div style="font-size:14px;font-weight:800;color:#1e293b">' + r.cat.label + '</div>'
-            + '<div style="font-size:11px;color:#64748b">' + r.ready.length + ' SKUs ready · avg ' + r.avgCov + 'd cover</div>'
-          + '</div>'
-        + '</div>'
-        // Why now
-        + '<div style="font-size:11px;color:#374151;background:#f8fafc;border-radius:6px;padding:7px 10px;margin-bottom:8px;line-height:1.6">'
-          + (r.lyBest ? '✅ You sent a similar email last ' + MN[m] + (r.lyBestOpen ? ' — <strong>' + r.lyBestOpen + '% open rate</strong>' + (r.lyBestOpen > BENCH_OPEN ? ' (' + (r.lyBestOpen-BENCH_OPEN) + 'pp above benchmark)' : '') : '') + '<br>' : '')
-          + (r.lastSentDays > 60 ? '⏰ Last sent ' + r.lastSentDays + ' days ago — overdue<br>' : '')
-          + '📦 Stock: ' + r.avgCov + 'd average cover — plenty to promote'
-        + '</div>'
-        // Subject lines
-        + '<div style="margin-bottom:8px">'
-          + '<div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:5px">Subject line options:</div>'
-          + r.subjects.slice(0,3).map(function(s,si) {
-              var sRaw = s.s.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"');
-              var sEsc = sRaw.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-              return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">'
-                + '<span style="font-size:11px;color:#64748b;min-width:14px">' + (si+1) + '.</span>'
-                + '<span style="font-size:12px;color:#0c4a6e;font-style:italic;flex:1">"' + s.s + '"</span>'
-                + (s.note ? '<span style="font-size:10px;color:#92400e;font-weight:600">' + s.note + '</span>' : '')
-                + '<button style="padding:2px 8px;font-size:10px;font-weight:700;background:#fff;border:1px solid #bfdbfe;border-radius:4px;color:#1e40af;cursor:pointer;white-space:nowrap" onclick="navigator.clipboard.writeText(\''+sEsc+'\');this.textContent=\'✓\'">Copy</button>'
-              + '</div>';
-            }).join('')
-        + '</div>'
-        // Actions
-        + '<div style="display:flex;gap:7px;flex-wrap:wrap">'
-          + '<button class="ei-cb" onclick="eiCopyBrief(\''+r.theme+'|'+r.ready.length+'|'+r.avgCov+'|'+r.lastSentDays+'|'+MN[m]+'|'+(r.lyBestOpen||0)+'|'+topSkus+'\')">📋 Copy full campaign brief</button>'
-        + '</div>'
-      + '</div>';
-    });
-
-    html += '</div>';
     el.innerHTML = html;
   }
+
 
   // ── Archive ───────────────────────────────────────────────────────────────────
   function eiRenderArchive() {
@@ -1944,7 +1747,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
 
   // ── Copy campaign brief ───────────────────────────────────────────────────────
   // ── Smart SKU suggestions from buying data ───────────────────────────────────
-  window.eiToggleProducts = function(campId, theme, campName, btn) {
+  window.eiToggleProducts = function(campId, btn) {
     var el = document.getElementById('eiProd_' + campId);
     if (!el) return;
     if (el.dataset.open === '1') {
@@ -1953,7 +1756,9 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     }
     el.dataset.open = '1';
     btn.textContent = '▲ Hide';
-    eiShowSkuSuggestions(el, theme, campName);
+    // Look up campaign details from eiCamps
+    var camp = eiCamps.filter(function(c){ return c.id === campId; })[0] || {};
+    eiShowSkuSuggestions(el, camp.theme || 'other', camp.name || '');
   };
 
   function eiShowSkuSuggestions(el, theme, campName) {
