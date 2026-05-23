@@ -1411,9 +1411,10 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   'use strict';
 
   var PROXY   = 'https://script.google.com/macros/s/AKfycbwds8N7-nMBGfVJp30rlxZ9Y9k6ncoDeATcKrIpnApqVqvwTkOmNIJfFBlFm6OOD1Z_/exec';
-  var eiCamps = [];
-  var eiStMap = {}; // campaignId → { open_rate, click_rate, revenue_per_recipient }
-  var eiReady = false;
+  var eiCamps    = [];
+  var eiStMap    = {}; // campaignId → { open_rate, click_rate, rev }
+  var eiSalesMap = {}; // sku/name → { totalQty, totalRevenue, byWeek } from Ordered Product events
+  var eiReady    = false;
 
   var MN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   var MS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1738,8 +1739,24 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
 
       eiReady = true;
       var sc = Object.keys(eiStMap).length;
-      setStatus('Synced — ' + eiCamps.length + ' campaigns · ' + sc + ' with stats · ' + new Date().toLocaleTimeString('en-IE'), 'ok');
+      setStatus('Synced — ' + eiCamps.length + ' campaigns · ' + sc + ' with stats · Loading 12-month sales history…', 'ok');
       eiRender();
+
+      // Load sales calendar in background — takes 2-3 min, updates table when ready
+      fetch(PROXY + '?action=klaviyo_sales_calendar')
+        .then(function(r){ return r.json(); })
+        .then(function(calData) {
+          eiSalesMap = {};
+          (calData.products || []).forEach(function(p) {
+            var key = (p.sku || p.name || '').toUpperCase().trim();
+            if (key) eiSalesMap[key] = p;
+          });
+          var sal = Object.keys(eiSalesMap).length;
+          setStatus('Synced — ' + eiCamps.length + ' campaigns · ' + sc + ' with stats · ' + sal + ' products with sales history · ' + new Date().toLocaleTimeString('en-IE'), 'ok');
+          eiRenderSendThis(curMonth()); // re-render with historical data
+        })
+        .catch(function(e){ console.warn('Sales calendar failed:', e.message); });
+
     }).catch(function(e) {
       setStatus('Klaviyo error: ' + e.message + ' — check Apps Script is deployed', 'error');
       console.error('eiLoadKlaviyo', e);
@@ -1883,15 +1900,26 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     var r = bestRec;
     var tpl = TPL[r.theme] || TPL.other;
 
-    // Top products — ranked by sales velocity, capped at realistic cover
-    var scored = r.ready.filter(function(row){
-      return coverDays(row) < 400; // exclude SKUs with 400d+ cover (likely inactive)
-    }).map(function(row) {
-      var vel = row.QtySold_Online_Total_30d || row.QSold_On30 || 0;
-      var cov = Math.round(coverDays(row));
-      var stk = row.stock || row.NetStock_Arklow || 0;
-      return { row:row, vel:vel, cov:cov, stk:stk, score: vel*10 + (cov>90?5:0) + (cov>45?3:0) };
-    }).sort(function(a,b){ return b.score-a.score; });
+    // Top products — scored by ACTUAL sales in this specific month (from sales calendar)
+    // Fall back to current 30d velocity if no calendar data
+    var hasSalesHistory = Object.keys(eiSalesMap).length > 0;
+
+    var scored = r.ready.filter(function(row){ return coverDays(row) < 400; })
+      .map(function(row) {
+        var sku     = (row.SKU||'').trim().toUpperCase();
+        var name    = (row.ItemTitle||'').toUpperCase().trim().substring(0,20);
+        var calEntry = eiSalesMap[sku] || eiSalesMap[name] || null;
+        var histMonth = calEntry ? (calEntry.monthly[m] || 0) : 0; // actual sales in this month last year
+        var vel       = row.QtySold_Online_Total_30d || row.QSold_On30 || 0;
+        var cov       = Math.round(coverDays(row));
+        var stk       = row.stock || row.NetStock_Arklow || 0;
+        // If we have sales history, use it heavily; otherwise fall back to velocity
+        var score = hasSalesHistory
+          ? (histMonth * 20) + (vel * 3) + (cov > 45 ? 3 : 0)  // history-led
+          : (vel * 10) + (cov > 90 ? 5 : 0) + (cov > 45 ? 3 : 0); // velocity-led
+        return { row:row, vel:vel, cov:cov, stk:stk, score:score, histMonth:histMonth };
+      })
+      .sort(function(a,b){ return b.score-a.score; });
 
     // If lyBest campaign exists, try to boost SKUs that match its name keywords
     if (r.lyBest) {
@@ -1933,23 +1961,34 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     + '</div>';
 
     // Top products table
-    html += '<div style="font-size:11px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Top products to feature — ranked by sales velocity</div>'
+    html += '<div style="font-size:11px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Top products to feature — ranked by '+(hasSalesHistory?'sales last '+MN[m]:'30-day velocity')+'</div>'
       + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
-      + '<thead><tr style="background:#f1f5f9"><th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">#</th><th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">SKU</th><th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">Product</th><th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">30d sales</th><th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">Stock</th><th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">Cover</th><th style="padding:6px 8px;font-size:10px;font-weight:800">Status</th></tr></thead><tbody>';
+      + '<thead><tr style="background:#f1f5f9">'
+      + '<th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">#</th>'
+      + '<th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">SKU</th>'
+      + '<th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">Product</th>'
+      + (hasSalesHistory ? '<th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800;background:#fef3c7">Last '+MS[m]+' sales</th>' : '')
+      + '<th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">30d now</th>'
+      + '<th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">Stock</th>'
+      + '<th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">Cover</th>'
+      + '<th style="padding:6px 8px;font-size:10px;font-weight:800">Status</th>'
+      + '</tr></thead><tbody>';
 
     topProducts.forEach(function(p, i) {
       var badge, badgeBg;
       if      (p.cov > 90) { badge = '✅ Go';       badgeBg = '#dcfce7'; }
       else if (p.cov > 45) { badge = '✅ Good';      badgeBg = '#f0fdf4'; }
       else                  { badge = '⚠ '+p.cov+'d'; badgeBg = '#fef9c3'; }
-      var velBg = p.vel >= 5 ? '#dcfce7' : p.vel >= 2 ? '#f1f5f9' : 'transparent';
-      var rowBg = i === 0 ? '#fffbeb' : (i % 2 === 0 ? '#f7f9fc' : '#fff');
+      var velBg  = p.vel >= 5 ? '#dcfce7' : p.vel >= 2 ? '#f1f5f9' : 'transparent';
+      var histBg = p.histMonth >= 10 ? '#fef08a' : p.histMonth >= 3 ? '#fef9c3' : 'transparent';
+      var rowBg  = i === 0 ? '#fffbeb' : (i % 2 === 0 ? '#f7f9fc' : '#fff');
 
       html += '<tr style="border-top:1px solid var(--line-light);background:'+rowBg+'">'
         + '<td style="padding:6px 8px;font-size:11px;font-weight:800;color:#94a3b8">'+(i+1)+'</td>'
         + '<td style="padding:6px 8px;font-family:monospace;font-size:11px;font-weight:700;color:#1e40af;white-space:nowrap">'+esc(p.row.SKU||'')+'</td>'
         + '<td style="padding:6px 8px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="'+esc(p.row.ItemTitle||'')+'">'+esc(p.row.ItemTitle||'—')+'</td>'
-        + '<td style="text-align:right;padding:6px 8px;background:'+velBg+';font-weight:700;font-size:12px">'+p.vel+'</td>'
+        + (hasSalesHistory ? '<td style="text-align:right;padding:6px 8px;font-weight:800;background:'+histBg+'">'+(p.histMonth||'—')+'</td>' : '')
+        + '<td style="text-align:right;padding:6px 8px;font-weight:700;background:'+velBg+';font-size:12px">'+p.vel+'</td>'
         + '<td style="text-align:right;padding:6px 8px;font-size:12px">'+p.stk.toLocaleString('en-IE')+'</td>'
         + '<td style="text-align:right;padding:6px 8px;font-weight:600;font-size:12px;color:'+(p.cov>45?'#14532d':'#92400e')+'">'+p.cov+'d</td>'
         + '<td style="padding:6px 8px"><span style="background:'+badgeBg+';border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700">'+badge+'</span></td>'
