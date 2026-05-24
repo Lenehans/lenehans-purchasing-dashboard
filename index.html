@@ -1903,20 +1903,28 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     // Top products — scored by ACTUAL sales in this specific month (from sales calendar)
     // Fall back to current 30d velocity if no calendar data
     var hasSalesHistory = Object.keys(eiSalesMap).length > 0;
+    var matchCount = 0;
 
     var scored = r.ready.filter(function(row){ return coverDays(row) < 400; })
       .map(function(row) {
-        var sku     = (row.SKU||'').trim().toUpperCase();
-        var name    = (row.ItemTitle||'').toUpperCase().trim().substring(0,20);
-        var calEntry = eiSalesMap[sku] || eiSalesMap[name] || null;
-        var histMonth = calEntry ? (calEntry.monthly[m] || 0) : 0; // actual sales in this month last year
-        var vel       = row.QtySold_Online_Total_30d || row.QSold_On30 || 0;
-        var cov       = Math.round(coverDays(row));
-        var stk       = row.stock || row.NetStock_Arklow || 0;
-        // If we have sales history, use it heavily; otherwise fall back to velocity
-        var score = hasSalesHistory
-          ? (histMonth * 20) + (vel * 3) + (cov > 45 ? 3 : 0)  // history-led
-          : (vel * 10) + (cov > 90 ? 5 : 0) + (cov > 45 ? 3 : 0); // velocity-led
+        var sku  = (row.SKU||'').trim();
+        var vel  = row.QtySold_Online_Total_30d || row.QSold_On30 || 0;
+        var cov  = Math.round(coverDays(row));
+        var stk  = row.stock || row.NetStock_Arklow || 0;
+
+        // Try multiple key formats to match Klaviyo's SKU variations
+        var calEntry = eiSalesMap[sku.toUpperCase()]
+          || eiSalesMap[sku]
+          || eiSalesMap['TP_' + sku.toUpperCase()]
+          || eiSalesMap[sku.replace(/^TP_/i,'').toUpperCase()]
+          || null;
+
+        var histMonth = calEntry ? (calEntry.monthly[m] || 0) : null; // null = not found, 0 = found but none
+        if (calEntry) matchCount++;
+
+        var score = (hasSalesHistory && histMonth !== null)
+          ? (histMonth * 20) + (vel * 3) + (cov > 45 ? 3 : 0)
+          : (vel * 10) + (cov > 90 ? 5 : 0) + (cov > 45 ? 3 : 0);
         return { row:row, vel:vel, cov:cov, stk:stk, score:score, histMonth:histMonth };
       })
       .sort(function(a,b){ return b.score-a.score; });
@@ -1961,7 +1969,8 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     + '</div>';
 
     // Top products table
-    html += '<div style="font-size:11px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Top products to feature — ranked by '+(hasSalesHistory?'sales last '+MN[m]:'30-day velocity')+'</div>'
+    html += '<div style="font-size:11px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Top products to feature — ranked by '+(hasSalesHistory && matchCount > 0 ? 'email-attributed sales last '+MN[m] : '30-day velocity')+'</div>'
+      + (hasSalesHistory ? '<div style="font-size:11px;color:#64748b;margin-bottom:8px">'+MN[m]+' column = units ordered via email last '+MN[m-1<0?11:m-1>=0?m:0]+' year · '+(matchCount > 0 ? matchCount+' of '+topProducts.length+' products matched' : '⚠ No SKU matches found — showing velocity ranking. Klaviyo may use different SKU codes.')+'</div>' : '')
       + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
       + '<thead><tr style="background:#f1f5f9">'
       + '<th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">#</th>'
@@ -1981,13 +1990,14 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       else                  { badge = '⚠ '+p.cov+'d'; badgeBg = '#fef9c3'; }
       var velBg  = p.vel >= 5 ? '#dcfce7' : p.vel >= 2 ? '#f1f5f9' : 'transparent';
       var histBg = p.histMonth >= 10 ? '#fef08a' : p.histMonth >= 3 ? '#fef9c3' : 'transparent';
+      var histVal = p.histMonth === null ? '—' : p.histMonth > 0 ? String(p.histMonth) : '0';
       var rowBg  = i === 0 ? '#fffbeb' : (i % 2 === 0 ? '#f7f9fc' : '#fff');
 
       html += '<tr style="border-top:1px solid var(--line-light);background:'+rowBg+'">'
         + '<td style="padding:6px 8px;font-size:11px;font-weight:800;color:#94a3b8">'+(i+1)+'</td>'
         + '<td style="padding:6px 8px;font-family:monospace;font-size:11px;font-weight:700;color:#1e40af;white-space:nowrap">'+esc(p.row.SKU||'')+'</td>'
         + '<td style="padding:6px 8px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="'+esc(p.row.ItemTitle||'')+'">'+esc(p.row.ItemTitle||'—')+'</td>'
-        + (hasSalesHistory ? '<td style="text-align:right;padding:6px 8px;font-weight:800;background:'+histBg+'">'+(p.histMonth||'—')+'</td>' : '')
+        + (hasSalesHistory ? '<td style="text-align:right;padding:6px 8px;font-weight:800;background:'+histBg+';color:'+(p.histMonth>0?'#713f12':'#94a3b8')+'">'+histVal+'</td>' : '')
         + '<td style="text-align:right;padding:6px 8px;font-weight:700;background:'+velBg+';font-size:12px">'+p.vel+'</td>'
         + '<td style="text-align:right;padding:6px 8px;font-size:12px">'+p.stk.toLocaleString('en-IE')+'</td>'
         + '<td style="text-align:right;padding:6px 8px;font-weight:600;font-size:12px;color:'+(p.cov>45?'#14532d':'#92400e')+'">'+p.cov+'d</td>'
