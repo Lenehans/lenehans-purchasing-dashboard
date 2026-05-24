@@ -2106,8 +2106,13 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     var m    = camp.sent_at ? new Date(camp.sent_at).getMonth() : curMonth();
     var rows = getRows();
 
-    // Use email-attributed sales for that month — same data as the right column
+    // Use email-attributed sales for that month, filtered by campaign subject keywords
     if (Object.keys(eiSalesMap).length > 0) {
+      var intel    = campaignProductKeywords(camp.name || '');
+      var patterns = intel && intel.keywords.length > 0
+        ? intel.keywords.map(function(kw){ return new RegExp(kw,'i'); })
+        : null;
+
       var products = [];
       var buyCache = {};
       rows.forEach(function(r){ buyCache[(r.SKU||'').trim().toUpperCase()] = r; });
@@ -2115,6 +2120,18 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       Object.values(eiSalesMap).forEach(function(p) {
         var qty = p.monthly[m] || 0;
         if (!qty) return;
+
+        // Filter by subject line keywords if we have them
+        if (patterns) {
+          var combined = (p.name||'') + ' ' + (p.sku||'');
+          // Also check against buying data title
+          var sku2   = (p.sku||'').trim().toUpperCase();
+          var buyRow2 = buyCache[sku2] || buyCache[sku2.replace(/^TP_/,'')] || buyCache['TP_'+sku2];
+          var title2  = buyRow2 ? (buyRow2.ItemTitle||'') : '';
+          combined += ' ' + title2;
+          if (!patterns.some(function(p){ return p.test(combined); })) return;
+        }
+
         var sku    = (p.sku||'').trim().toUpperCase();
         var buyRow = buyCache[sku] || buyCache[sku.replace(/^TP_/,'')] || buyCache['TP_'+sku];
         if (!buyRow) return;
@@ -2126,13 +2143,45 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       });
 
       products.sort(function(a,b){ return b.histMonth - a.histMonth; });
+
+      // If keyword filtering gave too few, fall back to all month sales
+      if (products.length < 3 && patterns) {
+        products = [];
+        Object.values(eiSalesMap).forEach(function(p) {
+          var qty = p.monthly[m] || 0; if (!qty) return;
+          var sku = (p.sku||'').trim().toUpperCase();
+          var buyRow = buyCache[sku]||buyCache[sku.replace(/^TP_/,'')]||buyCache['TP_'+sku];
+          if (!buyRow) return;
+          var stk = buyRow.stock||buyRow.NetStock_Arklow||0; if(stk<=0) return;
+          var cov = Math.round(coverDays(buyRow));
+          var vel = buyRow.QtySold_Online_Total_30d||buyRow.QSold_On30||0;
+          products.push({ row:buyRow, histMonth:qty, vel:vel, cov:cov, stk:stk });
+        });
+        products.sort(function(a,b){ return b.histMonth-a.histMonth; });
+        patterns = null; // flag: fell back
+      }
+
       var top = products.slice(0,10);
 
       if (top.length > 0) {
         var mn = MN[m];
+        var yr = camp.sent_at ? new Date(camp.sent_at).getFullYear() : '';
+        var campDate = camp.sent_at ? new Date(camp.sent_at).toLocaleDateString('en-IE',{day:'2-digit',month:'short'}) : '';
+        var filtered = intel && intel.label && patterns !== null;
         var html = '<div style="margin-top:10px;border-top:1px solid var(--line-light);padding-top:8px">'
-          + '<div style="font-size:11px;font-weight:800;color:#1e40af;margin-bottom:2px">📦 Products email customers bought last ' + mn + ' — in stock now</div>'
-          + '<div style="font-size:10px;color:#64748b;margin-bottom:7px">Ranked by email-attributed sales last ' + mn + ' · showing only in-stock</div>'
+          + '<div style="font-size:11px;font-weight:800;color:#1e40af;margin-bottom:2px">📦 '
+          + (filtered ? intel.label + ' products bought via email in ' + mn + ' ' + yr : 'Top email purchases in ' + mn + ' ' + yr + ' — in stock')
+          + '</div>'
+          + '<div style="font-size:10px;color:#64748b;margin-bottom:3px">'
+          + (filtered
+              ? 'Email-attributed sales for <em>' + esc(intel.label) + '</em> in ' + mn + ' · ranked by units · '+ products.length +' matched'
+              : 'All email-attributed purchases in ' + mn + ' · top by volume')
+          + '</div>'
+          + '<div style="font-size:10px;color:#94a3b8;background:#f8fafc;border-radius:4px;padding:3px 7px;margin-bottom:7px">'
+          + (filtered
+              ? 'ℹ️ Filtered by "' + esc(camp.name||'') + '" keywords · not exact per-email data but directionally aligned'
+              : 'ℹ️ No keyword match for this subject line · showing all ' + mn + ' email purchases')
+          + (campDate ? ' · email sent ' + campDate : '') + '</div>'
           + '<table style="width:100%;border-collapse:collapse;font-size:11px">'
           + '<thead><tr style="background:#f1f5f9"><th style="padding:4px 6px;text-align:left">SKU</th><th style="padding:4px 6px;text-align:left">Product</th><th style="padding:4px 6px;text-align:right;background:#fef3c7">Last ' + MS[m] + '</th><th style="padding:4px 6px;text-align:right">Stock</th><th style="padding:4px 6px;text-align:right">Cover</th></tr></thead><tbody>';
         top.forEach(function(p, i) {
