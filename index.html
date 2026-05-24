@@ -1363,8 +1363,8 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
         <div id="eiStatus" style="display:none;font-size:11px;font-weight:600;padding:5px 10px;border-radius:6px;border:1px solid;margin-left:4px"></div>
       </div>
 
-      <!-- Two-column layout -->
-      <div style="display:grid;grid-template-columns:380px 1fr;gap:16px;align-items:start">
+      <!-- Two-column layout — equal split -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
 
         <!-- LEFT: What ran last year -->
         <div>
@@ -2101,8 +2101,58 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     }
     el.dataset.open = '1';
     btn.textContent = '▲ Hide';
-    // Look up campaign details from eiCamps
+
     var camp = eiCamps.filter(function(c){ return c.id === campId; })[0] || {};
+    var m    = camp.sent_at ? new Date(camp.sent_at).getMonth() : curMonth();
+    var rows = getRows();
+
+    // Use email-attributed sales for that month — same data as the right column
+    if (Object.keys(eiSalesMap).length > 0) {
+      var products = [];
+      var buyCache = {};
+      rows.forEach(function(r){ buyCache[(r.SKU||'').trim().toUpperCase()] = r; });
+
+      Object.values(eiSalesMap).forEach(function(p) {
+        var qty = p.monthly[m] || 0;
+        if (!qty) return;
+        var sku    = (p.sku||'').trim().toUpperCase();
+        var buyRow = buyCache[sku] || buyCache[sku.replace(/^TP_/,'')] || buyCache['TP_'+sku];
+        if (!buyRow) return;
+        var stk = buyRow.stock || buyRow.NetStock_Arklow || 0;
+        if (stk <= 0) return;
+        var cov = Math.round(coverDays(buyRow));
+        var vel = buyRow.QtySold_Online_Total_30d || buyRow.QSold_On30 || 0;
+        products.push({ row:buyRow, histMonth:qty, vel:vel, cov:cov, stk:stk });
+      });
+
+      products.sort(function(a,b){ return b.histMonth - a.histMonth; });
+      var top = products.slice(0,10);
+
+      if (top.length > 0) {
+        var mn = MN[m];
+        var html = '<div style="margin-top:10px;border-top:1px solid var(--line-light);padding-top:8px">'
+          + '<div style="font-size:11px;font-weight:800;color:#1e40af;margin-bottom:2px">📦 Products email customers bought last ' + mn + ' — in stock now</div>'
+          + '<div style="font-size:10px;color:#64748b;margin-bottom:7px">Ranked by email-attributed sales last ' + mn + ' · showing only in-stock</div>'
+          + '<table style="width:100%;border-collapse:collapse;font-size:11px">'
+          + '<thead><tr style="background:#f1f5f9"><th style="padding:4px 6px;text-align:left">SKU</th><th style="padding:4px 6px;text-align:left">Product</th><th style="padding:4px 6px;text-align:right;background:#fef3c7">Last ' + MS[m] + '</th><th style="padding:4px 6px;text-align:right">Stock</th><th style="padding:4px 6px;text-align:right">Cover</th></tr></thead><tbody>';
+        top.forEach(function(p, i) {
+          var covCol = p.cov > 45 ? '#14532d' : p.cov > 21 ? '#92400e' : '#991b1b';
+          var histBg = p.histMonth >= 50 ? '#fef08a' : p.histMonth >= 20 ? '#fef9c3' : 'transparent';
+          html += '<tr style="border-top:1px solid var(--line-light);background:'+(i===0?'#fffbeb':'')+'">'
+            + '<td style="padding:4px 6px;font-family:monospace;font-size:10px;color:#1e40af">'+esc(p.row.SKU||'')+'</td>'
+            + '<td style="padding:4px 6px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(p.row.ItemTitle||'')+'">'+esc(p.row.ItemTitle||'—')+'</td>'
+            + '<td style="padding:4px 6px;text-align:right;font-weight:800;background:'+histBg+'">'+p.histMonth+'</td>'
+            + '<td style="padding:4px 6px;text-align:right">'+p.stk+'</td>'
+            + '<td style="padding:4px 6px;text-align:right;color:'+covCol+';font-weight:600">'+p.cov+'d</td>'
+          + '</tr>';
+        });
+        html += '</tbody></table><div style="font-size:10px;color:#94a3b8;margin-top:4px">'+products.length+' products matched · top 10 by email sales</div></div>';
+        el.innerHTML = html;
+        return;
+      }
+    }
+
+    // Fallback: keyword-based if no sales history
     eiShowSkuSuggestions(el, camp.theme || 'other', camp.name || '');
   };
 
