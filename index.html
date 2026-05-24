@@ -1584,10 +1584,17 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       why: 'Garden lighting and solar products'
     };
 
-    // ── Clearance / sale ─────────────────────────────────────────────────────
-    if (/clearance|warehouse|super saver|slash|budget/.test(n)) return {
+    // Garden catch-all — catches "Home & Garden", "Garden Helpers" etc.
+    if (/garden|outdoor/.test(n)) return {
+      label: 'Garden & outdoor',
+      keywords: ['garden','hose','sprayer','solar','plant','compost','weed','burner','lawn','spade','fork','trowel','watering','pot','planter','shed','outdoor','patio','decking'],
+      why: 'Garden and outdoor products matched to campaign theme'
+    };
+
+    // ── Clearance / sale — only explicit clearance, NOT just "budget" ──────────
+    if (/clearance|warehouse|super saver|slash/.test(n)) return {
       label: 'High-value clearance picks',
-      keywords: [], // empty = show top velocity across all
+      keywords: [],
       why: 'Clearance email — feature your fastest-moving overstock lines'
     };
 
@@ -1944,13 +1951,13 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     }
 
 
-    // If lyBest campaign exists, try to boost SKUs that match its name keywords
+    // If lyBest campaign exists, boost SKUs matching its name keywords
     if (r.lyBest) {
       var campWords = r.lyBest.name.toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(' ').filter(function(w){ return w.length > 3; });
       scored = scored.map(function(p) {
         var title = (p.row.ItemTitle||'').toLowerCase();
         var keywordBoost = campWords.some(function(w){ return title.indexOf(w) >= 0; }) ? 30 : 0;
-        return { row:p.row, vel:p.vel, cov:p.cov, stk:p.stk, score:p.score + keywordBoost };
+        return { row:p.row, vel:p.vel, cov:p.cov, stk:p.stk, histMonth:p.histMonth, score:p.score + keywordBoost }; // preserve histMonth
       }).sort(function(a,b){ return b.score-a.score; });
     }
 
@@ -2161,7 +2168,8 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
 
     var html = '<div style="margin-top:10px;border-top:1px solid var(--line-light);padding-top:10px">'
       + '<div style="font-size:11px;font-weight:800;color:#1e40af;margin-bottom:2px">' + sectionLabel + '</div>'
-      + '<div style="font-size:11px;color:#64748b;margin-bottom:8px">' + whyNote + '</div>'
+      + '<div style="font-size:11px;color:#64748b;margin-bottom:4px">' + whyNote + '</div>'
+      + '<div style="font-size:10px;color:#94a3b8;background:#f8fafc;border-radius:5px;padding:4px 8px;margin-bottom:8px">ℹ️ Matched by campaign name — not the exact products in this email. Use as inspiration for your next similar send.</div>'
       + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
       + '<thead><tr style="background:#f1f5f9"><th style="text-align:left;padding:5px 8px;font-size:10px;font-weight:800">#</th><th style="text-align:left;padding:5px 8px;font-size:10px;font-weight:800">SKU</th><th style="text-align:left;padding:5px 8px;font-size:10px;font-weight:800">Product</th><th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800">30d</th><th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800">Stock</th><th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800">Cover</th></tr></thead><tbody>';
 
