@@ -1903,31 +1903,46 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     // Top products — scored by ACTUAL sales in this specific month (from sales calendar)
     // Fall back to current 30d velocity if no calendar data
     var hasSalesHistory = Object.keys(eiSalesMap).length > 0;
-    var matchCount = 0;
+    var usedSalesHistory = false;
+    var scored;
 
-    var scored = r.ready.filter(function(row){ return coverDays(row) < 400; })
-      .map(function(row) {
-        var sku  = (row.SKU||'').trim();
-        var vel  = row.QtySold_Online_Total_30d || row.QSold_On30 || 0;
-        var cov  = Math.round(coverDays(row));
-        var stk  = row.stock || row.NetStock_Arklow || 0;
+    if (hasSalesHistory) {
+      // Lead with email-attributed sales: what did email customers actually buy this month last year?
+      var monthSellers = [];
+      var buyRowCache = {};
+      rows.forEach(function(rr){ var s=(rr.SKU||'').trim().toUpperCase(); buyRowCache[s]=rr; });
 
-        // Try multiple key formats to match Klaviyo's SKU variations
-        var calEntry = eiSalesMap[sku.toUpperCase()]
-          || eiSalesMap[sku]
-          || eiSalesMap['TP_' + sku.toUpperCase()]
-          || eiSalesMap[sku.replace(/^TP_/i,'').toUpperCase()]
-          || null;
+      Object.values(eiSalesMap).forEach(function(p) {
+        var monthQty = p.monthly[m] || 0;
+        if (monthQty === 0) return;
+        var sku = (p.sku||'').trim().toUpperCase();
+        var buyRow = buyRowCache[sku] || buyRowCache[sku.replace(/^TP_/,'')] || buyRowCache['TP_'+sku] || null;
+        if (!buyRow) return;
+        var stk = buyRow.stock || buyRow.NetStock_Arklow || 0;
+        if (stk <= 0) return;
+        var cov = Math.round(coverDays(buyRow));
+        if (cov < 14) return;
+        var vel = buyRow.QtySold_Online_Total_30d || buyRow.QSold_On30 || 0;
+        monthSellers.push({ row:buyRow, vel:vel, cov:cov, stk:stk, histMonth:monthQty,
+          score:(monthQty*20)+(vel*3)+(cov>45?3:0) });
+      });
+      monthSellers.sort(function(a,b){ return b.score-a.score; });
+      if (monthSellers.length >= 3) { scored = monthSellers; usedSalesHistory = true; }
+    }
 
-        var histMonth = calEntry ? (calEntry.monthly[m] || 0) : null; // null = not found, 0 = found but none
-        if (calEntry) matchCount++;
+    if (!scored) {
+      scored = r.ready.filter(function(row){ return coverDays(row)<400; }).map(function(row) {
+        var sku = (row.SKU||'').trim().toUpperCase();
+        var calEntry = eiSalesMap[sku]||eiSalesMap[sku.replace(/^TP_/,'')]||eiSalesMap['TP_'+sku]||null;
+        var histMonth = calEntry ? (calEntry.monthly[m]||0) : null;
+        var vel = row.QtySold_Online_Total_30d||row.QSold_On30||0;
+        var cov = Math.round(coverDays(row));
+        var stk = row.stock||row.NetStock_Arklow||0;
+        return { row:row, vel:vel, cov:cov, stk:stk, histMonth:histMonth,
+          score:(vel*10)+(cov>90?5:0)+(cov>45?3:0) };
+      }).sort(function(a,b){ return b.score-a.score; });
+    }
 
-        var score = (hasSalesHistory && histMonth !== null)
-          ? (histMonth * 20) + (vel * 3) + (cov > 45 ? 3 : 0)
-          : (vel * 10) + (cov > 90 ? 5 : 0) + (cov > 45 ? 3 : 0);
-        return { row:row, vel:vel, cov:cov, stk:stk, score:score, histMonth:histMonth };
-      })
-      .sort(function(a,b){ return b.score-a.score; });
 
     // If lyBest campaign exists, try to boost SKUs that match its name keywords
     if (r.lyBest) {
@@ -1969,8 +1984,12 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     + '</div>';
 
     // Top products table
-    html += '<div style="font-size:11px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Top products to feature — ranked by '+(hasSalesHistory && matchCount > 0 ? 'email-attributed sales last '+MN[m] : '30-day velocity')+'</div>'
-      + (hasSalesHistory ? '<div style="font-size:11px;color:#64748b;margin-bottom:8px">'+MN[m]+' column = units ordered via email last '+MN[m-1<0?11:m-1>=0?m:0]+' year · '+(matchCount > 0 ? matchCount+' of '+topProducts.length+' products matched' : '⚠ No SKU matches found — showing velocity ranking. Klaviyo may use different SKU codes.')+'</div>' : '')
+    html += '<div style="font-size:11px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Top products to feature — ranked by '+(usedSalesHistory ? 'email-attributed sales last '+MN[m] : '30-day velocity')+'</div>'
+      + '<div style="font-size:11px;color:#64748b;margin-bottom:8px">'
+        + (usedSalesHistory
+          ? '✅ These products were actually bought via email last ' + MN[m] + ' · cross-referenced with current stock'
+          : hasSalesHistory ? '⚠ No email-attributed '+MN[m]+' sales found in history — showing current velocity instead' : 'Ranked by current 30-day sales velocity')
+      + '</div>'
       + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
       + '<thead><tr style="background:#f1f5f9">'
       + '<th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">#</th>'
