@@ -860,6 +860,12 @@
     .ei-tb{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
     .ei-tb input[type="text"]{min-width:200px;font-size:12px}.ei-tb select{font-size:12px}
     .ei-empty{text-align:center;padding:32px 20px;color:#64748b;font-size:13px}
+    @keyframes ei-pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    @keyframes ei-spin{to{transform:rotate(360deg)}}
+    .ei-loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:20px;background:#fff;border-radius:12px;margin-top:20px}
+    .ei-loading-ring{width:52px;height:52px;border:5px solid #e2e8f0;border-top-color:#1e40af;border-radius:50%;animation:ei-spin 1s linear infinite}
+    .ei-loading-text{font-size:18px;font-weight:800;color:#1e40af;animation:ei-pulse 1.8s ease-in-out infinite;letter-spacing:.01em}
+    .ei-loading-sub{font-size:13px;color:#94a3b8;animation:ei-pulse 1.8s ease-in-out infinite .5s}
   </style>
 </head>
 <body>
@@ -1690,11 +1696,33 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   // ── Tab open ──────────────────────────────────────────────────────────────────
   window.eiOnTabOpen = function() {
     var sel = G('eiMonthSel'); if (sel) sel.value = new Date().getMonth();
-    if (eiReady) { eiRender(); return; }
-    // Always try to render - getRows handles empty gracefully
-    eiRenderSendThis(new Date().getMonth());
-    // Auto-sync if we have data
-    if (getRows().length && !eiReady) eiLoadKlaviyo();
+
+    // If already loaded, just re-render
+    if (eiReady && _eiLocalRows.length) { eiRender(); return; }
+
+    // Show pulsating loading screen
+    var ly = G('eiLastYear'), st = G('eiSendThis');
+    var loadHtml = '<div class="ei-loading-screen">'
+      + '<div class="ei-loading-ring"></div>'
+      + '<div class="ei-loading-text">Building email intelligence…</div>'
+      + '<div class="ei-loading-sub">Connecting to Klaviyo · Loading sales history · Cross-referencing stock</div>'
+    + '</div>';
+    if (ly) ly.innerHTML = loadHtml;
+    if (st) st.innerHTML = loadHtml;
+
+    // Trigger load as soon as buying data is available
+    var attempts = 0;
+    var wait = setInterval(function() {
+      var rows = getRows();
+      if (rows.length) {
+        clearInterval(wait);
+        eiLoadKlaviyo();
+      } else if (++attempts > 20) {
+        clearInterval(wait);
+        if (ly) ly.innerHTML = '<div class="ei-empty">Load your buying data (Buying tab) first, then return here.</div>';
+        if (st) st.innerHTML = '<div style="text-align:center;padding:40px"><button onclick="window.eiForceLoad()" style="padding:10px 22px;background:#1e40af;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">🔄 Reload</button></div>';
+      }
+    }, 500);
   };
 
   window.eiOnMonthChange = function() {
@@ -1746,7 +1774,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
 
       eiReady = true;
       var sc = Object.keys(eiStMap).length;
-      setStatus('Synced — ' + eiCamps.length + ' campaigns · ' + sc + ' with stats · Loading 12-month sales history…', 'ok');
+      setStatus('✅ Synced — ' + eiCamps.length + ' campaigns · ' + sc + ' with performance stats · Loading 12-month sales history…', 'ok');
       eiRender();
 
       // Load sales calendar in background — takes 2-3 min, updates table when ready
@@ -1963,7 +1991,9 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
         if(!br) return;
         var stk = br.stock||br.NetStock_Arklow||0;
         var cov = Math.round(coverDays(br));
-        emailSold.push({ row:br, sku:sku, qty:qty, stk:stk, cov:cov });
+        var vel = br.QtySold_Online_Total_30d||br.QSold_On30||0;
+        var price = br.SellingPrice||br.Price||br.UnitPrice||null;
+        emailSold.push({ row:br, sku:sku, qty:qty, stk:stk, cov:cov, vel:vel, price:price });
         emailSoldSkus[sku] = true;
       });
       emailSold.sort(function(a,b){ return b.qty-a.qty; });
@@ -1971,26 +2001,49 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
 
     if (emailSold.length > 0) {
       html += '<div style="margin-bottom:16px">'
-        + '<div class="ei-sh" style="margin-bottom:6px">📬 What email customers bought — '+MN[m]+' '+ly+'</div>'
+        + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'
+          + '<div class="ei-sh" style="margin:0">📬 What email customers bought — '+MN[m]+' '+ly+'</div>'
+          + '<span style="font-size:11px;color:#64748b">'+emailSold.length+' products · scroll for full list</span>'
+        + '</div>'
+        + '<div style="max-height:400px;overflow-y:auto;border:1px solid var(--line);border-radius:8px">'
         + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
-        + '<thead><tr style="background:#f1f5f9"><th style="text-align:left;padding:5px 8px;font-size:10px;font-weight:800">Product</th><th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800;background:#fef3c7">Email sales</th><th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800">Stock</th><th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800">Cover</th><th style="padding:5px 8px;font-size:10px;font-weight:800">Status</th></tr></thead><tbody>';
-      emailSold.slice(0,10).forEach(function(p,i) {
+        + '<thead style="position:sticky;top:0;z-index:1"><tr style="background:#f1f5f9">'
+          + '<th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">#</th>'
+          + '<th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">SKU</th>'
+          + '<th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">Product</th>'
+          + '<th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">Brand</th>'
+          + '<th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800;background:#fef3c7">'+MS[m]+' email</th>'
+          + '<th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">30d now</th>'
+          + '<th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">Stock</th>'
+          + '<th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">Cover</th>'
+          + '<th style="padding:6px 8px;font-size:10px;font-weight:800">Status</th>'
+        + '</tr></thead><tbody>';
+      emailSold.slice(0,100).forEach(function(p,i) {
         var badge, bg;
-        if (p.stk <= 0)   { badge='OOS';      bg='#fee2e2'; }
-        else if (p.cov>45) { badge='✅ Go';    bg='#dcfce7'; }
-        else if (p.cov>21) { badge='⚠ Low';   bg='#fef9c3'; }
-        else                { badge='❌ Critical'; bg='#fee2e2'; }
-        var qtyBg = p.qty>=50?'#fef08a':p.qty>=20?'#fef9c3':'transparent';
-        html += '<tr style="border-top:1px solid var(--line-light);background:'+(i===0?'#fffbeb':'')+'">'
-          + '<td style="padding:5px 8px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="'+esc(p.row.ItemTitle||'')+'">'+esc(p.row.ItemTitle||p.sku||'—')+'</td>'
+        if      (p.stk <= 0)  { badge='OOS';         bg='#fee2e2'; }
+        else if (p.cov > 45)  { badge='✅ Go';        bg='#dcfce7'; }
+        else if (p.cov > 21)  { badge='⚠ Low';       bg='#fef9c3'; }
+        else                  { badge='❌ Critical';  bg='#fee2e2'; }
+        var qtyBg  = p.qty >= 50 ? '#fef08a' : p.qty >= 20 ? '#fef9c3' : 'transparent';
+        var velBg  = p.vel >= 10 ? '#dcfce7' : p.vel >= 3 ? '#f1f5f9' : 'transparent';
+        var brand  = esc(p.row.SupplierName||p.row.Supplier||'—');
+        var rowBg  = p.stk <= 0 ? '#fef2f2' : i === 0 ? '#fffbeb' : (i%2===0?'#f9fafb':'#fff');
+        var skuLink = '<a href="https://www.lenehans.ie/search?q='+encodeURIComponent(p.row.SKU||'')
+          + '" target="_blank" style="color:#1e40af;text-decoration:none;font-family:monospace;font-size:10px">'+esc(p.row.SKU||p.sku)+'</a>';
+        html += '<tr style="border-top:1px solid var(--line-light);background:'+rowBg+'">'
+          + '<td style="padding:5px 8px;font-size:10px;color:#94a3b8;font-weight:700">'+(i+1)+'</td>'
+          + '<td style="padding:5px 8px;white-space:nowrap">'+skuLink+'</td>'
+          + '<td style="padding:5px 8px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="'+esc(p.row.ItemTitle||'')+'">'+esc(p.row.ItemTitle||'—')+'</td>'
+          + '<td style="padding:5px 8px;font-size:11px;color:#475569;white-space:nowrap">'+brand+'</td>'
           + '<td style="text-align:right;padding:5px 8px;font-weight:800;background:'+qtyBg+'">'+p.qty+'</td>'
+          + '<td style="text-align:right;padding:5px 8px;font-weight:600;background:'+velBg+'">'+p.vel+'</td>'
           + '<td style="text-align:right;padding:5px 8px">'+p.stk.toLocaleString('en-IE')+'</td>'
           + '<td style="text-align:right;padding:5px 8px;font-weight:600;color:'+(p.cov>45?'#14532d':p.cov>21?'#92400e':'#991b1b')+'">'+p.cov+'d</td>'
           + '<td style="padding:5px 8px"><span style="background:'+bg+';border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700">'+badge+'</span></td>'
         + '</tr>';
       });
-      html += '</tbody></table>';
-      if (emailSold.length > 10) html += '<div style="font-size:10px;color:#94a3b8;padding:4px 8px">+ '+(emailSold.length-10)+' more</div>';
+      html += '</tbody></table></div>';
+      if (emailSold.length > 100) html += '<div style="font-size:11px;color:#64748b;padding:6px 8px">Showing top 100 of '+emailSold.length+' products</div>';
       html += '</div>';
     }
 
@@ -2028,27 +2081,54 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       return b.vel - a.vel;
     }).slice(0,10);
 
+
     if (opportunities.length > 0) {
-      var wxNote = wxTemp !== null ? ' · Current: '+wxTemp+'°C' + (wx?' ('+wx.badge+')':'') : '';
+      var wxNote = wxTemp !== null ? ' · '+wxTemp+'°C'+( wx?' ('+wx.badge+')':'') : '';
       html += '<div>'
-        + '<div class="ei-sh" style="margin-bottom:4px">🎯 Seasonal opportunities for '+MN[m]+'</div>'
+        + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">'
+          + '<div class="ei-sh" style="margin:0">🎯 Seasonal opportunities — '+MN[m]+'</div>'
+          + '<span style="font-size:11px;color:#64748b">'+opportunities.length+' products</span>'
+        + '</div>'
         + '<div style="font-size:11px;color:#64748b;margin-bottom:8px">'+seasonalLabel+wxNote+'</div>'
+        + '<div style="max-height:350px;overflow-y:auto;border:1px solid var(--line);border-radius:8px">'
         + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
-        + '<thead><tr style="background:#f1f5f9"><th style="text-align:left;padding:5px 8px;font-size:10px;font-weight:800">Product</th><th style="padding:5px 8px;font-size:10px;font-weight:800">Signal</th><th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800">Stock</th><th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800">Cover</th></tr></thead><tbody>';
+        + '<thead style="position:sticky;top:0;z-index:1"><tr style="background:#f1f5f9">'
+          + '<th style="text-align:left;padding:5px 8px;font-size:10px;font-weight:800">SKU</th>'
+          + '<th style="text-align:left;padding:5px 8px;font-size:10px;font-weight:800">Product</th>'
+          + '<th style="text-align:left;padding:5px 8px;font-size:10px;font-weight:800">Brand</th>'
+          + '<th style="padding:5px 8px;font-size:10px;font-weight:800">Signal</th>'
+          + '<th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800">30d</th>'
+          + '<th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800">Stock</th>'
+          + '<th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800">Cover</th>'
+          + '<th style="padding:5px 8px;font-size:10px;font-weight:800">Email history</th>'
+        + '</tr></thead><tbody>';
       opportunities.forEach(function(p,i) {
-        var stk = p.row.stock||p.row.NetStock_Arklow||0;
-        var badge = p.wxMatch ? (wx?wx.badge:'🌡 Weather pick') : '📅 Seasonal pick';
-        var newBadge = !p.inEmailSales ? '<span style="background:#fef08a;color:#713f12;border-radius:3px;padding:1px 5px;font-size:9px;font-weight:800;margin-left:3px">NOT YET EMAILED</span>' : '';
-        var rowBg = !p.inEmailSales ? '#fffbeb' : '';
+        var stk    = p.row.stock||p.row.NetStock_Arklow||0;
+        var brand  = esc(p.row.SupplierName||p.row.Supplier||'—');
+        var badge  = p.wxMatch ? (wx?wx.badge:'🌡 Weather') : '📅 Seasonal';
+        var notEm  = !p.inEmailSales;
+        var emBadge = notEm
+          ? '<span style="background:#fef08a;color:#713f12;border-radius:3px;padding:1px 5px;font-size:9px;font-weight:800">NOT YET EMAILED</span>'
+          : '<span style="background:#f1f5f9;color:#64748b;border-radius:3px;padding:1px 5px;font-size:9px">In history</span>';
+        var rowBg  = notEm ? '#fffbeb' : '#fff';
+        var velBg  = p.vel >= 10 ? '#dcfce7' : p.vel >= 3 ? '#f1f5f9' : 'transparent';
+        var skuLink = '<a href="https://www.lenehans.ie/search?q='+encodeURIComponent(p.row.SKU||'')+'" target="_blank" style="color:#1e40af;text-decoration:none;font-family:monospace;font-size:10px">'+esc(p.row.SKU||p.sku)+'</a>';
         html += '<tr style="border-top:1px solid var(--line-light);background:'+rowBg+'">'
-          + '<td style="padding:5px 8px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="'+esc(p.row.ItemTitle||'')+'">'+esc(p.row.ItemTitle||p.sku)+''+newBadge+'</td>'
+          + '<td style="padding:5px 8px;white-space:nowrap">'+skuLink+'</td>'
+          + '<td style="padding:5px 8px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(p.row.ItemTitle||'')+'">'+esc(p.row.ItemTitle||p.sku)+'</td>'
+          + '<td style="padding:5px 8px;font-size:11px;color:#475569;white-space:nowrap">'+brand+'</td>'
           + '<td style="padding:5px 8px"><span style="background:#f1f5f9;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:600">'+badge+'</span></td>'
+          + '<td style="text-align:right;padding:5px 8px;background:'+velBg+';font-weight:600">'+p.vel+'</td>'
           + '<td style="text-align:right;padding:5px 8px">'+stk.toLocaleString('en-IE')+'</td>'
           + '<td style="text-align:right;padding:5px 8px;font-weight:600;color:'+(p.cov>45?'#14532d':'#92400e')+'">'+p.cov+'d</td>'
+          + '<td style="padding:5px 8px">'+emBadge+'</td>'
         + '</tr>';
       });
-      html += '</tbody></table><div style="font-size:10px;color:#94a3b8;padding:4px 8px">Products highlighted in gold = in stock + seasonal but not yet in your email-attributed sales</div></div>';
+      html += '</tbody></table></div>'
+        + '<div style="font-size:11px;color:#64748b;padding:6px 4px">🟡 Gold = seasonal, in stock, not yet in email sales — these are your hidden opportunities</div>'
+      + '</div>';
     }
+
 
     el.innerHTML = html || '<div class="ei-empty">No data available</div>';
   }
