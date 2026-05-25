@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V6.2 · INTELLIGENCE</title>
+  <title>Lenehans Purchasing Dashboard · V6.3 · EMAIL INTELLIGENCE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -114,8 +114,9 @@
     .wl-header .small{color:#94d2ff!important}
     .wl-toggle{color:#fff!important;font-weight:800!important}
     .wl-toggle{margin-left:auto;font-size:12px;color:#64748b;font-weight:600}
-    .wl-body{display:none}
+    .wl-body{display:block}
     .wl-body.open{display:block}
+    .wl-body.closed{display:none}
 
     /* ── Sticky bottom PO bar ───────────────────────────────────────── */
     #stickyPoBar{
@@ -871,7 +872,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.2 · Seasonal · Signal-stack · Governance</div>
+  <div class="sub">V6.3 · Seasonal · Signal-stack · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -1044,7 +1045,7 @@
   <div id="wlHeader" class="wl-header" onclick="toggleWatchlist()">
     <h3>🏆 Top 500 SKU Watchlist</h3>
     <span id="actionNowSummary" class="small"></span>
-    <span class="wl-toggle" id="wlToggleLabel">▼ Click to show supplier cards</span>
+    <span class="wl-toggle" id="wlToggleLabel">▲ Hide supplier cards</span>
   </div>
   <div id="wlBody" class="wl-body">
     <div id="actionNowGrid"></div>
@@ -3304,8 +3305,8 @@ function toggleWatchlist(){
   const body=document.getElementById('wlBody');
   const lbl=document.getElementById('wlToggleLabel');
   if(!body||!lbl) return;
-  const open=body.classList.toggle('open');
-  lbl.textContent=open?'▲ Hide supplier cards':'▼ Click to show supplier cards';
+  const open=body.classList.toggle('closed');
+  lbl.textContent=open?'▼ Click to show supplier cards':'▲ Hide supplier cards';
 }
 
 function parseCSV(text){
