@@ -472,9 +472,9 @@
 
     /* ── Governance status ──────────────────────────────────────────── */
     #govStatus{
-      font-size:12px;color:#374151;margin-top:8px;
-      padding:6px 10px;background:#f1f5f9;
-      border:1px solid var(--line-light);border-radius:6px;
+      font-size:11px;color:#94a3b8;margin-top:6px;
+      padding:0;background:none;border:none;border-radius:0;
+      font-style:italic;
     }
 
     /* ── Guidance strip ─────────────────────────────────────────────── */
@@ -894,6 +894,17 @@
 
   <!-- TAB 1: Buying -->
   <div class="tab-panel active" id="tab-buying">
+
+  <!-- Full-screen loading overlay — shown while auto-loading -->
+  <div id="buyingLoadOverlay" style="position:absolute;inset:0;background:#f8fafc;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;min-height:70vh">
+    <div style="width:56px;height:56px;border:5px solid #e2e8f0;border-top-color:#1e3a5f;border-radius:50%;animation:ei-spin 1s linear infinite"></div>
+    <div style="font-size:20px;font-weight:800;color:#1e3a5f;animation:ei-pulse 1.8s ease-in-out infinite;letter-spacing:.01em">Building the Lenehans Purchasing Dashboard…</div>
+    <div id="buyingOverlayStep" style="font-size:13px;color:#64748b;min-height:20px">Loading buying data…</div>
+    <div style="width:320px;background:#e2e8f0;border-radius:4px;height:6px;overflow:hidden">
+      <div id="buyingOverlayBar" style="height:100%;width:5%;background:linear-gradient(90deg,#1e3a5f,#3b82f6);border-radius:4px;transition:width .6s ease"></div>
+    </div>
+    <div style="font-size:11px;color:#cbd5e1">Please wait — this usually takes 5–10 seconds</div>
+  </div>
 
   <!-- Load card: full form (shown before load) / collapsed status bar (after load) -->
   <div id="loadCardFull" class="card">
@@ -1705,7 +1716,11 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     var loadHtml = '<div class="ei-loading-screen">'
       + '<div class="ei-loading-ring"></div>'
       + '<div class="ei-loading-text">Building email intelligence…</div>'
-      + '<div class="ei-loading-sub">Connecting to Klaviyo · Loading sales history · Cross-referencing stock</div>'
+      + '<div id="eiLoadStep" class="ei-loading-sub">Connecting to Klaviyo…</div>'
+      + '<div style="width:280px;background:#e2e8f0;border-radius:4px;height:5px;overflow:hidden;margin-top:4px">'
+        + '<div id="eiLoadBar" style="height:100%;width:8%;background:linear-gradient(90deg,#1e40af,#60a5fa);border-radius:4px;transition:width .6s ease"></div>'
+      + '</div>'
+      + '<div style="font-size:11px;color:#cbd5e1;margin-top:4px">Usually takes 10–15 seconds</div>'
     + '</div>';
     if (ly) ly.innerHTML = loadHtml;
     if (st) st.innerHTML = loadHtml;
@@ -1734,17 +1749,24 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     eiRenderSendThis(m);
   };
 
+  function eiSetLoadStep(txt, pct) {
+    var s = document.getElementById('eiLoadStep'); if(s) s.textContent = txt;
+    var b = document.getElementById('eiLoadBar');  if(b) b.style.width = pct + '%';
+  }
+
   // ── Klaviyo loader ────────────────────────────────────────────────────────────
   window.eiLoadKlaviyo = function() {
     setBusy(true);
     setStatus('Connecting to Klaviyo…', 'loading');
+    eiSetLoadStep('📡 Connecting to Klaviyo…', 10);
     var statusEl = G('eiStatus');
     if (statusEl) statusEl.style.display = 'block';
 
-    var p1 = fetch(PROXY + '?action=klaviyo').then(function(r){ return r.json(); });
-    var p2 = fetch(PROXY + '?action=klaviyo_stats').then(function(r){ return r.json(); }).catch(function(){ return {}; });
+    var p1 = fetch(PROXY + '?action=klaviyo').then(function(r){ eiSetLoadStep('📧 Loading campaigns…', 30); return r.json(); });
+    var p2 = fetch(PROXY + '?action=klaviyo_stats').then(function(r){ eiSetLoadStep('📊 Loading performance stats…', 55); return r.json(); }).catch(function(){ return {}; });
 
     Promise.all([p1, p2]).then(function(res) {
+      eiSetLoadStep('🗓 Processing campaign data…', 70);
       var cData = res[0], sData = res[1];
       if (cData.error) throw new Error(cData.error);
 
@@ -1774,8 +1796,10 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
 
       eiReady = true;
       var sc = Object.keys(eiStMap).length;
+      eiSetLoadStep('📦 Cross-referencing with stock data…', 85);
       setStatus('✅ Synced — ' + eiCamps.length + ' campaigns · ' + sc + ' with performance stats · Loading 12-month sales history…', 'ok');
       eiRender();
+      eiSetLoadStep('✅ Ready — loading sales history in background…', 100);
 
       // Load sales calendar in background — takes 2-3 min, updates table when ready
       fetch(PROXY + '?action=klaviyo_sales_calendar')
@@ -1787,8 +1811,8 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
             if (key) eiSalesMap[key] = p;
           });
           var sal = Object.keys(eiSalesMap).length;
-          setStatus('Synced — ' + eiCamps.length + ' campaigns · ' + sc + ' with stats · ' + sal + ' products with sales history · ' + new Date().toLocaleTimeString('en-IE'), 'ok');
-          eiRenderSendThis(curMonth()); // re-render with historical data
+          setStatus('✅ Synced — ' + eiCamps.length + ' campaigns · ' + sc + ' with stats · ' + sal + ' products with sales history · ' + new Date().toLocaleTimeString('en-IE'), 'ok');
+          eiRenderSendThis(curMonth());
         })
         .catch(function(e){ console.warn('Sales calendar failed:', e.message); });
 
@@ -3235,13 +3259,30 @@ function setLoadProgress(pct, label){
 }
 
 function setStatus(msg,bad){
+  // Don't expose raw technical errors to users — show clean message instead
+  var displayMsg = msg;
+  if (bad && msg && (msg.indexOf('postMessage') >= 0 || msg.indexOf('AbortSignal') >= 0 || msg.indexOf('cloned') >= 0)) {
+    displayMsg = '⚠️ Some background feeds unavailable — core buying data loaded';
+    bad = false;
+  }
+  // Update loading overlay step text and progress bar
+  var step = document.getElementById('buyingOverlayStep');
+  var bar  = document.getElementById('buyingOverlayBar');
+  if (step && bar) {
+    if      (displayMsg.indexOf('CSV')         >= 0 || displayMsg.indexOf('Loading')   >= 0) { step.textContent = '📥 Loading buying data…';             bar.style.width='20%'; }
+    else if (displayMsg.indexOf('governance')  >= 0 || displayMsg.indexOf('Governance')>= 0) { step.textContent = '🔐 Applying governance rules…';        bar.style.width='50%'; }
+    else if (displayMsg.indexOf('seasonal')    >= 0 || displayMsg.indexOf('Seasonal')  >= 0) { step.textContent = '📅 Loading seasonal demand…';          bar.style.width='70%'; }
+    else if (displayMsg.indexOf('Calculating') >= 0 || displayMsg.indexOf('signal')    >= 0) { step.textContent = '⚡ Calculating buying signals…';        bar.style.width='85%'; }
+    else if (displayMsg.startsWith('✅'))                                                      { step.textContent = '✅ Dashboard ready';                   bar.style.width='100%'; }
+    else if (displayMsg.indexOf('Auto-loading')>= 0)                                          { step.textContent = '🔗 Connecting to data feeds…';        bar.style.width='10%'; }
+  }
   const el=document.getElementById('loadStatus');
   if(el){
-    el.textContent=msg;
+    el.textContent=displayMsg;
     el.style.display='block';
     el.style.color=bad?'var(--bad)':'#14532d';
-    el.style.background=bad?'#fee2e2':msg.startsWith('✅')?'#dcfce7':'#f1f5f9';
-    el.style.borderColor=bad?'#f87171':msg.startsWith('✅')?'#4ade80':'var(--line-light)';
+    el.style.background=bad?'#fee2e2':displayMsg.startsWith('✅')?'#dcfce7':'#f1f5f9';
+    el.style.borderColor=bad?'#f87171':displayMsg.startsWith('✅')?'#4ade80':'var(--line-light)';
   }
   setLoadProgress(null); // hide progress bar when status shows
   if(msg.startsWith('✅')&&!bad){
@@ -5680,6 +5721,17 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(urlEl) urlEl.value=DEFAULT_URL;
   setStatus('⏳ Auto-loading all feeds…',false);
   loadFromUrl();
+  // Hide overlay once data renders (poll for rows)
+  var _overlayCheck = setInterval(function(){
+    var overlay = document.getElementById('buyingLoadOverlay');
+    if (!overlay) { clearInterval(_overlayCheck); return; }
+    if (state && state.computedRows && state.computedRows.length > 0) {
+      overlay.style.opacity = '0';
+      overlay.style.transition = 'opacity .5s ease';
+      setTimeout(function(){ overlay.style.display='none'; }, 500);
+      clearInterval(_overlayCheck);
+    }
+  }, 300);
 });
 
 // ─── TEAM TAB ────────────────────────────────────────────────────────────────
