@@ -2079,7 +2079,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       if (a.wxMatch && !b.wxMatch) return -1;
       if (!a.wxMatch && b.wxMatch) return 1;
       return b.vel - a.vel;
-    }).slice(0,10);
+    }).slice(0,100);
 
 
     if (opportunities.length > 0) {
