@@ -1853,21 +1853,51 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   }
 
   // ── Right: product-led "Send this" recommendation ────────────────────────────
+  // ── Right column: full month intelligence ────────────────────────────────────
+  // Weather-aware seasonal product intelligence per month
+  var WEATHER_PRODUCTS = {
+    hot:   { min:20, badge:'☀️ Hot weather', products:['fan','cooler','cooling','portable fan','desk fan','tower fan','air circul','evaporat','mist','sprinkler','watering','hosepipe','sun','shade','parasol','mosquito','insect repel','ice pack'] },
+    warm:  { min:15, badge:'🌤 Warm weather', products:['garden','outdoor','solar','hose','watering','pest','fly','moth','weed','lawn','plant','compost','bbq','patio','decking','shed'] },
+    cool:  { min:8,  badge:'🍂 Cool/Autumn',  products:['paint','storage','organis','shelf','draught','sealant','caulk','insulation'] },
+    cold:  { min:0,  badge:'❄️ Cold weather', products:['heater','heating','electric heat','fan heater','oil rad','convector','thermal','frost','antifreeze','winter','pipe lagging','stopcock'] },
+    freeze:{ min:-99,badge:'🧊 Freeze risk',  products:['pipe lagging','stopcock','antifreeze','frost protect','pipe insul','freeze','burst pipe'] }
+  };
+
+  var MONTH_SEASONAL = {
+    0:  [['plumbing','heater','heating','frost','pipe lagging'],       '❄️ Post-Christmas, cold snap risk'],
+    1:  [['paint','storage','heater','draught'],                       '🌱 Indoor season — spring planning starts'],
+    2:  [['garden','paint','cleaning','solar'],                        '🌱 Spring starting — garden & outdoor waking up'],
+    3:  [['garden','solar','hose','weed','lawn','outdoor'],            '🌸 Spring peak — garden & outdoor in demand'],
+    4:  [['garden','hose','weed','solar','fan','pest','outdoor'],      '☀️ May outdoor season — garden, pest, cooling'],
+    5:  [['garden','fan','cooling','pest','solar','outdoor','bbq'],    '🌞 June peak — outdoor, cooling, pest season'],
+    6:  [['fan','cooling','pest','garden','solar','outdoor'],          '🌞 July heat — cooling & outdoor peak'],
+    7:  [['garden','fan','pest','solar','outdoor','storage'],          '🍂 August — end of summer, storage prep'],
+    8:  [['paint','storage','tools','plumbing'],                       '🍁 September — indoor season, DIY projects'],
+    9:  [['heater','draught','paint','plumbing','storage'],            '🍂 October — heating prep, winter-proofing'],
+    10: [['heater','draught','plumbing','tools','christmas','gift'],   '❄️ November — heating season + Christmas gifting'],
+    11: [['heater','tool','gift','draper','stanley','christmas','storage'],'🎁 December — gifting & heating']
+  };
+
+  function getWeatherContext() {
+    try {
+      if (typeof weatherData === 'undefined' || weatherData.tempAvg == null) return null;
+      var t = weatherData.tempAvg;
+      if (t >= 20) return WEATHER_PRODUCTS.hot;
+      if (t >= 15) return WEATHER_PRODUCTS.warm;
+      if (t >= 8)  return WEATHER_PRODUCTS.cool;
+      if (t >= 0)  return WEATHER_PRODUCTS.cold;
+      return WEATHER_PRODUCTS.freeze;
+    } catch(e) { return null; }
+  }
+
   function eiRenderSendThis(m) {
     var el = G('eiSendThis'); if (!el) return;
     var rows = getRows();
     if (!rows.length) {
-      // Debug: show exactly what we can see
-      var dbg = '';
-      try { dbg += 'window._eiRows: ' + (window._eiRows ? window._eiRows.length + ' rows' : 'not set') + ' | '; } catch(e){}
-      try { dbg += 'typeof state: ' + typeof state + ' | '; } catch(e){ dbg += 'state error: ' + e.message + ' | '; }
-      try { if(typeof state !== 'undefined') dbg += 'computedRows: ' + (state.computedRows ? state.computedRows.length : 'empty'); } catch(e){ dbg += 'cr error: ' + e.message; }
-
       el.innerHTML = '<div style="background:#f8fafc;border:1.5px solid var(--line);border-radius:10px;padding:20px;text-align:center">'
         + '<div style="font-size:14px;font-weight:700;color:#374151;margin-bottom:8px">📊 Buying data needed</div>'
         + '<div style="font-size:12px;color:#64748b;margin-bottom:14px">Go to the <strong>Buying</strong> tab and wait for your data to load, then click below.</div>'
         + '<button onclick="window.eiForceLoad()" style="padding:8px 18px;background:#1e40af;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer">🔄 Reload recommendations</button>'
-        + '<div style="font-size:10px;color:#94a3b8;margin-top:10px;font-family:monospace">' + dbg + '</div>'
         + '</div>';
       return;
     }
@@ -1875,182 +1905,154 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     var now      = new Date();
     var ly       = now.getFullYear() - 1;
     var seasonal = SEASON[m] || [];
+    var wx       = getWeatherContext();
+    var wxTemp   = (typeof weatherData !== 'undefined' && weatherData.tempAvg != null) ? weatherData.tempAvg : null;
 
-    // Find the best category to recommend
+    // ── Find best category recommendation ────────────────────────────────────
     var bestRec = null;
     seasonal.forEach(function(theme) {
       var cat = CAT[theme]; if (!cat || cat.score < 5) return;
       var ready = rows.filter(function(r){ return themeFromRow(r)===theme && coverDays(r)>30 && (r.stock||r.NetStock_Arklow||0)>0; });
       if (ready.length < 3) return;
-
       var lyBest = null, lyBestOpen = 0;
       eiCamps.filter(function(c){ var d=new Date(c.sent_at); return c.theme===theme&&d.getMonth()===m&&d.getFullYear()===ly; })
         .forEach(function(c){ var st=eiStMap[c.id]||{}; if((st.open_rate||0)>lyBestOpen){lyBestOpen=st.open_rate||0;lyBest=c;} });
-
       var tc = eiCamps.filter(function(c){return c.theme===theme&&c.sent_at;}).sort(function(a,b){return new Date(b.sent_at)-new Date(a.sent_at);});
       var lastSentDays = tc[0]?Math.round((now-new Date(tc[0].sent_at))/86400000):999;
       var avgCov = Math.round(ready.reduce(function(s,r){return s+coverDays(r);},0)/ready.length);
-
-      // Score: boost heavily if this theme had a campaign last year THIS SPECIFIC MONTH
-      var score = cat.score*10
-        + (lyBest ? 50 : 0)                           // strong boost for last-year same-month match
-        + (lyBestOpen > BENCH_OPEN ? 20 : 0)           // above benchmark
-        + (lastSentDays > 60 ? 15 : 0)                 // overdue
-        + (avgCov > 90 ? 5 : 0);                       // good stock
-      if (!bestRec || score > bestRec.score) {
-        bestRec = { theme:theme, cat:cat, ready:ready, lyBest:lyBest, lyBestOpen:lyBestOpen, lastSentDays:lastSentDays, avgCov:avgCov, score:score, lyCount: eiCamps.filter(function(c){ var d=new Date(c.sent_at); return c.theme===theme&&d.getMonth()===m&&d.getFullYear()===ly; }).length };
-      }
+      var score = cat.score*10 + (lyBest?50:0) + (lyBestOpen>BENCH_OPEN?20:0) + (lastSentDays>60?15:0) + (avgCov>90?5:0);
+      if (!bestRec || score > bestRec.score)
+        bestRec = { theme:theme, cat:cat, ready:ready, lyBest:lyBest, lyBestOpen:lyBestOpen, lastSentDays:lastSentDays, avgCov:avgCov, score:score };
     });
-
-    if (!bestRec) { el.innerHTML = '<div class="ei-empty">No strong recommendations — check buying data is loaded</div>'; return; }
-
-    var r = bestRec;
-    var tpl = TPL[r.theme] || TPL.other;
-
-    // Top products — scored by ACTUAL sales in this specific month (from sales calendar)
-    // Fall back to current 30d velocity if no calendar data
-    var hasSalesHistory = Object.keys(eiSalesMap).length > 0;
-    var usedSalesHistory = false;
-    var scored;
-
-    if (hasSalesHistory) {
-      // Lead with email-attributed sales: what did email customers actually buy this month last year?
-      var monthSellers = [];
-      var buyRowCache = {};
-      rows.forEach(function(rr){ var s=(rr.SKU||'').trim().toUpperCase(); buyRowCache[s]=rr; });
-
-      Object.values(eiSalesMap).forEach(function(p) {
-        var monthQty = p.monthly[m] || 0;
-        if (monthQty === 0) return;
-        var sku = (p.sku||'').trim().toUpperCase();
-        var buyRow = buyRowCache[sku] || buyRowCache[sku.replace(/^TP_/,'')] || buyRowCache['TP_'+sku] || null;
-        if (!buyRow) return;
-        var stk = buyRow.stock || buyRow.NetStock_Arklow || 0;
-        if (stk <= 0) return;
-        var cov = Math.round(coverDays(buyRow));
-        if (cov < 14) return;
-        var vel = buyRow.QtySold_Online_Total_30d || buyRow.QSold_On30 || 0;
-        monthSellers.push({ row:buyRow, vel:vel, cov:cov, stk:stk, histMonth:monthQty,
-          score:(monthQty*20)+(vel*3)+(cov>45?3:0) });
-      });
-      monthSellers.sort(function(a,b){ return b.score-a.score; });
-      if (monthSellers.length >= 3) { scored = monthSellers; usedSalesHistory = true; }
-    }
-
-    if (!scored) {
-      scored = r.ready.filter(function(row){ return coverDays(row)<400; }).map(function(row) {
-        var sku = (row.SKU||'').trim().toUpperCase();
-        var calEntry = eiSalesMap[sku]||eiSalesMap[sku.replace(/^TP_/,'')]||eiSalesMap['TP_'+sku]||null;
-        var histMonth = calEntry ? (calEntry.monthly[m]||0) : null;
-        var vel = row.QtySold_Online_Total_30d||row.QSold_On30||0;
-        var cov = Math.round(coverDays(row));
-        var stk = row.stock||row.NetStock_Arklow||0;
-        return { row:row, vel:vel, cov:cov, stk:stk, histMonth:histMonth,
-          score:(vel*10)+(cov>90?5:0)+(cov>45?3:0) };
-      }).sort(function(a,b){ return b.score-a.score; });
-    }
-
-
-    // If lyBest campaign exists, boost SKUs matching its name keywords
-    if (r.lyBest) {
-      var campWords = r.lyBest.name.toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(' ').filter(function(w){ return w.length > 3; });
-      scored = scored.map(function(p) {
-        var title = (p.row.ItemTitle||'').toLowerCase();
-        var keywordBoost = campWords.some(function(w){ return title.indexOf(w) >= 0; }) ? 30 : 0;
-        return { row:p.row, vel:p.vel, cov:p.cov, stk:p.stk, histMonth:p.histMonth, score:p.score + keywordBoost }; // preserve histMonth
-      }).sort(function(a,b){ return b.score-a.score; });
-    }
-
-    var topProducts = scored.slice(0,8);
-    var isCurrentMonth = (m === now.getMonth());
-    var dataNote = eiReady
-      ? (r.lyBest ? '✅ Matched to "' + r.lyBest.name + '" (' + r.lyBestOpen + '% open last ' + MN[m] + ')' : '📊 Based on current stock · no matching campaign found for last ' + MN[m])
-      : '📊 Based on current stock only · click Sync Klaviyo to add last year\'s performance data';
-
-    // Subject line for brief
-    var subj0 = tpl.s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    var briefEnc = r.theme+'|'+r.ready.length+'|'+r.avgCov+'|'+r.lastSentDays+'|'+MN[m]+'|'+(r.lyBestOpen||0)+'|'+topProducts.slice(0,5).map(function(p){return (p.row.SKU||'').trim();}).join(',');
 
     var html = '';
 
-    // "Send this" hero card
-    html += '<div style="background:'+(isCurrentMonth?'#1e40af':'#f8fafc')+';border-radius:12px;padding:14px 16px;margin-bottom:14px;color:'+(isCurrentMonth?'#fff':'#1e293b')+'">'
-      + '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;opacity:.7;margin-bottom:4px">'+(isCurrentMonth?'💡 Send this week':'💡 Best bet for '+MN[m])+'</div>'
-      + '<div style="font-size:16px;font-weight:800;margin-bottom:4px">'+tpl.e+' '+r.cat.label+' email</div>'
-      + '<div style="font-size:11px;opacity:.85;line-height:1.7;margin-bottom:4px">'
-        + r.ready.length+' SKUs in stock · avg '+r.avgCov+'d cover'
-        + (r.lyBest?' · <strong>sent last '+MN[m]+', '+(r.lyBestOpen?r.lyBestOpen+'% open':'good results')+'</strong>':'')
-        + (r.lastSentDays<999?' · last sent '+r.lastSentDays+'d ago':'')
-      + '</div>'
-      + '<div style="font-size:10px;opacity:.65;margin-bottom:8px">'+dataNote+'</div>'
-      + '<div style="background:rgba(255,255,255,.15);border-radius:7px;padding:8px 10px;font-size:12px;font-style:italic;margin-bottom:10px">&ldquo;'+esc(tpl.s)+'&rdquo;</div>'
-      + '<div style="display:flex;gap:7px;flex-wrap:wrap">'
-        + '<button onclick="navigator.clipboard.writeText(\''+subj0+'\');this.textContent=\'✓ Copied!\'" style="padding:5px 12px;font-size:11px;font-weight:700;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);border-radius:6px;color:'+(isCurrentMonth?'#fff':'#1e40af')+';cursor:pointer">Copy subject</button>'
-        + '<button onclick="eiCopyBrief(\''+briefEnc+'\')" style="padding:5px 12px;font-size:11px;font-weight:700;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);border-radius:6px;color:'+(isCurrentMonth?'#fff':'#1e40af')+';cursor:pointer">📋 Copy campaign brief</button>'
-      + '</div>'
-    + '</div>';
+    // ── Hero recommendation card ──────────────────────────────────────────────
+    if (bestRec) {
+      var r = bestRec, tpl = TPL[r.theme]||TPL.other;
+      var isCurrentMonth = (m === now.getMonth());
+      var dataNote = eiReady
+        ? (r.lyBest ? '✅ Matched to "'+r.lyBest.name+'" ('+r.lyBestOpen+'% open last '+MN[m]+')' : '📊 Based on current stock')
+        : '📊 Based on current stock · sync Klaviyo to add history';
+      var subj0 = tpl.s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      var briefEnc = r.theme+'|'+r.ready.length+'|'+r.avgCov+'|'+r.lastSentDays+'|'+MN[m]+'|'+(r.lyBestOpen||0);
 
-    // Top products table
-    html += '<div style="font-size:11px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Top products to feature — ranked by '+(usedSalesHistory ? 'email-attributed sales last '+MN[m] : '30-day velocity')+'</div>'
-      + '<div style="font-size:11px;color:#64748b;margin-bottom:8px">'
-        + (usedSalesHistory
-          ? '✅ These products were actually bought via email last ' + MN[m] + ' · cross-referenced with current stock'
-          : hasSalesHistory ? '⚠ No email-attributed '+MN[m]+' sales found in history — showing current velocity instead' : 'Ranked by current 30-day sales velocity')
-      + '</div>'
-      + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
-      + '<thead><tr style="background:#f1f5f9">'
-      + '<th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">#</th>'
-      + '<th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">SKU</th>'
-      + '<th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">Product</th>'
-      + (hasSalesHistory ? '<th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800;background:#fef3c7">Last '+MS[m]+' sales</th>' : '')
-      + '<th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">30d now</th>'
-      + '<th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">Stock</th>'
-      + '<th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">Cover</th>'
-      + '<th style="padding:6px 8px;font-size:10px;font-weight:800">Status</th>'
-      + '</tr></thead><tbody>';
-
-    topProducts.forEach(function(p, i) {
-      var badge, badgeBg;
-      if      (p.cov > 90) { badge = '✅ Go';       badgeBg = '#dcfce7'; }
-      else if (p.cov > 45) { badge = '✅ Good';      badgeBg = '#f0fdf4'; }
-      else                  { badge = '⚠ '+p.cov+'d'; badgeBg = '#fef9c3'; }
-      var velBg  = p.vel >= 5 ? '#dcfce7' : p.vel >= 2 ? '#f1f5f9' : 'transparent';
-      var histBg = p.histMonth >= 10 ? '#fef08a' : p.histMonth >= 3 ? '#fef9c3' : 'transparent';
-      var histVal = p.histMonth === null ? '—' : p.histMonth > 0 ? String(p.histMonth) : '0';
-      var rowBg  = i === 0 ? '#fffbeb' : (i % 2 === 0 ? '#f7f9fc' : '#fff');
-
-      html += '<tr style="border-top:1px solid var(--line-light);background:'+rowBg+'">'
-        + '<td style="padding:6px 8px;font-size:11px;font-weight:800;color:#94a3b8">'+(i+1)+'</td>'
-        + '<td style="padding:6px 8px;font-family:monospace;font-size:11px;font-weight:700;color:#1e40af;white-space:nowrap">'+esc(p.row.SKU||'')+'</td>'
-        + '<td style="padding:6px 8px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="'+esc(p.row.ItemTitle||'')+'">'+esc(p.row.ItemTitle||'—')+'</td>'
-        + (hasSalesHistory ? '<td style="text-align:right;padding:6px 8px;font-weight:800;background:'+histBg+';color:'+(p.histMonth>0?'#713f12':'#94a3b8')+'">'+histVal+'</td>' : '')
-        + '<td style="text-align:right;padding:6px 8px;font-weight:700;background:'+velBg+';font-size:12px">'+p.vel+'</td>'
-        + '<td style="text-align:right;padding:6px 8px;font-size:12px">'+p.stk.toLocaleString('en-IE')+'</td>'
-        + '<td style="text-align:right;padding:6px 8px;font-weight:600;font-size:12px;color:'+(p.cov>45?'#14532d':'#92400e')+'">'+p.cov+'d</td>'
-        + '<td style="padding:6px 8px"><span style="background:'+badgeBg+';border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700">'+badge+'</span></td>'
-      + '</tr>';
-    });
-
-    html += '</tbody></table>';
-
-    // Other categories briefly
-    var others = seasonal.filter(function(t){ return t!==r.theme && (CAT[t]||{}).score>=5; }).slice(0,3);
-    if (others.length) {
-      html += '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">'
-        + '<div style="font-size:11px;font-weight:700;color:#64748b;padding-top:4px">Also consider:</div>'
-        + others.map(function(t){
-            var c=CAT[t]||CAT.other;
-            var cnt=rows.filter(function(row){return themeFromRow(row)===t&&coverDays(row)>30&&(row.stock||row.NetStock_Arklow||0)>0;}).length;
-            return '<span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;color:#374151">'+c.e+' '+c.label+' · '+cnt+' SKUs</span>';
-          }).join('')
+      html += '<div style="background:'+(isCurrentMonth?'#1e40af':'#f8fafc')+';border-radius:12px;padding:14px 16px;margin-bottom:16px;color:'+(isCurrentMonth?'#fff':'#1e293b')+'">'
+        + '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;opacity:.7;margin-bottom:4px">'+(isCurrentMonth?'💡 Send this week':'💡 Best bet for '+MN[m])+'</div>'
+        + '<div style="font-size:16px;font-weight:800;margin-bottom:4px">'+tpl.e+' '+r.cat.label+' email</div>'
+        + '<div style="font-size:11px;opacity:.85;margin-bottom:4px">'+r.ready.length+' SKUs · avg '+r.avgCov+'d cover'+(r.lyBest?' · sent last '+MN[m]+', <strong>'+r.lyBestOpen+'% open</strong>':'')+(r.lastSentDays<999?' · last sent '+r.lastSentDays+'d ago':'')+'</div>'
+        + '<div style="font-size:10px;opacity:.6;margin-bottom:8px">'+dataNote+'</div>'
+        + '<div style="background:rgba(255,255,255,.15);border-radius:7px;padding:8px 10px;font-size:12px;font-style:italic;margin-bottom:10px">&ldquo;'+esc(tpl.s)+'&rdquo;</div>'
+        + '<div style="display:flex;gap:7px">'
+          + '<button onclick="navigator.clipboard.writeText(\''+subj0+'\');this.textContent=\'✓\'" style="padding:5px 12px;font-size:11px;font-weight:700;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);border-radius:6px;color:'+(isCurrentMonth?'#fff':'#1e40af')+';cursor:pointer">Copy subject</button>'
+          + '<button onclick="eiCopyBrief(\''+briefEnc+'\')" style="padding:5px 12px;font-size:11px;font-weight:700;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);border-radius:6px;color:'+(isCurrentMonth?'#fff':'#1e40af')+';cursor:pointer">📋 Brief</button>'
+        + '</div>'
       + '</div>';
     }
 
-    el.innerHTML = html;
+    // ── Section 1: What email customers bought this month last year ───────────
+    var emailSold = [];
+    var emailSoldSkus = {};
+    if (Object.keys(eiSalesMap).length > 0) {
+      var buyCache2 = {};
+      rows.forEach(function(r){ buyCache2[(r.SKU||'').trim().toUpperCase()]=r; });
+      Object.values(eiSalesMap).forEach(function(p) {
+        var qty = p.monthly[m]||0; if(!qty) return;
+        var sku = (p.sku||'').trim().toUpperCase();
+        var br  = buyCache2[sku]||buyCache2[sku.replace(/^TP_/,'')]||buyCache2['TP_'+sku];
+        if(!br) return;
+        var stk = br.stock||br.NetStock_Arklow||0;
+        var cov = Math.round(coverDays(br));
+        emailSold.push({ row:br, sku:sku, qty:qty, stk:stk, cov:cov });
+        emailSoldSkus[sku] = true;
+      });
+      emailSold.sort(function(a,b){ return b.qty-a.qty; });
+    }
+
+    if (emailSold.length > 0) {
+      html += '<div style="margin-bottom:16px">'
+        + '<div class="ei-sh" style="margin-bottom:6px">📬 What email customers bought — '+MN[m]+' '+ly+'</div>'
+        + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
+        + '<thead><tr style="background:#f1f5f9"><th style="text-align:left;padding:5px 8px;font-size:10px;font-weight:800">Product</th><th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800;background:#fef3c7">Email sales</th><th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800">Stock</th><th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800">Cover</th><th style="padding:5px 8px;font-size:10px;font-weight:800">Status</th></tr></thead><tbody>';
+      emailSold.slice(0,10).forEach(function(p,i) {
+        var badge, bg;
+        if (p.stk <= 0)   { badge='OOS';      bg='#fee2e2'; }
+        else if (p.cov>45) { badge='✅ Go';    bg='#dcfce7'; }
+        else if (p.cov>21) { badge='⚠ Low';   bg='#fef9c3'; }
+        else                { badge='❌ Critical'; bg='#fee2e2'; }
+        var qtyBg = p.qty>=50?'#fef08a':p.qty>=20?'#fef9c3':'transparent';
+        html += '<tr style="border-top:1px solid var(--line-light);background:'+(i===0?'#fffbeb':'')+'">'
+          + '<td style="padding:5px 8px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="'+esc(p.row.ItemTitle||'')+'">'+esc(p.row.ItemTitle||p.sku||'—')+'</td>'
+          + '<td style="text-align:right;padding:5px 8px;font-weight:800;background:'+qtyBg+'">'+p.qty+'</td>'
+          + '<td style="text-align:right;padding:5px 8px">'+p.stk.toLocaleString('en-IE')+'</td>'
+          + '<td style="text-align:right;padding:5px 8px;font-weight:600;color:'+(p.cov>45?'#14532d':p.cov>21?'#92400e':'#991b1b')+'">'+p.cov+'d</td>'
+          + '<td style="padding:5px 8px"><span style="background:'+bg+';border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700">'+badge+'</span></td>'
+        + '</tr>';
+      });
+      html += '</tbody></table>';
+      if (emailSold.length > 10) html += '<div style="font-size:10px;color:#94a3b8;padding:4px 8px">+ '+(emailSold.length-10)+' more</div>';
+      html += '</div>';
+    }
+
+    // ── Section 2: Seasonal opportunities not yet in email sales ─────────────
+    var seasonalKws = (MONTH_SEASONAL[m]||[[]])[0];
+    var seasonalLabel = (MONTH_SEASONAL[m]||[null,''])[1];
+    var wxKws = wx ? wx.products : [];
+    var allKws = seasonalKws.concat(wxKws);
+    var kPatterns = allKws.map(function(k){ return new RegExp(k,'i'); });
+
+    // Find products: seasonal/weather-relevant, good stock, NOT already top email sellers
+    var opportunities = rows.filter(function(r) {
+      var stk = r.stock||r.NetStock_Arklow||0; if (stk<=0) return false;
+      var cov = coverDays(r); if (cov<30||cov>400) return false;
+      var sku = (r.SKU||'').trim().toUpperCase();
+      var title = (r.ItemTitle||'').toLowerCase();
+      if (!kPatterns.some(function(p){ return p.test(title); })) return false;
+      return true;
+    }).map(function(r) {
+      var sku   = (r.SKU||'').trim().toUpperCase();
+      var cov   = Math.round(coverDays(r));
+      var vel   = r.QtySold_Online_Total_30d||r.QSold_On30||0;
+      var emailQty = emailSoldSkus[sku] ? (eiSalesMap[sku]||{}).monthly : null;
+      var inEmailSales = emailSoldSkus[sku] || false;
+      var title = (r.ItemTitle||'').toLowerCase();
+      // Weather badge
+      var wxMatch = wx && wx.products.some(function(k){ return new RegExp(k,'i').test(title); });
+      return { row:r, sku:sku, cov:cov, vel:vel, inEmailSales:inEmailSales, wxMatch:wxMatch };
+    }).sort(function(a,b){
+      // Not-in-email-sales first, then by weather match, then velocity
+      if (!a.inEmailSales && b.inEmailSales) return -1;
+      if (a.inEmailSales && !b.inEmailSales) return 1;
+      if (a.wxMatch && !b.wxMatch) return -1;
+      if (!a.wxMatch && b.wxMatch) return 1;
+      return b.vel - a.vel;
+    }).slice(0,10);
+
+    if (opportunities.length > 0) {
+      var wxNote = wxTemp !== null ? ' · Current: '+wxTemp+'°C' + (wx?' ('+wx.badge+')':'') : '';
+      html += '<div>'
+        + '<div class="ei-sh" style="margin-bottom:4px">🎯 Seasonal opportunities for '+MN[m]+'</div>'
+        + '<div style="font-size:11px;color:#64748b;margin-bottom:8px">'+seasonalLabel+wxNote+'</div>'
+        + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
+        + '<thead><tr style="background:#f1f5f9"><th style="text-align:left;padding:5px 8px;font-size:10px;font-weight:800">Product</th><th style="padding:5px 8px;font-size:10px;font-weight:800">Signal</th><th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800">Stock</th><th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800">Cover</th></tr></thead><tbody>';
+      opportunities.forEach(function(p,i) {
+        var stk = p.row.stock||p.row.NetStock_Arklow||0;
+        var badge = p.wxMatch ? (wx?wx.badge:'🌡 Weather pick') : '📅 Seasonal pick';
+        var newBadge = !p.inEmailSales ? '<span style="background:#fef08a;color:#713f12;border-radius:3px;padding:1px 5px;font-size:9px;font-weight:800;margin-left:3px">NOT YET EMAILED</span>' : '';
+        var rowBg = !p.inEmailSales ? '#fffbeb' : '';
+        html += '<tr style="border-top:1px solid var(--line-light);background:'+rowBg+'">'
+          + '<td style="padding:5px 8px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="'+esc(p.row.ItemTitle||'')+'">'+esc(p.row.ItemTitle||p.sku)+''+newBadge+'</td>'
+          + '<td style="padding:5px 8px"><span style="background:#f1f5f9;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:600">'+badge+'</span></td>'
+          + '<td style="text-align:right;padding:5px 8px">'+stk.toLocaleString('en-IE')+'</td>'
+          + '<td style="text-align:right;padding:5px 8px;font-weight:600;color:'+(p.cov>45?'#14532d':'#92400e')+'">'+p.cov+'d</td>'
+        + '</tr>';
+      });
+      html += '</tbody></table><div style="font-size:10px;color:#94a3b8;padding:4px 8px">Products highlighted in gold = in stock + seasonal but not yet in your email-attributed sales</div></div>';
+    }
+
+    el.innerHTML = html || '<div class="ei-empty">No data available</div>';
   }
 
-
-  // ── Archive ───────────────────────────────────────────────────────────────────
   function eiRenderArchive() {
     var el = G('eiArchiveList'); if (!el) return;
     if (!eiReady) { el.innerHTML = '<div class="ei-empty">Sync Klaviyo to see archive</div>'; return; }
