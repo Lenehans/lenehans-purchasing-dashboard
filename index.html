@@ -601,18 +601,40 @@
     .focus-toggle.active{background:#1e3a5f;color:#fff;border-color:#1e3a5f}
 
     /* ── Compact supplier tile grid ─────────────────────────── */
-    .wl-tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;padding:10px 0}
-    .wl-tile{background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;
-      padding:10px 12px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:4px}
-    .wl-tile:hover{border-color:#1e40af;box-shadow:0 3px 10px rgba(30,64,175,.12);transform:translateY(-1px)}
-    .wl-tile.red{border-left:4px solid #dc2626}
-    .wl-tile.amber{border-left:4px solid #f97316}
-    .wl-tile.green{border-left:4px solid #4ade80}
-    .wl-tile-name{font-size:13px;font-weight:800;color:#1e293b;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .wl-tile-stats{display:flex;gap:6px;align-items:center;font-size:11px}
+    .wl-tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;padding:10px 0}
+    .wl-tile{background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;
+      padding:13px 14px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:5px}
+    .wl-tile:hover{border-color:#1e40af;box-shadow:0 4px 14px rgba(30,64,175,.14);transform:translateY(-2px)}
+    .wl-tile.red{border-left:5px solid #dc2626;background:#fffafa}
+    .wl-tile.amber{border-left:5px solid #f97316;background:#fffcf5}
+    .wl-tile.green{border-left:5px solid #22c55e;background:#f9fffe}
+    /* tile header row */
+    .wl-tile-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
+    .wl-tile-name{font-size:13px;font-weight:800;color:#1e293b;line-height:1.3;flex:1;min-width:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+    .wl-tile-badge{flex-shrink:0;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;white-space:nowrap;line-height:1.6}
+    .wl-tile-badge.red{background:#fee2e2;color:#991b1b}
+    .wl-tile-badge.amber{background:#fef3c7;color:#92400e}
+    .wl-tile-badge.green{background:#dcfce7;color:#14532d}
+    /* revenue at risk — headline number */
+    .wl-tile-rev{font-size:22px;font-weight:900;line-height:1;margin:2px 0}
+    .wl-tile-rev.red{color:#dc2626}
+    .wl-tile-rev.amber{color:#d97706}
+    .wl-tile-rev.none{color:#94a3b8;font-size:13px;font-weight:600}
+    .wl-tile-rev-lbl{font-size:10px;font-weight:600;color:#94a3b8;letter-spacing:.03em;text-transform:uppercase;margin-top:-2px}
+    /* top at-risk SKU */
+    .wl-tile-topsku{font-size:11px;font-weight:700;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:4px 7px;border-radius:6px;background:#f8fafc;border:1px solid #e2e8f0;margin:1px 0}
+    .wl-tile-topsku.red{background:#fff1f2;border-color:#fecaca;color:#991b1b}
+    .wl-tile-topsku.amber{background:#fffbeb;border-color:#fde68a;color:#92400e}
+    /* stats row */
+    .wl-tile-stats{display:flex;gap:8px;align-items:center;font-size:11px;flex-wrap:wrap}
     .wl-tile-buy{font-weight:900;color:#1e40af}
     .wl-tile-oos{color:#dc2626;font-weight:700}
-    .wl-tile-po{font-size:10px;color:#94a3b8}
+    /* countdown pill */
+    .wl-tile-countdown{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:800;padding:2px 7px;border-radius:8px;white-space:nowrap}
+    .wl-tile-countdown.urgent{background:#fee2e2;color:#b91c1c}
+    .wl-tile-countdown.warn{background:#fef3c7;color:#92400e}
+    /* PO line */
+    .wl-tile-po{font-size:10px;color:#94a3b8;min-height:14px}
     .po-review-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:9000;display:flex;justify-content:flex-end}
     .po-review-modal{background:#fff;width:min(780px,95vw);height:100vh;
       display:flex;flex-direction:column;box-shadow:-8px 0 40px rgba(0,0,0,.2);
@@ -2991,7 +3013,7 @@ const state = {
   governedSuppliers: new Set(),
   omittedSkus: new Set(),
   transferOverrides: {}, // SKU → qty override (0 = omit from transfer)
-  supplierSort: {col:'skuCount', dir:-1},
+  supplierSort: {col:'critical', dir:-1},
   skuRankMap: new Map(),
   channel: 'arklow', // 'arklow' or 'capel'
   monthlyData: {},      // SKU -> { '2024_03': qty, '2024_04': qty, ... }
@@ -4408,8 +4430,7 @@ function renderOrderPreview(rows, chPoMap){
     const nowMonthStr2 = new Date().toLocaleDateString('en-IE',{month:'short',year:'numeric'});
     const doneThisMonth2 = po.isDone && po.month && po.month===nowMonthStr2;
     const cls = doneThisMonth2 ? 'po-done' : (po.isDone ? 'po-done-old' : 'po-pending');
-    const isCapel=(po.channel||'').toLowerCase().includes('capel');
-    const personPart=(!isCapel&&po.person)?' · '+esc(po.person):'';
+    const personPart=po.person?' · '+esc(po.person):'';
     const datePart=po.date?' · '+esc(po.date):'';
     poEl.innerHTML=`PO Status: <span class="chip ${cls}">${esc(po.raw)}</span>${personPart}${datePart}`;
   }else{
@@ -4440,13 +4461,27 @@ function renderActionNow(rows){
   const supplierMap=new Map();
   for(const r of top200){
     const k=r.SupplierName||'(Unknown)';
-    if(!supplierMap.has(k)) supplierMap.set(k,{name:k,skus:[],oos:0,crit:0,low:0,healthy:0,lostRev:0});
+    if(!supplierMap.has(k)) supplierMap.set(k,{name:k,skus:[],oos:0,crit:0,low:0,healthy:0,lostRev:0,buy:0,minDays:9999,topAtRisk:null});
     const s=supplierMap.get(k);
     s.skus.push(r);
-    if(r.coverStatus==='Out of Stock'){s.oos++;if(r.Revenue_Online_Total_30d>0)s.lostRev+=r.Revenue_Online_Total_30d*3;}
-    else if(r.coverStatus==='Critical'){s.crit++;if(r.Revenue_Online_Total_30d>0)s.lostRev+=r.Revenue_Online_Total_30d*1.5;}
-    else if(r.coverStatus==='Low') s.low++;
+    s.buy+=(r.buy||0);
+    const isAtRisk = r.coverStatus==='Out of Stock'||r.coverStatus==='Critical';
+    if(r.coverStatus==='Out of Stock'){
+      s.oos++;
+      if(r.Revenue_Online_Total_30d>0) s.lostRev+=r.Revenue_Online_Total_30d*3;
+      s.minDays=0;
+    } else if(r.coverStatus==='Critical'){
+      s.crit++;
+      if(r.Revenue_Online_Total_30d>0) s.lostRev+=r.Revenue_Online_Total_30d*1.5;
+      const d=r.daysOfCover||0;
+      if(d<s.minDays) s.minDays=d;
+    } else if(r.coverStatus==='Low') s.low++;
     else s.healthy++;
+    // Track top at-risk SKU by revenue
+    if(isAtRisk){
+      const rev=r.Revenue_Online_Total_30d||0;
+      if(!s.topAtRisk||rev>(s.topAtRisk.Revenue_Online_Total_30d||0)) s.topAtRisk=r;
+    }
   }
 
   // Sort: red first, then amber, then green
@@ -4464,7 +4499,11 @@ function renderActionNow(rows){
   const totalCrit=suppliers.reduce((t,s)=>t+s.crit,0);
 
   sumEl.innerHTML=atRisk.length>0
-    ?`— <span style="color:#dc2626;font-weight:800">🔴 ${totalOos+totalCrit} of your top 500 SKUs need ordering now</span>${totalLost>0?' · <strong>€'+fmtInt(totalLost)+'</strong> est. at risk':''}`
+    ?(()=>{
+      const topNames=atRisk.slice(0,3).map(s=>`<strong>${esc(s.name.split(' ')[0])}</strong>`).join(', ')+(atRisk.length>3?` +${atRisk.length-3} more`:'');
+      const lostStr=totalLost>0?` &nbsp;·&nbsp; <span style="color:#dc2626;font-weight:800">€${fmtInt(totalLost)} revenue at risk</span>`:'';
+      return `— <span style="color:#dc2626;font-weight:800">🔴 ${atRisk.length} supplier${atRisk.length!==1?'s':''} need orders now</span> · ${topNames}${lostStr}`;
+    })()
     :`— <span style="color:#16a34a;font-weight:700">✓ All top 500 SKUs are healthy</span>`;
 
   const _chPoMap = getChannelPOMap();
@@ -4498,21 +4537,63 @@ function renderActionNow(rows){
 
   function makeCard(s){
     const colour=s.oos>0?'red':s.crit>0?'amber':s.low>0?'amber':'green';
-    const status=s.oos>0?`<span class="wl-tile-oos">🔴 ${s.oos} OOS</span>`:
-                 s.crit>0?`<span style="color:#d97706;font-weight:700">🟠 ${s.crit} critical</span>`:
-                 `<span style="color:#16a34a;font-weight:700">✓ Healthy</span>`;
-    const poSt=state.poStatusMap?.[s.name+'||arklow'];
-    const poTxt=poSt?.isDone?`<span style="color:#16a34a">✓ Done</span>`:
-                poSt?.month?`<span style="color:#f97316">Pending</span>`:'';
-    const safeName = s.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+
+    // Badge top-right
+    const badgeText = s.oos>0 ? `🔴 ${s.oos} OOS` : s.crit>0 ? `🟠 ${s.crit} critical` : s.low>0 ? `🟡 ${s.low} low` : `✓ Healthy`;
+
+    // Revenue at risk — prominent headline
+    let revHtml;
+    if(s.lostRev>0){
+      revHtml=`<div class="wl-tile-rev ${colour}">€${fmtInt(s.lostRev)}</div><div class="wl-tile-rev-lbl">est. revenue at risk</div>`;
+    } else if(s.buy>0){
+      revHtml=`<div class="wl-tile-rev none">No rev data</div><div class="wl-tile-rev-lbl">&nbsp;</div>`;
+    } else {
+      revHtml=`<div class="wl-tile-rev none">—</div><div class="wl-tile-rev-lbl">&nbsp;</div>`;
+    }
+
+    // Top at-risk SKU strip
+    let topSkuHtml='';
+    if(s.topAtRisk){
+      const skuTitle=(s.topAtRisk.ItemTitle||s.topAtRisk.SKU||'').substring(0,42);
+      topSkuHtml=`<div class="wl-tile-topsku ${colour}" title="${esc(s.topAtRisk.ItemTitle||'')}">⚠ ${esc(skuTitle)}${(s.topAtRisk.ItemTitle||'').length>42?'…':''}</div>`;
+    }
+
+    // Countdown pill — days left on worst SKU
+    let countdownHtml='';
+    if(s.oos>0){
+      countdownHtml=`<span class="wl-tile-countdown urgent">🔴 OOS now</span>`;
+    } else if(s.minDays<9999 && s.minDays>0){
+      const cls=s.minDays<=7?'urgent':'warn';
+      countdownHtml=`<span class="wl-tile-countdown ${cls}">⏱ ${Math.round(s.minDays)}d left</span>`;
+    }
+
+    // Stats row
+    const buyPart = s.buy>0 ? `<span class="wl-tile-buy">📦 Buy ${fmtInt(s.buy)}</span>` : '';
+    const statsDivider = (buyPart && countdownHtml) ? '<span style="color:#cbd5e1">·</span>' : '';
+
+    // PO status — channel-aware, includes person name
+    const poSt=_chPoMap[s.name];
+    let poLine='';
+    if(poSt?.isDone){
+      const who = poSt.person ? ` · ${esc(poSt.person)}` : '';
+      const when = poSt.date ? ` · ${esc(poSt.date)}` : (poSt.month ? ` · ${esc(poSt.month)}` : '');
+      poLine=`<div class="wl-tile-po">✅ PO done${when}${who}</div>`;
+    } else if(poSt?.month){
+      poLine=`<div class="wl-tile-po" style="color:#f97316;font-weight:700">🔴 PO pending · ${esc(poSt.month)}</div>`;
+    } else {
+      poLine=`<div class="wl-tile-po">— No PO on record</div>`;
+    }
+
+    const safeName=s.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     return `<div class="wl-tile ${colour}" data-supplier="${esc(s.name)}">
-      <div class="wl-tile-name" title="${esc(s.name)}">${esc(s.name)}</div>
-      <div class="wl-tile-stats">
-        ${status}
-        ${s.buy>0?`<span class="wl-tile-buy">·&nbsp;Buy ${fmtInt(s.buy)}</span>`:''}
-        ${s.lostRev>0?`<span style="font-size:10px;color:#94a3b8">·&nbsp;€${fmtInt(s.lostRev)} at risk</span>`:''}
+      <div class="wl-tile-hdr">
+        <div class="wl-tile-name" title="${esc(s.name)}">${esc(s.name)}</div>
+        <span class="wl-tile-badge ${colour}">${badgeText}</span>
       </div>
-      ${poTxt?`<div class="wl-tile-po">${poTxt}</div>`:''}
+      ${revHtml}
+      ${topSkuHtml}
+      <div class="wl-tile-stats">${buyPart}${statsDivider}${countdownHtml}</div>
+      ${poLine}
       <div class="wl-tile-actions" onclick="event.stopPropagation()">
         <button class="wl-tile-btn${colour==='green'?' green':''}" onclick="if(window.openQuickOrder)openQuickOrder('${safeName}')">${colour==='green'?'✓ View SKUs':'⚡ Quick Order'}</button>
         <button class="wl-tile-btn-icon" onclick="state.activeSupplier='${safeName}';render();setTimeout(()=>document.getElementById('detailTable')?.scrollIntoView({behavior:'smooth'}),50)" title="Open full supplier view">⊞</button>
@@ -4710,7 +4791,7 @@ function render(){
     const fullSummary = supplierSummaryRows(state.computedRows);
     const summary = fullSummary.filter(s => filteredSupplierNames.has(s.SupplierName));
     // Apply current sort
-    const sk = state.supplierSort || {col:'skuCount',dir:-1};
+    const sk = state.supplierSort || {col:'critical',dir:-1};
     summary.sort((a,b)=>{
       let av,bv;
       if(sk.col==='health')    { av=a.orderHealth?.score||0; bv=b.orderHealth?.score||0; }
@@ -4734,8 +4815,7 @@ function render(){
       const po=s.poStatus;
       const poChip=po
         ?(()=>{
-          const isCapel=(s.poStatus?.channel||'').toLowerCase().includes('capel');
-          const personPart=(!isCapel&&po.person)?' · '+esc(po.person):'';
+          const personPart=po.person?' · '+esc(po.person):'';
           const datePart=po.date?' · '+esc(po.date):'';
           // Only show green if done date is in current month
           const nowMonthStr = new Date().toLocaleDateString('en-IE',{month:'short',year:'numeric'});
