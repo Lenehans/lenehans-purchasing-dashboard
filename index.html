@@ -1029,7 +1029,8 @@
     <div id="advFilters" style="display:none;flex-wrap:wrap;gap:8px;width:100%;padding:10px 0 2px;border-top:1px solid #e2e8f0;margin-top:6px">
       <label id="demandModeLabel">Demand mode
         <select id="demandMode">
-          <option value="Seasonal" selected>Seasonal</option>
+          <option value="Auto" selected>Auto ✦</option>
+          <option value="Seasonal">Seasonal</option>
           <option value="30D">30D</option>
           <option value="7D">7D</option>
         </select>
@@ -3916,7 +3917,7 @@ function getSeasonalMultiplier(profileName, forceApply){
 function getDemandConfig(mode, row){
   if(mode==='7D')       return {qty:row.QtySold_Online_Total_7d,  days:7,  label:'7D'};
   if(mode==='Seasonal') return {qty:row.QtySold_Online_Total_30d, days:30, label:'Seasonal'}; // base is 30D; profile multiplier applied after
-  /* 30D default */     return {qty:row.QtySold_Online_Total_30d, days:30, label:'30D'};
+  /* 30D / Auto default */ return {qty:row.QtySold_Online_Total_30d, days:30, label:'30D'};
 }
 
 function getMaxBuy(mode, row){
@@ -4075,6 +4076,14 @@ function buildBuyerReason(res){
   if(res.abcClass==='D') lines.push(`⚠ D-item: very low historical volume and revenue — consider delisting review.`);
   if(res.isTrending) lines.push(`📈 Trending: 30D run-rate (${fmt1(res.daily30rate)}/day) is ${fmt1(res.daily30rate/Math.max(res.daily180rate,0.001))}× the 180D average — promoted to ${res.abcClass}-class.`);
   if(res.fallbackUsed) lines.push(`Because recent demand was zero and stock is zero, fallback demand from ${res.fallbackUsed==='Fallback180'?'the last 180 days':'the last 90 days'} was used.`);
+  if(res.autoSelectedMode){
+    const reason = res.autoSelectedMode==='7D'
+      ? `strong 7D spike (${fmt1(res.spikeRatio)}× 30D rate, ${fmtInt(res.demandQty||0)} units this week)`
+      : res.autoSelectedMode==='Seasonal'
+      ? `seasonal data / profile active for this category`
+      : `stable demand — 30D rate is most reliable signal`;
+    lines.push(`✦ Auto mode selected <strong>${res.autoSelectedMode}</strong> — ${reason}.`);
+  }
   const mom = getDemandMomentum(res);
   if(mom.direction === 'up')   lines.push(`Demand is accelerating: 7-day run-rate is ${fmt1(mom.ratio)}× the 30-day average.`);
   if(mom.direction === 'down' && mom.ratio < 0.7) lines.push(`Demand is slowing: 7-day run-rate is only ${fmt1(mom.ratio)}× the 30-day average.`);
@@ -4380,6 +4389,30 @@ function computeRow(row){
   const weatherActive = weatherMult > 1;
   if(weatherActive) adjustedDaily = adjustedDaily * weatherMult;
 
+  // ── Auto mode resolution — per-SKU, runs after all signals are available ──
+  // Global mode 'Auto' selects the best demand mode per SKU automatically.
+  let resolvedMode = demandMode;
+  let autoSelectedMode = null;
+  if(demandMode === 'Auto'){
+    const seasonalStrong = monthlyResult && monthlyResult.daily > base30dDaily * 1.3;
+    const spikeStrong    = spikeRatio >= 2.0 && qty7d >= 10;
+    if(spikeStrong){
+      resolvedMode   = '7D';
+      autoSelectedMode = '7D';
+      demandQty  = row.QtySold_Online_Total_7d;
+      demandDays = 7;
+      demandUsed = 'Auto→7D';
+    } else if(seasonalStrong || (cls.seasonalProfile && cls.seasonalProfile !== 'NONE')){
+      resolvedMode   = 'Seasonal';
+      autoSelectedMode = 'Seasonal';
+      demandUsed = 'Auto→Seasonal';
+    } else {
+      resolvedMode   = '30D';
+      autoSelectedMode = '30D';
+      demandUsed = 'Auto→30D';
+    }
+  }
+
   // Signal 6: cover pressure boost (always active, not mode-gated)
   const preBoostDaysOfCover=adjustedDaily>0?(stock/adjustedDaily):(stock>0?9999:0);
   const preBoostCoverStatus=adjustedDaily<=0?(stock>0?'No demand':'Out of Stock')
@@ -4428,7 +4461,7 @@ function computeRow(row){
 
   // Buy calculation
   const rawBuy=Math.max(0,target-stock);
-  const maxBuy=getMaxBuy(demandMode,row);
+  const maxBuy=getMaxBuy(resolvedMode,row);
   let buy=Math.min(rawBuy,maxBuy);
 
   // FIX 2: May25 floor for OOS + seasonal items whose max-buy cap is suppressed by OOS history
@@ -4473,6 +4506,7 @@ function computeRow(row){
     seasonalMultiplier,seasonalDataUsed,abcClass,seasonalSignal,seasonalBoostPct,
     isTrending, estRev180, daily30rate, daily180rate,        // ABC intelligence
     dynamicCoverDays, dynamicCoverMult, isDeclining,         // dynamic cover
+    autoSelectedMode, resolvedMode,                          // auto mode selection
     spikeRatio, spikeFactored,                               // 7D spike signals
     weatherMult, weatherActive,                          // weather signal
     baseDaily:base30dDaily, adjustedDaily:effectiveDaily, daysOfCover,coverStatus,coverDays:dynamicCoverDays,
@@ -4935,8 +4969,8 @@ function renderActionNow(rows){
 // ─── MAIN RENDER ─────────────────────────────────────────────────────────────
 function render(){
   const mode=document.getElementById('demandMode').value;
-  document.getElementById('mMode').textContent=mode;
-  document.getElementById('modeBadge').textContent=`Mode: ${mode}`;
+  document.getElementById('mMode').textContent=mode==='Auto'?'Auto ✦':mode;
+  document.getElementById('modeBadge').textContent=`Mode: ${mode==='Auto'?'Auto ✦':mode}`;
   document.getElementById('monthBadge').textContent=`Month: ${monthLabel()}`;
   // Show active fallback badges in toolbar when inside a supplier
   const _fb90on  = document.getElementById('fallback90Btn')?.dataset.active==='true';
