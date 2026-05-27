@@ -3563,6 +3563,7 @@ function normalizeRow(r){
     QtySold_Online_CapelStreet_180d: n('QtySold_Online_CapelStreet_180d')||n('QSold_OnCS180'),
     // Rev_OnAK30 = Arklow online revenue 30D (new split column); Rev_On30 = combined fallback
     Revenue_Online_Total_30d:   n('Revenue_Online_Total_30d')||n('Rev_OnAK30')||n('Rev_On30'),
+    Revenue_Online_Total_180d:  n('Revenue_Online_Total_180d')||n('Rev_On180')||n('Rev_OnAK180'),
     // Rev_OnCS30 = Capel Street online revenue 30D
     Revenue_Online_CapelStreet_30d: n('Revenue_Online_CapelStreet_30d')||n('Rev_OnCS30'),
     QtySold_Shop_CapelStreet_7d:  n('QtySold_Shop_CapelStreet_7d')||n('QSold_ShCS7'),
@@ -3984,7 +3985,8 @@ function getBuyerConfidence(row, computed){
   // ABC class
   if(computed.abcClass === 'A') score += 10;
   else if(computed.abcClass === 'B') score += 5;
-  else score -= 5;
+  else if(computed.abcClass === 'D') score -= 15; // genuinely negligible
+  else score -= 5; // C
 
   // Fallback used = lower confidence
   if(computed.fallbackUsed) score -= 15;
@@ -4051,6 +4053,10 @@ function detectSeasonalRule(title){
 function buildBuyerReason(res){
   const lines=[];
   lines.push(`Sold ${fmtInt(res.demandQty)} units in the last ${fmtInt(res.demandDays)} days (~${fmt1(res.baseDaily)}/day).`);
+  // ABC class + revenue context
+  if(res.abcClass==='A') lines.push(`A-item: high revenue or volume — top priority for stock availability.`);
+  if(res.abcClass==='D') lines.push(`⚠ D-item: very low historical volume and revenue — consider delisting review.`);
+  if(res.isTrending) lines.push(`📈 Trending: 30D run-rate (${fmt1(res.daily30rate)}/day) is ${fmt1(res.daily30rate/Math.max(res.daily180rate,0.001))}× the 180D average — promoted to ${res.abcClass}-class.`);
   if(res.fallbackUsed) lines.push(`Because recent demand was zero and stock is zero, fallback demand from ${res.fallbackUsed==='Fallback180'?'the last 180 days':'the last 90 days'} was used.`);
   const mom = getDemandMomentum(res);
   if(mom.direction === 'up')   lines.push(`Demand is accelerating: 7-day run-rate is ${fmt1(mom.ratio)}× the 30-day average.`);
@@ -4245,13 +4251,33 @@ function computeRow(row){
 
   const baseDaily=demandDays>0?demandQty/demandDays:0;
 
-  let abcClass='C';
-  const qty180=row.QtySold_Online_Total_180d||0;
-  const qty30 =row.QtySold_Online_Total_30d||0;
-  if(qty180>=100) abcClass='A';
-  else if(qty180>=20) abcClass='B';
+  // ── Revenue-weighted ABC classification ──────────────────────────────────
+  // Primary signal: 180D revenue (volume × price). Fallback: pure volume.
+  // Trending boost: if 30D run-rate ≥ 2× the 180D daily average AND ≥5 units,
+  // promote one class — catches new winners before they accumulate 180D history.
+  const qty180 = row.QtySold_Online_Total_180d || 0;
+  const qty30  = row.QtySold_Online_Total_30d  || 0;
+  const rev30  = row.Revenue_Online_Total_30d  || 0;
+  const rev180actual = row.Revenue_Online_Total_180d || 0;
 
-  const seasonalRatio=qty30>0?(qty180/6)/qty30:0;
+  // Estimate avg selling price from 30D data; use to proxy 180D revenue if needed
+  const avgSellPrice = qty30 > 0 ? rev30 / qty30 : 0;
+  const estRev180    = rev180actual > 0 ? rev180actual : (avgSellPrice > 0 ? avgSellPrice * qty180 : 0);
+
+  // Classify — revenue takes precedence; volume is the fallback
+  let abcClass = 'D'; // negligible: < 5 units AND < €50 in 180d
+  if      (estRev180 >= 1000 || qty180 >= 100) abcClass = 'A';
+  else if (estRev180 >= 200  || qty180 >= 20)  abcClass = 'B';
+  else if (estRev180 >= 50   || qty180 >= 5)   abcClass = 'C';
+
+  // Trending boost — product accelerating faster than its 180D baseline
+  const daily30rate  = qty30  / 30;
+  const daily180rate = qty180 / 180;
+  const isTrending   = daily180rate > 0 && daily30rate >= daily180rate * 2 && qty30 >= 5;
+  if (isTrending && abcClass === 'C') abcClass = 'B'; // emerging winner
+  if (isTrending && abcClass === 'B') abcClass = 'A'; // fast-growing, treat as A
+
+  const seasonalRatio = qty30 > 0 ? (qty180 / 6) / qty30 : 0;
   let seasonalSignal='Normal';
   if(qty180>60&&qty30<5) seasonalSignal='Hidden seasonal';
   if(seasonalRatio>3&&qty30<10) seasonalSignal='Seasonal risk';
@@ -4383,7 +4409,8 @@ function computeRow(row){
     categoryId:cls.categoryId,categoryLabel:cls.categoryLabel,
     seasonalProfile:cls.seasonalProfile,seasonalNote,
     seasonalMultiplier,seasonalDataUsed,abcClass,seasonalSignal,seasonalBoostPct,
-    spikeRatio, spikeFactored,                           // 7D spike signals
+    isTrending, estRev180, daily30rate, daily180rate,        // ABC intelligence
+    spikeRatio, spikeFactored,                               // 7D spike signals
     weatherMult, weatherActive,                          // weather signal
     baseDaily:base30dDaily, adjustedDaily:effectiveDaily, daysOfCover,coverStatus,coverDays,
     target,rawBuy,maxBuy,buy,stock,status,ramp,capelSignal,minOneFallbackApplied,
@@ -4992,7 +5019,7 @@ function render(){
         <td class="num">${fmt1(r.adjustedDaily)}</td>
         <td class="num">${coverText}</td>
         <td class="num">${fmtInt(r.target)}</td>
-        <td class="num"><strong>${esc(r.abcClass)}</strong></td>
+        <td class="num"><strong>${esc(r.abcClass)}</strong>${r.isTrending?'<span title="Trending: 30D rate ≥2× 180D average" style="font-size:9px;margin-left:2px">📈</span>':r.abcClass==='D'?'<span title="D-item: negligible demand — review for delisting" style="font-size:9px;margin-left:2px">⚠</span>':''}</td>
         <td>${confBar}</td>
       </tr>`;
     }).join('');
