@@ -4130,7 +4130,23 @@ function buildBuyerReason(res){
   if(res.seasonalBoostPct>0) lines.push(`Seasonal buy boost applied (+${fmtInt(res.seasonalBoostPct*100)}%) because cover is weak.`);
   if(res.adjustedDaily>0) lines.push(`Current stock is ${fmtInt(res.stock)}, giving about ${fmtInt(res.daysOfCover)} days of cover.`);
   else lines.push(`Current stock is ${fmtInt(res.stock)} and there is no active demand signal right now.`);
-  lines.push(`To maintain ${fmtInt(res.coverDays)} days of stock we need ${fmtInt(res.target)} units.`);
+  lines.push(`To maintain ${fmtInt(res.dynamicCoverDays||res.coverDays)} days of stock we need ${fmtInt(res.target)} units.`);
+  // Explain why the cover target differs from the base setting
+  if(res.dynamicCoverMult && Math.abs(res.dynamicCoverMult-1.0) > 0.05){
+    const baseCover = num(document.getElementById('baseCoverDays')?.value)||56;
+    const lead      = num(document.getElementById('leadDays')?.value)||0;
+    const flatDays  = baseCover+lead;
+    const reason = res.dynamicCoverMult >= 1.3
+      ? (res.abcClass==='A' ? `A-item${res.isTrending?' trending':''}${res.dynamicCoverMult>=1.5?' in-season':''} — increased buffer to protect top-seller availability`
+                            : `Trending ${res.abcClass}-item — increased buffer for growing demand`)
+      : res.dynamicCoverMult <= 0.75
+      ? (res.abcClass==='D' ? 'D-item: negligible demand — lean cover target applied'
+                            : `Declining demand — cover target reduced to avoid over-ordering`)
+      : res.dynamicCoverMult < 1.0
+      ? 'Stable lower-priority item — slightly reduced cover target'
+      : 'Growing item — cover target slightly increased';
+    lines.push(`📐 Dynamic cover: base ${fmtInt(flatDays)}d × ${res.dynamicCoverMult.toFixed(2)} = <strong>${fmtInt(res.dynamicCoverDays)}d target</strong> — ${reason}.`);
+  }
   if(res._csRequired) lines.push(`CS-required line — minimum floor qty ${fmtInt(res._csQtyFloor)}. Cannot be omitted from PO export.${res._csReason?' Reason: '+res._csReason+'.':''}`);
   if(res.minOneFallbackApplied) lines.push(`Minimum order of 1 unit applied because fallback demand exists and stock is zero.`);
   else lines.push(`Recommended order: ${fmtInt(res.buy)} units.`);
@@ -4378,7 +4394,36 @@ function computeRow(row){
   seasonalBoostPct=Math.min(seasonalBoostPct,0.20);
 
   const effectiveDaily=adjustedDaily*(1+seasonalBoostPct);
-  const target=ceilNonNeg(effectiveDaily*coverDays);
+
+  // ── Dynamic cover target — per-SKU, based on ABC class + trend + seasonal ──
+  // baseCover is the buyer's anchor. We multiply it per SKU so the UI setting
+  // still means something — it just scales differently for different items.
+  const isDeclining  = daily180rate > 0 && daily30rate < daily180rate * 0.7;
+  const hasSeasonalSignal = !!(seasonalRule || seasonalDataUsed);
+
+  const dynamicCoverMult = (()=>{
+    if(abcClass==='D') return 0.5;                                  // negligible items — keep lean
+    if(abcClass==='A'){
+      if(isTrending && hasSeasonalSignal) return 1.6;               // top seller, in season, accelerating
+      if(isTrending)                      return 1.5;               // top seller, accelerating
+      if(hasSeasonalSignal)               return 1.4;               // top seller, seasonal
+      return 1.3;                                                    // A-item — always needs buffer
+    }
+    if(abcClass==='B'){
+      if(isTrending)   return 1.2;                                  // growing B-item
+      if(isDeclining)  return 0.85;                                 // declining B-item
+      return 1.0;                                                    // stable B — unchanged
+    }
+    // C-item
+    if(isTrending)   return 1.1;                                    // emerging C
+    if(isDeclining)  return 0.75;                                   // declining C — don't over-order
+    return 0.9;                                                     // stable C — slightly leaner
+  })();
+
+  // Apply multiplier, clamp between 21d (min viable) and 180d (max sensible)
+  const dynamicCoverDays = Math.round(Math.min(180, Math.max(21, coverDays * dynamicCoverMult)));
+
+  const target=ceilNonNeg(effectiveDaily*dynamicCoverDays);
 
   // Buy calculation
   const rawBuy=Math.max(0,target-stock);
@@ -4402,7 +4447,7 @@ function computeRow(row){
   const daysOfCover=effectiveDaily>0?(stock/effectiveDaily):(stock>0?9999:0);
   const rawCoverStatus=effectiveDaily<=0?(stock>0?'No demand':'Out of Stock')
     :(daysOfCover<14?'Critical':(daysOfCover<30?'Low':(daysOfCover<=60?'Healthy':'High')));
-  const rawBuyCheck=Math.max(0,ceilNonNeg(effectiveDaily*coverDays)-stock);
+  const rawBuyCheck=Math.max(0,ceilNonNeg(effectiveDaily*dynamicCoverDays)-stock);
   let coverStatus=(rawBuyCheck>0&&(rawCoverStatus==='Healthy'||rawCoverStatus==='High'))?'Low':rawCoverStatus;
 
   // FIX 3: Hard 90-day cover exclusion — items with >90d cover on raw 30D rate
@@ -4426,9 +4471,10 @@ function computeRow(row){
     seasonalProfile:cls.seasonalProfile,seasonalNote,
     seasonalMultiplier,seasonalDataUsed,abcClass,seasonalSignal,seasonalBoostPct,
     isTrending, estRev180, daily30rate, daily180rate,        // ABC intelligence
+    dynamicCoverDays, dynamicCoverMult, isDeclining,         // dynamic cover
     spikeRatio, spikeFactored,                               // 7D spike signals
     weatherMult, weatherActive,                          // weather signal
-    baseDaily:base30dDaily, adjustedDaily:effectiveDaily, daysOfCover,coverStatus,coverDays,
+    baseDaily:base30dDaily, adjustedDaily:effectiveDaily, daysOfCover,coverStatus,coverDays:dynamicCoverDays,
     target,rawBuy,maxBuy,buy,stock,status,ramp,capelSignal,minOneFallbackApplied,
     _csRequired:row._csRequired||false,
     _csQtyFloor:row._csQtyFloor||0,
