@@ -5806,16 +5806,15 @@ async function generateAIBrief(){
   copyBtn.style.display = 'none';
   content.innerHTML = '<div class="ai-brief-loading"><span style="animation:spin 1s linear infinite;display:inline-block">⏳</span> Analysing order lines…</div>';
 
-  // Assemble order context from current modal
-  const modal    = document.querySelector('.po-review-modal');
+  // Build compact prompt — keeps URL under Apps Script limits
+  const today    = new Date().toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'});
+  const monthName= new Date().toLocaleDateString('en-IE',{month:'long'});
   const supplier = state.activeSupplier || 'All Suppliers';
   const channel  = (state.channel==='capel') ? 'Capel Street' : 'Arklow';
   const mode     = document.getElementById('demandMode')?.value || 'Auto';
   const growthAdj= document.getElementById('growthAdj')?.value || '0';
-  const today    = new Date().toLocaleDateString('en-IE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const monthName= new Date().toLocaleDateString('en-IE',{month:'long'});
 
-  // Get rows with current qtys from modal inputs
+  // Get rows with current qtys from modal
   const qtyMap = {};
   if(modal) modal.querySelectorAll('.po-rev-qty').forEach(inp=>{ qtyMap[inp.dataset.sku]=parseInt(inp.value)||0; });
 
@@ -5829,58 +5828,33 @@ async function generateAIBrief(){
   const totalUnits = rows.reduce((s,r)=>s+r.buy,0);
   const totalCost  = rows.reduce((s,r)=>s+r.buy*(r.SupplierCostPrice||0),0);
 
-  // Build line summary for prompt
-  const lineRows = rows.map(r=>{
-    const rev   = r.Revenue_Online_Total_30d||0;
-    const cover = r.coverStatus==='Out of Stock'?'OOS':(r.daysOfCover?Math.round(r.daysOfCover)+'d cover':'unknown');
-    const flags = [
-      r.abcClass ? 'ABC:'+r.abcClass : '',
-      r.isTrending ? 'TRENDING('+fmt1(r.spikeRatio)+'× spike)' : '',
-      r.isDeclining ? 'DECLINING' : '',
-      r.autoSelectedMode ? 'Auto→'+r.autoSelectedMode : '',
-      r.dynamicCoverMult && r.dynamicCoverMult>1.2 ? 'cover×'+r.dynamicCoverMult.toFixed(1) : '',
-      r._csRequired ? 'CS-required' : '',
-      r.fallbackUsed ? 'fallback:'+r.fallbackUsed : ''
+  // Compact line format: title(30)|ABC|cover|rev|flags
+  const lineRows = rows.slice(0,25).map(r=>{
+    const cov  = r.coverStatus==='Out of Stock'?'OOS':Math.round(r.daysOfCover||0)+'d';
+    const rev  = r.Revenue_Online_Total_30d>0?'€'+Math.round(r.Revenue_Online_Total_30d):'';
+    const flg  = [
+      r.abcClass||'',
+      r.isTrending?'TREND':'',
+      r.isDeclining?'DEC':'',
+      r.autoSelectedMode?'→'+r.autoSelectedMode:''
     ].filter(Boolean).join(' ');
-    return `${r.SKU} | ${(r.ItemTitle||'').substring(0,45)} | Buy:${r.buy} | ${cover} | €${Math.round(rev)}/mo | ${flags}`;
+    return `${(r.ItemTitle||r.SKU||'').substring(0,32)}|${cov}|${rev}|${flg}`;
   }).join('\n');
 
-  const prompt = `You are a buying intelligence assistant for Lenehans Hardware, a busy Irish hardware retailer (Arklow + Capel Street, Dublin).
-
-Today: ${today}
-Supplier: ${supplier}
-Channel: ${channel}
-Demand mode: ${mode}${growthAdj!=='0'?' | '+growthAdj+'% YoY growth adjustment applied to seasonal history':''}
-
-ORDER: ${rows.length} lines · ${Math.round(totalUnits)} units · €${Math.round(totalCost)} est. cost
-
-ORDER LINES:
-${lineRows}
-
-Write a concise buying brief (under 280 words) for the buyer. Use this structure — plain text only, no markdown:
-
-ACT NOW — Name specific OOS/critical A-items, quote revenue/mo, say why urgent.
-TRENDING — Any items with spike signals or Auto→7D, quote the spike ratio.
-REVIEW BEFORE ORDERING — Declining items, D-class items, anything that looks like over-ordering.
-ROUTINE — One sentence summary of stable lines.
-CONFIDENCE — One sentence on data quality and any caveats (fallbacks used, items with no revenue data).
-
-Be specific with product names. Reference Irish seasonal context for ${monthName} where relevant (garden season, bank holidays, weather). Keep sentences short and direct — this is for a buyer making quick decisions.`;
+  const prompt = `Buying brief: ${supplier}, ${channel}, ${today}.`
+    +` ${rows.length} lines, ${Math.round(totalUnits)} units, €${Math.round(totalCost)} est.`
+    +(growthAdj!=='0'?` +${growthAdj}% YoY growth adj.`:'')
+    +`\n\n${lineRows}`
+    +`\n\nWrite brief (under 250 words) for Irish hardware buyer. Sections: ACT NOW (OOS/critical A-items with names+revenue), TRENDING (spike/trend items), REVIEW (declining/D-items worth reducing), ROUTINE (stable line count), CONFIDENCE (data quality). ${monthName} Irish context. Direct, specific.`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 600,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
+    const proxyUrl = PO_UPDATER_URL + '?action=ai_brief&prompt=' + encodeURIComponent(prompt);
+    const res = await fetch(proxyUrl);
 
-    if(!res.ok){ const err=await res.text(); throw new Error('API error '+res.status+': '+err.substring(0,200)); }
+    if(!res.ok){ const err=await res.text(); throw new Error('Proxy error '+res.status+': '+err.substring(0,200)); }
 
     const data = await res.json();
+    if(data.error) throw new Error(data.error);
     const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
 
     // Highlight key section headers
