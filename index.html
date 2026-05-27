@@ -5807,6 +5807,7 @@ async function generateAIBrief(){
   content.innerHTML = '<div class="ai-brief-loading"><span style="animation:spin 1s linear infinite;display:inline-block">⏳</span> Analysing order lines…</div>';
 
   // Build compact prompt — keeps URL under Apps Script limits
+  const modal    = document.querySelector('.po-review-modal');
   const today    = new Date().toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'});
   const monthName= new Date().toLocaleDateString('en-IE',{month:'long'});
   const supplier = state.activeSupplier || 'All Suppliers';
@@ -5850,22 +5851,23 @@ async function generateAIBrief(){
   try {
     const proxyUrl = PO_UPDATER_URL + '?action=ai_brief&prompt=' + encodeURIComponent(prompt);
 
-    // 20-second timeout — Apps Script + Anthropic should respond well within this
-    const controller = new AbortController();
-    const timer = setTimeout(()=>controller.abort(), 20000);
-    let res;
-    try {
-      res = await fetch(proxyUrl, {signal: controller.signal});
-      clearTimeout(timer);
-    } catch(fetchErr){
-      clearTimeout(timer);
-      if(fetchErr.name==='AbortError') throw new Error('Timed out after 20 seconds. Open Apps Script → Execution log to check for errors.');
-      throw new Error('Network error — check the Apps Script is deployed and accessible. '+fetchErr.message);
-    }
+    const data = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', proxyUrl, true);
+      xhr.timeout = 25000;
+      xhr.onload = function(){
+        if(xhr.status >= 200 && xhr.status < 300){
+          try { resolve(JSON.parse(xhr.responseText)); }
+          catch(e){ reject(new Error('Bad JSON response: '+xhr.responseText.substring(0,100))); }
+        } else {
+          reject(new Error('HTTP '+xhr.status+': '+xhr.responseText.substring(0,200)));
+        }
+      };
+      xhr.onerror   = ()=>reject(new Error('Network error — check Apps Script is deployed as Anyone.'));
+      xhr.ontimeout = ()=>reject(new Error('Timed out after 25 seconds — check Apps Script execution log.'));
+      xhr.send();
+    });
 
-    if(!res.ok){ const err=await res.text(); throw new Error('Proxy error '+res.status+': '+err.substring(0,200)); }
-
-    const data = await res.json();
     if(data.error) throw new Error(data.error);
     const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
 
