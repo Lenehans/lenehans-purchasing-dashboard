@@ -5849,7 +5849,19 @@ async function generateAIBrief(){
 
   try {
     const proxyUrl = PO_UPDATER_URL + '?action=ai_brief&prompt=' + encodeURIComponent(prompt);
-    const res = await fetch(proxyUrl);
+
+    // 20-second timeout — Apps Script + Anthropic should respond well within this
+    const controller = new AbortController();
+    const timer = setTimeout(()=>controller.abort(), 20000);
+    let res;
+    try {
+      res = await fetch(proxyUrl, {signal: controller.signal, cache:'no-store'});
+      clearTimeout(timer);
+    } catch(fetchErr){
+      clearTimeout(timer);
+      if(fetchErr.name==='AbortError') throw new Error('Timed out after 20 seconds. Open Apps Script → Execution log to check for errors.');
+      throw new Error('Network error — check the Apps Script is deployed and accessible. '+fetchErr.message);
+    }
 
     if(!res.ok){ const err=await res.text(); throw new Error('Proxy error '+res.status+': '+err.substring(0,200)); }
 
@@ -5867,7 +5879,9 @@ async function generateAIBrief(){
 
     copyBtn.style.display = '';
   } catch(err) {
-    content.innerHTML = `<span style="color:#f87171">Error: ${esc(err.message)}</span>`;
+    const testUrl = PO_UPDATER_URL + '?action=ai_brief&prompt=test';
+    content.innerHTML = `<span style="color:#f87171">Error: ${esc(err.message)}</span>`
+      + `<br><br><a href="${testUrl}" target="_blank" style="color:#7dd3fc;font-size:11px">🔗 Test Apps Script directly</a> — open this link, you should see JSON back, not an error page.`;
     btn.disabled = false;
   }
 }
