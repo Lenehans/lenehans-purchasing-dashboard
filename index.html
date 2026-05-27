@@ -5855,7 +5855,7 @@ async function generateAIBrief(){
     const timer = setTimeout(()=>controller.abort(), 20000);
     let res;
     try {
-      res = await fetch(proxyUrl, {signal: controller.signal, cache:'no-store'});
+      res = await fetch(proxyUrl, {signal: controller.signal});
       clearTimeout(timer);
     } catch(fetchErr){
       clearTimeout(timer);
