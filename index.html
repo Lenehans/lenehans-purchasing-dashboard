@@ -107,16 +107,20 @@
 
     /* ── Collapsible watchlist ──────────────────────────────────────── */
     .wl-header{display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 14px;
-      background:#1e3a5f;border:1.5px solid #1e3a5f;border-radius:8px;margin:10px 0;
+      background:#1e3a5f;border:1.5px solid #1e3a5f;border-radius:8px;margin:10px 0 0;
       user-select:none}
     .wl-header:hover{background:#1748c0;border-color:#1748c0}
-    .wl-header h3{margin:0;font-size:14px;color:#fff}
+    .wl-header h3{margin:0;font-size:14px;color:#fff;white-space:nowrap}
     .wl-header .small{color:#94d2ff!important}
     .wl-toggle{color:#fff!important;font-weight:800!important}
-    .wl-toggle{margin-left:auto;font-size:12px;color:#64748b;font-weight:600}
-    .wl-body{display:block}
+    .wl-toggle{margin-left:auto;font-size:12px;color:#64748b;font-weight:600;white-space:nowrap}
+    .wl-body{display:block;background:#f8fafc;border:1.5px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;padding:10px 14px;margin-bottom:6px}
     .wl-body.open{display:block}
     .wl-body.closed{display:none}
+    /* description chip inside section headers */
+    .sec-desc{font-size:10px;font-weight:600;padding:2px 9px;border-radius:8px;
+      background:rgba(255,255,255,.12);color:rgba(255,255,255,.75);white-space:nowrap;
+      letter-spacing:.02em;flex-shrink:0}
 
     /* ── Sticky bottom PO bar ───────────────────────────────────────── */
     #stickyPoBar{
@@ -1067,18 +1071,36 @@
     </div>
   </div>
 
-  <!-- Watchlist: collapsible -->
+  <!-- Section 1: Supplier Snapshot — collapsible -->
   <div id="wlHeader" class="wl-header" onclick="toggleWatchlist()">
-    <h3>🏆 Top 500 SKU Watchlist</h3>
+    <h3>🏆 Supplier Snapshot</h3>
+    <span class="sec-desc">Top 500 SKUs — review at-risk suppliers &amp; quick-order</span>
     <span id="actionNowSummary" class="small"></span>
-    <span class="wl-toggle" id="wlToggleLabel">▲ Hide supplier cards</span>
+    <span class="wl-toggle" id="wlToggleLabel">▲ Hide</span>
   </div>
   <div id="wlBody" class="wl-body">
     <div id="actionNowGrid"></div>
   </div>
 
-  <!-- 30-day demand forecast strip -->
-  <div id="forecastPanel" style="margin:6px 0 4px"></div>
+  <!-- Section 2: 30-Day Forecast — collapsible -->
+  <div id="forecastHeader" class="wl-header" onclick="toggleSection('forecastBody','forecastToggle')">
+    <h3>📅 Next 30 Days</h3>
+    <span class="sec-desc">Suppliers going critical if not ordered soon — act before the crisis</span>
+    <span id="forecastSummary" class="small"></span>
+    <span class="wl-toggle" id="forecastToggle">▲ Hide</span>
+  </div>
+  <div id="forecastBody" class="wl-body">
+    <div id="forecastPanel" style="margin:4px 0 6px"></div>
+  </div>
+  <!-- Section 3: Supplier Order Table — collapsible, starts closed -->
+  <div id="tableHeader" class="wl-header" onclick="toggleSection('tableBody','tableToggle')">
+    <h3>📋 Supplier Order Table</h3>
+    <span class="sec-desc">Full drill-down · sort by column · SKU detail · PO export</span>
+    <span id="tableSummary" class="small"></span>
+    <span class="wl-toggle" id="tableToggle">▼ Show</span>
+  </div>
+  <div id="tableBody" class="wl-body closed">
+
   <div class="card" id="orderPreviewCard">
     <h3>Order Preview — <span id="opSupplierName" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"></span></h3>
     <div class="op-metrics">
@@ -1159,6 +1181,8 @@
       </table>
     </div>
   </div>
+
+  </div><!-- /tableBody -->
 
   <div class="footer">V6.2 · Signal-stack architecture — 30D base × Seasonal × 7D spike × Cover pressure · Why Buy popup with full signal breakdown · Seasonal rules always-on · Irish seasonal profiles · stock basis = NetStock_Arklow</div>
   </div><!-- /tab-buying -->
@@ -3433,8 +3457,16 @@ function toggleWatchlist(){
   const body=document.getElementById('wlBody');
   const lbl=document.getElementById('wlToggleLabel');
   if(!body||!lbl) return;
-  const open=body.classList.toggle('closed');
-  lbl.textContent=open?'▼ Click to show supplier cards':'▲ Hide supplier cards';
+  const closed=body.classList.toggle('closed');
+  lbl.textContent=closed?'▼ Show':'▲ Hide';
+}
+
+function toggleSection(bodyId, toggleId){
+  const body=document.getElementById(bodyId);
+  const lbl=document.getElementById(toggleId);
+  if(!body||!lbl) return;
+  const closed=body.classList.toggle('closed');
+  lbl.textContent=closed?'▼ Show':'▲ Hide';
 }
 
 function parseCSV(text){
@@ -4576,7 +4608,12 @@ function renderForecast(){
     return daysUntilCrit>0 && daysUntilCrit<=HORIZON;
   });
 
-  if(!atHorizon.length){el.innerHTML='';return;}
+  const fSumEl=document.getElementById('forecastSummary');
+  if(!atHorizon.length){
+    el.innerHTML='';
+    if(fSumEl) fSumEl.textContent='— all suppliers have adequate cover for the next 30 days ✓';
+    return;
+  }
 
   // Group by supplier — find soonest SKU per supplier
   const map=new Map();
@@ -4605,11 +4642,9 @@ function renderForecast(){
     </div>`;
   }).join('');
 
-  el.innerHTML=`<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 14px">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-      <span style="font-size:12px;font-weight:800;color:#374151">📅 Next 30 days</span>
-      <span style="font-size:11px;color:#64748b">${forecasted.length} supplier${forecasted.length!==1?'s':''} going critical if not ordered · ${atHorizon.length} SKUs</span>
-    </div>
+  if(fSumEl) fSumEl.innerHTML=`— <span style="color:#fbbf24;font-weight:800">${forecasted.length} supplier${forecasted.length!==1?'s':''} going critical</span> · ${atHorizon.length} SKUs`;
+
+  el.innerHTML=`<div style="padding:10px 0 4px">
     <div style="display:flex;gap:8px;flex-wrap:wrap">${chips}</div>
   </div>`;
 }
@@ -4783,7 +4818,7 @@ function renderActionNow(rows){
       ${poLine}
       <div class="wl-tile-actions" onclick="event.stopPropagation()">
         <button class="wl-tile-btn${colour==='green'?' green':''}" onclick="if(window.openQuickOrder)openQuickOrder('${safeName}')">${colour==='green'?'✓ View SKUs':'⚡ Quick Order'}</button>
-        <button class="wl-tile-btn-icon" onclick="state.activeSupplier='${safeName}';render();setTimeout(()=>document.getElementById('detailTable')?.scrollIntoView({behavior:'smooth'}),50)" title="Open full supplier view">⊞</button>
+        <button class="wl-tile-btn-icon" onclick="state.activeSupplier='${safeName}';render();const tb=document.getElementById('tableBody');if(tb&&tb.classList.contains('closed')){tb.classList.remove('closed');const tl=document.getElementById('tableToggle');if(tl)tl.textContent='▲ Hide';}setTimeout(()=>document.getElementById('detailTable')?.scrollIntoView({behavior:'smooth'}),80)" title="Open full supplier view">⊞</button>
       </div>
     </div>`;
   }
@@ -4829,6 +4864,15 @@ function render(){
   renderActionNow(rows);
   renderForecast();
   renderOrderPreview(rows);
+
+  // Section 3 header summary
+  const tblSum=document.getElementById('tableSummary');
+  if(tblSum){
+    const suppCount=new Set(rows.map(r=>r.SupplierName)).size;
+    const modeEl=document.getElementById('demandMode');
+    const modeTxt=modeEl?modeEl.value:'';
+    tblSum.textContent=`— ${suppCount} suppliers · ${modeTxt} mode · click to drill in`;
+  }
 
   const supplierTable=document.getElementById('supplierTable');
   const detailTable=document.getElementById('detailTable');
@@ -7280,6 +7324,13 @@ function quickOrderGoFull() {
   closeQuickOrder();
   if (state) state.activeSupplier = _qo.supplier;
   if (window.render) render();
+  // Ensure Section 3 is open before scrolling
+  const tb=document.getElementById('tableBody');
+  if(tb&&tb.classList.contains('closed')){
+    tb.classList.remove('closed');
+    const tl=document.getElementById('tableToggle');
+    if(tl) tl.textContent='▲ Hide';
+  }
   setTimeout(function(){ var el=document.getElementById('detailTable'); if(el) el.scrollIntoView({behavior:'smooth'}); }, 80);
 }
 
