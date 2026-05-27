@@ -792,51 +792,67 @@
     .noos-badge-oos{background:#991b1b;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:800}
 
     /* ── Quick Order Drawer ─────────────────────────────────────────────── */
-    #qoBackdrop{position:fixed;inset:0;z-index:290;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:opacity .25s}
+    #qoBackdrop{position:fixed;inset:0;z-index:290;background:rgba(15,23,42,.55);opacity:0;pointer-events:none;transition:opacity .2s}
     #qoBackdrop.open{opacity:1;pointer-events:auto}
-    #qoDrawer{position:fixed;top:0;right:0;bottom:0;z-index:300;width:min(520px,96vw);background:#fff;box-shadow:-8px 0 40px rgba(15,23,42,.22);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);border-left:3px solid #1e3a5f}
-    #qoDrawer.open{transform:translateX(0)}
-    .qo-head{background:#1e3a5f;color:#fff;padding:14px 18px 12px;flex-shrink:0;display:flex;align-items:flex-start;gap:12px}
+    #qoDrawer{position:fixed;top:50%;left:50%;z-index:300;width:min(780px,95vw);max-height:88vh;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 28px 80px rgba(15,23,42,.45);display:flex;flex-direction:column;transform:translate(-50%,-48%) scale(.96);opacity:0;pointer-events:none;transition:transform .24s cubic-bezier(.34,1.4,.64,1),opacity .18s ease}
+    #qoDrawer.open{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto}
+    .qo-head{background:#1e3a5f;color:#fff;padding:16px 20px 12px;flex-shrink:0;display:flex;align-items:flex-start;gap:12px}
     .qo-head-info{flex:1;min-width:0}
-    .qo-supplier-name{font-size:16px;font-weight:900;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .qo-supplier-name{font-size:18px;font-weight:900;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .qo-subline{font-size:12px;color:#94d2ff;margin-top:3px;font-weight:600}
-    .qo-close{background:none;border:none;color:#94d2ff;font-size:22px;cursor:pointer;padding:0 4px;line-height:1;flex-shrink:0;margin-top:-2px}
+    .qo-close{background:none;border:none;color:#94d2ff;font-size:24px;cursor:pointer;padding:0 4px;line-height:1;flex-shrink:0;margin-top:-2px;transition:color .12s}
     .qo-close:hover{color:#fff}
-    .qo-po-bar{padding:8px 18px;background:#f0f9ff;border-bottom:1.5px solid #bae6fd;font-size:12px;color:#0369a1;font-weight:600;flex-shrink:0}
-    .qo-filter-bar{padding:8px 14px;background:#f8fafc;border-bottom:1.5px solid #e2e8f0;display:flex;gap:6px;align-items:center;flex-shrink:0}
-    .qo-filter-btn{padding:4px 11px;border-radius:14px;border:1.5px solid #cbd5e1;background:#fff;font-size:11px;font-weight:700;cursor:pointer;color:#64748b;transition:all .12s}
+    /* metrics strip — 4 numbers below header */
+    .qo-metrics{display:flex;flex-shrink:0;background:#162d4a;border-bottom:2px solid rgba(255,255,255,.08)}
+    .qo-metric-item{flex:1;padding:9px 16px;border-right:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;gap:2px}
+    .qo-metric-item:last-child{border-right:none}
+    .qo-metric-val{font-size:18px;font-weight:900;color:#fff;line-height:1}
+    .qo-metric-val.red{color:#f87171}
+    .qo-metric-val.green{color:#4ade80}
+    .qo-metric-lbl{font-size:9px;font-weight:700;color:#7dd3fc;text-transform:uppercase;letter-spacing:.07em}
+    /* rest of modal */
+    .qo-po-bar{padding:8px 20px;background:#f0f9ff;border-bottom:1.5px solid #bae6fd;font-size:12px;color:#0369a1;font-weight:600;flex-shrink:0}
+    .qo-filter-bar{padding:8px 16px;background:#f8fafc;border-bottom:1.5px solid #e2e8f0;display:flex;gap:6px;align-items:center;flex-shrink:0}
+    .qo-filter-btn{padding:5px 13px;border-radius:14px;border:1.5px solid #cbd5e1;background:#fff;font-size:11px;font-weight:700;cursor:pointer;color:#64748b;transition:all .12s}
     .qo-filter-btn.active{background:#1e3a5f;border-color:#1e3a5f;color:#fff}
-    .qo-body{flex:1;overflow-y:auto;padding:10px 14px 8px}
-    .qo-empty{text-align:center;padding:40px 20px;color:#64748b;font-size:14px;line-height:1.7}
+    .qo-body{flex:1;overflow-y:auto;padding:12px 16px 10px}
+    .qo-empty{text-align:center;padding:48px 20px;color:#64748b;font-size:14px;line-height:1.7}
     .qo-section-label{font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;padding:6px 0 4px;margin-top:4px}
-    .qo-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:9px 11px;border-radius:9px;border:1.5px solid #e2e8f0;background:#fff;margin-bottom:6px;transition:border-color .12s}
-    .qo-row:hover{border-color:#1e3a5f}
+    .qo-row{display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;padding:10px 14px;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;margin-bottom:7px;transition:border-color .12s}
+    .qo-row:hover{border-color:#1e3a5f;box-shadow:0 2px 8px rgba(30,58,95,.08)}
     .qo-row.oos{border-left:4px solid #dc2626;background:#fff8f8}
     .qo-row.crit{border-left:4px solid #f97316;background:#fffbf5}
     .qo-row.low{border-left:4px solid #fbbf24;background:#fffef5}
     .qo-item-title{font-size:13px;font-weight:700;color:#1e293b;line-height:1.3;margin-bottom:3px}
     .qo-item-sku{font-size:11px;color:#64748b;font-weight:600;font-family:monospace}
-    .qo-item-meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;align-items:center}
+    .qo-item-meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;align-items:center}
     .qo-badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:800;white-space:nowrap}
     .qo-badge.oos{background:#991b1b;color:#fff}
     .qo-badge.crit{background:#fee2e2;color:#991b1b}
     .qo-badge.low{background:#fff7ed;color:#c2410c}
     .qo-badge.rank-star{background:#fef08a;color:#713f12}
     .qo-badge.rank-top{background:#dbeafe;color:#1e40af}
+    .qo-badge.abc-a{background:#fce7f3;color:#9d174d}
+    .qo-badge.abc-b{background:#ede9fe;color:#5b21b6}
+    .qo-badge.abc-d{background:#f1f5f9;color:#64748b}
+    .qo-rev{font-size:11px;color:#64748b;text-align:right;min-width:72px}
+    .qo-rev strong{display:block;font-size:14px;font-weight:900;color:#16a34a;line-height:1.1}
+    .qo-rev.risk strong{color:#dc2626}
+    .qo-rev-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:#94a3b8;margin-top:1px}
     .qo-qty-wrap{display:flex;flex-direction:column;align-items:center;gap:2px}
     .qo-qty-lbl{font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
-    .qo-qty-input{width:60px;text-align:center;border:2px solid #cbd5e1;border-radius:7px;padding:5px 4px;font-size:15px;font-weight:800;color:#1e293b;background:#f8fafc;transition:border-color .12s}
+    .qo-qty-input{width:64px;text-align:center;border:2px solid #cbd5e1;border-radius:8px;padding:6px 4px;font-size:16px;font-weight:800;color:#1e293b;background:#f8fafc;transition:border-color .12s}
     .qo-qty-input:focus{outline:none;border-color:#1e40af;background:#fff}
-    .qo-cost{font-size:11px;color:#64748b;text-align:center;min-width:50px}
+    .qo-cost{font-size:11px;color:#64748b;text-align:center;min-width:58px}
     .qo-cost strong{display:block;font-size:13px;font-weight:800;color:#1e293b}
-    .qo-footer{flex-shrink:0;padding:12px 18px;border-top:2px solid #e2e8f0;background:#f8fafc;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .qo-footer{flex-shrink:0;padding:14px 20px;border-top:2px solid #e2e8f0;background:#f8fafc;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-radius:0 0 16px 16px}
     .qo-total-bar{flex:1;min-width:0}
     .qo-total-lbl{font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
-    .qo-total-val{font-size:22px;font-weight:900;color:#1e293b;line-height:1.1}
+    .qo-total-val{font-size:24px;font-weight:900;color:#1e293b;line-height:1.1}
     .qo-total-lines{font-size:11px;color:#64748b;margin-top:1px}
-    .qo-btn-export{padding:9px 16px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+    .qo-btn-export{padding:10px 18px;background:#16a34a;color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;transition:background .12s}
     .qo-btn-export:hover{background:#15803d}
-    .qo-btn-full{padding:9px 14px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+    .qo-btn-full{padding:10px 16px;background:#1e3a5f;color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;transition:background .12s}
     .qo-btn-full:hover{background:#162d4a}
     .wl-tile-actions{display:flex;gap:5px;margin-top:6px}
     .wl-tile-btn{flex:1;padding:5px 0;background:#1e40af;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:background .12s}
@@ -7151,10 +7167,11 @@ function downloadNoosCsv(rows,label){
   <div class="qo-head">
     <div class="qo-head-info">
       <div class="qo-supplier-name" id="qoSupplierName">—</div>
-      <div class="qo-subline" id="qoSubline">Top 500 · quick order</div>
+      <div class="qo-subline" id="qoSubline">Quick order</div>
     </div>
     <button class="qo-close" onclick="closeQuickOrder()">✕</button>
   </div>
+  <div class="qo-metrics" id="qoMetrics"></div>
   <div class="qo-po-bar" id="qoPoBar" style="display:none"></div>
   <div class="qo-filter-bar">
     <span style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em">Show:</span>
@@ -7237,13 +7254,34 @@ function _qoRenderBody() {
   var body    = document.getElementById('qoBody');
   var visible = _qoGetVisible();
 
-  var critCount = _qo.rows.filter(function(r){ return r.coverStatus==='Out of Stock'||r.coverStatus==='Critical'; }).length;
-  var lowCount  = _qo.rows.filter(function(r){ return r.coverStatus==='Low'; }).length;
+  var critRows = _qo.rows.filter(function(r){ return r.coverStatus==='Out of Stock'||r.coverStatus==='Critical'; });
+  var lowCount = _qo.rows.filter(function(r){ return r.coverStatus==='Low'; }).length;
   var parts = [];
-  if (critCount) parts.push('🔴 ' + critCount + ' critical');
-  if (lowCount)  parts.push('🟡 ' + lowCount + ' low');
-  if (!parts.length) parts.push('✓ All healthy');
+  if (critRows.length) parts.push('🔴 ' + critRows.length + ' critical');
+  if (lowCount)        parts.push('🟡 ' + lowCount + ' low');
+  if (!parts.length)   parts.push('✓ All healthy');
   document.getElementById('qoSubline').textContent = _qo.rows.length + ' SKUs · ' + parts.join(' · ');
+
+  // Metrics strip
+  var metricsEl = document.getElementById('qoMetrics');
+  if (metricsEl) {
+    var totalUnits = _qo.rows.reduce(function(s,r){ return s+(_qo.qtys[r.SKU]||0); }, 0);
+    var totalVal   = _qo.rows.reduce(function(s,r){ return s+(_qo.qtys[r.SKU]||0)*(parseFloat(r.SupplierCostPrice)||0); }, 0);
+    var lostRev    = _qo.rows.filter(function(r){ return r.coverStatus==='Out of Stock'; })
+                      .reduce(function(s,r){ return s+(r.Revenue_Online_Total_30d||0)*3; }, 0)
+                    + _qo.rows.filter(function(r){ return r.coverStatus==='Critical'; })
+                      .reduce(function(s,r){ return s+(r.Revenue_Online_Total_30d||0)*1.5; }, 0);
+    var aItems     = critRows.filter(function(r){ return r.abcClass==='A'; }).length;
+    var metrics = [
+      { val: critRows.length, lbl: 'Critical lines',   cls: critRows.length > 0 ? 'red' : '' },
+      { val: aItems > 0 ? aItems + ' A-item' + (aItems!==1?'s':'') : _qo.rows.length + ' SKUs', lbl: aItems > 0 ? 'A-items at risk' : 'Total SKUs', cls: aItems > 0 ? 'red' : '' },
+      { val: '€' + Math.round(totalVal).toLocaleString('en-IE'), lbl: 'Est. order value', cls: '' },
+      { val: lostRev > 0 ? '€' + Math.round(lostRev).toLocaleString('en-IE') : '—', lbl: 'Revenue at risk', cls: lostRev > 0 ? 'red' : '' }
+    ];
+    metricsEl.innerHTML = metrics.map(function(m){
+      return '<div class="qo-metric-item"><div class="qo-metric-val ' + m.cls + '">' + m.val + '</div><div class="qo-metric-lbl">' + m.lbl + '</div></div>';
+    }).join('');
+  }
 
   if (!visible.length) {
     body.innerHTML = '<div class="qo-empty">✅ No critical lines for this supplier right now.</div>';
@@ -7259,22 +7297,41 @@ function _qoRenderBody() {
       html += '<div class="qo-section-label">' + (bucket==='Out of Stock'?'🔴':bucket==='Critical'?'🟠':'🟡') + ' ' + bucket + '</div>';
       lastBucket = bucket;
     }
-    var rowCls    = r.coverStatus==='Out of Stock'?'oos':r.coverStatus==='Critical'?'crit':'low';
-    var badgeCls  = rowCls;
-    var badgeTxt  = r.coverStatus==='Out of Stock'?'OOS':r.coverStatus==='Critical'?(Math.round(r.daysOfCover||0)+'d cover'):(Math.round(r.daysOfCover||0)+'d');
-    var rank      = (state&&state.skuRankMap) ? (state.skuRankMap.get(r.SKU)||9999) : 9999;
-    var rankBadge = rank<=100 ? '<span class="qo-badge rank-star">⭐ #'+rank+'</span>' : rank<=500 ? '<span class="qo-badge rank-top">Top 500 #'+rank+'</span>' : '';
-    var qty       = (_qo.qtys[r.SKU]!=null) ? _qo.qtys[r.SKU] : (r.buy||0);
-    var cost      = parseFloat(r.SupplierCostPrice)||0;
-    var skuSafe   = (r.SKU||'').replace(/"/g,'&quot;');
+    var rowCls   = r.coverStatus==='Out of Stock'?'oos':r.coverStatus==='Critical'?'crit':'low';
+    var badgeCls = rowCls;
+    var badgeTxt = r.coverStatus==='Out of Stock'?'OOS':r.coverStatus==='Critical'?(Math.round(r.daysOfCover||0)+'d cover'):(Math.round(r.daysOfCover||0)+'d');
+    var rank     = (state&&state.skuRankMap) ? (state.skuRankMap.get(r.SKU)||9999) : 9999;
+    var rankBadge= rank<=100 ? '<span class="qo-badge rank-star">⭐ #'+rank+'</span>' : rank<=500 ? '<span class="qo-badge rank-top">Top 500 #'+rank+'</span>' : '';
+
+    // ABC badge
+    var abcCls  = r.abcClass==='A' ? 'abc-a' : r.abcClass==='B' ? 'abc-b' : r.abcClass==='D' ? 'abc-d' : '';
+    var abcBadge= r.abcClass ? '<span class="qo-badge '+ abcCls +'">'+ r.abcClass + (r.isTrending?'📈':'') +'</span>' : '';
+
+    // Revenue column
+    var rev30   = r.Revenue_Online_Total_30d || 0;
+    var revHtml = '';
+    if (rev30 > 0) {
+      var isOos = r.coverStatus==='Out of Stock';
+      revHtml = '<div class="qo-rev' + (isOos?' risk':'') + '"><span class="qo-rev-lbl">Rev/mo</span><strong>€' + Math.round(rev30).toLocaleString('en-IE') + '</strong></div>';
+    } else {
+      revHtml = '<div class="qo-rev"><span class="qo-rev-lbl">&nbsp;</span><strong style="color:#cbd5e1">—</strong></div>';
+    }
+
+    var qty    = (_qo.qtys[r.SKU]!=null) ? _qo.qtys[r.SKU] : (r.buy||0);
+    var cost   = parseFloat(r.SupplierCostPrice)||0;
+    var skuSafe= (r.SKU||'').replace(/"/g,'&quot;');
+
     html += '<div class="qo-row ' + rowCls + '">' +
       '<div>' +
         '<div class="qo-item-title">' + (r.ItemTitle||r.SKU||'') + '</div>' +
         '<div class="qo-item-sku">' + (r.SKU||'') + '</div>' +
-        '<div class="qo-item-meta"><span class="qo-badge '+badgeCls+'">'+badgeTxt+'</span>' + rankBadge +
+        '<div class="qo-item-meta">' +
+          '<span class="qo-badge '+badgeCls+'">'+badgeTxt+'</span>' +
+          abcBadge + rankBadge +
           (r.stock!=null ? '<span style="font-size:10px;color:#94a3b8">Stock: '+Math.round(r.stock)+'</span>' : '') +
         '</div>' +
       '</div>' +
+      revHtml +
       '<div class="qo-qty-wrap"><div class="qo-qty-lbl">Qty</div>' +
         '<input class="qo-qty-input" type="number" min="0" step="1" value="' + qty + '" data-sku="' + skuSafe + '" oninput="_qoQtyChange(this)">' +
       '</div>' +
@@ -7300,8 +7357,14 @@ function _qoUpdateFooter(visible) {
   var lines = visible.filter(function(r){ return (_qo.qtys[r.SKU]||0)>0; });
   var units = lines.reduce(function(s,r){ return s+(_qo.qtys[r.SKU]||0); }, 0);
   var val   = lines.reduce(function(s,r){ return s+(_qo.qtys[r.SKU]||0)*(parseFloat(r.SupplierCostPrice)||0); }, 0);
-  document.getElementById('qoTotalVal').textContent   = '€' + val.toFixed(2);
+  document.getElementById('qoTotalVal').textContent   = '€' + Math.round(val).toLocaleString('en-IE');
   document.getElementById('qoTotalLines').textContent = lines.length + ' line' + (lines.length!==1?'s':'') + ' · ' + Math.round(units).toLocaleString('en-IE') + ' units';
+  // Also keep metrics strip order value in sync
+  var mEl = document.getElementById('qoMetrics');
+  if (mEl) {
+    var valEl = mEl.querySelectorAll('.qo-metric-val')[2];
+    if (valEl) valEl.textContent = '€' + Math.round(val).toLocaleString('en-IE');
+  }
 }
 
 function _qoQtyChange(input) {
