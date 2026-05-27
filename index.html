@@ -640,9 +640,9 @@
     .wl-tile-countdown.warn{background:#fef3c7;color:#92400e}
     /* PO line */
     .wl-tile-po{font-size:10px;color:#94a3b8;min-height:14px}
-    .po-review-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:9000;display:flex;justify-content:flex-end}
-    .po-review-modal{background:#fff;width:min(780px,95vw);height:100vh;
-      display:flex;flex-direction:column;box-shadow:-8px 0 40px rgba(0,0,0,.2);
+    .po-review-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:flex;justify-content:flex-end}
+    .po-review-modal{background:#fff;width:min(1140px,96vw);height:100vh;
+      display:flex;flex-direction:column;box-shadow:-8px 0 40px rgba(0,0,0,.25);
       animation:slide-in-right .22s cubic-bezier(.34,1,.64,1)}
     @keyframes slide-in-right{from{transform:translateX(100%)}to{transform:translateX(0)}}
     .po-review-hdr{padding:16px 20px 12px;border-bottom:2px solid #e2e8f0;flex-shrink:0}
@@ -654,9 +654,9 @@
     .po-rev-stat.amber{background:#fef3c7;color:#92400e}
     .po-rev-stat.green{background:#dcfce7;color:#14532d}
     .po-rev-stat.grey{background:#f1f5f9;color:#475569}
-    .po-review-search{margin-left:auto;padding:5px 12px;border:1.5px solid #8899b0;border-radius:8px;font-size:12px;width:220px}
-    .po-review-body{overflow-y:auto;flex:1}
-    .po-review-table{width:100%;border-collapse:collapse;font-size:12px}
+    .po-review-search{margin-left:auto;padding:5px 12px;border:1.5px solid #8899b0;border-radius:8px;font-size:12px;width:260px}
+    .po-review-body{overflow-y:auto;overflow-x:hidden;flex:1}
+    .po-review-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
     .po-review-table thead th{background:#1e3a5f;color:#fff;padding:8px 10px;text-align:left;
       font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
       white-space:nowrap;position:sticky;top:0;z-index:1}
@@ -664,8 +664,9 @@
     .po-review-table tbody tr{border-bottom:1px solid #e8edf3}
     .po-review-table tbody tr:nth-child(even){background:#f7f9fc}
     .po-review-table tbody tr:hover{background:#eff6ff}
-    .po-review-table tbody td{padding:9px 10px;vertical-align:middle}
-    .po-review-table tbody td.r{text-align:right;font-variant-numeric:tabular-nums}
+    .po-review-table tbody td{padding:9px 10px;vertical-align:top;word-wrap:break-word}
+    .po-review-table tbody td.r{text-align:right;font-variant-numeric:tabular-nums;vertical-align:middle}
+    .po-rev-why{font-size:11.5px;color:#334155;line-height:1.6;overflow-wrap:break-word}
     .po-rev-sku{font-family:monospace;font-size:11px;font-weight:700;color:#1e40af}
     .po-rev-cover{display:inline-flex;align-items:center;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:700}
     .po-rev-cover.oos{background:#fee2e2;color:#991b1b}
@@ -5668,10 +5669,14 @@ function showPOReview(rows, autoExport){
     <div class="po-review-body">
       <table class="po-review-table" id="poReviewTable">
         <thead><tr>
-          <th>SKU</th><th>Item</th>
-          <th class="r">In stock</th><th class="r">Buy qty</th>
-          <th class="r">Cover</th><th class="r">ABC</th><th class="r">Unit cost</th>
-          <th style="min-width:340px">Why this quantity? — all signals</th>
+          <th style="width:105px">SKU</th>
+          <th style="width:220px">Item</th>
+          <th class="r" style="width:72px">In stock</th>
+          <th class="r" style="width:75px">Buy qty</th>
+          <th class="r" style="width:82px">Cover</th>
+          <th class="r" style="width:48px">ABC</th>
+          <th class="r" style="width:78px">Unit cost</th>
+          <th>Why this quantity? — all signals</th>
         </tr></thead>
         <tbody>${tBody}</tbody>
       </table>
