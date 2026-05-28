@@ -668,6 +668,11 @@
     .po-review-table tbody td.r{text-align:right;font-variant-numeric:tabular-nums;vertical-align:middle}
     .po-rev-why{font-size:11.5px;color:#334155;line-height:1.6;overflow-wrap:break-word}
     .po-rev-sku{font-family:monospace;font-size:11px;font-weight:700;color:#1e40af}
+    .po-ai-explain-btn{margin-top:6px;padding:3px 10px;background:#4f46e5;color:#fff;border:none;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;opacity:.85;transition:opacity .12s}
+    .po-ai-explain-btn:hover{opacity:1}
+    .po-ai-explain-btn:disabled{background:#94a3b8;cursor:not-allowed}
+    .po-ai-explain-text{margin-top:6px;font-size:12px;color:#1e3a5f;line-height:1.65;background:#f0f7ff;border-left:3px solid #4f46e5;padding:8px 10px;border-radius:0 6px 6px 0;white-space:pre-wrap;display:none}
+    .po-ai-explain-text.visible{display:block}
     .po-rev-cover{display:inline-flex;align-items:center;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:700}
     .po-rev-cover.oos{background:#fee2e2;color:#991b1b}
     .po-rev-cover.critical{background:#fff7ed;color:#92400e}
@@ -5697,7 +5702,13 @@ function showPOReview(rows, autoExport){
       <td class="r" style="font-size:11px;color:#475569">${abc}</td>
       <td class="r" style="font-size:11.5px">${unitCost?'€'+(+unitCost).toFixed(2):'—'}</td>
       <td class="r po-rev-line-total" style="font-weight:800;font-size:13px;color:${r.buy>0&&unitCost>0?'#0f172a':'#94a3b8'}">${r.buy>0&&unitCost?'€'+fmtInt(r.buy*unitCost):'—'}</td>
-      <td class="po-rev-why">${buildWhyText(r)}</td>
+      <td class="po-rev-why">
+        ${buildWhyText(r)}
+        <div>
+          <button class="po-ai-explain-btn" onclick="generateSKUExplanation('${esc(r.SKU)}',this)">🤖 Explain this buy</button>
+          <div class="po-ai-explain-text"></div>
+        </div>
+      </td>
     </tr>`;
   }
 
@@ -5829,24 +5840,33 @@ async function generateAIBrief(){
   const totalUnits = rows.reduce((s,r)=>s+r.buy,0);
   const totalCost  = rows.reduce((s,r)=>s+r.buy*(r.SupplierCostPrice||0),0);
 
-  // Compact line format: title(30)|ABC|cover|rev|flags
+  // Compact line format with real numbers Claude can use
   const lineRows = rows.slice(0,25).map(r=>{
     const cov  = r.coverStatus==='Out of Stock'?'OOS':Math.round(r.daysOfCover||0)+'d';
-    const rev  = r.Revenue_Online_Total_30d>0?'€'+Math.round(r.Revenue_Online_Total_30d):'';
+    const rev  = r.Revenue_Online_Total_30d>0?'€'+Math.round(r.Revenue_Online_Total_30d)+'/mo':'';
+    const stk  = 'stk:'+Math.round(r.stock||0);
+    const tgt  = 'need:'+Math.round(r.target||0);
     const flg  = [
       r.abcClass||'',
-      r.isTrending?'TREND':'',
+      r.isTrending?'TREND('+((r.spikeRatio||0).toFixed(1))+'×)':'',
       r.isDeclining?'DEC':'',
-      r.autoSelectedMode?'→'+r.autoSelectedMode:''
+      r.autoSelectedMode?'→'+r.autoSelectedMode:'',
+      r.dynamicCoverMult&&r.dynamicCoverMult>1.2?'cov×'+r.dynamicCoverMult.toFixed(1):''
     ].filter(Boolean).join(' ');
-    return `${(r.ItemTitle||r.SKU||'').substring(0,32)}|${cov}|${rev}|${flg}`;
+    return `${(r.ItemTitle||r.SKU||'').substring(0,35)}|${cov}|${rev}|${stk}|${tgt}|buy:${r.buy}|${flg}`;
   }).join('\n');
 
   const prompt = `Buying brief: ${supplier}, ${channel}, ${today}.`
     +` ${rows.length} lines, ${Math.round(totalUnits)} units, €${Math.round(totalCost)} est.`
-    +(growthAdj!=='0'?` +${growthAdj}% YoY growth adj.`:'')
-    +`\n\n${lineRows}`
-    +`\n\nWrite brief (under 250 words) for Irish hardware buyer. Sections: ACT NOW (OOS/critical A-items with names+revenue), TRENDING (spike/trend items), REVIEW (declining/D-items worth reducing), ROUTINE (stable line count), CONFIDENCE (data quality). ${monthName} Irish context. Direct, specific.`;
+    +(growthAdj!=='0'?` +${growthAdj}% YoY growth adj applied.`:'')
+    +`\n\nFormat: SKU|cover|revenue|stock|units-needed|buy-qty|signals\n${lineRows}`
+    +`\n\nWrite a sharp buying brief (under 280 words). Use real product names and numbers from the data.`
+    +` Sections: ACT NOW (name OOS/critical A-items, quote their revenue and stock levels, say exactly how many days cover they have left),`
+    +` TRENDING (name items with TREND signal, quote spike ratio),`
+    +` REVIEW (name declining items, suggest if order qty looks too high),`
+    +` ROUTINE (one line count of stable lines),`
+    +` CONFIDENCE (one line on data quality).`
+    +` ${monthName} Irish hardware context. Direct sentences, no bullet points.`;
 
   try {
     const proxyUrl = PO_UPDATER_URL + '?action=ai_brief&prompt=' + encodeURIComponent(prompt);
@@ -5896,6 +5916,79 @@ function copyAIBrief(){
     const btn = document.getElementById('aiBriefCopyBtn');
     if(btn){ btn.textContent='Copied ✓'; setTimeout(()=>btn.textContent='Copy',2000); }
   }).catch(()=>{ alert('Copy failed — please select and copy manually.'); });
+}
+
+// ─── PER-SKU AI EXPLANATION ───────────────────────────────────────────────────
+function generateSKUExplanation(sku, btn){
+  const textEl = btn.nextElementSibling;
+  if(!textEl) return;
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Thinking…';
+  textEl.textContent = '';
+  textEl.classList.remove('visible');
+
+  // Find the computed row
+  const row = (state.computedRows||[]).find(r=>r.SKU===sku);
+  if(!row){ textEl.textContent='SKU data not found.'; textEl.classList.add('visible'); btn.disabled=false; return; }
+
+  const growthAdj   = document.getElementById('growthAdj')?.value||'0';
+  const title       = (row.ItemTitle||row.SKU||'').substring(0,50);
+  const stock       = Math.round(row.stock||0);
+  const cover       = Math.round(row.daysOfCover||0);
+  const baseDemand  = (row.baseDaily||0).toFixed(2);
+  const adjDemand   = (row.adjustedDaily||0).toFixed(2);
+  const rev         = Math.round(row.Revenue_Online_Total_30d||0);
+  const target      = row.target||0;
+  const buy         = row.buy||0;
+  const abc         = row.abcClass||'C';
+  const coverTarget = row.dynamicCoverDays||56;
+  const mult        = row.dynamicCoverMult ? row.dynamicCoverMult.toFixed(2) : '1.00';
+  const status      = row.coverStatus||'';
+  const trending    = row.isTrending ? `Trending: 30D rate is ${(row.spikeRatio||0).toFixed(1)}× the 180D average.` : '';
+  const declining   = row.isDeclining ? 'Demand is declining vs 180D average.' : '';
+  const seasonal    = row.seasonalDataUsed
+    ? `Historical sales: ${row.seasonalDataUsed.col1||''}=${row.seasonalDataUsed.q1||0}, ${row.seasonalDataUsed.col2||''}=${row.seasonalDataUsed.q2||0} units (${row.seasonalDataUsed.yr||'last year'}).`
+    : (row.seasonalNote ? `Seasonal signal: ${row.seasonalNote}.` : '');
+  const growth      = growthAdj!=='0' ? `+${growthAdj}% YoY growth adjustment applied to historical data.` : '';
+  const autoMode    = row.autoSelectedMode ? `Auto-selected demand mode: ${row.autoSelectedMode}.` : '';
+
+  const prompt = `You are a buying assistant for Lenehans Hardware, an Irish hardware retailer.`
+    + ` Write 3-4 plain English sentences explaining to a buyer why they should order ${buy} units of "${title}".`
+    + ` Be specific, direct, and practical — no bullet points, no jargon.`
+    + ` Focus on: (1) how urgent the stock situation is, (2) what the demand data actually means, (3) why this specific quantity makes sense.`
+    + ` Data: Status=${status}, Stock=${stock} units (${cover}d cover), Base demand=${baseDemand}/day, Adjusted demand=${adjDemand}/day,`
+    + ` Revenue=€${rev}/month, ABC class=${abc}, Cover target=${coverTarget}d (${mult}× multiplier for ${abc}-class),`
+    + ` Need ${target} units total, Recommend buying ${buy}.`
+    + (seasonal ? ' ' + seasonal : '')
+    + (growth   ? ' ' + growth   : '')
+    + (trending ? ' ' + trending : '')
+    + (declining? ' ' + declining: '')
+    + (autoMode ? ' ' + autoMode : '');
+
+  const proxyUrl = PO_UPDATER_URL + '?action=ai_brief&prompt=' + encodeURIComponent(prompt);
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', proxyUrl, true);
+  xhr.timeout = 25000;
+  xhr.onload = function(){
+    try{
+      const data = JSON.parse(xhr.responseText);
+      if(data.error) throw new Error(data.error);
+      const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+      textEl.textContent = text;
+      textEl.classList.add('visible');
+      btn.textContent = '✓ Explained';
+    } catch(e){
+      textEl.textContent = 'Error: '+e.message;
+      textEl.classList.add('visible');
+      btn.textContent = '🤖 Retry';
+      btn.disabled = false;
+    }
+  };
+  xhr.onerror   = ()=>{ textEl.textContent='Network error.'; textEl.classList.add('visible'); btn.textContent='🤖 Retry'; btn.disabled=false; };
+  xhr.ontimeout = ()=>{ textEl.textContent='Timed out — try again.'; textEl.classList.add('visible'); btn.textContent='🤖 Retry'; btn.disabled=false; };
+  xhr.send();
 }
 
 // ─── FETCH HELPERS ───────────────────────────────────────────────────────────
