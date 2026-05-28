@@ -4098,7 +4098,7 @@ function buildBuyerReason(res){
   if(res.abcClass==='D') lines.push(`⚠ D-item: very low historical volume and revenue — consider delisting review.`);
   if(res.isTrending) lines.push(`📈 Trending: 30D run-rate (${fmt1(res.daily30rate)}/day) is ${fmt1(res.daily30rate/Math.max(res.daily180rate,0.001))}× the 180D average — promoted to ${res.abcClass}-class.`);
   if(res.fallbackUsed) lines.push(`Because recent demand was zero and stock is zero, fallback demand from ${res.fallbackUsed==='Fallback180'?'the last 180 days':'the last 90 days'} was used.`);
-  if(res.autoSelectedMode){
+  if(res.isOosSuppressed) lines.push(`🔧 OOS reconstruction applied — 30D rate (${fmt1(res.baseDaily)}/day) is significantly higher than the 90D/180D average, suggesting OOS periods last season suppressed historical data. Reconstructed demand figures used for ABC classification and buy quantity.`);
     const reason = res.autoSelectedMode==='7D'
       ? `strong 7D spike (${fmt1(res.spikeRatio)}× 30D rate, ${fmtInt(res.demandQty||0)} units this week)`
       : res.autoSelectedMode==='Seasonal'
@@ -4315,12 +4315,31 @@ function computeRow(row){
 
   const baseDaily=demandDays>0?demandQty/demandDays:0;
 
+  // ── OOS Demand Reconstruction ────────────────────────────────────────────
+  // If 30D rate is significantly higher than 90D/180D average, those windows
+  // likely contain OOS periods with zero demand. Reconstruct using current
+  // 30D rate as the best available proxy for true demand during OOS weeks.
+  const qty90raw  = row.QtySold_Online_Total_90d  || 0;
+  const qty180raw = row.QtySold_Online_Total_180d || 0;
+  const qty30raw  = row.QtySold_Online_Total_30d  || 0;
+  const daily30raw = qty30raw / 30;
+  const daily90raw = qty90raw > 0 ? qty90raw / 90 : 0;
+  const daily180raw= qty180raw> 0 ? qty180raw/180 : 0;
+
+  // Suppression threshold: 30D rate ≥ 1.8× 90D average with meaningful recent demand
+  const oosSuppress90  = daily30raw > 0 && daily90raw  > 0 && daily30raw > daily90raw  * 1.8 && qty30raw >= 5;
+  const oosSuppress180 = daily30raw > 0 && daily180raw > 0 && daily30raw > daily180raw * 1.8 && qty30raw >= 5;
+  const isOosSuppressed = oosSuppress90 || oosSuppress180;
+
+  // Reconstructed: fill the gap between expected and actual with current 30D rate
+  const qty90  = oosSuppress90  ? Math.max(qty90raw,  Math.round(daily30raw * 90))  : qty90raw;
+  const qty180 = oosSuppress180 ? Math.max(qty180raw, Math.round(daily30raw * 180)) : qty180raw;
+
   // ── Revenue-weighted ABC classification ──────────────────────────────────
   // Primary signal: 180D revenue (volume × price). Fallback: pure volume.
   // Trending boost: if 30D run-rate ≥ 2× the 180D daily average AND ≥5 units,
   // promote one class — catches new winners before they accumulate 180D history.
-  const qty180 = row.QtySold_Online_Total_180d || 0;
-  const qty30  = row.QtySold_Online_Total_30d  || 0;
+  const qty30  = qty30raw;
   const rev30  = row.Revenue_Online_Total_30d  || 0;
   const rev180actual = row.Revenue_Online_Total_180d || 0;
 
@@ -4527,6 +4546,7 @@ function computeRow(row){
     seasonalProfile:cls.seasonalProfile,seasonalNote,
     seasonalMultiplier,seasonalDataUsed,abcClass,seasonalSignal,seasonalBoostPct,
     isTrending, estRev180, daily30rate, daily180rate,        // ABC intelligence
+    isOosSuppressed,                                         // OOS reconstruction flag
     dynamicCoverDays, dynamicCoverMult, isDeclining,         // dynamic cover
     autoSelectedMode, resolvedMode,                          // auto mode selection
     spikeRatio, spikeFactored,                               // 7D spike signals
@@ -4790,8 +4810,71 @@ function renderForecast(){
 
   if(fSumEl) fSumEl.innerHTML=`— <span style="color:#fbbf24;font-weight:800">${forecasted.length} supplier${forecasted.length!==1?'s':''} going critical</span> · ${atHorizon.length} SKUs`;
 
+  // Overstock block — suppliers with tied cash
+  const allSuppliers = (state.computedRows||[]).reduce((m,r)=>{
+    const k=r.SupplierName||'';
+    if(!k) return m;
+    if(!m.has(k)) m.set(k,{name:k,value:0,count:0});
+    const s=m.get(k);
+    if((r.daysOfCover||0)>120&&(r.SupplierCostPrice||0)>0&&(r.stock||0)>0){
+      const daily=(r.QtySold_Online_Total_30d||0)/30;
+      const excess=Math.max(0,(r.stock||0)-daily*90);
+      s.value+=excess*(r.SupplierCostPrice||0); s.count++;
+    }
+    return m;
+  },new Map());
+  const overstocked=[...allSuppliers.values()].filter(s=>s.value>=500)
+    .sort((a,b)=>b.value-a.value).slice(0,8);
+
+  let overstockHtml='';
+  if(overstocked.length){
+    const chips=overstocked.map(s=>{
+      return `<div style="display:inline-flex;flex-direction:column;gap:2px;padding:5px 10px;border-radius:8px;border:1.5px solid #bbf7d0;background:#f0fdf4;min-width:120px;cursor:default">
+        <div style="font-size:11px;font-weight:800;color:#166534;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px">${esc(s.name.split(' ').slice(0,3).join(' '))}</div>
+        <div style="font-size:10px;color:#16a34a;font-weight:700">💰 €${fmtInt(s.value)} tied · ${s.count} SKU${s.count!==1?'s':''}</div>
+      </div>`;
+    }).join('');
+    overstockHtml=`<div style="margin-top:10px;padding-top:8px;border-top:1px solid #e2e8f0">
+      <span style="font-size:11px;font-weight:800;color:#166534">💰 Tied cash — 120d+ cover</span>
+      <span style="font-size:11px;color:#64748b;margin-left:8px">${overstocked.length} supplier${overstocked.length!==1?'s':''}  · push to email or promotions</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">${chips}</div>
+    </div>`;
+  }
+
+  // CS demand gap block
+  const csGapSuppliers = (state.computedRows||[]).reduce((m,r)=>{
+    const k=r.SupplierName||''; if(!k) return m;
+    if(!m.has(k)) m.set(k,{name:k,count:0,topSku:null,topCs:0});
+    const s=m.get(k);
+    const cs=(r.QtySold_Shop_CapelStreet_30d||0)+(r.QtySold_Online_CapelStreet_30d||0);
+    if(cs>=5 && (r.buy===0||r.coverStatus==='Critical'||r.coverStatus==='Out of Stock')){
+      s.count++;
+      if(cs>s.topCs){s.topCs=cs;s.topSku=r;}
+    }
+    return m;
+  },new Map());
+  const csGapList=[...csGapSuppliers.values()].filter(s=>s.count>0)
+    .sort((a,b)=>b.count-a.count).slice(0,8);
+
+  let csGapPanelHtml='';
+  if(csGapList.length){
+    const csChips=csGapList.map(s=>{
+      return `<div style="display:inline-flex;flex-direction:column;gap:2px;padding:5px 10px;border-radius:8px;border:1.5px solid #e9d5ff;background:#fdf4ff;min-width:120px;cursor:default">
+        <div style="font-size:11px;font-weight:800;color:#7e22ce;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px">${esc(s.name.split(' ').slice(0,3).join(' '))}</div>
+        <div style="font-size:10px;color:#9333ea;font-weight:700">🏪 ${s.count} SKU${s.count!==1?'s':''} CS selling, no AK order</div>
+      </div>`;
+    }).join('');
+    csGapPanelHtml=`<div style="margin-top:10px;padding-top:8px;border-top:1px solid #e2e8f0">
+      <span style="font-size:11px;font-weight:800;color:#7e22ce">🏪 Capel Street demand gap</span>
+      <span style="font-size:11px;color:#64748b;margin-left:8px">CS selling but no AK reorder — check these</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">${csChips}</div>
+    </div>`;
+  }
+
   el.innerHTML=`<div style="padding:10px 0 4px">
     <div style="display:flex;gap:8px;flex-wrap:wrap">${chips}</div>
+    ${overstockHtml}
+    ${csGapPanelHtml}
   </div>`;
 }
 
@@ -4817,7 +4900,7 @@ function renderActionNow(rows){
   const supplierMap=new Map();
   for(const r of top200){
     const k=r.SupplierName||'(Unknown)';
-    if(!supplierMap.has(k)) supplierMap.set(k,{name:k,skus:[],oos:0,crit:0,low:0,healthy:0,lostRev:0,buy:0,minDays:9999,topAtRisk:null,oosA:0,critA:0});
+    if(!supplierMap.has(k)) supplierMap.set(k,{name:k,skus:[],oos:0,crit:0,low:0,healthy:0,lostRev:0,buy:0,minDays:9999,topAtRisk:null,oosA:0,critA:0,overstockValue:0,overstockCount:0,csGapSkus:0,csGapTopSku:null});
     const s=supplierMap.get(k);
     s.skus.push(r);
     s.buy+=(r.buy||0);
@@ -4839,6 +4922,18 @@ function renderActionNow(rows){
     if(isAtRisk){
       const rev=r.Revenue_Online_Total_30d||0;
       if(!s.topAtRisk||rev>(s.topAtRisk.Revenue_Online_Total_30d||0)) s.topAtRisk=r;
+    }
+    // CS demand gap: CS shop selling this but no AK reorder triggered or AK is low/OOS
+    const csShop30 = (r.QtySold_Shop_CapelStreet_30d||0)+(r.QtySold_Online_CapelStreet_30d||0);
+    if(csShop30 >= 5 && (r.buy===0 || r.coverStatus==='Critical'||r.coverStatus==='Out of Stock')){
+      s.csGapSkus++;
+      if(!s.csGapTopSku||(csShop30>(((s.csGapTopSku.QtySold_Shop_CapelStreet_30d||0)+(s.csGapTopSku.QtySold_Online_CapelStreet_30d||0)))))) s.csGapTopSku=r;
+    }
+    if(r.coverStatus==='Healthy' && (r.daysOfCover||0) > 120 && (r.SupplierCostPrice||0) > 0 && (r.stock||0) > 0){
+      const dailyRate = (r.QtySold_Online_Total_30d||0)/30;
+      const excessUnits = Math.max(0, (r.stock||0) - dailyRate * 90); // units beyond 90d
+      s.overstockValue += excessUnits * (r.SupplierCostPrice||0);
+      s.overstockCount++;
     }
   }
 
@@ -4918,7 +5013,18 @@ function renderActionNow(rows){
       aItemHtml=`<div style="display:inline-flex;align-items:center;font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;width:fit-content">${aMsg}</div>`;
     }
 
-    // Top at-risk SKU strip
+    // Overstock badge — cash tied up in slow-moving stock
+    let overstockHtml='';
+    if(s.overstockValue >= 200){
+      overstockHtml=`<div style="display:inline-flex;align-items:center;font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;width:fit-content">💰 €${fmtInt(s.overstockValue)} tied up · ${s.overstockCount} SKU${s.overstockCount!==1?'s':''} 120d+ cover</div>`;
+    }
+    // CS demand gap badge — CS shop/online selling but no AK reorder
+    let csGapHtml='';
+    if(s.csGapSkus > 0){
+      const topTitle=s.csGapTopSku?(s.csGapTopSku.ItemTitle||'').substring(0,28):'';
+      csGapHtml=`<div style="display:inline-flex;align-items:center;font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff;width:fit-content" title="Capel Street selling but AK not reordering or critically low">🏪 ${s.csGapSkus} CS gap${topTitle?' · '+esc(topTitle):''}</div>`;
+    }
+
     let topSkuHtml='';
     if(s.topAtRisk){
       const skuTitle=(s.topAtRisk.ItemTitle||s.topAtRisk.SKU||'').substring(0,42);
@@ -4959,6 +5065,8 @@ function renderActionNow(rows){
       </div>
       ${revHtml}
       ${aItemHtml}
+      ${overstockHtml}
+      ${csGapHtml}
       ${topSkuHtml}
       <div class="wl-tile-stats">${buyPart}${statsDivider}${countdownHtml}</div>
       ${poLine}
