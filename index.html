@@ -4099,6 +4099,7 @@ function buildBuyerReason(res){
   if(res.isTrending) lines.push(`📈 Trending: 30D run-rate (${fmt1(res.daily30rate)}/day) is ${fmt1(res.daily30rate/Math.max(res.daily180rate,0.001))}× the 180D average — promoted to ${res.abcClass}-class.`);
   if(res.fallbackUsed) lines.push(`Because recent demand was zero and stock is zero, fallback demand from ${res.fallbackUsed==='Fallback180'?'the last 180 days':'the last 90 days'} was used.`);
   if(res.isOosSuppressed) lines.push(`🔧 OOS reconstruction applied — 30D rate (${fmt1(res.baseDaily)}/day) is significantly higher than the 90D/180D average, suggesting OOS periods last season suppressed historical data. Reconstructed demand figures used for ABC classification and buy quantity.`);
+  if(res.autoSelectedMode){
     const reason = res.autoSelectedMode==='7D'
       ? `strong 7D spike (${fmt1(res.spikeRatio)}× 30D rate, ${fmtInt(res.demandQty||0)} units this week)`
       : res.autoSelectedMode==='Seasonal'
