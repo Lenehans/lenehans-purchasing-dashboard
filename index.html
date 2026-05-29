@@ -2341,138 +2341,166 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       emailSold.sort(function(a,b){ return b.qty-a.qty; });
     }
 
-    if (emailSold.length > 0) {
-      html += '<div style="margin-bottom:16px">'
-        + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'
-          + '<div class="ei-sh" style="margin:0">📬 What email customers bought — '+MN[m]+' '+ly+'</div>'
-          + '<span style="font-size:11px;color:#64748b">'+emailSold.length+' products · scroll for full list</span>'
-        + '</div>'
-        + '<div style="max-height:400px;overflow-y:auto;border:1px solid var(--line);border-radius:8px">'
-        + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
-        + '<thead style="position:sticky;top:0;z-index:1"><tr style="background:#f1f5f9">'
-          + '<th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">#</th>'
-          + '<th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">SKU</th>'
-          + '<th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">Product</th>'
-          + '<th style="text-align:left;padding:6px 8px;font-size:10px;font-weight:800">Brand</th>'
-          + '<th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800;background:#fef3c7">'+MS[m]+' email</th>'
-          + '<th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">30d now</th>'
-          + '<th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">Stock</th>'
-          + '<th style="text-align:right;padding:6px 8px;font-size:10px;font-weight:800">Cover</th>'
-          + '<th style="padding:6px 8px;font-size:10px;font-weight:800">Status</th>'
-        + '</tr></thead><tbody>';
-      emailSold.slice(0,100).forEach(function(p,i) {
-        var badge, bg;
-        if      (p.stk <= 0)  { badge='OOS';         bg='#fee2e2'; }
-        else if (p.cov > 45)  { badge='✅ Go';        bg='#dcfce7'; }
-        else if (p.cov > 21)  { badge='⚠ Low';       bg='#fef9c3'; }
-        else                  { badge='❌ Critical';  bg='#fee2e2'; }
-        var qtyBg  = p.qty >= 50 ? '#fef08a' : p.qty >= 20 ? '#fef9c3' : 'transparent';
-        var velBg  = p.vel >= 10 ? '#dcfce7' : p.vel >= 3 ? '#f1f5f9' : 'transparent';
-        var brand  = esc(p.row.SupplierName||p.row.Supplier||'—');
-        var rowBg  = p.stk <= 0 ? '#fef2f2' : i === 0 ? '#fffbeb' : (i%2===0?'#f9fafb':'#fff');
-        var skuLink = '<a href="https://www.lenehans.ie/search?q='+encodeURIComponent(p.row.SKU||'')
-          + '" target="_blank" style="color:#1e40af;text-decoration:none;font-family:monospace;font-size:10px">'+esc(p.row.SKU||p.sku)+'</a>';
-        html += '<tr style="border-top:1px solid var(--line-light);background:'+rowBg+'">'
-          + '<td style="padding:5px 8px;font-size:10px;color:#94a3b8;font-weight:700">'+(i+1)+'</td>'
-          + '<td style="padding:5px 8px;white-space:nowrap">'+skuLink+'</td>'
-          + '<td style="padding:5px 8px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="'+esc(p.row.ItemTitle||'')+'">'+esc(p.row.ItemTitle||'—')+'</td>'
-          + '<td style="padding:5px 8px;font-size:11px;color:#475569;white-space:nowrap">'+brand+'</td>'
-          + '<td style="text-align:right;padding:5px 8px;font-weight:800;background:'+qtyBg+'">'+p.qty+'</td>'
-          + '<td style="text-align:right;padding:5px 8px;font-weight:600;background:'+velBg+'">'+p.vel+'</td>'
-          + '<td style="text-align:right;padding:5px 8px">'+p.stk.toLocaleString('en-IE')+'</td>'
-          + '<td style="text-align:right;padding:5px 8px;font-weight:600;color:'+(p.cov>45?'#14532d':p.cov>21?'#92400e':'#991b1b')+'">'+p.cov+'d</td>'
-          + '<td style="padding:5px 8px"><span style="background:'+bg+';border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700">'+badge+'</span></td>'
-        + '</tr>';
+    // ── Build email sold + seasonal data ─────────────────────────────────────
+    var emailSold = [];
+    var emailSoldSkus = {};
+    if (Object.keys(eiSalesMap).length > 0) {
+      var buyCache2 = {};
+      rows.forEach(function(r){ buyCache2[(r.SKU||'').trim().toUpperCase()]=r; });
+      Object.values(eiSalesMap).forEach(function(p) {
+        var qty = p.monthly[m]||0; if(!qty) return;
+        var sku = (p.sku||'').trim().toUpperCase();
+        var br  = buyCache2[sku]||buyCache2[sku.replace(/^TP_/,'')]||buyCache2['TP_'+sku];
+        if(!br) return;
+        var stk = br.stock||br.NetStock_Arklow||0;
+        var cov = Math.round(coverDays(br));
+        var vel = br.QtySold_Online_Total_30d||br.QSold_On30||0;
+        emailSold.push({ row:br, sku:sku, qty:qty, stk:stk, cov:cov, vel:vel });
+        emailSoldSkus[sku] = true;
       });
-      html += '</tbody></table></div>';
-      if (emailSold.length > 100) html += '<div style="font-size:11px;color:#64748b;padding:6px 8px">Showing top 100 of '+emailSold.length+' products</div>';
-      html += '</div>';
+      emailSold.sort(function(a,b){ return b.qty-a.qty; });
     }
 
-    // ── Section 2: Seasonal opportunities not yet in email sales ─────────────
+    var emailTotal   = emailSold.length;
+    var emailOOS     = emailSold.filter(function(p){ return p.stk<=0||p.cov<14; });
+    var emailReady   = emailSold.filter(function(p){ return p.stk>0&&p.cov>=30; });
+
+    // Seasonal opportunities (not yet emailed, good stock)
     var seasonalKws = (MONTH_SEASONAL[m]||[[]])[0];
     var seasonalLabel = (MONTH_SEASONAL[m]||[null,''])[1];
-    var wxKws = wx ? wx.products : [];
+    var wxKws  = (getWeatherContext()||{}).products||[];
     var allKws = seasonalKws.concat(wxKws);
-    var kPatterns = allKws.map(function(k){ return new RegExp(k,'i'); });
-
-    // Find products: seasonal/weather-relevant, good stock, NOT already top email sellers
-    var opportunities = rows.filter(function(r) {
-      var stk = r.stock||r.NetStock_Arklow||0; if (stk<=0) return false;
-      var cov = coverDays(r); if (cov<30||cov>400) return false;
+    var kPats  = allKws.map(function(k){ return new RegExp(k,'i'); });
+    var newOpps = rows.filter(function(r) {
+      var stk = r.stock||r.NetStock_Arklow||0; if(stk<=0) return false;
+      var cov = coverDays(r); if(cov<30||cov>400) return false;
       var sku = (r.SKU||'').trim().toUpperCase();
+      if(emailSoldSkus[sku]) return false; // already in email history
       var title = (r.ItemTitle||'').toLowerCase();
-      if (!kPatterns.some(function(p){ return p.test(title); })) return false;
-      return true;
-    }).map(function(r) {
-      var sku   = (r.SKU||'').trim().toUpperCase();
-      var cov   = Math.round(coverDays(r));
-      var vel   = r.QtySold_Online_Total_30d||r.QSold_On30||0;
-      var emailQty = emailSoldSkus[sku] ? (eiSalesMap[sku]||{}).monthly : null;
-      var inEmailSales = emailSoldSkus[sku] || false;
-      var title = (r.ItemTitle||'').toLowerCase();
-      // Weather badge
-      var wxMatch = wx && wx.products.some(function(k){ return new RegExp(k,'i').test(title); });
-      return { row:r, sku:sku, cov:cov, vel:vel, inEmailSales:inEmailSales, wxMatch:wxMatch };
-    }).sort(function(a,b){
-      // Not-in-email-sales first, then by weather match, then velocity
-      if (!a.inEmailSales && b.inEmailSales) return -1;
-      if (a.inEmailSales && !b.inEmailSales) return 1;
-      if (a.wxMatch && !b.wxMatch) return -1;
-      if (!a.wxMatch && b.wxMatch) return 1;
-      return b.vel - a.vel;
-    }).slice(0,100);
+      return kPats.some(function(p){ return p.test(title); });
+    }).map(function(r){
+      return { row:r, sku:(r.SKU||'').trim().toUpperCase(),
+               cov:Math.round(coverDays(r)), vel:r.QtySold_Online_Total_30d||r.QSold_On30||0 };
+    }).sort(function(a,b){ return b.vel-a.vel; });
 
+    if(emailTotal > 0) {
+      // ── Intelligence chips ────────────────────────────────────────────────
+      var chipStyle = 'display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;padding:10px 12px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px';
+      var chipRed   = 'display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;padding:10px 12px;background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px';
+      var chipGreen = 'display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;padding:10px 12px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px';
+      html += '<div style="display:flex;gap:8px;margin-bottom:14px">'
+        + '<div style="'+chipStyle+'"><div style="font-size:18px;font-weight:900;color:#1e3a5f">'+emailTotal.toLocaleString('en-IE')+'</div><div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em">Sold via email last '+MN[m]+'</div></div>'
+        + '<div style="'+(emailOOS.length>0?chipRed:chipGreen)+'"><div style="font-size:18px;font-weight:900;color:'+(emailOOS.length>0?'#dc2626':'#16a34a')+'">'+emailOOS.length+'</div><div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em">'+(emailOOS.length>0?'OOS or critical now':'All OOS items restocked')+'</div></div>'
+        + '<div style="'+chipGreen+'"><div style="font-size:18px;font-weight:900;color:#16a34a">'+emailReady.length.toLocaleString('en-IE')+'</div><div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em">Ready to feature</div></div>'
+      + '</div>';
 
-    if (opportunities.length > 0) {
-      var wxNote = wxTemp !== null ? ' · '+wxTemp+'°C'+( wx?' ('+wx.badge+')':'') : '';
-      html += '<div>'
-        + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">'
-          + '<div class="ei-sh" style="margin:0">🎯 Seasonal opportunities — '+MN[m]+'</div>'
-          + '<span style="font-size:11px;color:#64748b">'+opportunities.length+' products</span>'
-        + '</div>'
-        + '<div style="font-size:11px;color:#64748b;margin-bottom:8px">'+seasonalLabel+wxNote+'</div>'
-        + '<div style="max-height:350px;overflow-y:auto;border:1px solid var(--line);border-radius:8px">'
-        + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
-        + '<thead style="position:sticky;top:0;z-index:1"><tr style="background:#f1f5f9">'
-          + '<th style="text-align:left;padding:5px 8px;font-size:10px;font-weight:800">SKU</th>'
-          + '<th style="text-align:left;padding:5px 8px;font-size:10px;font-weight:800">Product</th>'
-          + '<th style="text-align:left;padding:5px 8px;font-size:10px;font-weight:800">Brand</th>'
-          + '<th style="padding:5px 8px;font-size:10px;font-weight:800">Signal</th>'
-          + '<th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800">30d</th>'
-          + '<th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800">Stock</th>'
-          + '<th style="text-align:right;padding:5px 8px;font-size:10px;font-weight:800">Cover</th>'
-          + '<th style="padding:5px 8px;font-size:10px;font-weight:800">Email history</th>'
-        + '</tr></thead><tbody>';
-      opportunities.forEach(function(p,i) {
-        var stk    = p.row.stock||p.row.NetStock_Arklow||0;
-        var brand  = esc(p.row.SupplierName||p.row.Supplier||'—');
-        var badge  = p.wxMatch ? (wx?wx.badge:'🌡 Weather') : '📅 Seasonal';
-        var notEm  = !p.inEmailSales;
-        var emBadge = notEm
-          ? '<span style="background:#fef08a;color:#713f12;border-radius:3px;padding:1px 5px;font-size:9px;font-weight:800">NOT YET EMAILED</span>'
-          : '<span style="background:#f1f5f9;color:#64748b;border-radius:3px;padding:1px 5px;font-size:9px">In history</span>';
-        var rowBg  = notEm ? '#fffbeb' : '#fff';
-        var velBg  = p.vel >= 10 ? '#dcfce7' : p.vel >= 3 ? '#f1f5f9' : 'transparent';
-        var skuLink = '<a href="https://www.lenehans.ie/search?q='+encodeURIComponent(p.row.SKU||'')+'" target="_blank" style="color:#1e40af;text-decoration:none;font-family:monospace;font-size:10px">'+esc(p.row.SKU||p.sku)+'</a>';
-        html += '<tr style="border-top:1px solid var(--line-light);background:'+rowBg+'">'
-          + '<td style="padding:5px 8px;white-space:nowrap">'+skuLink+'</td>'
-          + '<td style="padding:5px 8px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(p.row.ItemTitle||'')+'">'+esc(p.row.ItemTitle||p.sku)+'</td>'
-          + '<td style="padding:5px 8px;font-size:11px;color:#475569;white-space:nowrap">'+brand+'</td>'
-          + '<td style="padding:5px 8px"><span style="background:#f1f5f9;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:600">'+badge+'</span></td>'
-          + '<td style="text-align:right;padding:5px 8px;background:'+velBg+';font-weight:600">'+p.vel+'</td>'
-          + '<td style="text-align:right;padding:5px 8px">'+stk.toLocaleString('en-IE')+'</td>'
-          + '<td style="text-align:right;padding:5px 8px;font-weight:600;color:'+(p.cov>45?'#14532d':'#92400e')+'">'+p.cov+'d</td>'
-          + '<td style="padding:5px 8px">'+emBadge+'</td>'
-        + '</tr>';
+      // ── Section A: Fix before sending ────────────────────────────────────
+      if(emailOOS.length > 0) {
+        html += '<div style="margin-bottom:14px">'
+          + '<div style="font-size:12px;font-weight:800;color:#991b1b;margin-bottom:6px">🔴 Fix before sending — these sold well via email but are now OOS or critical</div>';
+        emailOOS.slice(0,5).forEach(function(p) {
+          var status = p.stk<=0?'OOS':'❌ '+(p.cov<7?'<7d':p.cov+'d');
+          var statusCol = p.stk<=0?'#dc2626':'#d97706';
+          html += '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:#fef2f2;border:1px solid #fecaca;margin-bottom:4px">'
+            + '<div style="flex:1;min-width:0">'
+              + '<div style="font-size:12px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+                + '<a href="https://www.lenehans.ie/search?q='+encodeURIComponent(p.row.SKU||'')+'" target="_blank" style="color:#1e293b;text-decoration:none">'+esc((p.row.ItemTitle||p.sku).substring(0,55))+'</a>'
+              + '</div>'
+              + '<div style="font-size:11px;color:#64748b;margin-top:1px">'+p.qty+' sold via email last '+MN[m]+'</div>'
+            + '</div>'
+            + '<span style="font-size:11px;font-weight:800;color:'+statusCol+';white-space:nowrap">'+status+'</span>'
+          + '</div>';
+        });
+        if(emailOOS.length>5) html += '<div style="font-size:11px;color:#991b1b;padding:4px 0">+ '+(emailOOS.length-5)+' more OOS items that sold via email</div>';
+        html += '</div>';
+      }
+
+      // ── Section B: Top products to feature ───────────────────────────────
+      if(emailReady.length > 0) {
+        html += '<div style="margin-bottom:14px">'
+          + '<div style="font-size:12px;font-weight:800;color:#166534;margin-bottom:6px">✅ Top products to feature — sold well via email, good stock now</div>';
+        emailReady.slice(0,8).forEach(function(p) {
+          var covCol = p.cov>60?'#16a34a':p.cov>30?'#92400e':'#991b1b';
+          html += '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0;margin-bottom:4px">'
+            + '<div style="flex:1;min-width:0">'
+              + '<div style="font-size:12px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+                + '<a href="https://www.lenehans.ie/search?q='+encodeURIComponent(p.row.SKU||'')+'" target="_blank" style="color:#1e293b;text-decoration:none">'+esc((p.row.ItemTitle||p.sku).substring(0,55))+'</a>'
+              + '</div>'
+              + '<div style="font-size:11px;color:#64748b;margin-top:1px">'+p.qty+' sold via email · '+p.stk.toLocaleString('en-IE')+' in stock · <span style="color:'+covCol+';font-weight:700">'+p.cov+'d cover</span></div>'
+            + '</div>'
+          + '</div>';
+        });
+        if(emailReady.length>8) html += '<div style="font-size:11px;color:#166534;padding:4px 0">+ '+(emailReady.length-8)+' more ready products</div>';
+        html += '</div>';
+      }
+
+      // ── Section C: Hidden opportunities (not yet emailed) ─────────────────
+      if(newOpps.length > 0) {
+        var wxTemp2 = (typeof weatherData !== 'undefined' && weatherData.tempAvg != null) ? weatherData.tempAvg+'°C' : '';
+        html += '<div style="margin-bottom:14px">'
+          + '<div style="font-size:12px;font-weight:800;color:#92400e;margin-bottom:2px">🆕 Hidden opportunities — seasonal, in stock, never yet emailed</div>'
+          + '<div style="font-size:11px;color:#64748b;margin-bottom:6px">'+seasonalLabel+(wxTemp2?' · '+wxTemp2:'')+'</div>';
+        newOpps.slice(0,5).forEach(function(p) {
+          var stk = p.row.stock||p.row.NetStock_Arklow||0;
+          html += '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:#fffbeb;border:1px solid #fde68a;margin-bottom:4px">'
+            + '<div style="flex:1;min-width:0">'
+              + '<div style="font-size:12px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+                + '<a href="https://www.lenehans.ie/search?q='+encodeURIComponent(p.row.SKU||'')+'" target="_blank" style="color:#1e293b;text-decoration:none">'+esc((p.row.ItemTitle||p.sku).substring(0,55))+'</a>'
+              + '</div>'
+              + '<div style="font-size:11px;color:#64748b;margin-top:1px">'+p.vel+'/month · '+stk.toLocaleString('en-IE')+' stock · '+p.cov+'d cover</div>'
+            + '</div>'
+            + '<span style="font-size:10px;font-weight:800;background:#fef08a;color:#713f12;padding:2px 7px;border-radius:6px;white-space:nowrap">NEW</span>'
+          + '</div>';
+        });
+        if(newOpps.length>5) html += '<div style="font-size:11px;color:#92400e;padding:4px 0">+ '+(newOpps.length-5)+' more untapped seasonal products</div>';
+        html += '</div>';
+      }
+
+      // ── Full detail (collapsed) ───────────────────────────────────────────
+      html += '<details style="margin-top:4px">'
+        + '<summary style="font-size:11px;font-weight:700;color:#64748b;cursor:pointer;padding:4px 0">▶ Full product lists ('+emailTotal+' email history · '+newOpps.length+' opportunities)</summary>'
+        + '<div style="margin-top:10px">'
+        // Compact email history table
+        + '<div style="font-size:11px;font-weight:800;color:#374151;margin-bottom:6px">📬 Email history — '+MN[m]+' '+ly+'</div>'
+        + '<div style="max-height:300px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:12px">'
+        + '<table style="width:100%;border-collapse:collapse;font-size:11px">'
+        + '<thead><tr style="background:#f8fafc"><th style="text-align:left;padding:5px 8px">#</th><th style="text-align:left;padding:5px 8px">Product</th><th style="text-align:right;padding:5px 8px">Email</th><th style="text-align:right;padding:5px 8px">Stock</th><th style="text-align:right;padding:5px 8px">Cover</th></tr></thead><tbody>';
+      emailSold.slice(0,200).forEach(function(p,i){
+        var rowBg = p.stk<=0?'#fef2f2':(i%2===0?'#f9fafb':'#fff');
+        var covCol = p.cov>45?'#16a34a':p.cov>21?'#92400e':'#991b1b';
+        html += '<tr style="border-top:1px solid #f1f5f9;background:'+rowBg+'">'
+          +'<td style="padding:4px 8px;color:#94a3b8;font-size:10px">'+(i+1)+'</td>'
+          +'<td style="padding:4px 8px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+            +'<a href="https://www.lenehans.ie/search?q='+encodeURIComponent(p.row.SKU||'')+'" target="_blank" style="color:#1e293b;text-decoration:none">'+esc((p.row.ItemTitle||p.sku).substring(0,50))+'</a>'
+          +'</td>'
+          +'<td style="text-align:right;padding:4px 8px;font-weight:700">'+p.qty+'</td>'
+          +'<td style="text-align:right;padding:4px 8px">'+p.stk+'</td>'
+          +'<td style="text-align:right;padding:4px 8px;font-weight:700;color:'+covCol+'">'+p.cov+'d</td>'
+        +'</tr>';
+      });
+      if(emailSold.length>200) html += '<tr><td colspan="5" style="padding:6px 8px;font-size:10px;color:#64748b">Showing 200 of '+emailSold.length+'</td></tr>';
+      html += '</tbody></table></div>'
+      // Compact opportunities table
+      + '<div style="font-size:11px;font-weight:800;color:#374151;margin-bottom:6px">🆕 Not yet emailed</div>'
+      + '<div style="max-height:250px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px">'
+      + '<table style="width:100%;border-collapse:collapse;font-size:11px">'
+      + '<thead><tr style="background:#f8fafc"><th style="text-align:left;padding:5px 8px">Product</th><th style="text-align:right;padding:5px 8px">30d</th><th style="text-align:right;padding:5px 8px">Stock</th><th style="text-align:right;padding:5px 8px">Cover</th></tr></thead><tbody>';
+      newOpps.slice(0,100).forEach(function(p,i){
+        var stk = p.row.stock||p.row.NetStock_Arklow||0;
+        html += '<tr style="border-top:1px solid #f1f5f9;background:'+(i%2===0?'#fffbeb':'#fff')+'">'
+          +'<td style="padding:4px 8px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+            +'<a href="https://www.lenehans.ie/search?q='+encodeURIComponent(p.row.SKU||'')+'" target="_blank" style="color:#1e293b;text-decoration:none">'+esc((p.row.ItemTitle||p.sku).substring(0,50))+'</a>'
+          +'</td>'
+          +'<td style="text-align:right;padding:4px 8px;font-weight:700">'+p.vel+'</td>'
+          +'<td style="text-align:right;padding:4px 8px">'+stk+'</td>'
+          +'<td style="text-align:right;padding:4px 8px">'+p.cov+'d</td>'
+        +'</tr>';
       });
       html += '</tbody></table></div>'
-        + '<div style="font-size:11px;color:#64748b;padding:6px 4px">🟡 Gold = seasonal, in stock, not yet in email sales — these are your hidden opportunities</div>'
-      + '</div>';
+      + '</div></details>';
     }
 
-
-    el.innerHTML = html || '<div class="ei-empty">No data available</div>';
+    el.innerHTML = html || '<div class="ei-empty">Sync Klaviyo to see recommendations</div>';
   }
 
   function eiRenderArchive() {
