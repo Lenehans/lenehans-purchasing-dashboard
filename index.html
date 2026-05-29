@@ -1516,6 +1516,14 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
         <div id="eiGapFinder" style="margin-top:10px"><div class="ei-empty">Load buying data and sync Klaviyo to see gaps</div></div>
       </details>
 
+      <!-- Send day analysis -->
+      <details style="margin-top:12px" open>
+        <summary style="font-size:11px;font-weight:800;color:#52637a;text-transform:uppercase;letter-spacing:.07em;cursor:pointer;padding:6px 0;border-top:1.5px solid var(--line-light);list-style:none;display:flex;align-items:center;gap:8px">
+          <span>▼</span> 📅 Best day to send — open rate by day of week
+        </summary>
+        <div id="eiSendDayAnalysis" style="margin-top:10px"><div class="ei-empty">Sync Klaviyo to see send day analysis</div></div>
+      </details>
+
     </div>
   </div><!-- /tab-email -->
 
@@ -1931,6 +1939,87 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     eiRenderSendThis(m);
     eiRenderArchive();
     eiRenderGapFinder();
+    eiRenderSendDayAnalysis();
+  }
+
+  // ── Send Day Analysis (Feature 10) ────────────────────────────────────────
+  function eiRenderSendDayAnalysis() {
+    var el = G('eiSendDayAnalysis'); if (!el) return;
+    if (!eiCamps.length || !Object.keys(eiStMap).length) {
+      el.innerHTML = '<div class="ei-empty">Sync Klaviyo to see send day analysis</div>';
+      return;
+    }
+
+    var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    var dayStats = DAYS.map(function(label, i) {
+      return { day:i, label:label, opens:[], clicks:[], revs:[] };
+    });
+
+    eiCamps.forEach(function(c) {
+      if (!c.sent_at) return;
+      var st = eiStMap[c.id]; if (!st) return;
+      var d = new Date(c.sent_at).getDay();
+      if (st.open_rate)  dayStats[d].opens.push(st.open_rate);
+      if (st.click_rate) dayStats[d].clicks.push(st.click_rate);
+      if (st.rev > 0)    dayStats[d].revs.push(st.rev);
+    });
+
+    var withData = dayStats.filter(function(d){ return d.opens.length >= 2; });
+    if (withData.length < 2) {
+      el.innerHTML = '<div class="ei-empty">Need at least 2 campaigns per day to analyse — send more campaigns or wait for more history</div>';
+      return;
+    }
+
+    function avg(arr){ return arr.length ? arr.reduce(function(s,v){return s+v;},0)/arr.length : 0; }
+
+    var rows = dayStats.map(function(d) {
+      if (d.opens.length < 2) return null;
+      return { label:d.label, avgOpen:avg(d.opens), avgClick:avg(d.clicks), avgRev:avg(d.revs), count:d.opens.length };
+    }).filter(Boolean);
+
+    rows.sort(function(a,b){ return b.avgOpen - a.avgOpen; });
+    var maxOpen = rows[0].avgOpen;
+    var bestDay = rows[0].label;
+
+    var tableRows = rows.map(function(r, i) {
+      var isBest = i === 0;
+      var pctOpen  = Math.round(r.avgOpen * 1000) / 10;
+      var pctClick = r.avgClick > 0 ? Math.round(r.avgClick * 1000) / 10 : null;
+      var barW     = Math.round((r.avgOpen / maxOpen) * 100);
+      var rowBg    = isBest ? '#eff6ff' : i % 2 === 0 ? '#f9fafb' : '#fff';
+      return '<tr style="background:' + rowBg + ';border-top:1px solid #f1f5f9">'
+        + '<td style="padding:7px 12px;font-weight:' + (isBest?'800':'600') + ';color:' + (isBest?'#1e3a5f':'#374151') + ';font-size:12px">'
+          + (isBest ? '⭐ ' : '') + r.label
+        + '</td>'
+        + '<td style="padding:7px 12px">'
+          + '<div style="display:flex;align-items:center;gap:8px">'
+            + '<div style="width:80px;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden">'
+              + '<div style="height:100%;width:' + barW + '%;background:' + (isBest?'#1e40af':'#94a3b8') + ';border-radius:4px"></div>'
+            + '</div>'
+            + '<span style="font-size:12px;font-weight:' + (isBest?'800':'600') + ';color:' + (isBest?'#1e40af':'#374151') + '">' + pctOpen + '%</span>'
+          + '</div>'
+        + '</td>'
+        + '<td style="padding:7px 12px;font-size:12px;color:#64748b;text-align:right">' + (pctClick !== null ? pctClick + '%' : '—') + '</td>'
+        + '<td style="padding:7px 12px;font-size:12px;color:#64748b;text-align:right">' + (r.avgRev > 0 ? '€' + r.avgRev.toFixed(3) : '—') + '</td>'
+        + '<td style="padding:7px 12px;font-size:11px;color:#94a3b8;text-align:right">' + r.count + ' campaigns</td>'
+      + '</tr>';
+    }).join('');
+
+    el.innerHTML = '<div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#1e3a5f;font-weight:700">'
+      + '📅 Best day to send: <strong>' + bestDay + '</strong> · avg ' + Math.round(rows[0].avgOpen*1000)/10 + '% open rate across ' + rows[0].count + ' campaigns'
+    + '</div>'
+    + '<div style="overflow-x:auto">'
+    + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
+    + '<thead><tr style="background:#f8fafc">'
+      + '<th style="text-align:left;padding:7px 12px;font-size:10px;font-weight:800;color:#52637a;text-transform:uppercase">Day</th>'
+      + '<th style="text-align:left;padding:7px 12px;font-size:10px;font-weight:800;color:#52637a;text-transform:uppercase">Open rate</th>'
+      + '<th style="text-align:right;padding:7px 12px;font-size:10px;font-weight:800;color:#52637a;text-transform:uppercase">Click rate</th>'
+      + '<th style="text-align:right;padding:7px 12px;font-size:10px;font-weight:800;color:#1e40af;text-transform:uppercase">Rev/recipient</th>'
+      + '<th style="text-align:right;padding:7px 12px;font-size:10px;font-weight:800;color:#52637a;text-transform:uppercase">Sample</th>'
+    + '</tr></thead>'
+    + '<tbody>' + tableRows + '</tbody>'
+    + '</table></div>'
+    + '<div style="font-size:11px;color:#94a3b8;margin-top:6px">Sorted by open rate · days with fewer than 2 campaigns not shown</div>';
   }
 
   // ── Gap Finder ────────────────────────────────────────────────────────────────
@@ -2182,10 +2271,46 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       var subj0 = tpl.s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       var briefEnc = r.theme+'|'+r.ready.length+'|'+r.avgCov+'|'+r.lastSentDays+'|'+MN[m]+'|'+(r.lyBestOpen||0);
 
+    // ── Feature 9: List fatigue warning ──────────────────────────────────
+    var fatigueHtml = '';
+    if (r.lastSentDays < 7) {
+      fatigueHtml = '<div style="margin-bottom:6px;padding:5px 10px;background:rgba(220,38,38,.15);border-radius:6px;font-size:11px;font-weight:700;color:'+(isCurrentMonth?'#fca5a5':'#991b1b')+'">🚨 Sent just ' + r.lastSentDays + ' day' + (r.lastSentDays!==1?'s':'') + ' ago — high fatigue risk, consider spacing</div>';
+    } else if (r.lastSentDays < 14) {
+      fatigueHtml = '<div style="margin-bottom:6px;padding:5px 10px;background:rgba(251,191,36,.2);border-radius:6px;font-size:11px;font-weight:700;color:'+(isCurrentMonth?'#fef3c7':'#92400e')+'">⚠ Sent ' + r.lastSentDays + ' days ago — may be too soon, consider waiting</div>';
+    }
+
+    // ── Feature 8: Revenue estimator ─────────────────────────────────────
+    var revEstHtml = '';
+    var revData = [];
+    eiCamps.forEach(function(c) {
+      if (!c.sent_at || c.theme !== r.theme) return;
+      var d = new Date(c.sent_at);
+      if (d.getMonth() !== m) return;
+      var st = eiStMap[c.id];
+      if (st && (st.rev || 0) > 0) revData.push(st.rev);
+    });
+    if (revData.length > 0) {
+      var avgRev = revData.reduce(function(s,v){return s+v;},0) / revData.length;
+      var minRev = Math.min.apply(null, revData);
+      var maxRev = Math.max.apply(null, revData);
+      var est5k  = Math.round(avgRev * 5000);
+      var est10k = Math.round(avgRev * 10000);
+      var rangeNote = revData.length > 1 ? ' (€'+minRev.toFixed(3)+'–€'+maxRev.toFixed(3)+'/rec, '+revData.length+' campaigns)' : '';
+      revEstHtml = '<div style="margin-bottom:8px;padding:7px 10px;background:rgba(255,255,255,.18);border-radius:7px;border:1px solid rgba(255,255,255,.25)">'
+        + '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;opacity:.7;margin-bottom:3px">💰 Revenue estimate</div>'
+        + '<div style="font-size:13px;font-weight:800">€' + est5k.toLocaleString('en-IE') + '–€' + est10k.toLocaleString('en-IE') + '</div>'
+        + '<div style="font-size:10px;opacity:.75;margin-top:2px">Based on €' + avgRev.toFixed(3) + '/recipient avg' + rangeNote + ' · estimate for 5k–10k list</div>'
+        + '</div>';
+    } else if (eiReady) {
+      revEstHtml = '<div style="margin-bottom:6px;font-size:10px;opacity:.6">💰 No revenue data for past ' + MN[m] + ' ' + r.cat.label + ' campaigns — enable Klaviyo revenue tracking</div>';
+    }
+
       html += '<div style="background:'+(isCurrentMonth?'#1e40af':'#f8fafc')+';border-radius:12px;padding:14px 16px;margin-bottom:16px;color:'+(isCurrentMonth?'#fff':'#1e293b')+'">'
         + '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;opacity:.7;margin-bottom:4px">'+(isCurrentMonth?'💡 Send this week':'💡 Best bet for '+MN[m])+'</div>'
         + '<div style="font-size:16px;font-weight:800;margin-bottom:4px">'+tpl.e+' '+r.cat.label+' email</div>'
         + '<div style="font-size:11px;opacity:.85;margin-bottom:4px">'+r.ready.length+' SKUs · avg '+r.avgCov+'d cover'+(r.lyBest?' · sent last '+MN[m]+', <strong>'+r.lyBestOpen+'% open</strong>':'')+(r.lastSentDays<999?' · last sent '+r.lastSentDays+'d ago':'')+'</div>'
+        + fatigueHtml
+        + revEstHtml
         + '<div style="font-size:10px;opacity:.6;margin-bottom:8px">'+dataNote+'</div>'
         + '<div style="background:rgba(255,255,255,.15);border-radius:7px;padding:8px 10px;font-size:12px;font-style:italic;margin-bottom:10px">&ldquo;'+esc(tpl.s)+'&rdquo;</div>'
         + '<div style="display:flex;gap:7px">'
