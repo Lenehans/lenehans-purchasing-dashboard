@@ -4928,7 +4928,7 @@ function renderActionNow(rows){
     const csShop30 = (r.QtySold_Shop_CapelStreet_30d||0)+(r.QtySold_Online_CapelStreet_30d||0);
     if(csShop30 >= 5 && (r.buy===0 || r.coverStatus==='Critical'||r.coverStatus==='Out of Stock')){
       s.csGapSkus++;
-      if(!s.csGapTopSku||(csShop30>(((s.csGapTopSku.QtySold_Shop_CapelStreet_30d||0)+(s.csGapTopSku.QtySold_Online_CapelStreet_30d||0)))))) s.csGapTopSku=r;
+      if(!s.csGapTopSku || csShop30 > ((s.csGapTopSku.QtySold_Shop_CapelStreet_30d||0)+(s.csGapTopSku.QtySold_Online_CapelStreet_30d||0))) s.csGapTopSku=r;
     }
     if(r.coverStatus==='Healthy' && (r.daysOfCover||0) > 120 && (r.SupplierCostPrice||0) > 0 && (r.stock||0) > 0){
       const dailyRate = (r.QtySold_Online_Total_30d||0)/30;
