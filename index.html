@@ -105,6 +105,70 @@
     .load-collapsed .lc-status{font-weight:700;color:#15803d;flex:1}
     .load-collapsed .lc-expand{font-size:11px;color:#64748b;font-weight:600;text-decoration:underline;white-space:nowrap}
 
+    /* ════ PURCHASING BRIEFING — Option A: Clean white/blue ══════════════════ */
+    #briefingView{padding-bottom:24px;display:none}
+    .brief-statsbar{display:flex;align-items:center;background:#e6f1fb;border-radius:12px;overflow:hidden;flex-wrap:nowrap;margin-bottom:16px;border:1.5px solid #b5d4f4}
+    .brief-stat-item{flex:1;padding:13px 18px;border-right:1px solid #b5d4f4;display:flex;flex-direction:column;gap:2px;min-width:0}
+    .brief-stat-item:last-child{border-right:none}
+    .brief-stat-val{font-size:20px;font-weight:900;color:#185fa5;line-height:1;white-space:nowrap}
+    .brief-stat-val.red{color:#dc2626}.brief-stat-val.amber{color:#d97706}.brief-stat-val.green{color:#16a34a}
+    .brief-stat-lbl{font-size:10px;font-weight:700;color:#378add;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+    .brief-stat-actions{display:flex;gap:8px;align-items:center;padding:10px 14px;flex-shrink:0}
+    .brief-wb-btn{padding:8px 14px;background:#185fa5;color:#fff;border:none;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;transition:background .12s}
+    .brief-wb-btn:hover{background:#0c447c}
+    .brief-hero{background:#fff;border-radius:16px;padding:24px 28px;margin-bottom:12px;border:1.5px solid #e2e8f0;border-left:5px solid #dc2626;position:relative}
+    .brief-hero-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#dc2626;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+    .brief-hero-label::after{content:'';flex:1;height:1px;background:#fecaca}
+    .brief-hero-body{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start;margin-bottom:16px}
+    .brief-hero-name{font-size:26px;font-weight:900;color:#1e293b;line-height:1.1;margin-bottom:6px}
+    .brief-hero-pills{display:flex;gap:8px;flex-wrap:wrap}
+    .brief-hero-pill{background:#f1f5f9;padding:3px 10px;border-radius:6px;color:#374151;font-size:12px;font-weight:700}
+    .brief-hero-pill.red{background:#fee2e2;color:#991b1b}
+    .brief-hero-rev-val{font-size:36px;font-weight:900;color:#dc2626;line-height:1;text-align:right}
+    .brief-hero-rev-lbl{font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:3px;text-align:right}
+    .brief-hero-skus{border-top:1.5px solid #f1f5f9;padding-top:12px;margin-bottom:14px}
+    .brief-sku-row{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:12px}
+    .brief-sku-name{flex:1;color:#374151;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .brief-sku-badge{flex-shrink:0;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:800;background:#fee2e2;color:#991b1b}
+    .brief-sku-badge.amber{background:#fff7ed;color:#92400e}
+    .brief-sku-rev{flex-shrink:0;font-size:11px;color:#64748b;font-weight:600;min-width:60px;text-align:right}
+    .brief-hero-footer{display:flex;align-items:center;gap:10px;border-top:1.5px solid #f1f5f9;padding-top:12px}
+    .brief-hero-po{font-size:11px;color:#64748b;flex:1}
+    .brief-hero-po.done{color:#16a34a}.brief-hero-po.pending{color:#d97706}
+    .brief-order-btn{padding:10px 20px;background:#185fa5;color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;transition:background .12s;white-space:nowrap}
+    .brief-order-btn:hover{background:#0c447c}
+    .brief-order-btn.outline{background:#fff;color:#185fa5;border:1.5px solid #b5d4f4}
+    .brief-order-btn.outline:hover{background:#e6f1fb}
+    .brief-ranked{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+    .brief-rank-card{display:grid;grid-template-columns:44px 1fr auto auto;gap:12px;align-items:center;padding:13px 16px;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;cursor:pointer;transition:all .15s}
+    .brief-rank-card:hover{border-color:#378add;box-shadow:0 3px 14px rgba(24,95,165,.08);transform:translateY(-1px)}
+    .brief-rank-card.red{border-left:5px solid #dc2626}.brief-rank-card.amber{border-left:5px solid #f97316}.brief-rank-card.green{border-left:5px solid #22c55e}
+    .brief-rank-num{font-size:22px;font-weight:900;color:#dbeafe;text-align:center}
+    .brief-rank-name{font-size:13px;font-weight:800;color:#1e293b;margin-bottom:3px}
+    .brief-rank-meta{font-size:11px;color:#64748b;display:flex;gap:8px;flex-wrap:wrap}
+    .brief-rank-rev{font-size:18px;font-weight:900;text-align:right;line-height:1}
+    .brief-rank-rev.red{color:#dc2626}.brief-rank-rev.amber{color:#d97706}.brief-rank-rev.green{color:#16a34a}
+    .brief-rank-rev-lbl{font-size:10px;color:#94a3b8;text-align:right;margin-top:2px}
+    .brief-expand-btn{width:100%;padding:10px;background:#f8fafc;border:1.5px dashed #b5d4f4;border-radius:10px;font-size:12px;font-weight:700;color:#378add;cursor:pointer;transition:all .12s;margin-bottom:16px}
+    .brief-expand-btn:hover{background:#e6f1fb;border-color:#378add}
+    .brief-tl-wrap{background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:16px 18px;margin-bottom:16px}
+    .brief-tl-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+    .brief-tl-col{border:1.5px solid #e2e8f0;border-radius:9px;padding:8px 7px;min-height:72px;background:#fafcff}
+    .brief-tl-col.today{border-color:#378add;background:#e6f1fb}
+    .brief-tl-day{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#374151;margin-bottom:1px}
+    .brief-tl-col.today .brief-tl-day{color:#185fa5}
+    .brief-tl-date{font-size:10px;color:#94a3b8;font-weight:600;margin-bottom:5px}
+    .brief-tl-chip{font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+    .brief-tl-chip.red{background:#fee2e2;color:#991b1b}.brief-tl-chip.amber{background:#fff7ed;color:#92400e}
+    .brief-intel-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .brief-intel-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;font-size:11px;font-weight:700;border:1.5px solid;cursor:pointer;transition:opacity .12s}
+    .brief-intel-pill.green{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
+    .brief-intel-pill.purple{background:#fdf4ff;color:#7e22ce;border-color:#e9d5ff}
+    #workbenchView{}
+    .brief-back-bar{display:flex;align-items:center;gap:12px;padding:8px 0;margin-bottom:8px;border-bottom:2px solid #e2e8f0}
+    .brief-back-btn{padding:8px 16px;background:#e6f1fb;color:#185fa5;border:1.5px solid #b5d4f4;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer}
+    .brief-back-btn:hover{background:#b5d4f4}
+
     /* ── Collapsible watchlist ──────────────────────────────────────── */
     .wl-header{display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 14px;
       background:#1e3a5f;border:1.5px solid #1e3a5f;border-radius:8px;margin:10px 0 0;
@@ -1111,6 +1175,50 @@
     </div>
   </div>
 
+  <!-- ════ PURCHASING BRIEFING (default view) ════════════════════════════ -->
+  <div id="briefingView">
+    <div id="briefStatsBar" class="brief-statsbar">
+      <div class="brief-stat-item">
+        <div class="brief-stat-val red" id="briefRevAtRisk">—</div>
+        <div class="brief-stat-lbl">Revenue at risk</div>
+      </div>
+      <div class="brief-stat-item">
+        <div class="brief-stat-val" id="briefSuppCount">—</div>
+        <div class="brief-stat-lbl">Suppliers need orders</div>
+      </div>
+      <div class="brief-stat-item">
+        <div class="brief-stat-val amber" id="briefAItemCount">—</div>
+        <div class="brief-stat-lbl">A-items OOS or critical</div>
+      </div>
+      <div class="brief-stat-item">
+        <div class="brief-stat-val green" id="briefHealthyCount">—</div>
+        <div class="brief-stat-lbl">Healthy suppliers</div>
+      </div>
+      <div class="brief-stat-actions">
+        <button class="brief-wb-btn" onclick="openWorkbench()">← Workbench</button>
+      </div>
+    </div>
+    <div id="briefIntelRow" class="brief-intel-row"></div>
+    <div id="briefHeroCard"></div>
+    <div id="briefRankedList" class="brief-ranked"></div>
+    <button class="brief-expand-btn" id="briefExpandBtn" onclick="toggleBriefAll()" style="display:none"></button>
+    <div id="briefAllGrid" style="display:none"></div>
+    <div class="brief-tl-wrap" id="briefTimelineWrap" style="display:none">
+      <div style="font-size:11px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+        📅 This week — suppliers going critical
+        <span id="briefTlSubtitle" style="font-size:12px;color:#64748b;font-weight:600;text-transform:none;letter-spacing:0"></span>
+      </div>
+      <div id="briefTimeline" class="brief-tl-grid"></div>
+    </div>
+  </div><!-- /briefingView -->
+
+  <!-- ════ WORKBENCH (on demand) ════════════════════════════════════════════ -->
+  <div id="workbenchView">
+    <div class="brief-back-bar">
+      <button class="brief-back-btn" onclick="closeWorkbench()">📊 Buying Brief</button>
+      <span id="workbenchLabel" style="font-size:13px;font-weight:700;color:#374151"></span>
+    </div>
+
   <!-- Section 1: Supplier Snapshot — collapsible -->
   <div id="wlHeader" class="wl-header" onclick="toggleWatchlist()">
     <h3>🏆 Supplier Snapshot</h3>
@@ -1225,6 +1333,8 @@
   </div><!-- /tableBody -->
 
   <div class="footer">V6.2 · Signal-stack architecture — 30D base × Seasonal × 7D spike × Cover pressure · Why Buy popup with full signal breakdown · Seasonal rules always-on · Irish seasonal profiles · stock basis = NetStock_Arklow</div>
+
+  </div><!-- /workbenchView -->
   </div><!-- /tab-buying -->
 
   <!-- TAB 2: Clear Stock -->
@@ -3646,6 +3756,220 @@ function setStatus(msg,bad){
 function setLoadMeta(msg,bad){ const el=document.getElementById('loadMeta'); if(el){ el.textContent=msg||''; el.style.color=bad?'var(--bad)':'var(--muted)'; } }
 function setGovStatus(msg){ const el=document.getElementById('govStatus'); if(el) el.textContent=msg||''; }
 
+// ─── WORKBENCH TOGGLE ────────────────────────────────────────────────────────
+function openWorkbench(supplier){
+  document.getElementById('briefingView').style.display='none';
+  document.getElementById('workbenchView').style.display='';
+  if(supplier){
+    state.activeSupplier=supplier;
+    render();
+    const tb=document.getElementById('tableBody');
+    if(tb&&tb.classList.contains('closed')){tb.classList.remove('closed');const tl=document.getElementById('tableToggle');if(tl)tl.textContent='▲ Hide';}
+    setTimeout(()=>document.getElementById('detailTable')?.scrollIntoView({behavior:'smooth'}),80);
+  }
+  const lbl=document.getElementById('workbenchLabel');
+  if(lbl) lbl.textContent=supplier?'Full view — '+supplier:'All suppliers';
+}
+function closeWorkbench(){
+  // Render briefing before showing it
+  try { renderBriefing(); } catch(e){ console.error('renderBriefing error:',e); }
+  document.getElementById('briefingView').style.display='';
+  document.getElementById('workbenchView').style.display='none';
+}
+function toggleBriefAll(){
+  const grid=document.getElementById('briefAllGrid');
+  const btn=document.getElementById('briefExpandBtn');
+  const open=grid.style.display==='none';
+  grid.style.display=open?'':'none';
+  if(btn) btn.textContent=open?'▲ Hide all suppliers':'▼ View all suppliers →';
+  if(open) grid.querySelectorAll('.wl-tile').forEach(tile=>tile.addEventListener('click',()=>openWorkbench(tile.dataset.supplier)));
+}
+
+// ─── RENDER BRIEFING (primary view) ──────────────────────────────────────────
+function renderBriefing(){
+  const rows=state.computedRows||[];
+  if(!rows.length) return;
+
+  const map=new Map();
+  for(const r of rows){
+    const k=r.SupplierName||'(Unknown)';
+    if(!map.has(k)) map.set(k,{name:k,skus:[],oos:0,crit:0,low:0,healthy:0,lostRev:0,buy:0,oosA:0,critA:0,topAtRisk:null,minDays:9999,overstockValue:0,csGapSkus:0});
+    const s=map.get(k);
+    s.skus.push(r);
+    s.buy+=(r.buy||0);
+    const isAtRisk=r.coverStatus==='Out of Stock'||r.coverStatus==='Critical';
+    if(r.coverStatus==='Out of Stock'){
+      s.oos++;if(r.abcClass==='A')s.oosA++;
+      if(r.Revenue_Online_Total_30d>0)s.lostRev+=r.Revenue_Online_Total_30d*3;
+      s.minDays=0;
+    }else if(r.coverStatus==='Critical'){
+      s.crit++;if(r.abcClass==='A')s.critA++;
+      if(r.Revenue_Online_Total_30d>0)s.lostRev+=r.Revenue_Online_Total_30d*1.5;
+      const d=r.daysOfCover||0;if(d<s.minDays)s.minDays=d;
+    }else if(r.coverStatus==='Low')s.low++;
+    else{
+      s.healthy++;
+      if((r.daysOfCover||0)>120&&(r.SupplierCostPrice||0)>0&&(r.stock||0)>0){
+        const excess=Math.max(0,(r.stock||0)-((r.QtySold_Online_Total_30d||0)/30)*90);
+        s.overstockValue+=excess*(r.SupplierCostPrice||0);
+      }
+    }
+    if(isAtRisk&&r.Revenue_Online_Total_30d>0){
+      if(!s.topAtRisk||(r.Revenue_Online_Total_30d||0)>(s.topAtRisk.Revenue_Online_Total_30d||0))s.topAtRisk=r;
+    }
+    const cs=(r.QtySold_Shop_CapelStreet_30d||0)+(r.QtySold_Online_CapelStreet_30d||0);
+    if(cs>=5&&(r.buy===0||r.coverStatus==='Critical'||r.coverStatus==='Out of Stock')) s.csGapSkus++;
+  }
+
+  const allSuppliers=[...map.values()];
+  const atRisk=allSuppliers.filter(s=>s.oos>0||s.crit>0).sort((a,b)=>b.lostRev-a.lostRev);
+  const healthy=allSuppliers.filter(s=>s.oos===0&&s.crit===0);
+  const totalLost=atRisk.reduce((t,s)=>t+s.lostRev,0);
+  const totalAItems=atRisk.reduce((t,s)=>t+s.oosA+s.critA,0);
+  const _chPoMap=getChannelPOMap();
+
+  // Intelligence pills — render FIRST (top of briefing)
+  const overstockedVal=allSuppliers.reduce((t,s)=>t+(s.overstockValue||0),0);
+  const csGapTotal=allSuppliers.reduce((t,s)=>t+(s.csGapSkus||0),0);
+  let intel='';
+  if(overstockedVal>=500) intel+=`<span class="brief-intel-pill green" onclick="openWorkbench()">💰 €${fmtInt(overstockedVal)} tied in 120d+ stock — push to promotions</span>`;
+  if(csGapTotal>0) intel+=`<span class="brief-intel-pill purple" onclick="openWorkbench()">🏪 ${csGapTotal} SKU${csGapTotal!==1?'s':''} selling at CS but no AK reorder</span>`;
+  const intelRow=document.getElementById('briefIntelRow');
+  if(intelRow) intelRow.innerHTML=intel;
+
+  // Stats bar
+  const setEl=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+  setEl('briefRevAtRisk',totalLost>0?'€'+fmtInt(totalLost):'€0');
+  setEl('briefSuppCount',atRisk.length);
+  setEl('briefAItemCount',totalAItems>0?totalAItems+' A-item'+(totalAItems!==1?'s':''):'—');
+  setEl('briefHealthyCount',healthy.length);
+
+  const heroEl=document.getElementById('briefHeroCard');
+  if(!heroEl) return;
+
+  // All healthy state
+  if(!atRisk.length){
+    heroEl.innerHTML=`<div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:16px;padding:32px 28px;text-align:center;margin-bottom:16px">
+      <div style="font-size:40px;margin-bottom:12px">✅</div>
+      <div style="font-size:22px;font-weight:900;color:#14532d;margin-bottom:8px">All top suppliers healthy</div>
+      <div style="font-size:13px;color:#16a34a">No orders needed right now · ${healthy.length} suppliers with adequate stock</div>
+    </div>`;
+    document.getElementById('briefRankedList').innerHTML='';
+    document.getElementById('briefExpandBtn').style.display='none';
+    document.getElementById('briefTimelineWrap').style.display='none';
+    return;
+  }
+
+  // Hero card — #1 by revenue at risk
+  const h=atRisk[0];
+  const hPo=_chPoMap[h.name];
+  const hPoHtml=hPo?.isDone
+    ?`<span class="brief-hero-po done">✅ PO done${hPo.date?' · '+esc(hPo.date):''}${hPo.person?' · '+esc(hPo.person):''}</span>`
+    :hPo?.month?`<span class="brief-hero-po pending">🔴 PO pending · ${esc(hPo.month)}</span>`
+    :`<span class="brief-hero-po">— No PO on record</span>`;
+  const hSafeName=h.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  const topSkus=h.skus.filter(r=>r.coverStatus==='Out of Stock'||r.coverStatus==='Critical')
+    .sort((a,b)=>(b.Revenue_Online_Total_30d||0)-(a.Revenue_Online_Total_30d||0)).slice(0,3);
+  const skuRows=topSkus.map(r=>{
+    const isOos=r.coverStatus==='Out of Stock';
+    const badgeCls=isOos?'':'amber';
+    const badge=isOos?'OOS':(Math.round(r.daysOfCover||0)+'d left');
+    const rev=r.Revenue_Online_Total_30d>0?'€'+fmtInt(r.Revenue_Online_Total_30d)+'/mo':'';
+    return `<div class="brief-sku-row"><span class="brief-sku-name">⚠ ${esc((r.ItemTitle||r.SKU||'').substring(0,52))}</span><span class="brief-sku-badge ${badgeCls}">${badge}</span><span class="brief-sku-rev">${rev}</span></div>`;
+  }).join('');
+
+  heroEl.innerHTML=`<div class="brief-hero">
+    <div class="brief-hero-label">${h.oos>0?'🔴 MOST URGENT — OOS NOW':'🟠 MOST URGENT — CRITICAL STOCK'}</div>
+    <div class="brief-hero-body">
+      <div>
+        <div class="brief-hero-name">${esc(h.name)}</div>
+        <div class="brief-hero-pills">
+          ${h.oosA+h.critA>0?`<span class="brief-hero-pill red">🔥 ${h.oosA+h.critA} A-item${h.oosA+h.critA!==1?'s':''} at risk</span>`:''}
+          ${h.oos>0?`<span class="brief-hero-pill red">🔴 ${h.oos} OOS</span>`:''}
+          ${h.crit>0?`<span class="brief-hero-pill">🟠 ${h.crit} critical</span>`:''}
+          ${h.buy>0?`<span class="brief-hero-pill">📦 Buy ${fmtInt(h.buy)} units</span>`:''}
+        </div>
+      </div>
+      <div>${h.lostRev>0?`<div class="brief-hero-rev-val">€${fmtInt(h.lostRev)}</div><div class="brief-hero-rev-lbl">Est. revenue at risk</div>`:''}</div>
+    </div>
+    ${topSkus.length?`<div class="brief-hero-skus">${skuRows}</div>`:''}
+    <div class="brief-hero-footer">
+      ${hPoHtml}
+      <button class="brief-order-btn" onclick="if(window.openQuickOrder)openQuickOrder('${hSafeName}')">⚡ Quick Order</button>
+      <button class="brief-order-btn outline" onclick="openWorkbench('${hSafeName}')">⊞ Full view</button>
+    </div>
+  </div>`;
+
+  // Ranked list (#2-6)
+  document.getElementById('briefRankedList').innerHTML=atRisk.slice(1,6).map((s,i)=>{
+    const colour=s.oos>0?'red':s.crit>0?'amber':'green';
+    const po=_chPoMap[s.name];
+    const poText=po?.isDone?'✅ PO done':(po?.month?'🔴 PO pending':'— No PO');
+    const safeName=s.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const meta=[s.oos>0?`🔴 ${s.oos} OOS`:'',s.crit>0?`🟠 ${s.crit} critical`:'',s.oosA+s.critA>0?`🔥 ${s.oosA+s.critA} A-item${s.oosA+s.critA!==1?'s':''}`:'',(s.buy>0?`Buy ${fmtInt(s.buy)}`:''),poText].filter(Boolean).join(' · ');
+    return `<div class="brief-rank-card ${colour}" onclick="openWorkbench('${safeName}')">
+      <div class="brief-rank-num">#${i+2}</div>
+      <div><div class="brief-rank-name">${esc(s.name)}</div><div class="brief-rank-meta">${meta}</div></div>
+      <div>${s.lostRev>0?`<div class="brief-rank-rev ${colour}">€${fmtInt(s.lostRev)}</div><div class="brief-rank-rev-lbl">at risk</div>`:''}</div>
+      <button class="brief-order-btn" style="font-size:11px;padding:8px 14px" onclick="event.stopPropagation();if(window.openQuickOrder)openQuickOrder('${safeName}')">⚡ Order</button>
+    </div>`;
+  }).join('');
+
+  // Expand all button — overflow suppliers as simple cards
+  const expandBtn=document.getElementById('briefExpandBtn');
+  if(atRisk.length>6){
+    expandBtn.style.display='';
+    expandBtn.textContent=`▼ View all ${atRisk.length} suppliers needing orders →`;
+    const overflowHtml=atRisk.slice(6).map((s,i)=>{
+      const colour=s.oos>0?'red':s.crit>0?'amber':'green';
+      const po=_chPoMap[s.name];
+      const poText=po?.isDone?'✅ PO done':(po?.month?'🔴 PO pending':'— No PO');
+      const safeName=s.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const meta=[s.oos>0?`🔴 ${s.oos} OOS`:'',s.crit>0?`🟠 ${s.crit} critical`:'',s.buy>0?`Buy ${fmtInt(s.buy)}`:'',poText].filter(Boolean).join(' · ');
+      return `<div class="brief-rank-card ${colour}" onclick="openWorkbench('${safeName}')">
+        <div class="brief-rank-num">#${i+7}</div>
+        <div><div class="brief-rank-name">${esc(s.name)}</div><div class="brief-rank-meta">${meta}</div></div>
+        <div>${s.lostRev>0?`<div class="brief-rank-rev ${colour}">€${fmtInt(s.lostRev)}</div><div class="brief-rank-rev-lbl">at risk</div>`:''}</div>
+        <button class="brief-order-btn" style="font-size:11px;padding:8px 14px" onclick="event.stopPropagation();if(window.openQuickOrder)openQuickOrder('${safeName}')">⚡ Order</button>
+      </div>`;
+    }).join('');
+    document.getElementById('briefAllGrid').innerHTML=`<div class="brief-ranked" style="padding:4px 0 0">${overflowHtml}</div>`;
+  }else expandBtn.style.display='none';
+
+  // 7-day timeline — chips capped at 3 per day
+  const tlWrap=document.getElementById('briefTimelineWrap');
+  const goingCrit=(state.computedRows||[]).filter(r=>{
+    if(!r.SupplierName||r.coverStatus==='Out of Stock'||r.coverStatus==='Critical') return false;
+    const daysLeft=(r.daysOfCover||0)-14;
+    return daysLeft>0&&daysLeft<=7;
+  });
+  if(goingCrit.length){
+    tlWrap.style.display='';
+    const tlMap=new Map();
+    for(const r of goingCrit){
+      const k=r.SupplierName;
+      const day=Math.floor((r.daysOfCover||0)-14);
+      if(!tlMap.has(k)||day<tlMap.get(k).day) tlMap.set(k,{name:k,day});
+    }
+    const tlList=[...tlMap.values()];
+    const sub=document.getElementById('briefTlSubtitle');
+    if(sub) sub.textContent=`${tlList.length} supplier${tlList.length!==1?'s':''} going critical`;
+    const DNAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const now=new Date();
+    document.getElementById('briefTimeline').innerHTML=[0,1,2,3,4,5,6].map(d=>{
+      const dt=new Date(now); dt.setDate(dt.getDate()+d);
+      const dayLabel=d===0?'Today':DNAMES[dt.getDay()];
+      const dateStr=dt.getDate()+'/'+(dt.getMonth()+1);
+      const daySupps=tlList.filter(s=>s.day===d);
+      const visible=daySupps.slice(0,3);
+      const extra=daySupps.length-3;
+      const chips=visible.map(s=>`<span class="brief-tl-chip ${d<=2?'red':'amber'}" title="${esc(s.name)}">${esc(s.name.split(' ')[0])}</span>`).join('')
+        +(extra>0?`<span style="font-size:10px;color:#94a3b8;font-weight:600">+${extra} more</span>`:'');
+      return `<div class="brief-tl-col${d===0?' today':''}"><div class="brief-tl-day">${dayLabel}</div><div class="brief-tl-date">${dateStr}</div>${chips||'<span style="font-size:11px;color:#e2e8f0">✓</span>'}</div>`;
+    }).join('');
+  }else tlWrap.style.display='none';
+}
+
 function toggleWatchlist(){
   const body=document.getElementById('wlBody');
   const lbl=document.getElementById('wlToggleLabel');
@@ -5270,7 +5594,8 @@ function render(){
   const rows=getFilteredRows();
   document.getElementById('mCritical').textContent=fmtInt(rows.filter(r=>['Critical','Out of Stock'].includes(r.status)).length);
   renderActionNow(rows);
-  renderForecast();
+  try { renderBriefing(); } catch(e){ console.error('renderBriefing error:', e); }
+  try { renderForecast(); } catch(e){ console.error('renderForecast error:', e); }
   renderOrderPreview(rows);
 
   // Section 3 header summary
@@ -6209,24 +6534,50 @@ function generateSKUExplanation(sku, btn){
   const status      = row.coverStatus||'';
   const trending    = row.isTrending ? `Trending: 30D rate is ${(row.spikeRatio||0).toFixed(1)}× the 180D average.` : '';
   const declining   = row.isDeclining ? 'Demand is declining vs 180D average.' : '';
-  const seasonal    = row.seasonalDataUsed
-    ? `Historical sales: ${row.seasonalDataUsed.col1||''}=${row.seasonalDataUsed.q1||0}, ${row.seasonalDataUsed.col2||''}=${row.seasonalDataUsed.q2||0} units (${row.seasonalDataUsed.yr||'last year'}).`
-    : (row.seasonalNote ? `Seasonal signal: ${row.seasonalNote}.` : '');
-  const growth      = growthAdj!=='0' ? `+${growthAdj}% YoY growth adjustment applied to historical data.` : '';
+  const growth      = growthAdj!=='0' ? `+${growthAdj}% YoY growth adjustment applied.` : '';
   const autoMode    = row.autoSelectedMode ? `Auto-selected demand mode: ${row.autoSelectedMode}.` : '';
 
+  // Current month and season — MUST be passed to prevent AI hallucination
+  const now = new Date();
+  const monthName = now.toLocaleDateString('en-IE',{month:'long'});
+  const monthNum = now.getMonth(); // 0=Jan
+  const seasonName = monthNum>=2&&monthNum<=4?'spring':monthNum>=5&&monthNum<=7?'summer':monthNum>=8&&monthNum<=10?'autumn':'winter';
+
+  // Seasonal profile — use the actual computed profile, not Claude's imagination
+  const profileName = row.seasonalProfile||'NONE';
+  const profileNote = row.seasonalNote||'';
+  const seasonalContext = profileName && profileName!=='NONE'
+    ? `Seasonal profile: ${profileName} (${profileNote||profileName}). This means demand typically peaks in: ${
+        profileName.includes('SUMMER')?'summer (June–August)':
+        profileName.includes('SPRING_SUMMER')?'spring and summer (April–August)':
+        profileName.includes('SPRING')?'spring (March–May)':
+        profileName.includes('WINTER')?'winter (October–February)':
+        profileName.includes('AUTUMN')?'autumn (September–November)':
+        'year-round'
+      }.`
+    : 'No seasonal profile — demand is stable year-round.';
+
+  // Historical seasonal data
+  const historicalNote = row.seasonalDataUsed
+    ? `Historical data: ${row.seasonalDataUsed.col1||''}=${row.seasonalDataUsed.q1||0}, ${row.seasonalDataUsed.col2||''}=${row.seasonalDataUsed.q2||0} units (${row.seasonalDataUsed.yr||'last year'}).`
+    : '';
+
   const prompt = `You are a buying assistant for Lenehans Hardware, an Irish hardware retailer.`
-    + ` Write 3-4 plain English sentences explaining to a buyer why they should order ${buy} units of "${title}".`
-    + ` Be specific, direct, and practical — no bullet points, no jargon.`
-    + ` Focus on: (1) how urgent the stock situation is, (2) what the demand data actually means, (3) why this specific quantity makes sense.`
+    + ` TODAY IS ${monthName.toUpperCase()} — it is ${seasonName} in Ireland.`
+    + ` Explain in 3-4 plain English sentences why we should order ${buy} units of "${title}" now.`
+    + ` Be specific, direct, and practical. No bullet points.`
+    + ` CRITICAL: Only reference seasonal context that matches the product's actual profile below.`
+    + ` Do NOT mention any season that is not ${seasonName}. Do NOT invent context not in this data.`
     + ` Data: Status=${status}, Stock=${stock} units (${cover}d cover), Base demand=${baseDemand}/day, Adjusted demand=${adjDemand}/day,`
-    + ` Revenue=€${rev}/month, ABC class=${abc}, Cover target=${coverTarget}d (${mult}× multiplier for ${abc}-class),`
-    + ` Need ${target} units total, Recommend buying ${buy}.`
-    + (seasonal ? ' ' + seasonal : '')
+    + ` Revenue=€${rev}/month, ABC class=${abc}, Cover target=${coverTarget}d (${mult}× for ${abc}-class),`
+    + ` Need ${target} units total, Ordering ${buy}.`
+    + ` ${seasonalContext}`
+    + (historicalNote ? ' ' + historicalNote : '')
     + (growth   ? ' ' + growth   : '')
     + (trending ? ' ' + trending : '')
     + (declining? ' ' + declining: '')
-    + (autoMode ? ' ' + autoMode : '');
+    + (autoMode ? ' ' + autoMode : '')
+    + ` Focus on: (1) urgency given current stock, (2) what the demand data actually shows, (3) why ${buy} units is the right number for ${monthName}.`;
 
   const proxyUrl = PO_UPDATER_URL + '?action=ai_brief&prompt=' + encodeURIComponent(prompt);
 
@@ -7987,15 +8338,7 @@ function quickOrderExport() {
 function quickOrderGoFull() {
   closeQuickOrder();
   if (state) state.activeSupplier = _qo.supplier;
-  if (window.render) render();
-  // Ensure Section 3 is open before scrolling
-  const tb=document.getElementById('tableBody');
-  if(tb&&tb.classList.contains('closed')){
-    tb.classList.remove('closed');
-    const tl=document.getElementById('tableToggle');
-    if(tl) tl.textContent='▲ Hide';
-  }
-  setTimeout(function(){ var el=document.getElementById('detailTable'); if(el) el.scrollIntoView({behavior:'smooth'}); }, 80);
+  openWorkbench(_qo.supplier);
 }
 
 document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuickOrder(); });
