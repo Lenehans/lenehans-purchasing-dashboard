@@ -1027,7 +1027,7 @@
   <div class="tab-panel active" id="tab-buying">
 
   <!-- Full-screen loading overlay — shown while auto-loading -->
-  <div id="buyingLoadOverlay" style="position:absolute;inset:0;background:#f8fafc;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;min-height:70vh">
+  <div id="buyingLoadOverlay" style="position:fixed;inset:0;background:#f8fafc;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
     <div style="width:56px;height:56px;border:5px solid #e2e8f0;border-top-color:#1e3a5f;border-radius:50%;animation:ei-spin 1s linear infinite"></div>
     <div style="font-size:20px;font-weight:800;color:#1e3a5f;animation:ei-pulse 1.8s ease-in-out infinite;letter-spacing:.01em">Building the Lenehans Purchasing Dashboard…</div>
     <div id="buyingOverlayStep" style="font-size:13px;color:#64748b;min-height:20px">Loading buying data…</div>
@@ -6722,7 +6722,6 @@ function applyGovernance(rows){
     for(const g of state.governedSuppliers){
       if(g.toLowerCase() === rLow) return true;
     }
-    return false;
     return false;
   });
 }
