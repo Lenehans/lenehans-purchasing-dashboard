@@ -4128,39 +4128,28 @@ function parseCSFeed(rows){
 
 // ─── PO STATUS FEED PARSING ──────────────────────────────────────────────────
 function parsePOFeed(rows){
-  // New format: MonthKey, Supplier,
-  //   AK Status, AK Done, AK By, CS Status, CS Done, CS By
-  //   (3 months: Mar/Apr/May 2026 — 6 cols each)
-  // Also supports legacy format with Status Arklow / Status Capel Street columns
+  // Flat format: one row per supplier, month column groups
+  // [Mon] AK Status, [Mon] AK Done, [Mon] AK By, [Mon] CS Status, [Mon] CS Done, [Mon] CS By
+  // Months detected dynamically from headers — no hardcoding needed as new months are added
   const map = {};
   if(!rows.length) return map;
 
   const hdrs = Object.keys(rows[0]);
-  function col(keywords){
-    for(const kw of keywords){
-      const found = hdrs.find(h=>h.toLowerCase().includes(kw.toLowerCase()));
-      if(found) return found;
-    }
-    return null;
-  }
-
-  const supplierCol = col(['supplier']);
+  const supplierCol = hdrs.find(h=>h.toLowerCase().includes('supplier'));
   if(!supplierCol) return map;
-
-  // Flat format: one row per supplier, 3 months as column groups
-  // Mar AK Status, Mar AK Done, Mar AK By, Mar CS Status, Mar CS Done, Mar CS By
-  // Apr AK Status, Apr AK Done, Apr AK By, Apr CS Status, Apr CS Done, Apr CS By
-  // May AK Status, May AK Done, May AK By, May CS Status, May CS Done, May CS By
-  const monthPrefixes = ['Mar','Apr','May'];
 
   function isDoneStatus(s){ return PO_DONE_STATUSES.some(d=>(s||'').toLowerCase().includes(d)); }
   function getCol(prefix, suffix){
-    // Exact match required — prevents 'Mar AK Status' matching 'Apr AK Status'
     const target = `${prefix} ${suffix}`.toLowerCase();
     return hdrs.find(h=>h.toLowerCase()===target) || null;
   }
 
-  // Build per-supplier history: { supplier: { arklow: [...entries], capelstreet: [...entries] } }
+  // Auto-detect all month prefixes that appear in the headers (Jan–Dec, any year)
+  const ALL_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const monthPrefixes = ALL_MONTHS.filter(m =>
+    hdrs.some(h => h.toLowerCase().startsWith(m.toLowerCase() + ' '))
+  );
+
   const history = {};
 
   for(const r of rows){
@@ -4182,7 +4171,8 @@ function parsePOFeed(rows){
       const dateCS   = csDoneCol   ? String(r[csDoneCol]||'').trim()   : '';
       const personAK = akByCol     ? String(r[akByCol]||'').trim()     : '';
       const personCS = csByCol     ? String(r[csByCol]||'').trim()     : '';
-      const monthLabel = `${prefix} 2026`;
+      const yr       = new Date().getFullYear();
+      const monthLabel = `${prefix} ${yr}`;
 
       if(statusAK){
         history[supplier].arklow.push({
@@ -4199,29 +4189,21 @@ function parsePOFeed(rows){
     }
   }
 
-  // Build map entries — latest status + history array for chip display
+  // Build map entries — latest status per channel + recent done history
   for(const [supplier, h] of Object.entries(history)){
-    // Sort by month descending (most recent first)
     const sortEntries = arr => arr.sort((a,b) => {
-      const da = new Date(a.month), db = new Date(b.month);
-      return isNaN(da)||isNaN(db) ? 0 : db-da;
+      const ma = ALL_MONTHS.indexOf(a.month.split(' ')[0]);
+      const mb = ALL_MONTHS.indexOf(b.month.split(' ')[0]);
+      return mb - ma;
     });
 
     const akEntries = sortEntries(h.arklow);
     const csEntries = sortEntries(h.capelstreet);
+    const akLatest  = akEntries[0] || null;
+    const csLatest  = csEntries[0] || null;
 
-    const akLatest = akEntries[0] || null;
-    const csLatest = csEntries[0] || null;
-
-    const akKey = `${supplier}||arklow`;
-    const csKey = `${supplier}||capel street`;
-
-    if(akLatest){
-      map[akKey] = { ...akLatest, history: akEntries.filter(e=>e.isDone).slice(0,3) };
-    }
-    if(csLatest){
-      map[csKey] = { ...csLatest, history: csEntries.filter(e=>e.isDone).slice(0,3) };
-    }
+    if(akLatest) map[`${supplier}||arklow`]       = { ...akLatest, history: akEntries.filter(e=>e.isDone).slice(0,6) };
+    if(csLatest) map[`${supplier}||capel street`] = { ...csLatest, history: csEntries.filter(e=>e.isDone).slice(0,6) };
   }
 
   return map;
@@ -4859,10 +4841,11 @@ function computeRow(row){
   const base30dQty   = row.QtySold_Online_Total_30d || 0;
   const base30dDaily = base30dQty / 30;
 
-  // Growth adjustment — applied to historical seasonal data only (not live 30D which already reflects growth)
-  // e.g. growthAdj = 40 means "we're 40% bigger than last year, scale up historical actuals"
-  const growthAdj  = num(document.getElementById('growthAdj')?.value) || 0;
-  const growthMult = growthAdj !== 0 ? 1 + growthAdj / 100 : 1;
+  // Growth adjustment — Arklow Online ONLY.
+  // CS has its own trajectory — applying the online growth rate would overcook CS orders.
+  const growthAdjRaw = num(document.getElementById('growthAdj')?.value) || 0;
+  const growthAdj    = (state.channel === 'capel') ? 0 : growthAdjRaw;
+  const growthMult   = growthAdj !== 0 ? 1 + growthAdj / 100 : 1;
 
   // Signal 2 & 3: seasonal (historical data takes priority over profile)
   let adjustedDaily    = base30dDaily;
@@ -5579,6 +5562,24 @@ function render(){
   const mode=document.getElementById('demandMode').value;
   document.getElementById('mMode').textContent=mode==='Auto'?'Auto ✦':mode;
   document.getElementById('modeBadge').textContent=`Mode: ${mode==='Auto'?'Auto ✦':mode}`;
+
+  // Growth adj — disable and flag when in Capel Street mode
+  const growthInput = document.getElementById('growthAdj');
+  const growthLabel = document.getElementById('growthAdjLabel');
+  if(growthInput && growthLabel){
+    const isCapel = state.channel === 'capel';
+    growthInput.disabled = isCapel;
+    growthInput.style.opacity = isCapel ? '0.4' : '1';
+    growthLabel.title = isCapel
+      ? 'Growth adjustment is disabled for Capel Street — online growth rate does not apply to the shop.'
+      : 'YoY growth adjustment applied to all historical seasonal data. Set to 40 if you\'re 40% up on last year — prevents under-ordering on seasonal buys.';
+    // Show/hide CS override note
+    let csNote = document.getElementById('growthAdjCsNote');
+    if(isCapel){
+      if(!csNote){ csNote=document.createElement('span'); csNote.id='growthAdjCsNote'; csNote.style.cssText='font-size:10px;color:#d97706;font-weight:700;margin-left:4px'; growthLabel.appendChild(csNote); }
+      csNote.textContent = '(CS: ignored)';
+    } else if(csNote){ csNote.textContent=''; }
+  }
   document.getElementById('monthBadge').textContent=`Month: ${monthLabel()}`;
   // Show active fallback badges in toolbar when inside a supplier
   const _fb90on  = document.getElementById('fallback90Btn')?.dataset.active==='true';
@@ -7287,9 +7288,9 @@ function toggleTeamDone(supplier, channels, buyerName){
 
 function markSupplierDone(supplierName){
   if(!PO_UPDATER_URL) return;
-  const ch = state.channel === 'capel' ? 'Capel Street' : 'Arklow';
-  // Get buyer name from BUYER_SCHEDULE if possible
-  const schedEntry = BUYER_SCHEDULE.find(r=>r.supplier===supplierName && r.channel===ch);
+  const ch        = state.channel === 'capel' ? 'CS' : 'AK';
+  const chDisplay = state.channel === 'capel' ? 'Capel Street' : 'Arklow';
+  const schedEntry = BUYER_SCHEDULE.find(r=>r.supplier===supplierName && r.channel===chDisplay);
   const buyer = schedEntry ? schedEntry.buyer : '';
   const url = PO_UPDATER_URL
     + '?supplier=' + encodeURIComponent(supplierName)
