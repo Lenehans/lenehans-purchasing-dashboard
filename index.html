@@ -3759,7 +3759,7 @@ function setGovStatus(msg){ const el=document.getElementById('govStatus'); if(el
 // ─── WORKBENCH TOGGLE ────────────────────────────────────────────────────────
 function openWorkbench(supplier){
   document.getElementById('briefingView').style.display='none';
-  document.getElementById('workbenchView').style.display='';
+  document.getElementById('workbenchView').style.display='block';
   if(supplier){
     state.activeSupplier=supplier;
     render();
@@ -3773,7 +3773,7 @@ function openWorkbench(supplier){
 function closeWorkbench(){
   // Render briefing before showing it
   try { renderBriefing(); } catch(e){ console.error('renderBriefing error:',e); }
-  document.getElementById('briefingView').style.display='';
+  document.getElementById('briefingView').style.display='block';
   document.getElementById('workbenchView').style.display='none';
 }
 function toggleBriefAll(){
