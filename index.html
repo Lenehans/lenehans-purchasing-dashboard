@@ -4129,8 +4129,9 @@ function parseCSFeed(rows){
 // ─── PO STATUS FEED PARSING ──────────────────────────────────────────────────
 function parsePOFeed(rows){
   // Flat format: one row per supplier, month column groups
-  // [Mon] AK Status, [Mon] AK Done, [Mon] AK By, [Mon] CS Status, [Mon] CS Done, [Mon] CS By
-  // Months detected dynamically from headers — no hardcoding needed as new months are added
+  // Accepts: "[Mon] AK Status" / "[Mon] AK Done" / "[Mon] AK By"
+  //          "[Mon] CS Status" / "[Mon] CS Done" / "[Mon] CS By"
+  //          "[Mon] Arklow Status" etc. (any format — case-insensitive, flexible)
   const map = {};
   if(!rows.length) return map;
 
@@ -4139,68 +4140,98 @@ function parsePOFeed(rows){
   if(!supplierCol) return map;
 
   function isDoneStatus(s){ return PO_DONE_STATUSES.some(d=>(s||'').toLowerCase().includes(d)); }
-  function getCol(prefix, suffix){
-    const target = `${prefix} ${suffix}`.toLowerCase();
-    return hdrs.find(h=>h.toLowerCase()===target) || null;
+
+  // Flexible column finder — tries multiple possible suffixes for a given channel
+  function findCol(prefix, channel, type){
+    const akSuffixes  = channel==='ak'  ? ['ak '+type,'arklow '+type,'a '+type] : [];
+    const csSuffixes  = channel==='cs'  ? ['cs '+type,'capel street '+type,'capel '+type,'cs'+type] : [];
+    const suffixes    = [...akSuffixes, ...csSuffixes];
+    const p = prefix.toLowerCase()+' ';
+    for(const suf of suffixes){
+      const found = hdrs.find(h=>h.toLowerCase()===p+suf);
+      if(found) return found;
+    }
+    return null;
   }
 
-  // Auto-detect all month prefixes that appear in the headers (Jan–Dec, any year)
-  const ALL_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const monthPrefixes = ALL_MONTHS.filter(m =>
-    hdrs.some(h => h.toLowerCase().startsWith(m.toLowerCase() + ' '))
-  );
+  // Auto-detect all month prefixes that appear in the headers
+  const ALL_MONTHS    = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const FULL_MONTHS   = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const monthPrefixes = [];
+  ALL_MONTHS.forEach((abbr, i)=>{
+    const full = FULL_MONTHS[i];
+    const hasAbbr = hdrs.some(h=>h.toLowerCase().startsWith(abbr.toLowerCase()+' '));
+    const hasFull = hdrs.some(h=>h.toLowerCase().startsWith(full.toLowerCase()+' '));
+    if(hasAbbr) monthPrefixes.push({ prefix:abbr, idx:i });
+    else if(hasFull) monthPrefixes.push({ prefix:full, idx:i });
+  });
 
   const history = {};
+  const yr = new Date().getFullYear();
 
   for(const r of rows){
     const supplier = String(r[supplierCol]||'').trim();
     if(!supplier) continue;
     if(!history[supplier]) history[supplier] = { arklow:[], capelstreet:[] };
 
-    for(const prefix of monthPrefixes){
-      const akStatusCol = getCol(prefix,'AK Status');
-      const akDoneCol   = getCol(prefix,'AK Done');
-      const akByCol     = getCol(prefix,'AK By');
-      const csStatusCol = getCol(prefix,'CS Status');
-      const csDoneCol   = getCol(prefix,'CS Done');
-      const csByCol     = getCol(prefix,'CS By');
+    for(const {prefix, idx} of monthPrefixes){
+      const akStatusCol = findCol(prefix,'ak','status');
+      const akDoneCol   = findCol(prefix,'ak','done');
+      const akByCol     = findCol(prefix,'ak','by');
+      const csStatusCol = findCol(prefix,'cs','status');
+      const csDoneCol   = findCol(prefix,'cs','done');
+      const csByCol     = findCol(prefix,'cs','by');
 
       const statusAK = akStatusCol ? String(r[akStatusCol]||'').trim() : '';
       const statusCS = csStatusCol ? String(r[csStatusCol]||'').trim() : '';
-      const dateAK   = akDoneCol   ? String(r[akDoneCol]||'').trim()   : '';
-      const dateCS   = csDoneCol   ? String(r[csDoneCol]||'').trim()   : '';
-      const personAK = akByCol     ? String(r[akByCol]||'').trim()     : '';
-      const personCS = csByCol     ? String(r[csByCol]||'').trim()     : '';
-      const yr       = new Date().getFullYear();
-      const monthLabel = `${prefix} ${yr}`;
+      const monthLabel = `${ALL_MONTHS[idx]} ${yr}`;
 
       if(statusAK){
+        // Date/person may be embedded in status string or in separate cols
+        let dateAK   = akDoneCol ? String(r[akDoneCol]||'').trim() : '';
+        let personAK = akByCol   ? String(r[akByCol]||'').trim()   : '';
+        // If status contains date/person inline (e.g. "DONE 02/06/26 Mark")
+        if(!dateAK && !personAK){
+          const m = statusAK.match(/(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/);
+          if(m) dateAK = m[1];
+        }
         history[supplier].arklow.push({
           raw:statusAK, isDone:isDoneStatus(statusAK),
-          date:dateAK, person:personAK, month:monthLabel, channel:'arklow'
+          date:dateAK, person:personAK, month:monthLabel, channel:'arklow', monthIdx:idx
         });
       }
       if(statusCS){
+        let dateCS   = csDoneCol ? String(r[csDoneCol]||'').trim() : '';
+        let personCS = csByCol   ? String(r[csByCol]||'').trim()   : '';
+        if(!dateCS && !personCS){
+          const m = statusCS.match(/(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/);
+          if(m) dateCS = m[1];
+        }
         history[supplier].capelstreet.push({
           raw:statusCS, isDone:isDoneStatus(statusCS),
-          date:dateCS, person:personCS, month:monthLabel, channel:'capel street'
+          date:dateCS, person:personCS, month:monthLabel, channel:'capel street', monthIdx:idx
         });
       }
     }
   }
 
-  // Build map entries — latest status per channel + recent done history
+  // Build map — latest entry per channel (highest monthIdx = most recent)
   for(const [supplier, h] of Object.entries(history)){
-    const sortEntries = arr => arr.sort((a,b) => {
-      const ma = ALL_MONTHS.indexOf(a.month.split(' ')[0]);
-      const mb = ALL_MONTHS.indexOf(b.month.split(' ')[0]);
-      return mb - ma;
-    });
+    const sortByMonth = arr => arr.slice().sort((a,b)=>b.monthIdx-a.monthIdx);
 
-    const akEntries = sortEntries(h.arklow);
-    const csEntries = sortEntries(h.capelstreet);
-    const akLatest  = akEntries[0] || null;
-    const csLatest  = csEntries[0] || null;
+    const akEntries = sortByMonth(h.arklow);
+    const csEntries = sortByMonth(h.capelstreet);
+
+    // Latest = most recent entry (preferring done entries for current month)
+    const pickLatest = entries => {
+      if(!entries.length) return null;
+      const thisMonth = new Date().getMonth(); // 0-indexed
+      const thisMonthDone = entries.find(e=>e.monthIdx===thisMonth&&e.isDone);
+      return thisMonthDone || entries[0];
+    };
+
+    const akLatest = pickLatest(akEntries);
+    const csLatest = pickLatest(csEntries);
 
     if(akLatest) map[`${supplier}||arklow`]       = { ...akLatest, history: akEntries.filter(e=>e.isDone).slice(0,6) };
     if(csLatest) map[`${supplier}||capel street`] = { ...csLatest, history: csEntries.filter(e=>e.isDone).slice(0,6) };
