@@ -1213,7 +1213,7 @@
   </div><!-- /briefingView -->
 
   <!-- ════ WORKBENCH (on demand) ════════════════════════════════════════════ -->
-  <div id="workbenchView">
+  <div id="workbenchView" style="display:none">
     <div class="brief-back-bar">
       <button class="brief-back-btn" onclick="closeWorkbench()">📊 Buying Brief</button>
       <span id="workbenchLabel" style="font-size:13px;font-weight:700;color:#374151"></span>
@@ -3798,12 +3798,13 @@ function renderBriefing(){
     s.skus.push(r);
     s.buy+=(r.buy||0);
     const isAtRisk=r.coverStatus==='Out of Stock'||r.coverStatus==='Critical';
+    const isActionable=(r.buy||0)>0; // no demand signal = no action needed
     if(r.coverStatus==='Out of Stock'){
-      s.oos++;if(r.abcClass==='A')s.oosA++;
+      if(isActionable){ s.oos++;if(r.abcClass==='A')s.oosA++; }
       if(r.Revenue_Online_Total_30d>0)s.lostRev+=r.Revenue_Online_Total_30d*3;
       s.minDays=0;
     }else if(r.coverStatus==='Critical'){
-      s.crit++;if(r.abcClass==='A')s.critA++;
+      if(isActionable){ s.crit++;if(r.abcClass==='A')s.critA++; }
       if(r.Revenue_Online_Total_30d>0)s.lostRev+=r.Revenue_Online_Total_30d*1.5;
       const d=r.daysOfCover||0;if(d<s.minDays)s.minDays=d;
     }else if(r.coverStatus==='Low')s.low++;
@@ -4792,6 +4793,8 @@ function computeRow(row){
       // Use Capel-specific 90D/180D online splits if available, fall back to shop data
       QtySold_Online_Total_90d:  row.QtySold_Online_CapelStreet_90d||row.QtySold_Shop_CapelStreet_90d||0,
       QtySold_Online_Total_180d: row.QtySold_Online_CapelStreet_180d||row.QtySold_Shop_CapelStreet_180d||0,
+      // Revenue: use CS shop revenue so at-risk figures reflect CS reality, not AK online
+      Revenue_Online_Total_30d:  row.Revenue_Shop_CapelStreet_30d||0,
     };
   }
 
@@ -5397,14 +5400,13 @@ function renderActionNow(rows){
     s.skus.push(r);
     s.buy+=(r.buy||0);
     const isAtRisk = r.coverStatus==='Out of Stock'||r.coverStatus==='Critical';
+    const isActionable = (r.buy||0) > 0;
     if(r.coverStatus==='Out of Stock'){
-      s.oos++;
-      if(r.abcClass==='A') s.oosA++;
+      if(isActionable){ s.oos++; if(r.abcClass==='A') s.oosA++; }
       if(r.Revenue_Online_Total_30d>0) s.lostRev+=r.Revenue_Online_Total_30d*3;
       s.minDays=0;
     } else if(r.coverStatus==='Critical'){
-      s.crit++;
-      if(r.abcClass==='A') s.critA++;
+      if(isActionable){ s.crit++; if(r.abcClass==='A') s.critA++; }
       if(r.Revenue_Online_Total_30d>0) s.lostRev+=r.Revenue_Online_Total_30d*1.5;
       const d=r.daysOfCover||0;
       if(d<s.minDays) s.minDays=d;
@@ -5625,6 +5627,10 @@ function render(){
   document.getElementById('mSuppliers').textContent=fmtInt(new Set(state.computedRows.map(r=>r.SupplierName||'(Blank supplier)')).size);
   const rows=getFilteredRows();
   document.getElementById('mCritical').textContent=fmtInt(rows.filter(r=>['Critical','Out of Stock'].includes(r.status)).length);
+  // Ensure workbench is visible once data is loaded (hidden during splash)
+  const wbEl = document.getElementById('workbenchView');
+  if(wbEl && wbEl.style.display==='none' && document.getElementById('briefingView').style.display!=='block') wbEl.style.display='block';
+
   renderActionNow(rows);
   try { renderBriefing(); } catch(e){ console.error('renderBriefing error:', e); }
   try { renderForecast(); } catch(e){ console.error('renderForecast error:', e); }
@@ -8168,6 +8174,8 @@ function openQuickOrder(supplierName) {
     if (state.skuRankMap) {
       matchRows = matchRows.filter(function(r){ return (state.skuRankMap.get(r.SKU)||9999) <= 500; });
     }
+    // Only show rows with something to order — buy=0 means no demand signal, nothing actionable
+    matchRows = matchRows.filter(function(r){ return (r.buy||0) > 0; });
     _qo.rows = matchRows.sort(function(a,b){
       var rank = function(r){ return r.coverStatus==='Out of Stock'?0:r.coverStatus==='Critical'?1:r.coverStatus==='Low'?2:3; };
       return rank(a)-rank(b) || (a.daysOfCover||0)-(b.daysOfCover||0);
