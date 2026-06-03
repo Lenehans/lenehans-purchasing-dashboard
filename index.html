@@ -5133,46 +5133,18 @@ function recompute(){
   const chPoMap = getChannelPOMap();
   const allComputed=state.governedRows.map(computeRow);
 
-  // ── Deduplicate by SKU: keep lowest cost supplier, attach alternatives ──────
-  const skuMap=new Map();
+  // ── Keep one row per SKU+Supplier combination ────────────────────────────
+  // Multi-supplier SKUs (e.g. bought from STAX and WILSONS) appear under
+  // each supplier separately so buyers can order from the right one.
+  const seen = new Set();
+  const deduped = [];
   for(const r of allComputed){
-    const sku=r.SKU;
-    if(!skuMap.has(sku)){
-      skuMap.set(sku,[]);
-    }
-    skuMap.get(sku).push(r);
-  }
-
-  const deduped=[];
-  for(const [sku, rows] of skuMap){
-    if(rows.length===1){
-      rows[0]._alternatives=[];
-      rows[0]._bestKnownCost=rows[0].SupplierCostPrice||0;
-      deduped.push(rows[0]);
-      continue;
-    }
-    // Sort by cost price ascending — zero cost last (unknown)
-    rows.sort((a,b)=>{
-      const ca=a.SupplierCostPrice||0, cb=b.SupplierCostPrice||0;
-      if(ca===0&&cb===0) return 0;
-      if(ca===0) return 1;
-      if(cb===0) return -1;
-      return ca-cb;
-    });
-    const primary=rows[0];
-    const alternatives=rows.slice(1).map(r=>({
-      SupplierName:r.SupplierName,
-      cost:r.SupplierCostPrice||0,
-      hasPO:!!chPoMap[r.SupplierName],
-      poIsDone:chPoMap[r.SupplierName]?.isDone||false,
-      poRaw:chPoMap[r.SupplierName]?.raw||''
-    }));
-    primary._alternatives=alternatives;
-    // Best known cost = lowest non-zero cost across ALL suppliers for this SKU
-    // Used for dead stock valuation so zero-cost suppliers don't corrupt the figure
-    const knownCosts=rows.map(r=>r.SupplierCostPrice||0).filter(c=>c>0);
-    primary._bestKnownCost=knownCosts.length>0?Math.min(...knownCosts):0;
-    deduped.push(primary);
+    const key = `${r.SKU}||${r.SupplierName}`;
+    if(seen.has(key)) continue;
+    seen.add(key);
+    r._alternatives = [];
+    r._bestKnownCost = r.SupplierCostPrice||0;
+    deduped.push(r);
   }
 
   state.computedRows=deduped;
