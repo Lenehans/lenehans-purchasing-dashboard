@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V6.4 · EMAIL INTELLIGENCE</title>
+  <title>Lenehans Dashboard · V6.6.1 · SALES + MARGIN</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -433,6 +433,55 @@
     .tab-btn.active{color:#1e40af;border-bottom-color:#1e40af}
     .tab-btn:hover:not(.active){color:#1e293b;background:#f8fafc}
     .tab-panel{display:none}.tab-panel.active{display:block}
+    /* ── SALES TAB ── */
+    .sales-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:14px 0}
+    .sales-kpi{background:var(--panel);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px}
+    .sales-kpi .v{font-size:21px;font-weight:800;color:var(--text);line-height:1.1}
+    .sales-kpi .l{font-size:11px;color:var(--muted);margin-top:4px;font-weight:600}
+    .sales-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
+    .sales-seg{display:inline-flex;border:1.5px solid var(--line);border-radius:8px;overflow:hidden}
+    .sales-seg button{background:var(--panel);border:none;padding:7px 13px;font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer}
+    .sales-seg button.active{background:var(--accent);color:#fff}
+    .sales-search{padding:7px 11px;border:1.5px solid var(--line);border-radius:8px;font-size:13px;min-width:230px}
+    .sales-btn{padding:7px 14px;border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;color:#fff;background:var(--accent)}
+    .sales-btn.green{background:#16a34a}.sales-btn.grey{background:#64748b}
+    #salesTable{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+    #salesTable th{background:var(--thead-bg);color:var(--text);padding:8px 9px;text-align:right;font-size:11px;font-weight:800;position:sticky;top:0;cursor:pointer;white-space:nowrap;border-bottom:2px solid var(--line)}
+    #salesTable th.l,#salesTable td.l{text-align:left}
+    #salesTable th:hover{background:#cfd8e3}
+    #salesTable td{padding:6px 9px;border-bottom:1px solid var(--line-light);text-align:right;vertical-align:middle}
+    #salesTable tr:nth-child(even) td{background:var(--row-alt)}
+    #salesTable tr:hover td{background:var(--row-hover)}
+    .sales-sku{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--muted)}
+    .mgn-good{color:#14532d;font-weight:800}.mgn-thin{color:#92400e;font-weight:800}.mgn-bad{color:#991b1b;font-weight:800}
+    .abc-A{background:#14532d}.abc-B{background:#1d55d4}.abc-C{background:#64748b}.abc-D{background:#94a3b8}
+    .abc-pill{display:inline-block;color:#fff;font-size:10px;font-weight:800;border-radius:5px;padding:1px 6px}
+    .mom-up{color:#14532d;font-weight:800}.mom-down{color:#991b1b;font-weight:800}.mom-flat{color:var(--muted);font-weight:700}
+    .sales-wrap{background:var(--panel);border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;overflow:auto;max-height:64vh}
+    /* price change */
+    .pc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+    .pc-field{display:flex;flex-direction:column;gap:3px}
+    .pc-field label{font-size:11px;font-weight:700;color:var(--muted)}
+    .pc-field input,.pc-field select{padding:7px 9px;border:1.5px solid var(--line);border-radius:7px;font-size:13px}
+    .pc-results{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+    .pc-card{background:var(--panel);border:1.5px solid var(--line);border-radius:10px;padding:14px}
+    .pc-card h4{margin:0 0 8px;font-size:13px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+    .pc-stat{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line-light);font-size:13px}
+    .pc-stat .lab{color:var(--muted)}.pc-stat .num{font-weight:800}
+    .pc-verdict{margin-top:14px;padding:16px;border-radius:10px;font-size:15px;font-weight:700;line-height:1.5}
+    .pc-verdict.win{background:#dcfce7;border:2px solid #16a34a;color:#14532d}
+    .pc-verdict.lose{background:#fee2e2;border:2px solid #dc2626;color:#991b1b}
+    .pc-verdict.even{background:#fef9c3;border:2px solid #ca8a04;color:#854d0e}
+    .pc-chart{display:flex;align-items:flex-end;gap:3px;height:140px;padding:10px;background:var(--panel);border:1.5px solid var(--line);border-radius:10px;margin-top:12px;overflow-x:auto}
+    .pc-bar{flex:1;min-width:22px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+    .pc-bar .b{width:70%;border-radius:3px 3px 0 0;background:#94a3b8}
+    .pc-bar.before .b{background:#1d55d4}.pc-bar.after .b{background:#16a34a}
+    .pc-bar .ym{font-size:9px;color:var(--muted);margin-top:4px;transform:rotate(-45deg);white-space:nowrap}
+    .pc-bar .qv{font-size:9px;color:var(--text);font-weight:700;margin-bottom:2px}
+    .pc-note{font-size:12px;color:var(--muted);background:#f1f5f9;border-left:3px solid var(--accent);padding:8px 11px;border-radius:0 6px 6px 0;margin-top:10px}
+    .pc-results-list{margin:6px 0 0;padding:0;list-style:none;border:1.5px solid var(--line);border-radius:8px;max-height:200px;overflow:auto}
+    .pc-results-list li{padding:7px 10px;border-bottom:1px solid var(--line-light);cursor:pointer;font-size:12.5px}
+    .pc-results-list li:hover{background:var(--row-hover)}
     /* ── Clear Stock ────────────────────────────────────────────────────── */
     .cs-summary-bar{display:flex;gap:16px;flex-wrap:wrap;background:#fef9ee;border:1.5px solid #fde68a;border-radius:10px;padding:12px 18px;margin-bottom:16px;align-items:center}
     .cs-summary-stat{text-align:center}
@@ -1002,7 +1051,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.4 · Seasonal · Signal-stack · Governance · Email Intelligence</div>
+  <div class="sub">V6.6.1 · Seasonal · Signal-stack · Governance · Email Intelligence · Sales &amp; Margin</div>
 </header>
 
 <div class="wrap">
@@ -1016,6 +1065,7 @@
     <button class="tab-btn" data-tab="transfers">🔄 Transfers</button>
     <button class="tab-btn" data-tab="noos">⭐ Never OOS</button>
     <button class="tab-btn" data-tab="email">📧 Email Intelligence</button>
+    <button class="tab-btn" data-tab="sales">📈 Sales</button>
     <button class="tab-btn" data-tab="deliveries" style="display:none">🚚 Deliveries</button>
     <div id="weatherChip" style="display:none;margin-left:auto;align-self:center;
       padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;
@@ -1638,6 +1688,86 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
 
     </div>
   </div><!-- /tab-email -->
+
+  <div class="tab-panel" id="tab-sales">
+    <div style="padding:14px 0">
+      <h2 style="font-size:19px;font-weight:800;color:#1e3a5f;margin:0 0 2px">📈 Sales &amp; Margin</h2>
+      <p style="font-size:13px;color:var(--muted);margin:0 0 6px">What's selling, what's making money, and what happens to profit when you move a price. Uses the same Google Sheets feed as Buying.</p>
+
+      <div class="sales-toolbar">
+        <div class="sales-seg" id="salesViewSeg">
+          <button class="active" data-sview="selling">🏆 What's Selling</button>
+          <button data-sview="pricechange">💶 Price Change Analysis</button>
+        </div>
+      </div>
+
+      <!-- ── VIEW: WHAT'S SELLING ─────────────────────────────────────────── -->
+      <div id="salesSellingView">
+        <div class="sales-toolbar">
+          <span style="font-size:12px;font-weight:700;color:var(--muted)">Channel:</span>
+          <div class="sales-seg" id="salesScopeSeg">
+            <button class="active" data-sscope="all">All</button>
+            <button data-sscope="arklowOnline">Arklow Online</button>
+            <button data-sscope="capelOnline">Capel Online</button>
+            <button data-sscope="capelShop">Capel Shop</button>
+          </div>
+          <span style="font-size:12px;font-weight:700;color:var(--muted);margin-left:8px">Show:</span>
+          <div class="sales-seg" id="salesFilterSeg">
+            <button class="active" data-sfilter="all">All</button>
+            <button data-sfilter="winners">Top sellers</button>
+            <button data-sfilter="losers">Dead / slow</button>
+            <button data-sfilter="thin">Thin / neg. margin</button>
+          </div>
+          <input id="salesSearch" class="sales-search" placeholder="Search SKU, item, supplier…">
+          <span style="font-size:12px;font-weight:700;color:var(--muted);margin-left:8px">VAT %</span><input id="salesVat" class="sales-search" style="min-width:56px;width:56px" type="number" step="0.5" value="23" oninput="renderSalesSelling()" title="VAT rate used to convert RetailPrice (inc VAT) to net. Revenue is treated as ex-VAT.">
+          <button class="sales-btn green" onclick="exportSalesCSV()">⬇ Export CSV</button>
+        </div>
+
+        <div class="sales-kpis" id="salesKpis"></div>
+        <div class="pc-note" id="salesAssumeNote" style="margin:0 0 10px"></div>
+        <div class="sales-wrap">
+          <table id="salesTable"><thead></thead><tbody></tbody></table>
+        </div>
+      </div>
+
+      <!-- ── VIEW: PRICE CHANGE ───────────────────────────────────────────── -->
+      <div id="salesPriceView" style="display:none">
+        <div class="pc-note" style="margin-top:8px">
+          <strong>The question this answers:</strong> "When we dropped a product's price, did the extra sales actually make us more money — or did we just sell more for less profit?" Enter the old and new price; cost auto-fills. Units before/after come from the monthly sales history feed.
+        </div>
+
+        <div style="position:relative;margin-top:12px;max-width:520px">
+          <label style="font-size:11px;font-weight:700;color:var(--muted)">Find a product (SKU or name)</label>
+          <input id="pcSearch" class="sales-search" style="width:100%;box-sizing:border-box" placeholder="Type to search, e.g. borax…" autocomplete="off">
+          <ul id="pcResults" class="pc-results-list" style="display:none"></ul>
+        </div>
+        <div id="pcSelected" style="font-size:13px;font-weight:700;color:#1e3a5f;margin-top:8px"></div>
+
+        <div class="pc-grid">
+          <div class="pc-field"><label>Old price € (inc VAT)</label><input id="pcOldPrice" type="number" step="0.01" placeholder="6.99"></div>
+          <div class="pc-field"><label>New price € (inc VAT)</label><input id="pcNewPrice" type="number" step="0.01" placeholder="2.99"></div>
+          <div class="pc-field"><label>Unit cost € (ex VAT)</label><input id="pcCost" type="number" step="0.01" placeholder="auto"></div>
+          <div class="pc-field"><label>VAT %</label><input id="pcVat" type="number" step="0.5" value="23"></div>
+          <div class="pc-field"><label>Price changed in</label><select id="pcMonth"></select></div>
+          <div class="pc-field"><label>Window (months each side)</label><select id="pcWindow"><option>2</option><option selected>3</option><option>4</option><option>6</option></select></div>
+        </div>
+
+        <div id="pcManualWrap" style="display:none" class="pc-grid">
+          <div class="pc-field"><label>Units/month BEFORE (manual)</label><input id="pcManBefore" type="number" step="1" placeholder="e.g. 20"></div>
+          <div class="pc-field"><label>Units/month AFTER (manual)</label><input id="pcManAfter" type="number" step="1" placeholder="e.g. 55"></div>
+        </div>
+
+        <div style="margin-top:6px">
+          <button class="sales-btn" style="background:#7c3aed" onclick="pcAutoDetect()">🔍 Auto-detect price change</button>
+          <button class="sales-btn" onclick="runPriceChange()">📊 Analyse profit impact</button>
+          <button class="sales-btn grey" onclick="pcToggleManual()" id="pcManualBtn">✏️ Enter units manually</button>
+        </div>
+
+        <div id="pcOutput"></div>
+      </div>
+
+    </div>
+  </div><!-- /tab-sales -->
 
 </div><!-- /wrap -->
 <!-- ═══════════════════════════════════════════════════════════════════════════
@@ -3452,6 +3582,7 @@ const state = {
   skuRankMap: new Map(),
   channel: 'arklow', // 'arklow' or 'capel'
   monthlyData: {},      // SKU -> { '2024_03': qty, '2024_04': qty, ... }
+  monthlyRev: {},       // SKU -> { '2025_07': revenue, ... }  (long-format feed only)
   monthlyLoaded: false, // true once monthly feed has been attempted
   supplierFallbackOverrides: {}, // supplierName -> '90D' | '180D' | null
   deliveriesRows: [],            // rows from PO_Deliveries sheet
@@ -4095,6 +4226,7 @@ function normalizeRow(r){
     BinRack_AK: String(r.BinRack_AK||'').trim(),
     BinRack_CS: String(r.BinRack_CS||'').trim(),
     SupplierCostPrice:num(r.SupplierCostPrice),
+    RetailPrice:num(r.RetailPrice||r.Retail||r.RRP||r.RetailPriceInc||0),
     SupplierMinOrder:num(r.SupplierMinOrder),
     SupplierPackSize:Math.max(1,num(r.SupplierPackSize)||1),
     _csRequired:false,
@@ -4352,22 +4484,52 @@ function clampMultiplier(m){ return Math.max(1,Math.min(num(m)||1,3)); }
 // ─── MONTHLY SALES FEED PARSER ───────────────────────────────────────────────
 // Parses the monthly_sales CSV (SKU, 2024_01, 2024_02, ... columns)
 // Returns { SKU: { '2024_03': qty, ... }, ... }
+function monthToYM(v){
+  const t = String(v==null?'':v).trim();
+  let m = t.match(/(\d{4})[-_\/.](\d{1,2})/);            // 2025-07 / 2025_07 / 2025/7
+  if(m) return m[1]+'_'+String(m[2]).padStart(2,'0');
+  m = t.match(/^(\d{1,2})[-_\/.](\d{4})$/);              // 07-2025
+  if(m) return m[2]+'_'+String(m[1]).padStart(2,'0');
+  const d = new Date(t); if(!isNaN(d)) return d.getFullYear()+'_'+String(d.getMonth()+1).padStart(2,'0');
+  return null;
+}
+// Accepts BOTH:
+//   WIDE  : SKU | 2025_07 | 2025_08 | …            (qty only — legacy, feeds seasonal demand)
+//   LONG  : SKU | YearMonth | Units | Revenue       (qty + revenue — powers price-change auto-detect)
 function parseMonthlyFeed(rows){
   const result = {};
+  state.monthlyRev = {};
   if(!rows.length) return result;
   const headers = Object.keys(rows[0]);
-  // Find SKU column (first non-month column)
-  const skuCol = headers[0];
-  // Month columns: anything matching YYYY_MM
+  const lc = headers.map(h=>h.toLowerCase().trim());
+  const findCol = (...names)=>{ for(const n of names){ const i=lc.indexOf(n); if(i>=0) return headers[i]; } return null; };
   const monthCols = headers.filter(h => /^\d{4}_\d{2}$/.test(h));
+
+  const ymCol    = findCol('yearmonth','year_month','month','period','ym','yyyymm');
+  const unitsCol = findCol('units','qty','quantity','qtysold','unitssold','qtysold_total');
+  const revCol   = findCol('revenue','rev','sales','salesvalue','value','revenuevalue','revvalue');
+  const skuCol   = findCol('sku','itemnumber') || headers[0];
+
+  // ── LONG format ──
+  if(monthCols.length === 0 && ymCol && unitsCol){
+    for(const r of rows){
+      const sku = String(r[skuCol]||'').trim().replace(/^'+/,'');
+      const ym  = monthToYM(r[ymCol]);
+      if(!sku || !ym) continue;
+      const q = num(r[unitsCol]);
+      const rv = revCol ? num(r[revCol]) : 0;
+      if(q > 0){ (result[sku]      || (result[sku]={}))[ym]      = (result[sku][ym]||0)+q; }
+      if(rv> 0){ (state.monthlyRev[sku] || (state.monthlyRev[sku]={}))[ym] = (state.monthlyRev[sku][ym]||0)+rv; }
+    }
+    return result;
+  }
+
+  // ── WIDE format (legacy) ──
   for(const r of rows){
-    const sku = String(r[skuCol]||'').trim();
+    const sku = String(r[skuCol]||'').trim().replace(/^'+/,'');
     if(!sku) continue;
     const entry = {};
-    for(const col of monthCols){
-      const v = num(r[col]);
-      if(v > 0) entry[col] = v;
-    }
+    for(const col of monthCols){ const v = num(r[col]); if(v > 0) entry[col] = v; }
     if(Object.keys(entry).length > 0) result[sku] = entry;
   }
   return result;
@@ -6692,7 +6854,7 @@ async function loadGovernanceFeeds(){
       msgs.push(`Monthly history: ${Object.keys(state.monthlyData).length} SKUs`);
     }catch(e){
       msgs.push(`Monthly history unavailable (${e.message})`);
-      state.monthlyData = {};
+      state.monthlyData = {}; state.monthlyRev = {};
     }
   } else {
     msgs.push('Monthly history: no URL — using profile estimates for Seasonal mode');
@@ -6989,8 +7151,17 @@ function bindEvents(){
       if(btn.dataset.tab==='team')       renderTeam();
       if(btn.dataset.tab==='deliveries') renderDeliveries();
       if(btn.dataset.tab==='email')      eiOnTabOpen();
+      if(btn.dataset.tab==='sales')      renderSales();
     });
   });
+  // ── Sales tab controls ─────────────────────────────────────────────────────
+  document.querySelectorAll('#salesViewSeg button').forEach(b=>b.addEventListener('click',()=>setSalesView(b.dataset.sview)));
+  document.querySelectorAll('#salesScopeSeg button').forEach(b=>b.addEventListener('click',()=>setSalesScope(b.dataset.sscope)));
+  document.querySelectorAll('#salesFilterSeg button').forEach(b=>b.addEventListener('click',()=>setSalesFilter(b.dataset.sfilter)));
+  const _ss=document.getElementById('salesSearch'); if(_ss) _ss.addEventListener('input',()=>renderSalesSelling());
+  const _pcs=document.getElementById('pcSearch'); if(_pcs) _pcs.addEventListener('input',()=>pcOnSearch());
+  document.addEventListener('click',e=>{ const box=document.getElementById('pcResults'); if(box&&!e.target.closest('#pcSearch')&&!e.target.closest('#pcResults')) box.style.display='none'; });
+
   // ── Clear Stock filter buttons ─────────────────────────────────────────────
   document.querySelectorAll('.cs-filter-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
@@ -7501,6 +7672,395 @@ function goToSupplier(supplierName, channel){
 }
 
 // ─── NEVER OUT OF STOCK TAB ──────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// SALES TAB  (added V6.5)
+// ═══════════════════════════════════════════════════════════════════════════
+let salesSort   = {col:'estGP180', dir:-1};
+let salesView   = 'selling';
+let salesScope  = 'all';
+let salesFilter = 'all';
+let pcState     = {sku:'', item:'', cost:0, retail:0};
+let pcManualMode= false;
+
+const salesEur  = v => '\u20ac' + num(v).toLocaleString('en-IE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const salesEur0 = v => '\u20ac' + Math.round(num(v)).toLocaleString('en-IE');
+
+function salesVatRate(){
+  const primary = (salesView==='pricechange') ? 'pcVat' : 'salesVat';
+  const v = num(document.getElementById(primary)?.value); if(v>0) return v;
+  const alt = num(document.getElementById(primary==='pcVat'?'salesVat':'pcVat')?.value);
+  return alt>0?alt:23;
+}
+
+// Per-scope unit & revenue extraction
+function salesScopeFields(r, scope){
+  const g=(k)=>num(r[k]||0);
+  if(scope==='arklowOnline') return {
+    u30:g('QtySold_Online_Arklow_30d'), u90:g('QtySold_Online_Arklow_90d'), u180:g('QtySold_Online_Arklow_180d'),
+    rev30:g('Revenue_Online_Total_30d'), rev180:g('Revenue_Online_Total_180d'),
+    stock:Math.max(0,g('NetStock_Arklow'))
+  };
+  if(scope==='capelOnline') return {
+    u30:g('QtySold_Online_CapelStreet_30d'), u90:g('QtySold_Online_CapelStreet_90d'), u180:g('QtySold_Online_CapelStreet_180d'),
+    rev30:g('Revenue_Online_CapelStreet_30d'), rev180:0,
+    stock:Math.max(0,g('NetStock_CapelStreet'))
+  };
+  if(scope==='capelShop') return {
+    u30:g('QtySold_Shop_CapelStreet_30d'), u90:g('QtySold_Shop_CapelStreet_90d'), u180:g('QtySold_Shop_CapelStreet_180d'),
+    rev30:g('Revenue_Shop_CapelStreet_30d'), rev180:0,
+    stock:Math.max(0,g('NetStock_CapelStreet'))
+  };
+  // all
+  return {
+    u30:g('QtySold_Online_Total_30d')+g('QtySold_Shop_CapelStreet_30d'),
+    u90:g('QtySold_Online_Total_90d')+g('QtySold_Shop_CapelStreet_90d'),
+    u180:g('QtySold_Online_Total_180d')+g('QtySold_Shop_CapelStreet_180d'),
+    rev30:g('Revenue_Online_Total_30d')+g('Revenue_Online_CapelStreet_30d')+g('Revenue_Shop_CapelStreet_30d'),
+    rev180:g('Revenue_Online_Total_180d'),
+    stock:Math.max(0,g('NetStock_Arklow'))+Math.max(0,g('NetStock_CapelStreet'))
+  };
+}
+
+function salesMetrics(r, scope){
+  const sf = salesScopeFields(r, scope);
+  const vat = salesVatRate();
+  const cost = num(r.SupplierCostPrice);
+  const retailRaw = num(r.RetailPrice);                 // RetailPrice = shelf/RRP, INC VAT
+  const derived = sf.u30>0 ? sf.rev30/sf.u30 : 0;       // revenue/units = achieved price, EX VAT (Linnworks revenue is net)
+  // netSell is always EX-VAT (matches the ex-VAT supplier cost). Strip VAT from RetailPrice only.
+  let netSell=0, priceSrc='none';
+  if(retailRaw>0){ netSell = retailRaw/(1+vat/100); priceSrc='retail'; }
+  else if(derived>0){ netSell = derived; priceSrc='derived'; }
+  const grossPrice = priceSrc==='retail' ? retailRaw : (priceSrc==='derived' ? derived*(1+vat/100) : 0);
+  const hasMargin = netSell>0 && cost>0;
+  const marginEur = hasMargin ? netSell-cost : null;
+  const marginPct = hasMargin ? (marginEur/netSell*100) : null;
+  const estGP180  = (marginEur!=null) ? marginEur*sf.u180 : null;
+  const daily     = sf.u30/30;
+  return {...sf, cost, grossPrice, priceSrc, netSell, marginEur, marginPct, estGP180, daily};
+}
+
+function setSalesView(v){
+  salesView=v;
+  document.querySelectorAll('#salesViewSeg button').forEach(b=>b.classList.toggle('active',b.dataset.sview===v));
+  document.getElementById('salesSellingView').style.display = v==='selling'?'block':'none';
+  document.getElementById('salesPriceView').style.display   = v==='pricechange'?'block':'none';
+  if(v==='pricechange') pcInit();
+}
+function setSalesScope(sc){ salesScope=sc; document.querySelectorAll('#salesScopeSeg button').forEach(b=>b.classList.toggle('active',b.dataset.sscope===sc)); renderSalesSelling(); }
+function setSalesFilter(fl){ salesFilter=fl; document.querySelectorAll('#salesFilterSeg button').forEach(b=>b.classList.toggle('active',b.dataset.sfilter===fl)); renderSalesSelling(); }
+function sortSales(col){ if(salesSort.col===col) salesSort.dir*=-1; else salesSort={col,dir:-1}; renderSalesSelling(); }
+
+function renderSales(){
+  if(!state.computedRows||!state.computedRows.length){
+    document.getElementById('salesKpis').innerHTML='<div style="color:var(--muted);padding:16px">\u23f3 Load data on the Buying tab first (Auto-load), then come back.</div>';
+    document.querySelector('#salesTable tbody').innerHTML='';
+    document.querySelector('#salesTable thead').innerHTML='';
+    return;
+  }
+  if(salesView==='selling') renderSalesSelling(); else pcInit();
+}
+
+function renderSalesSelling(){
+  const rows = state.computedRows;
+  const q = (document.getElementById('salesSearch')?.value||'').trim().toLowerCase();
+  let data = rows.map(r=>({r, m:salesMetrics(r, salesScope)}));
+
+  // filters
+  if(salesFilter==='winners') data = data.filter(d=>d.m.u180>0);
+  else if(salesFilter==='losers') data = data.filter(d=>d.m.u90===0 && d.m.stock>0);
+  else if(salesFilter==='thin')   data = data.filter(d=>d.m.marginPct!=null && d.m.marginPct<10 && d.m.u180>0);
+  if(q) data = data.filter(d=>`${d.r.SupplierName} ${d.r.SKU} ${d.r.ItemTitle}`.toLowerCase().includes(q));
+
+  // KPIs (computed before sort, over filtered set)
+  const totUnits180 = data.reduce((a,d)=>a+d.m.u180,0);
+  const hasRev180   = ['all','arklowOnline'].includes(salesScope);
+  const totRev      = data.reduce((a,d)=>a+(hasRev180?d.m.rev180:d.m.rev30),0);
+  const totGP       = data.reduce((a,d)=>a+(d.m.estGP180||0),0);
+  const wMarginNum  = data.reduce((a,d)=>a+((d.m.marginEur!=null)?d.m.marginEur*d.m.u180:0),0);
+  const wMarginDen  = data.reduce((a,d)=>a+((d.m.marginEur!=null)?d.m.netSell*d.m.u180:0),0);
+  const blended     = wMarginDen>0 ? (wMarginNum/wMarginDen*100) : null;
+  const selling     = data.filter(d=>d.m.u180>0).length;
+  const dead        = data.filter(d=>d.m.u180===0 && d.m.stock>0).length;
+
+  document.getElementById('salesKpis').innerHTML = [
+    [fmtInt(totUnits180),'Units sold (180d)'],
+    [salesEur0(totRev), hasRev180?'Revenue (180d, online)':'Revenue (30d)'],
+    [totGP>0?salesEur0(totGP):'\u2014','Est. gross profit (180d)'],
+    [blended!=null?blended.toFixed(1)+'%':'\u2014','Blended margin'],
+    [fmtInt(selling),'SKUs selling (180d)'],
+    [fmtInt(dead),'Dead w/ stock (0 in 180d)'],
+  ].map(([v,l])=>`<div class="sales-kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
+
+  // assumptions note
+  const anyDerived = data.some(d=>d.m.priceSrc==='derived');
+  const anyNone    = data.some(d=>d.m.priceSrc==='none');
+  document.getElementById('salesAssumeNote').innerHTML =
+    `Margin = net selling price (ex VAT) \u2212 supplier cost (ex VAT). Revenue from the feed is treated as <strong>ex-VAT</strong>; RetailPrice (if present) is treated as inc-VAT and divided by ${(1+salesVatRate()/100).toFixed(2)}. `+
+    (state.computedRows.some(r=>num(r.RetailPrice)>0)
+        ? 'Selling price uses the <strong>RetailPrice</strong> column where present'
+        : '<strong>No RetailPrice column detected yet</strong> \u2014 selling price is estimated from revenue \u00f7 units')
+    + (anyDerived?'; rows marked <em>~est</em> use revenue\u00f7units.':'.')
+    + (anyNone?' Rows with no price/sales show \u2014.':'');
+
+  // sort
+  const dir=salesSort.dir, col=salesSort.col;
+  const val=(d)=>{ const m=d.m; switch(col){
+    case 'sku': return d.r.SKU; case 'item': return d.r.ItemTitle; case 'supplier': return d.r.SupplierName;
+    case 'u30':return m.u30; case 'u90':return m.u90; case 'u180':return m.u180; case 'daily':return m.daily;
+    case 'avg':return m.netSell; case 'retail':return num(d.r.RetailPrice); case 'cost':return m.cost;
+    case 'gpu':return m.marginEur==null?-1e9:m.marginEur; case 'gppct':return m.marginPct==null?-1e9:m.marginPct;
+    case 'estGP180':return m.estGP180==null?-1e9:m.estGP180; default:return 0; } };
+  data.sort((a,b)=>{ const va=val(a),vb=val(b); if(typeof va==='string') return va.localeCompare(vb)*dir; return (va-vb)*dir; });
+  const shown = data.slice(0, 600);
+
+  // header
+  const cols=[['l','sku','SKU'],['l','item','Item'],['l','supplier','Supplier'],
+    ['','u30','U 30d'],['','u90','U 90d'],['','u180','U 180d'],['','daily','/day'],
+    ['','mom','Mom'],['','avg','Net sell \u20ac'],['','retail','Retail \u20ac'],['','cost','Cost \u20ac'],
+    ['','gpu','GP/u'],['','gppct','GP%'],['','estGP180','Est GP 180d'],['','abc','ABC'],['','trend','Trend']];
+  document.querySelector('#salesTable thead').innerHTML='<tr>'+cols.map(([cls,key,lab])=>{
+    const arrow = salesSort.col===key ? (salesSort.dir<0?' \u25bc':' \u25b2') : '';
+    const sortable = !['mom','abc','trend'].includes(key);
+    return `<th class="${cls}" ${sortable?`onclick="sortSales('${key}')"`:''}>${lab}${arrow}</th>`;
+  }).join('')+'</tr>';
+
+  // rows
+  document.querySelector('#salesTable tbody').innerHTML = shown.map(({r,m})=>{
+    const mgnCls = m.marginPct==null?'':(m.marginPct<0?'mgn-bad':m.marginPct<10?'mgn-thin':'mgn-good');
+    const mom = r.momentum||{label:'\u2014',direction:'flat'};
+    const momCls = mom.direction==='up'?'mom-up':mom.direction==='down'?'mom-down':'mom-flat';
+    const estLabel = m.priceSrc==='derived' ? ' <span style="color:#94a3b8;font-size:9px">~est</span>' : '';
+    return `<tr>
+      <td class="l sales-sku">${esc(r.SKU)}</td>
+      <td class="l" style="max-width:260px">${esc(r.ItemTitle||'')}</td>
+      <td class="l" style="font-size:11px;color:var(--muted);max-width:140px">${esc(r.SupplierName||'')}</td>
+      <td>${fmtInt(m.u30)}</td><td>${fmtInt(m.u90)}</td><td><strong>${fmtInt(m.u180)}</strong></td>
+      <td>${m.daily>=10?fmtInt(m.daily):fmt1(m.daily)}</td>
+      <td class="${momCls}">${mom.label}</td>
+      <td>${m.netSell>0?salesEur(m.netSell)+estLabel:'\u2014'}</td>
+      <td>${num(r.RetailPrice)>0?salesEur(r.RetailPrice):'\u2014'}</td>
+      <td>${m.cost>0?salesEur(m.cost):'\u2014'}</td>
+      <td class="${mgnCls}">${m.marginEur!=null?salesEur(m.marginEur):'\u2014'}</td>
+      <td class="${mgnCls}">${m.marginPct!=null?m.marginPct.toFixed(0)+'%':'\u2014'}</td>
+      <td><strong>${m.estGP180!=null?salesEur0(m.estGP180):'\u2014'}</strong></td>
+      <td><span class="abc-pill abc-${r.abcClass||'D'}">${r.abcClass||'D'}</span></td>
+      <td>${r.isTrending?'<span class="mom-up">\u2191 hot</span>':''}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="16" style="text-align:center;color:var(--muted);padding:20px">No SKUs match.</td></tr>';
+  if(data.length>600){
+    document.querySelector('#salesTable tbody').insertAdjacentHTML('beforeend',
+      `<tr><td colspan="16" style="text-align:center;color:var(--muted);padding:10px">Showing top 600 of ${fmtInt(data.length)} \u2014 narrow with search or filters.</td></tr>`);
+  }
+}
+
+function exportSalesCSV(){
+  const rows=state.computedRows; if(!rows||!rows.length){alert('No data loaded.');return;}
+  const head=['SKU','Item','Supplier','Units30d','Units90d','Units180d','DailyRate','NetSellExVat','RetailPriceIncVat','Cost','GP_per_unit','GP_pct','EstGrossProfit180d','ABC','Trending'];
+  const esc2=v=>{const t=String(v==null?'':v);return /[",\n]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t;};
+  const lines=[head.join(',')];
+  rows.map(r=>({r,m:salesMetrics(r,salesScope)})).forEach(({r,m})=>{
+    lines.push([r.SKU,r.ItemTitle,r.SupplierName,m.u30,m.u90,m.u180,m.daily.toFixed(2),
+      m.netSell?m.netSell.toFixed(2):'',num(r.RetailPrice)?num(r.RetailPrice).toFixed(2):'',
+      m.cost?m.cost.toFixed(2):'',m.marginEur!=null?m.marginEur.toFixed(2):'',m.marginPct!=null?m.marginPct.toFixed(1):'',
+      m.estGP180!=null?m.estGP180.toFixed(2):'',r.abcClass||'D',r.isTrending?'Y':''].map(esc2).join(','));
+  });
+  const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`lenehans_sales_${salesScope}_${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(a.href);
+}
+
+// ─── PRICE CHANGE ANALYSIS ───────────────────────────────────────────────────
+function salesMonthsForSku(sku){
+  const d = state.monthlyData[sku];
+  if(!d) return [];
+  return Object.keys(d).filter(k=>/^\d{4}_\d{2}$/.test(k)).sort();
+}
+
+function pcInit(){
+  // populate month dropdown from selected sku (or leave with hint)
+  const sel=document.getElementById('pcMonth');
+  if(!pcState.sku){ sel.innerHTML='<option value="">\u2014 pick a product first \u2014</option>'; }
+  // monthly feed status note handled in output
+}
+
+function pcOnSearch(){
+  const q=(document.getElementById('pcSearch').value||'').trim().toLowerCase();
+  const box=document.getElementById('pcResults');
+  if(!q || !state.computedRows.length){ box.style.display='none'; return; }
+  const hits=state.computedRows.filter(r=>`${r.SKU} ${r.ItemTitle}`.toLowerCase().includes(q)).slice(0,12);
+  if(!hits.length){ box.innerHTML='<li style="color:var(--muted);cursor:default">No match</li>'; box.style.display='block'; return; }
+  box.innerHTML=hits.map(r=>`<li onclick="pcSelect('${encodeURIComponent(r.SKU)}')"><span class="sales-sku">${esc(r.SKU)}</span> &nbsp; ${esc(r.ItemTitle||'')}</li>`).join('');
+  box.style.display='block';
+}
+
+function pcSelect(skuEnc){
+  const sku=decodeURIComponent(skuEnc);
+  const r=state.computedRows.find(x=>x.SKU===sku); if(!r) return;
+  pcState={sku, item:r.ItemTitle||'', cost:num(r.SupplierCostPrice), retail:num(r.RetailPrice)};
+  document.getElementById('pcResults').style.display='none';
+  document.getElementById('pcSearch').value=`${sku} — ${r.ItemTitle||''}`;
+  document.getElementById('pcSelected').textContent=`Selected: ${sku} · ${r.ItemTitle||''}`;
+  if(pcState.cost>0)   document.getElementById('pcCost').value=pcState.cost.toFixed(2);
+  if(pcState.retail>0) document.getElementById('pcNewPrice').value=pcState.retail.toFixed(2);
+  // populate months
+  const months=salesMonthsForSku(sku);
+  const sel=document.getElementById('pcMonth');
+  if(months.length){
+    sel.innerHTML=months.map(m=>`<option value="${m}">${m.replace('_','-')}</option>`).join('');
+    sel.selectedIndex=Math.max(0,Math.floor(months.length/2));
+  } else {
+    sel.innerHTML='<option value="">no monthly data for this SKU</option>';
+  }
+  document.getElementById('pcOutput').innerHTML='';
+}
+
+function pcToggleManual(){
+  pcManualMode=!pcManualMode;
+  document.getElementById('pcManualWrap').style.display=pcManualMode?'grid':'none';
+  document.getElementById('pcManualBtn').textContent=pcManualMode?'\ud83d\udcc5 Use feed data':'\u270f\ufe0f Enter units manually';
+}
+
+function salesMonthlyRevForSku(sku){ return (state.monthlyRev && state.monthlyRev[sku]) || {}; }
+
+// Find the single biggest sustained drop in average selling price (revenue/units) per month.
+function pcDetectChange(sku){
+  const q = state.monthlyData[sku] || {};
+  const rev = salesMonthlyRevForSku(sku);
+  const months = Object.keys(q).filter(m=>/^\d{4}_\d{2}$/.test(m) && q[m]>0 && num(rev[m])>0).sort();
+  if(months.length < 3) return null;
+  const series = months.map(m=>({m, p: num(rev[m])/q[m]}));
+  let best = null;
+  for(let i=1;i<series.length;i++){
+    const before=series.slice(0,i), after=series.slice(i);
+    const ab=before.reduce((a,x)=>a+x.p,0)/before.length;
+    const af=after.reduce((a,x)=>a+x.p,0)/after.length;
+    if(ab<=0) continue;
+    const drop=(ab-af)/ab;
+    if(drop>0.12 && (!best || drop>best.drop)) best={i,drop,ab,af};
+  }
+  if(!best) return null;
+  return { changeMonth: series[best.i].m, oldPrice: best.ab, newPrice: best.af, dropPct: best.drop*100 };
+}
+
+function pcAutoDetect(){
+  const out=document.getElementById('pcOutput');
+  const sku=pcState.sku;
+  if(!sku){ out.innerHTML='<div class="pc-note">Pick a product first.</div>'; return; }
+  const det=pcDetectChange(sku);
+  if(!det){
+    out.innerHTML='<div class="pc-note">Couldn\'t spot a clear price change for this product. This needs monthly <strong>revenue</strong> data (the long-format feed). If your monthly feed is still quantity-only, enter the old/new price and month yourself — the analysis still runs.</div>';
+    return;
+  }
+  const _v=salesVatRate();
+  document.getElementById('pcOldPrice').value=(det.oldPrice*(1+_v/100)).toFixed(2); // ex-VAT -> inc-VAT for display
+  document.getElementById('pcNewPrice').value=(det.newPrice*(1+_v/100)).toFixed(2);
+  const sel=document.getElementById('pcMonth');
+  if([...sel.options].some(o=>o.value===det.changeMonth)) sel.value=det.changeMonth;
+  if(pcManualMode) pcToggleManual(); // switch back to feed mode so windows are used
+  runPriceChange();
+  const banner=`<div class="pc-note">🔍 Detected a price change around <strong>${det.changeMonth.replace('_','-')}</strong>: average selling price fell about <strong>${det.dropPct.toFixed(0)}%</strong> (€${(det.oldPrice*(1+salesVatRate()/100)).toFixed(2)} → €${(det.newPrice*(1+salesVatRate()/100)).toFixed(2)} inc VAT). Figures below use your actual monthly revenue. Adjust anything and re-Analyse.</div>`;
+  out.innerHTML = banner + out.innerHTML;
+}
+
+function runPriceChange(){
+  const out=document.getElementById('pcOutput');
+  const oldP=num(document.getElementById('pcOldPrice').value);
+  const newP=num(document.getElementById('pcNewPrice').value);
+  const cost=num(document.getElementById('pcCost').value);
+  const vat =salesVatRate();
+  const win =parseInt(document.getElementById('pcWindow').value,10)||3;
+  if(oldP<=0||newP<=0){ out.innerHTML='<div class="pc-note">Enter both the old and new price.</div>'; return; }
+  if(cost<=0){ out.innerHTML='<div class="pc-note">Enter the unit cost (ex VAT) so we can work out profit per unit. Select a product to auto-fill it, or type it in.</div>'; return; }
+
+  let uBefore=0, uAfter=0, chartHtml='', srcLabel='', monthsInfo='';
+  let __pcRealRev=null;
+  if(pcManualMode){
+    uBefore=num(document.getElementById('pcManBefore').value);
+    uAfter =num(document.getElementById('pcManAfter').value);
+    srcLabel='manual entry';
+    if(uBefore<=0&&uAfter<=0){ out.innerHTML='<div class="pc-note">Enter units/month before and after.</div>'; return; }
+  } else {
+    const sku=pcState.sku;
+    const months=salesMonthsForSku(sku);
+    const changeM=document.getElementById('pcMonth').value;
+    if(!sku||!months.length){ out.innerHTML='<div class="pc-note">No monthly sales history for this product (the monthly feed may not be loaded, or this SKU has no history). Click <strong>Enter units manually</strong> to run it with figures you know.</div>'; return; }
+    if(!changeM){ out.innerHTML='<div class="pc-note">Pick the month the price changed.</div>'; return; }
+    const d=state.monthlyData[sku];
+    const idx=months.indexOf(changeM);
+    const beforeMs=months.slice(Math.max(0,idx-win), idx);
+    const afterMs =months.slice(idx, idx+win);            // change month counts as first "after"
+    const sumB=beforeMs.reduce((a,m)=>a+num(d[m]||0),0);
+    const sumA=afterMs.reduce((a,m)=>a+num(d[m]||0),0);
+    uBefore = beforeMs.length? sumB/beforeMs.length : 0;
+    uAfter  = afterMs.length ? sumA/afterMs.length  : 0;
+    srcLabel=`monthly feed · ${beforeMs.length} mo before vs ${afterMs.length} mo from change`;
+    // Real revenue from the long-format feed, if available
+    const rev=salesMonthlyRevForSku(pcState.sku);
+    const revB=beforeMs.reduce((a,m)=>a+num(rev[m]||0),0);
+    const revA=afterMs.reduce((a,m)=>a+num(rev[m]||0),0);
+    if((revB>0||revA>0)){
+      __pcRealRev = {
+        revBpm: beforeMs.length?revB/beforeMs.length:0,
+        revApm: afterMs.length?revA/afterMs.length:0,
+        achBefore: sumB>0?revB/sumB:0,
+        achAfter:  sumA>0?revA/sumA:0
+      };
+    }
+    monthsInfo=`Before: ${beforeMs.map(m=>m.replace('_','-')).join(', ')||'\u2014'} &nbsp;|&nbsp; After: ${afterMs.map(m=>m.replace('_','-')).join(', ')||'\u2014'}`;
+    // chart over all months
+    const maxQ=Math.max(1,...months.map(m=>num(d[m]||0)));
+    chartHtml='<div class="pc-chart">'+months.map(m=>{
+      const qv=num(d[m]||0); const h=Math.round(qv/maxQ*100);
+      const cls = months.indexOf(m)<idx ? 'before' : 'after';
+      return `<div class="pc-bar ${cls}" title="${m} : ${qv}"><div class="qv">${qv||''}</div><div class="b" style="height:${h}%"></div><div class="ym">${m.replace('_','-')}</div></div>`;
+    }).join('')+'</div>';
+  }
+
+  const netOld=oldP/(1+vat/100), netNew=newP/(1+vat/100);
+  const mOld=netOld-cost, mNew=netNew-cost;          // margin €/unit (ex VAT)
+  let gpB=mOld*uBefore, gpA=mNew*uAfter;             // gross profit per month (from entered prices)
+  let gpBasis='list prices you entered';
+  if(__pcRealRev){                                   // prefer actual achieved revenue when we have it
+    gpB = __pcRealRev.revBpm - uBefore*cost;   // revenue already ex-VAT
+    gpA = __pcRealRev.revApm - uAfter*cost;
+    gpBasis='your actual monthly revenue';
+  }
+  const dGP=gpA-gpB, dGPpct=gpB!==0?dGP/Math.abs(gpB)*100:0;
+  const dU = uBefore!==0?(uAfter-uBefore)/uBefore*100:0;
+  const breakeven = mNew>0 ? gpB/mNew : Infinity;     // units/month at new price to match old profit
+
+  let verdict, vcls;
+  if(mNew<=0){ verdict=`\u26a0\ufe0f At \u20ac${newP.toFixed(2)} the net price (\u20ac${netNew.toFixed(2)}) is below cost (\u20ac${cost.toFixed(2)}) \u2014 every unit now loses \u20ac${Math.abs(mNew).toFixed(2)}. No volume can make this profitable.`; vcls='lose'; }
+  else if(dGP>Math.abs(gpB)*0.02){ verdict=`\u2705 More profitable. The price cut lifted volume enough to grow monthly gross profit by ${salesEur(dGP)} (${dGPpct>0?'+':''}${dGPpct.toFixed(0)}%). The extra sales more than covered the thinner margin.`; vcls='win'; }
+  else if(dGP<-Math.abs(gpB)*0.02){ verdict=`\u274c Less profitable. Even with ${dU>0?'+':''}${dU.toFixed(0)}% more units, monthly gross profit fell by ${salesEur(Math.abs(dGP))} (${dGPpct.toFixed(0)}%). You'd need \u2265 ${fmtInt(Math.ceil(breakeven))} units/month at the new price to match the old profit \u2014 you're selling ${fmtInt(Math.round(uAfter))}.`; vcls='lose'; }
+  else { verdict=`\u2248 Roughly break-even. Monthly gross profit changed by just ${salesEur(dGP)} (${dGPpct.toFixed(0)}%). The volume gain more or less offset the lower margin.`; vcls='even'; }
+
+  const stat=(lab,a,b,fmt)=>`<div class="pc-stat"><span class="lab">${lab}</span><span class="num">${fmt(a)} \u2192 ${fmt(b)}</span></div>`;
+  out.innerHTML = `
+    ${chartHtml}
+    ${monthsInfo?`<div class="pc-note">${monthsInfo}</div>`:''}
+    <div class="pc-results">
+      <div class="pc-card"><h4>Per unit</h4>
+        ${stat('Price (inc VAT)',oldP,newP,salesEur)}
+        ${stat('Net price (ex VAT)',netOld,netNew,salesEur)}
+        ${stat('Cost',cost,cost,salesEur)}
+        ${stat('Margin / unit',mOld,mNew,salesEur)}
+        <div class="pc-stat"><span class="lab">Margin %</span><span class="num">${netOld>0?(mOld/netOld*100).toFixed(0):'0'}% \u2192 ${netNew>0?(mNew/netNew*100).toFixed(0):'0'}%</span></div>
+      </div>
+      <div class="pc-card"><h4>Per month</h4>
+        ${stat('Units sold',uBefore,uAfter,v=>fmtInt(v))}
+        <div class="pc-stat"><span class="lab">Units change</span><span class="num ${dU>=0?'mom-up':'mom-down'}">${dU>0?'+':''}${dU.toFixed(0)}%</span></div>
+        ${stat('Gross profit',gpB,gpA,salesEur0)}
+        <div class="pc-stat"><span class="lab">Profit change</span><span class="num ${dGP>=0?'mom-up':'mom-down'}">${dGP>=0?'+':''}${salesEur(dGP)} (${dGPpct>0?'+':''}${dGPpct.toFixed(0)}%)</span></div>
+        <div class="pc-stat"><span class="lab">Break-even units/mo</span><span class="num">${isFinite(breakeven)?fmtInt(Math.ceil(breakeven)):'\u2014'}</span></div>
+        ${__pcRealRev?`<div class="pc-stat"><span class="lab">Avg price achieved</span><span class="num">${salesEur(__pcRealRev.achBefore)} \u2192 ${salesEur(__pcRealRev.achAfter)}</span></div>`:''}
+      </div>
+    </div>
+    <div class="pc-verdict ${vcls}">${verdict}</div>
+    <div class="pc-note">Source: ${srcLabel}. Profit basis: ${gpBasis} (ex VAT, minus supplier cost; excludes overheads/postage). ${pcManualMode?'':'\"After\" includes the change month, which may be partial.'} Cost is assumed steady across the period.</div>`;
+}
+
 function renderNOOS(){
   const threshold = parseInt(document.getElementById('noosThreshold')?.value||50,10);
   const el = id => document.getElementById(id);
