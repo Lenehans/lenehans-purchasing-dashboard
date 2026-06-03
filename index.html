@@ -5129,13 +5129,32 @@ function getFilteredRows(){
   });
 }
 
-function recompute(){
-  const chPoMap = getChannelPOMap();
-  const allComputed=state.governedRows.map(computeRow);
+async function recompute(){
+  const rows = state.governedRows;
+  if(!rows || !rows.length){ state.computedRows=[]; render(); return; }
 
-  // ── Keep one row per SKU+Supplier combination ────────────────────────────
-  // Multi-supplier SKUs (e.g. bought from STAX and WILSONS) appear under
-  // each supplier separately so buyers can order from the right one.
+  // ── Chunked computeRow — yields to browser every 1500 rows ──────────────
+  // Prevents UI freeze on large datasets; updates progress bar between chunks
+  const CHUNK = 1500;
+  const allComputed = [];
+  const blBar = document.getElementById('loadProgressFill');
+  const blMsg = document.getElementById('basicLoadMsg');
+
+  for(let i = 0; i < rows.length; i += CHUNK){
+    const chunk = rows.slice(i, i + CHUNK);
+    for(const r of chunk) allComputed.push(computeRow(r));
+    // Update progress: 70-95% range during computeRow
+    const pct = 70 + Math.round((i / rows.length) * 25);
+    if(blBar) blBar.style.width = pct + '%';
+    if(blMsg) blMsg.textContent = `Computing ${fmtInt(Math.min(i+CHUNK, rows.length))} of ${fmtInt(rows.length)} rows…`;
+    await new Promise(res => setTimeout(res, 0)); // yield to browser
+  }
+
+  if(blBar) blBar.style.width = '97%';
+  if(blMsg) blMsg.textContent = 'Applying rules…';
+  await new Promise(res => setTimeout(res, 0));
+
+  // ── Dedup by SKU+Supplier ────────────────────────────────────────────────
   const seen = new Set();
   const deduped = [];
   for(const r of allComputed){
@@ -5147,9 +5166,9 @@ function recompute(){
     deduped.push(r);
   }
 
-  state.computedRows=deduped;
-  window._eiRows=deduped;
-  if(typeof window.eiOnDataReady==='function') window.eiOnDataReady(deduped);
+  state.computedRows = deduped;
+  window._eiRows = deduped;
+  if(typeof window.eiOnDataReady === 'function') window.eiOnDataReady(deduped);
 
   // ── Build global revenue rank map (all governed SKUs by 30D revenue) ────────
   const rankSorted=[...deduped].sort((a,b)=>(b.Revenue_Online_Total_30d||0)-(a.Revenue_Online_Total_30d||0));
@@ -6678,6 +6697,7 @@ async function loadGovernanceFeeds(){
     msgs.push('Monthly history: no URL — using profile estimates for Seasonal mode');
   }
   state.governedSuppliers=buildGovernedSet(getChannelCSLines(), getChannelPOMap());
+  state._govLow = null; // invalidate lowercase cache
   const govMsg = state.governedSuppliers.size > 0
     ? `✅ Governance active · ${msgs.join(' · ')} · ${state.governedSuppliers.size} governed suppliers`
     : `⚠️ Governance feeds not reachable · ${msgs.join(' · ')} · showing all suppliers`;
@@ -6685,23 +6705,34 @@ async function loadGovernanceFeeds(){
 }
 
 function applyGovernance(rows){
-  if(state.governedSuppliers.size===0) return rows; // no governance data = show all (fail-safe)
+  if(state.governedSuppliers.size===0) return rows;
+  // Pre-build lowercase set once — O(1) lookup instead of O(m) per row
+  const govLow = state._govLow || (state._govLow = new Set([...state.governedSuppliers].map(n=>n.toLowerCase())));
   return rows.filter(r=>{
     if(!r.SupplierName) return false;
     if(state.governedSuppliers.has(r.SupplierName)) return true;
-    // Case-insensitive exact match only — fuzzy matching caused over-inclusion
-    const rLow = r.SupplierName.toLowerCase();
-    for(const g of state.governedSuppliers){
-      if(g.toLowerCase() === rLow) return true;
-    }
-    return false;
+    return govLow.has(r.SupplierName.toLowerCase());
   });
 }
 
 // ─── MAIN DATA FLOW ──────────────────────────────────────────────────────────
 async function processRawRows(parsedRaw, sourceName){
   const missing=detectMissingColumns(parsedRaw);
-  const normalised=parsedRaw.map(normalizeRow).filter(r=>r.SKU||r.ItemTitle);
+
+  // ── Step 1: Pre-filter raw rows by SupplierName BEFORE expensive normalizeRow ──
+  // Reduces normalizeRow calls from ~54k to ~14k (only governed suppliers)
+  // Fall back to all rows if no governance data yet
+  let preFiltered = parsedRaw;
+  if(state.governedSuppliers && state.governedSuppliers.size > 0){
+    const govLow = new Set([...state.governedSuppliers].map(n=>n.toLowerCase()));
+    preFiltered = parsedRaw.filter(r=>{
+      const name = String(r.SupplierName||r['SupplierName']||'').toLowerCase();
+      return name && govLow.has(name);
+    });
+    state._govLow = govLow; // cache for applyGovernance
+  }
+
+  const normalised = preFiltered.map(normalizeRow).filter(r=>r.SKU||r.ItemTitle);
   if(normalised.length===0){setStatus('❌ No rows found in CSV.',true);return;}
 
   state.rawRows=normalised;
@@ -6709,14 +6740,14 @@ async function processRawRows(parsedRaw, sourceName){
   const governed=applyGovernance(withCS);
   state.governedRows=governed;
 
-  const hiddenCount=normalised.length-governed.filter(r=>!r._synthetic).length;
+  const hiddenCount=parsedRaw.length-governed.filter(r=>!r._synthetic).length;
   state.activeSupplier='';
-  recompute();
+  await recompute();
 
   const govNote = state.governedSuppliers.size > 0
     ? ` · ${fmtInt(new Set(governed.map(r=>r.SupplierName)).size)} governed suppliers · ${hiddenCount} rows hidden by governance`
     : ' · governance feeds unavailable, showing all suppliers';
-  setStatus(`✅ Loaded ${fmtInt(normalised.length)} rows from ${sourceName}${govNote}.${missing.length?' Missing columns: '+missing.join(', '):''}`, false);
+  setStatus(`✅ Loaded ${fmtInt(parsedRaw.length)} rows from ${sourceName}${govNote}.${missing.length?' Missing columns: '+missing.join(', '):''}`, false);
   setLoadMeta('',false);
 }
 
