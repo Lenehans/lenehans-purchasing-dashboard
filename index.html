@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V6.3 · EMAIL INTELLIGENCE</title>
+  <title>Lenehans Purchasing Dashboard · V6.4 · EMAIL INTELLIGENCE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1002,7 +1002,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.3 · Seasonal · Signal-stack · Governance · Email Intelligence</div>
+  <div class="sub">V6.4 · Seasonal · Signal-stack · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -1047,7 +1047,8 @@
       <button id="loadUrlBtn">Load from URL</button>
       <button id="autoLoadBtn" class="secondary">Auto-load all feeds</button>
       <button id="testUrlBtn" class="secondary">Test URL</button>
-      <button onclick="(function(){var sku=prompt('Enter SKU to diagnose (e.g. 802518):');if(!sku)return;var ch=state.channel;var rows=(state.computedRows||[]).filter(function(x){return String(x.SKU||'').trim()===sku.trim();});if(!rows.length){alert('SKU ['+sku+'] not found in computed rows.\n\nMake sure data is loaded and check channel.');return;}var msg='🔍 SKU: '+sku+' | Channel: '+ch+'\nFound in '+rows.length+' supplier row'+(rows.length>1?'s (multi-supplier!)':'')+'\n\n';rows.forEach(function(r,i){var rank=(state.skuRankMap&&state.skuRankMap.get(sku.trim()))||'?';var inTop500=rank<=500;msg+='━━━ Supplier '+(i+1)+': '+(r.SupplierName||'?')+' ━━━\n';msg+='Stock → CS:'+( r.NetStock_CapelStreet||0)+' AK:'+(r.NetStock_Arklow||0)+'\n';msg+='CS demand 30d: '+(r.QtySold_Shop_CapelStreet_30d||0)+' units\n';msg+='CS revenue 30d: €'+(r.Revenue_Shop_CapelStreet_30d||0).toFixed(2)+'\n';msg+='Adj daily: '+((r.adjustedDaily||0).toFixed(2))+' | Days cover: '+Math.round(r.daysOfCover||0)+'\n';msg+='Status: '+(r.coverStatus||'?')+' | ABC: '+(r.abcClass||'?')+'\n';msg+='BUY: '+(r.buy||0)+' units\n';msg+='Rank: '+rank+(inTop500?' ✅ in QO':' ❌ not in Quick Order')+'\n';msg+='Governance: '+(!!(state.govSupplierNames&&state.govSupplierNames.has(r.SupplierName))?'✅ pass':'❌ FAIL — hidden!')+'\n\n';});alert(msg);})()">🔍 Diagnose SKU</button>
+      <button onclick="(function(){var s=prompt('Supplier name to audit (e.g. WILSONS):');if(!s)return;openSupplierAudit(s.trim());})()">📋 Supplier Audit</button>
+      <button onclick="(function(){var sku=prompt('Enter SKU to diagnose (e.g. 802518):');if(!sku)return;var ch=state.channel;var rows=(state.computedRows||[]).filter(function(x){return String(x.SKU||'').trim()===sku.trim();});if(!rows.length){alert('SKU ['+sku+'] not found in computed rows.\n\nMake sure data is loaded and check channel.');return;}var msg='🔍 SKU: '+sku+' | Channel: '+ch+'\nFound in '+rows.length+' supplier row'+(rows.length>1?'s (multi-supplier!)':'')+'\n\n';rows.forEach(function(r,i){var rank=(state.skuRankMap&&state.skuRankMap.get(sku.trim()))||'?';var inTop500=rank<=500;msg+='━━━ Supplier '+(i+1)+': '+(r.SupplierName||'?')+' ━━━\n';msg+='Stock → CS:'+( r.NetStock_CapelStreet||0)+' AK:'+(r.NetStock_Arklow||0)+'\n';msg+='CS demand 30d: '+(r.QtySold_Shop_CapelStreet_30d||0)+' units\n';msg+='CS revenue 30d: €'+(r.Revenue_Shop_CapelStreet_30d||0).toFixed(2)+'\n';msg+='Adj daily: '+((r.adjustedDaily||0).toFixed(2))+' | Days cover: '+Math.round(r.daysOfCover||0)+'\n';msg+='Status: '+(r.coverStatus||'?')+' | ABC: '+(r.abcClass||'?')+'\n';msg+='BUY: '+(r.buy||0)+' units\n';msg+='Rank: '+rank+(inTop500?' ✅ in QO':' ❌ not in Quick Order')+'\n';msg+='Governance: '+(!!(state.governedSuppliers&&state.governedSuppliers.has(r.SupplierName))?'✅ pass':'❌ FAIL — hidden!')+'\n\n';});alert(msg);})()">🔍 Diagnose SKU</button>
       <label>or CSV file
         <input id="csvFile" type="file" accept=".csv,text/csv">
       </label>
@@ -7326,6 +7327,117 @@ function toggleTeamDone(supplier, channels, buyerName){
   }
 }
 
+function openSupplierAudit(supplierName){
+  const ch = state.channel==='capel' ? 'Capel Street' : 'Arklow Online';
+  const growthAdj = state.channel==='capel' ? 0 : (num(document.getElementById('growthAdj')?.value)||0);
+  const rows = (state.computedRows||[]).filter(r=>{
+    const n = r.SupplierName||'';
+    return n===supplierName || n.toLowerCase()===supplierName.toLowerCase();
+  }).filter(r=>(r.buy||0)>0 || ['Critical','Out of Stock','Low'].includes(r.coverStatus));
+
+  if(!rows.length){
+    alert(`No rows found for "${supplierName}" in ${ch} mode with buy>0.\n\nTry the exact supplier name as it appears in the dashboard.`);
+    return;
+  }
+
+  const fmt2=v=>typeof v==='number'?v.toFixed(2):'?';
+  const fmtN=v=>typeof v==='number'?Math.round(v):'?';
+
+  let html = `<!DOCTYPE html><html><head><title>Audit: ${supplierName} — ${ch}</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;margin:0;padding:16px;background:#f8fafc;color:#1e293b}
+h2{font-size:16px;font-weight:800;color:#1e293b;margin:0 0 4px}
+p.sub{font-size:11px;color:#64748b;margin:0 0 16px}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{background:#1e293b;color:#fff;padding:7px 8px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;position:sticky;top:0}
+th.num{text-align:right}
+td{padding:6px 8px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+tr:hover td{background:#f1f5f9}
+.red{color:#dc2626;font-weight:700}
+.amber{color:#d97706;font-weight:700}
+.green{color:#16a34a;font-weight:700}
+.blue{color:#2563eb;font-weight:700}
+.pill{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;margin:1px 2px 1px 0}
+.pill-red{background:#fee2e2;color:#991b1b}
+.pill-amber{background:#fff7ed;color:#92400e}
+.pill-green{background:#f0fdf4;color:#166534}
+.pill-blue{background:#eff6ff;color:#1d4ed8}
+.pill-purple{background:#fdf4ff;color:#7e22ce}
+.pill-gray{background:#f1f5f9;color:#475569}
+.warn{background:#fffbeb;border-left:3px solid #d97706;padding:4px 8px;margin:2px 0;font-size:10px}
+</style></head><body>
+<h2>📋 Supplier Audit: ${supplierName}</h2>
+<p class="sub">Channel: <b>${ch}</b> · Growth adj: <b>${growthAdj}%</b> · Mode: <b>${document.getElementById('demandMode')?.value||'?'}</b> · Base cover: <b>${document.getElementById('baseCoverDays')?.value||56}d</b> · ${rows.length} SKUs shown (buy>0 or critical)</p>
+<table>
+<thead><tr>
+  <th>SKU</th><th>Item</th>
+  <th class="num">AK Stock</th><th class="num">CS Stock</th>
+  <th class="num">30D Sales</th><th class="num">Adj Daily</th>
+  <th>ABC</th><th>Cover Tgt</th><th class="num">Target</th><th class="num">Max Buy</th><th class="num">BUY</th>
+  <th>Status</th><th>Signals fired</th><th>Flags / Warnings</th>
+</tr></thead><tbody>`;
+
+  rows.sort((a,b)=>(b.buy||0)-(a.buy||0));
+
+  for(const r of rows){
+    const statusCls = r.coverStatus==='Out of Stock'||r.coverStatus==='Critical' ? 'red'
+      : r.coverStatus==='Low' ? 'amber' : 'green';
+    const abcCls = r.abcClass==='A'?'red':r.abcClass==='B'?'amber':r.abcClass==='C'?'blue':'gray';
+
+    // Build signals
+    const signals = [];
+    if(r.isTrending) signals.push(`<span class="pill pill-red">📈 Trending ${fmt2(r.daily30rate/r.daily180rate)}×</span>`);
+    if(r.isOosSuppressed) signals.push(`<span class="pill pill-amber">⚠ OOS reconstruction</span>`);
+    if(r.seasonalDataUsed) signals.push(`<span class="pill pill-blue">📅 ${r.seasonalNote}</span>`);
+    else if(r.seasonalProfile && r.seasonalProfile!=='NONE') signals.push(`<span class="pill pill-purple">🌿 Profile: ${r.seasonalProfile}</span>`);
+    if(r.spikeFactored) signals.push(`<span class="pill pill-red">⚡ 7D spike ${fmt2(r.spikeRatio)}×</span>`);
+    if(r.weatherActive) signals.push(`<span class="pill pill-blue">🌡 Weather ×${fmt2(r.weatherMult)}</span>`);
+    if(r.seasonalBoostPct>0) signals.push(`<span class="pill pill-amber">🔺 Cover boost +${Math.round(r.seasonalBoostPct*100)}%</span>`);
+    if(r._csRequired) signals.push(`<span class="pill pill-green">🏪 CS floor ${r._csQtyFloor}</span>`);
+    if(r.isDeclining) signals.push(`<span class="pill pill-gray">📉 Declining</span>`);
+    if(r.minOneFallbackApplied) signals.push(`<span class="pill pill-amber">fallback min-1</span>`);
+
+    // Warnings
+    const warnings = [];
+    const growthContrib = growthAdj > 0 ? Math.round((r.buy||0) * (growthAdj/100) / (1+growthAdj/100)) : 0;
+    if(growthAdj>0 && growthContrib>0) warnings.push(`<div class="warn">⚠ ~${growthContrib} of ${r.buy} units from ${growthAdj}% growth adj</div>`);
+    if(r.buy > r.base30dQty * 5) warnings.push(`<div class="warn">🔴 Buy (${r.buy}) is ${Math.round(r.buy/Math.max(r.base30dQty,1))}× the 30D sales — check if reasonable</div>`);
+    if(r.maxBuy <= r.rawBuy && r.rawBuy > 0) warnings.push(`<div class="warn">🔵 maxBuy cap applied: ${r.maxBuy} (raw would be ${r.rawBuy})</div>`);
+    if(r.abcClass==='A' && r.estRev180<200) warnings.push(`<div class="warn">⚠ A-class from volume only (low revenue)</div>`);
+    if(r.dynamicCoverMult >= 1.4) warnings.push(`<div class="warn">🔺 High cover mult: ×${r.dynamicCoverMult?.toFixed(2)} → ${r.coverDays}d target</div>`);
+
+    const akStock = r.NetStock_Arklow||0;
+    const csStock = r.NetStock_CapelStreet||0;
+    const stockCls = akStock<=0?'red':akStock<10?'amber':'';
+    const csStockCls = csStock<=0?'red':csStock<10?'amber':'';
+
+    html += `<tr>
+      <td style="font-family:monospace;color:#1d4ed8">${r.SKU||''}</td>
+      <td style="max-width:200px;word-wrap:break-word">${r.ItemTitle||''}</td>
+      <td class="num ${stockCls}">${akStock}</td>
+      <td class="num ${csStockCls}">${csStock}</td>
+      <td class="num">${fmtN(r.base30dQty)}</td>
+      <td class="num">${fmt2(r.adjustedDaily)}</td>
+      <td><span class="pill pill-${abcCls}">${r.abcClass||'?'}</span></td>
+      <td class="num">${r.coverDays||'?'}d <span style="color:#94a3b8;font-size:10px">×${r.dynamicCoverMult?.toFixed(2)}</span></td>
+      <td class="num">${fmtN(r.target)}</td>
+      <td class="num">${fmtN(r.maxBuy)}</td>
+      <td class="num ${r.buy>0?'red':''}" style="font-weight:900;font-size:13px">${r.buy||0}</td>
+      <td><span class="pill pill-${statusCls}">${r.coverStatus||'?'}</span></td>
+      <td>${signals.join('')||'<span style="color:#94a3b8">—</span>'}</td>
+      <td>${warnings.join('')||'<span style="color:#94a3b8">—</span>'}</td>
+    </tr>`;
+  }
+
+  html += `</tbody></table>
+<p style="font-size:10px;color:#94a3b8;margin-top:12px">Rules: baseCover=${document.getElementById('baseCoverDays')?.value||56}d · growthAdj=${growthAdj}% · ABC A≥€1k/100 units B≥€200/20 C≥€50/5 (180D) · dynamicCover: A=1.3–1.6× B=0.85–1.2× C=0.75–1.1× D=0.5× · maxBuy cap applied per mode · hard 90d cover exclusion active</p>
+</body></html>`;
+
+  const w = window.open('','_blank','width=1400,height=700');
+  w.document.write(html);
+  w.document.close();
+}
 function markSupplierDone(supplierName){
   if(!PO_UPDATER_URL) return;
   const ch        = state.channel === 'capel' ? 'CS' : 'AK';
