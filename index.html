@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Dashboard · V6.7 · SALES + MARGIN</title>
+  <title>Lenehans Dashboard · V6.8 · SALES + MARGIN</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -433,6 +433,14 @@
     .tab-btn.active{color:#1e40af;border-bottom-color:#1e40af}
     .tab-btn:hover:not(.active){color:#1e293b;background:#f8fafc}
     .tab-panel{display:none}.tab-panel.active{display:block}
+    #salesLock{display:none;align-items:center;justify-content:center;min-height:44vh}
+    .sales-lockbox{max-width:380px;text-align:center;background:var(--panel);border:1.5px solid var(--line);border-radius:14px;padding:30px 26px;box-shadow:0 6px 24px rgba(0,0,0,.07)}
+    .sales-lockbox h3{margin:8px 0 6px;font-size:17px;color:#1e3a5f;font-weight:800}
+    .sales-lockbox p{font-size:12.5px;color:var(--muted);margin:0 0 16px;line-height:1.5}
+    .sales-lockbox input{width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;text-align:center}
+    .sales-lockbox button{margin-top:12px;width:100%;padding:10px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-weight:700;font-size:14px;cursor:pointer}
+    .sales-lockbox button:hover{filter:brightness(1.05)}
+    #salesPwdErr{color:#dc2626;font-size:12px;font-weight:700;margin-top:8px}
     /* ── SALES TAB ── */
     .sales-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:14px 0}
     .sales-kpi{background:var(--panel);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px}
@@ -1051,7 +1059,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.7 · Seasonal · Signal-stack · Governance · Email Intelligence · Sales &amp; Margin</div>
+  <div class="sub">V6.8 · Seasonal · Signal-stack · Governance · Email Intelligence · Sales &amp; Margin (locked)</div>
 </header>
 
 <div class="wrap">
@@ -1694,7 +1702,19 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       <h2 style="font-size:19px;font-weight:800;color:#1e3a5f;margin:0 0 2px">📈 Sales &amp; Margin</h2>
       <p style="font-size:13px;color:var(--muted);margin:0 0 6px">What's selling, what's making money, and what happens to profit when you move a price. Uses the same Google Sheets feed as Buying.</p>
 
-      <div class="sales-toolbar">
+      <div id="salesLock">
+        <div class="sales-lockbox">
+          <div style="font-size:34px">🔒</div>
+          <h3>Sales &amp; Margin — restricted</h3>
+          <p>This view shows costs, margins and profit. Enter the manager password to continue.</p>
+          <input id="salesPwd" type="password" placeholder="Password" autocomplete="off"
+                 onkeydown="if(event.key==='Enter')salesUnlock()">
+          <div id="salesPwdErr" style="display:none">Incorrect password — try again.</div>
+          <button onclick="salesUnlock()">Unlock</button>
+        </div>
+      </div>
+
+      <div class="sales-toolbar" id="salesViewToolbar">
         <div class="sales-seg" id="salesViewSeg">
           <button class="active" data-sview="selling">🏆 What's Selling</button>
           <button data-sview="pricechange">💶 Price Change Analysis</button>
@@ -1727,6 +1747,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
           <input id="salesSearch" class="sales-search" placeholder="Search SKU, item, supplier…">
           <span style="font-size:12px;font-weight:700;color:var(--muted);margin-left:8px">VAT %</span><input id="salesVat" class="sales-search" style="min-width:56px;width:56px" type="number" step="0.5" value="23" oninput="renderSalesSelling()" title="VAT rate used to convert RetailPrice (inc VAT) to net. Revenue is treated as ex-VAT.">
           <button class="sales-btn green" onclick="exportSalesCSV()">⬇ Export CSV</button>
+          <button class="sales-btn grey" onclick="salesLock()" title="Re-lock the Sales tab">🔒 Lock</button>
         </div>
 
         <div class="sales-kpis" id="salesKpis"></div>
@@ -7682,6 +7703,67 @@ function goToSupplier(supplierName, channel){
 // ═══════════════════════════════════════════════════════════════════════════
 // SALES TAB  (added V6.5)
 // ═══════════════════════════════════════════════════════════════════════════
+// ── Access gate (client-side deterrent; SHA-256 hash, not plaintext) ──
+// To change the password: in the browser console run
+//   sha256('YOURNEWPASSWORD').then(console.log)
+// then paste the printed hash below. (Default password: lenehans)
+const SALES_PWD_HASH = '397a43d9a25a2e71b2cfcd233a2604307fdf86c699181958730a5fed769ce493';
+let salesUnlocked = (()=>{ try{ return sessionStorage.getItem('salesUnlocked')==='1'; }catch(e){ return false; } })();
+async function sha256(str){
+  str = String(str);
+  try{
+    if(crypto && crypto.subtle){
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+  }catch(e){ /* fall through to JS impl (e.g. non-secure context) */ }
+  return sha256_js(str);
+}
+// Pure-JS SHA-256 fallback for non-secure contexts (file://). Verified against WebCrypto.
+function sha256_js(ascii){
+  function rr(v,a){return(v>>>a)|(v<<(32-a));}
+  var mp=Math.pow,mw=mp(2,32),result='';
+  var words=[],abl=ascii.length*8;
+  var hash=sha256_js.h=sha256_js.h||[],k=sha256_js.k=sha256_js.k||[],pc=k.length,isC={};
+  for(var cand=2;pc<64;cand++){ if(!isC[cand]){ for(var i=0;i<313;i+=cand)isC[i]=cand;
+    hash[pc]=(mp(cand,.5)*mw)|0; k[pc++]=(mp(cand,1/3)*mw)|0; } }
+  ascii=unescape(encodeURIComponent(ascii)); abl=ascii.length*8; ascii+='\x80';
+  while(ascii.length%64-56)ascii+='\x00';
+  for(i=0;i<ascii.length;i++){ var j=ascii.charCodeAt(i); if(j>>8)return; words[i>>2]|=j<<((3-i)%4)*8; }
+  words[words.length]=((abl/mw)|0); words[words.length]=(abl);
+  for(j=0;j<words.length;){
+    var w=words.slice(j,j+=16),oh=hash; hash=hash.slice(0,8);
+    for(i=0;i<64;i++){
+      var w15=w[i-15],w2=w[i-2],a=hash[0],e=hash[4];
+      var t1=hash[7]+(rr(e,6)^rr(e,11)^rr(e,25))+((e&hash[5])^((~e)&hash[6]))+k[i]+(w[i]=(i<16)?w[i]:(w[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+w[i-7]+(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+      var t2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+      hash=[(t1+t2)|0].concat(hash); hash[4]=(hash[4]+t1)|0;
+    }
+    for(i=0;i<8;i++)hash[i]=(hash[i]+oh[i])|0;
+  }
+  for(i=0;i<8;i++)for(j=3;j+1;j--){var b=(hash[i]>>(j*8))&255;result+=((b<16)?0:'')+b.toString(16);}
+  return result;
+}
+async function salesUnlock(){
+  const inp=document.getElementById('salesPwd'), err=document.getElementById('salesPwdErr');
+  let h=''; try{ h=await sha256(inp?inp.value:''); }catch(e){ h=''; }
+  if(h===SALES_PWD_HASH){
+    salesUnlocked=true; try{ sessionStorage.setItem('salesUnlocked','1'); }catch(e){}
+    if(inp) inp.value=''; if(err) err.style.display='none';
+    renderSales();
+  } else {
+    if(err) err.style.display='block';
+    if(inp){ inp.value=''; inp.focus(); }
+  }
+}
+function salesLock(){ salesUnlocked=false; try{ sessionStorage.removeItem('salesUnlocked'); }catch(e){} renderSales(); }
+function salesShowLock(show){
+  const lock=document.getElementById('salesLock'); if(lock) lock.style.display = show?'flex':'none';
+  const tb=document.getElementById('salesViewToolbar'); if(tb) tb.style.display = show?'none':'';
+  const a=document.getElementById('salesSellingView'), b=document.getElementById('salesPriceView');
+  if(show){ if(a)a.style.display='none'; if(b)b.style.display='none'; }
+  else { setSalesView(salesView); const p=document.getElementById('salesPwd'); }
+}
 let salesSort   = {col:'estGP180', dir:-1};
 let salesView   = 'selling';
 let salesScope  = 'all';
@@ -7799,6 +7881,8 @@ function sortSales(col){ if(salesSort.col===col) salesSort.dir*=-1; else salesSo
 
 function renderSales(){
   state._salesDedup=null;   // refresh after any data reload
+  if(!salesUnlocked){ salesShowLock(true); setTimeout(()=>{const p=document.getElementById('salesPwd'); if(p)p.focus();},50); return; }
+  salesShowLock(false);
   if(!state.computedRows||!state.computedRows.length){
     document.getElementById('salesKpis').innerHTML='<div style="color:var(--muted);padding:16px">\u23f3 Load data on the Buying tab first (Auto-load), then come back.</div>';
     document.querySelector('#salesTable tbody').innerHTML='';
