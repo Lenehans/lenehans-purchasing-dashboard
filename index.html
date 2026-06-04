@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Dashboard · V6.8 · SALES + MARGIN</title>
+  <title>Lenehans Dashboard · V6.8.1 · SALES + MARGIN</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1059,7 +1059,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.8 · Seasonal · Signal-stack · Governance · Email Intelligence · Sales &amp; Margin (locked)</div>
+  <div class="sub">V6.8.1 · Seasonal · Signal-stack · Governance · Email Intelligence · Sales &amp; Margin (locked)</div>
 </header>
 
 <div class="wrap">
@@ -1185,7 +1185,7 @@
         <input id="leadDays" type="number" min="0" step="1" value="2">
       </label>
       <label id="baseCoverLabel">Cover days
-        <input id="baseCoverDays" type="number" min="1" step="1" value="56">
+        <input id="baseCoverDays" type="number" min="1" step="1" value="21">
       </label>
       <label id="fallback90Label">90D fallback
         <button id="fallback90Btn" class="fallback-btn fallback-on" data-active="true">✓ 90D</button>
@@ -4848,7 +4848,7 @@ function buildBuyerReason(res){
   lines.push(`To maintain ${fmtInt(res.dynamicCoverDays||res.coverDays)} days of stock we need ${fmtInt(res.target)} units.`);
   // Explain why the cover target differs from the base setting
   if(res.dynamicCoverMult && Math.abs(res.dynamicCoverMult-1.0) > 0.05){
-    const baseCover = num(document.getElementById('baseCoverDays')?.value)||56;
+    const baseCover = num(document.getElementById('baseCoverDays')?.value)||21;
     const lead      = num(document.getElementById('leadDays')?.value)||0;
     const flatDays  = baseCover+lead;
     const reason = res.dynamicCoverMult >= 1.3
@@ -4969,7 +4969,7 @@ function computeRow(row){
   const eff90On  = supplierOverride ? supplierOverride==='90D'  : fallback90On;
   const eff180On = supplierOverride ? supplierOverride==='180D' : fallback180On;
   const fallbackOn    = eff90On || eff180On;
-  const baseCover    = num(document.getElementById('baseCoverDays').value)||56;
+  const baseCover    = num(document.getElementById('baseCoverDays').value)||21;
   const lead         = num(document.getElementById('leadDays').value)||0;
   const coverDays    = baseCover+lead;
   const isSeasonalMode = demandMode==='Seasonal';
@@ -7567,7 +7567,7 @@ tr:hover td{background:#f1f5f9}
 .warn{background:#fffbeb;border-left:3px solid #d97706;padding:4px 8px;margin:2px 0;font-size:10px}
 </style></head><body>
 <h2>📋 Supplier Audit: ${supplierName}</h2>
-<p class="sub">Channel: <b>${ch}</b> · Growth adj: <b>${growthAdj}%</b> · Mode: <b>${document.getElementById('demandMode')?.value||'?'}</b> · Base cover: <b>${document.getElementById('baseCoverDays')?.value||56}d</b> · ${rows.length} SKUs shown (buy>0 or critical)</p>
+<p class="sub">Channel: <b>${ch}</b> · Growth adj: <b>${growthAdj}%</b> · Mode: <b>${document.getElementById('demandMode')?.value||'?'}</b> · Base cover: <b>${document.getElementById('baseCoverDays')?.value||21}d</b> · ${rows.length} SKUs shown (buy>0 or critical)</p>
 <table>
 <thead><tr>
   <th>SKU</th><th>Item</th>
@@ -7630,7 +7630,7 @@ tr:hover td{background:#f1f5f9}
   }
 
   html += `</tbody></table>
-<p style="font-size:10px;color:#94a3b8;margin-top:12px">Rules: baseCover=${document.getElementById('baseCoverDays')?.value||56}d · growthAdj=${growthAdj}% · ABC A≥€1k/100 units B≥€200/20 C≥€50/5 (180D) · dynamicCover: A=1.3–1.6× B=0.85–1.2× C=0.75–1.1× D=0.5× · maxBuy cap applied per mode · hard 90d cover exclusion active</p>
+<p style="font-size:10px;color:#94a3b8;margin-top:12px">Rules: baseCover=${document.getElementById('baseCoverDays')?.value||21}d · growthAdj=${growthAdj}% · ABC A≥€1k/100 units B≥€200/20 C≥€50/5 (180D) · dynamicCover: A=1.3–1.6× B=0.85–1.2× C=0.75–1.1× D=0.5× · maxBuy cap applied per mode · hard 90d cover exclusion active</p>
 </body></html>`;
 
   const w = window.open('','_blank','width=1400,height=700');
