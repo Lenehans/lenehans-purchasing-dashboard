@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Dashboard · V6.6.1 · SALES + MARGIN</title>
+  <title>Lenehans Dashboard · V6.7 · SALES + MARGIN</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1051,7 +1051,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.6.1 · Seasonal · Signal-stack · Governance · Email Intelligence · Sales &amp; Margin</div>
+  <div class="sub">V6.7 · Seasonal · Signal-stack · Governance · Email Intelligence · Sales &amp; Margin</div>
 </header>
 
 <div class="wrap">
@@ -1704,7 +1704,13 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       <!-- ── VIEW: WHAT'S SELLING ─────────────────────────────────────────── -->
       <div id="salesSellingView">
         <div class="sales-toolbar">
-          <span style="font-size:12px;font-weight:700;color:var(--muted)">Channel:</span>
+          <span style="font-size:12px;font-weight:700;color:var(--muted)">Window:</span>
+          <div class="sales-seg" id="salesWindowSeg">
+            <button data-swin="30">30d</button>
+            <button data-swin="90">90d</button>
+            <button class="active" data-swin="180">180d</button>
+          </div>
+          <span style="font-size:12px;font-weight:700;color:var(--muted);margin-left:8px">Channel:</span>
           <div class="sales-seg" id="salesScopeSeg">
             <button class="active" data-sscope="all">All</button>
             <button data-sscope="arklowOnline">Arklow Online</button>
@@ -7156,6 +7162,7 @@ function bindEvents(){
   });
   // ── Sales tab controls ─────────────────────────────────────────────────────
   document.querySelectorAll('#salesViewSeg button').forEach(b=>b.addEventListener('click',()=>setSalesView(b.dataset.sview)));
+  document.querySelectorAll('#salesWindowSeg button').forEach(b=>b.addEventListener('click',()=>setSalesWindow(b.dataset.swin)));
   document.querySelectorAll('#salesScopeSeg button').forEach(b=>b.addEventListener('click',()=>setSalesScope(b.dataset.sscope)));
   document.querySelectorAll('#salesFilterSeg button').forEach(b=>b.addEventListener('click',()=>setSalesFilter(b.dataset.sfilter)));
   const _ss=document.getElementById('salesSearch'); if(_ss) _ss.addEventListener('input',()=>renderSalesSelling());
@@ -7678,6 +7685,7 @@ function goToSupplier(supplierName, channel){
 let salesSort   = {col:'estGP180', dir:-1};
 let salesView   = 'selling';
 let salesScope  = 'all';
+let salesWindow = 180;
 let salesFilter = 'all';
 let pcState     = {sku:'', item:'', cost:0, retail:0};
 let pcManualMode= false;
@@ -7693,51 +7701,88 @@ function salesVatRate(){
 }
 
 // Per-scope unit & revenue extraction
-function salesScopeFields(r, scope){
-  const g=(k)=>num(r[k]||0);
-  if(scope==='arklowOnline') return {
-    u30:g('QtySold_Online_Arklow_30d'), u90:g('QtySold_Online_Arklow_90d'), u180:g('QtySold_Online_Arklow_180d'),
-    rev30:g('Revenue_Online_Total_30d'), rev180:g('Revenue_Online_Total_180d'),
-    stock:Math.max(0,g('NetStock_Arklow'))
-  };
-  if(scope==='capelOnline') return {
-    u30:g('QtySold_Online_CapelStreet_30d'), u90:g('QtySold_Online_CapelStreet_90d'), u180:g('QtySold_Online_CapelStreet_180d'),
-    rev30:g('Revenue_Online_CapelStreet_30d'), rev180:0,
-    stock:Math.max(0,g('NetStock_CapelStreet'))
-  };
-  if(scope==='capelShop') return {
-    u30:g('QtySold_Shop_CapelStreet_30d'), u90:g('QtySold_Shop_CapelStreet_90d'), u180:g('QtySold_Shop_CapelStreet_180d'),
-    rev30:g('Revenue_Shop_CapelStreet_30d'), rev180:0,
-    stock:Math.max(0,g('NetStock_CapelStreet'))
-  };
-  // all
-  return {
-    u30:g('QtySold_Online_Total_30d')+g('QtySold_Shop_CapelStreet_30d'),
-    u90:g('QtySold_Online_Total_90d')+g('QtySold_Shop_CapelStreet_90d'),
-    u180:g('QtySold_Online_Total_180d')+g('QtySold_Shop_CapelStreet_180d'),
-    rev30:g('Revenue_Online_Total_30d')+g('Revenue_Online_CapelStreet_30d')+g('Revenue_Shop_CapelStreet_30d'),
-    rev180:g('Revenue_Online_Total_180d'),
-    stock:Math.max(0,g('NetStock_Arklow'))+Math.max(0,g('NetStock_CapelStreet'))
-  };
+// The feed has ONE ROW PER SKU-PER-SUPPLIER. Sales figures are identical across a
+// SKU's supplier rows, so we must NOT sum them (that double-counts). We collapse to
+// one row per SKU and use the CHEAPEST supplier cost as the representative margin.
+function salesDedup(){
+  const rows = state.computedRows || [];
+  if(state._salesDedupLen === rows.length && state._salesDedup) return state._salesDedup;
+  const SALES_FIELDS = ['QtySold_Online_Total_30d','QtySold_Online_Total_90d','QtySold_Online_Total_180d',
+    'QtySold_Online_Arklow_30d','QtySold_Online_Arklow_90d','QtySold_Online_Arklow_180d',
+    'QtySold_Online_CapelStreet_30d','QtySold_Online_CapelStreet_90d','QtySold_Online_CapelStreet_180d',
+    'QtySold_Shop_CapelStreet_30d','QtySold_Shop_CapelStreet_90d','QtySold_Shop_CapelStreet_180d',
+    'Revenue_Online_Total_30d','Revenue_Online_Total_180d','Revenue_Online_CapelStreet_30d','Revenue_Shop_CapelStreet_30d',
+    'NetStock_Arklow','NetStock_CapelStreet','RetailPrice'];
+  const map = new Map();
+  for(const r of rows){
+    const k = r.SKU; let e = map.get(k);
+    if(!e){ e = {SKU:r.SKU, ItemTitle:r.ItemTitle||'', abcClass:r.abcClass, isTrending:r.isTrending, momentum:r.momentum,
+                 _suppliers:new Set(), _costs:[]}; map.set(k,e); for(const fld of SALES_FIELDS) e[fld]=0; }
+    for(const fld of SALES_FIELDS){ const v=num(r[fld]); if(v>num(e[fld])) e[fld]=v; }   // identical across rows; max guards 0s
+    if(!e.ItemTitle && r.ItemTitle) e.ItemTitle=r.ItemTitle;
+    if(r.SupplierName) e._suppliers.add(r.SupplierName);
+    const c=num(r.SupplierCostPrice); if(c>0) e._costs.push({c, s:r.SupplierName||''});
+  }
+  const out=[];
+  for(const e of map.values()){
+    e._costs.sort((a,b)=>a.c-b.c);
+    const cheap = e._costs[0] || {c:0, s:[...e._suppliers][0]||''};
+    e.SupplierCostPrice = cheap.c; e.SupplierName = cheap.s; e._supplierCount = e._suppliers.size;
+    out.push(e);
+  }
+  state._salesDedup = out; state._salesDedupLen = rows.length;
+  return out;
 }
 
-function salesMetrics(r, scope){
-  const sf = salesScopeFields(r, scope);
+// ONE ex-VAT selling price per SKU, from the most reliable source available.
+// RetailPrice (inc VAT) wins; else revenue/units (already ex-VAT) from the richest pair.
+function salesUnitPrice(r, vat){
+  const retail = num(r.RetailPrice);
+  if(retail>0) return {net: retail/(1+vat/100), src:'retail'};
+  const pairs=[
+    [num(r.Revenue_Online_Total_30d),       num(r.QtySold_Online_Total_30d)],
+    [num(r.Revenue_Online_Total_180d),      num(r.QtySold_Online_Total_180d)],
+    [num(r.Revenue_Online_CapelStreet_30d), num(r.QtySold_Online_CapelStreet_30d)],
+    [num(r.Revenue_Shop_CapelStreet_30d),   num(r.QtySold_Shop_CapelStreet_30d)],
+  ];
+  for(const [rev,u] of pairs){ if(rev>0 && u>0) return {net: rev/u, src:'derived'}; }
+  return {net:0, src:'none'};
+}
+
+function salesScopeUnits(r, scope, W){
+  const g=(k)=>num(r[k]||0);
+  if(scope==='arklowOnline') return g('QtySold_Online_Arklow_'+W+'d');
+  if(scope==='capelOnline')  return g('QtySold_Online_CapelStreet_'+W+'d');
+  if(scope==='capelShop')    return g('QtySold_Shop_CapelStreet_'+W+'d');
+  return g('QtySold_Online_Total_'+W+'d') + g('QtySold_Shop_CapelStreet_'+W+'d'); // all
+}
+function salesScopeStock(r, scope){
+  const ak=Math.max(0,num(r.NetStock_Arklow)), cs=Math.max(0,num(r.NetStock_CapelStreet));
+  if(scope==='arklowOnline') return ak;
+  if(scope==='capelOnline'||scope==='capelShop') return cs;
+  return ak+cs;
+}
+
+// All totals use the SAME window W (units, revenue, profit) -> internally consistent.
+// Per-unit economics (price, cost, margin%) are window-independent constants.
+function salesMetrics(r, scope, W){
+  W = W || salesWindow;
   const vat = salesVatRate();
   const cost = num(r.SupplierCostPrice);
-  const retailRaw = num(r.RetailPrice);                 // RetailPrice = shelf/RRP, INC VAT
-  const derived = sf.u30>0 ? sf.rev30/sf.u30 : 0;       // revenue/units = achieved price, EX VAT (Linnworks revenue is net)
-  // netSell is always EX-VAT (matches the ex-VAT supplier cost). Strip VAT from RetailPrice only.
-  let netSell=0, priceSrc='none';
-  if(retailRaw>0){ netSell = retailRaw/(1+vat/100); priceSrc='retail'; }
-  else if(derived>0){ netSell = derived; priceSrc='derived'; }
-  const grossPrice = priceSrc==='retail' ? retailRaw : (priceSrc==='derived' ? derived*(1+vat/100) : 0);
+  const price = salesUnitPrice(r, vat);
+  const netSell = price.net;
+  const u    = salesScopeUnits(r, scope, W);
+  const u30  = salesScopeUnits(r, scope, 30);
+  const u90  = salesScopeUnits(r, scope, 90);
+  const u180 = salesScopeUnits(r, scope, 180);
+  const stock = salesScopeStock(r, scope);
   const hasMargin = netSell>0 && cost>0;
   const marginEur = hasMargin ? netSell-cost : null;
   const marginPct = hasMargin ? (marginEur/netSell*100) : null;
-  const estGP180  = (marginEur!=null) ? marginEur*sf.u180 : null;
-  const daily     = sf.u30/30;
-  return {...sf, cost, grossPrice, priceSrc, netSell, marginEur, marginPct, estGP180, daily};
+  const revenueW  = netSell>0 ? netSell*u : 0;
+  const estGPW    = (marginEur!=null) ? marginEur*u : null;
+  const daily     = u/W;
+  return {u, u30, u90, u180, stock, cost, netSell, priceSrc:price.src, marginEur, marginPct, revenueW, estGPW, daily, window:W};
 }
 
 function setSalesView(v){
@@ -7747,11 +7792,13 @@ function setSalesView(v){
   document.getElementById('salesPriceView').style.display   = v==='pricechange'?'block':'none';
   if(v==='pricechange') pcInit();
 }
+function setSalesWindow(w){ salesWindow=parseInt(w,10)||180; document.querySelectorAll('#salesWindowSeg button').forEach(b=>b.classList.toggle('active',(+b.dataset.swin)===salesWindow)); state._salesDedup=null; renderSalesSelling(); }
 function setSalesScope(sc){ salesScope=sc; document.querySelectorAll('#salesScopeSeg button').forEach(b=>b.classList.toggle('active',b.dataset.sscope===sc)); renderSalesSelling(); }
 function setSalesFilter(fl){ salesFilter=fl; document.querySelectorAll('#salesFilterSeg button').forEach(b=>b.classList.toggle('active',b.dataset.sfilter===fl)); renderSalesSelling(); }
 function sortSales(col){ if(salesSort.col===col) salesSort.dir*=-1; else salesSort={col,dir:-1}; renderSalesSelling(); }
 
 function renderSales(){
+  state._salesDedup=null;   // refresh after any data reload
   if(!state.computedRows||!state.computedRows.length){
     document.getElementById('salesKpis').innerHTML='<div style="color:var(--muted);padding:16px">\u23f3 Load data on the Buying tab first (Auto-load), then come back.</div>';
     document.querySelector('#salesTable tbody').innerHTML='';
@@ -7762,67 +7809,68 @@ function renderSales(){
 }
 
 function renderSalesSelling(){
-  const rows = state.computedRows;
+  const W = salesWindow;
+  const rows = salesDedup();                                   // ONE row per SKU (no supplier double-count)
   const q = (document.getElementById('salesSearch')?.value||'').trim().toLowerCase();
-  let data = rows.map(r=>({r, m:salesMetrics(r, salesScope)}));
+  let data = rows.map(r=>({r, m:salesMetrics(r, salesScope, W)}));
 
   // filters
-  if(salesFilter==='winners') data = data.filter(d=>d.m.u180>0);
-  else if(salesFilter==='losers') data = data.filter(d=>d.m.u90===0 && d.m.stock>0);
-  else if(salesFilter==='thin')   data = data.filter(d=>d.m.marginPct!=null && d.m.marginPct<10 && d.m.u180>0);
-  if(q) data = data.filter(d=>`${d.r.SupplierName} ${d.r.SKU} ${d.r.ItemTitle}`.toLowerCase().includes(q));
+  if(salesFilter==='winners') data = data.filter(d=>d.m.u>0);
+  else if(salesFilter==='losers') data = data.filter(d=>d.m.u===0 && d.m.stock>0);
+  else if(salesFilter==='thin')   data = data.filter(d=>d.m.marginPct!=null && d.m.marginPct<10 && d.m.u>0);
+  if(q) data = data.filter(d=>`${[...(d.r._suppliers||[])].join(' ')} ${d.r.SKU} ${d.r.ItemTitle}`.toLowerCase().includes(q));
 
-  // KPIs (computed before sort, over filtered set)
-  const totUnits180 = data.reduce((a,d)=>a+d.m.u180,0);
-  const hasRev180   = ['all','arklowOnline'].includes(salesScope);
-  const totRev      = data.reduce((a,d)=>a+(hasRev180?d.m.rev180:d.m.rev30),0);
-  const totGP       = data.reduce((a,d)=>a+(d.m.estGP180||0),0);
-  const wMarginNum  = data.reduce((a,d)=>a+((d.m.marginEur!=null)?d.m.marginEur*d.m.u180:0),0);
-  const wMarginDen  = data.reduce((a,d)=>a+((d.m.marginEur!=null)?d.m.netSell*d.m.u180:0),0);
-  const blended     = wMarginDen>0 ? (wMarginNum/wMarginDen*100) : null;
-  const selling     = data.filter(d=>d.m.u180>0).length;
-  const dead        = data.filter(d=>d.m.u180===0 && d.m.stock>0).length;
+  // KPIs — all on the SAME window W
+  const totUnits = data.reduce((a,d)=>a+d.m.u,0);
+  const totRev   = data.reduce((a,d)=>a+d.m.revenueW,0);
+  const totGP    = data.reduce((a,d)=>a+(d.m.estGPW||0),0);
+  const wNum     = data.reduce((a,d)=>a+((d.m.marginEur!=null)?d.m.marginEur*d.m.u:0),0);
+  const wDen     = data.reduce((a,d)=>a+((d.m.marginEur!=null)?d.m.netSell*d.m.u:0),0);
+  const blended  = wDen>0 ? (wNum/wDen*100) : null;
+  const selling  = data.filter(d=>d.m.u>0).length;
+  const dead     = data.filter(d=>d.m.u===0 && d.m.stock>0).length;
 
   document.getElementById('salesKpis').innerHTML = [
-    [fmtInt(totUnits180),'Units sold (180d)'],
-    [salesEur0(totRev), hasRev180?'Revenue (180d, online)':'Revenue (30d)'],
-    [totGP>0?salesEur0(totGP):'\u2014','Est. gross profit (180d)'],
+    [fmtInt(totUnits),`Units sold (${W}d)`],
+    [salesEur0(totRev),`Revenue (${W}d)`],
+    [totGP>0?salesEur0(totGP):'\u2014',`Est. gross profit (${W}d)`],
     [blended!=null?blended.toFixed(1)+'%':'\u2014','Blended margin'],
-    [fmtInt(selling),'SKUs selling (180d)'],
-    [fmtInt(dead),'Dead w/ stock (0 in 180d)'],
+    [fmtInt(selling),`SKUs selling (${W}d)`],
+    [fmtInt(dead),`Dead w/ stock (0 in ${W}d)`],
   ].map(([v,l])=>`<div class="sales-kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
 
   // assumptions note
-  const anyDerived = data.some(d=>d.m.priceSrc==='derived');
-  const anyNone    = data.some(d=>d.m.priceSrc==='none');
+  const hasRetail = rows.some(r=>num(r.RetailPrice)>0);
   document.getElementById('salesAssumeNote').innerHTML =
-    `Margin = net selling price (ex VAT) \u2212 supplier cost (ex VAT). Revenue from the feed is treated as <strong>ex-VAT</strong>; RetailPrice (if present) is treated as inc-VAT and divided by ${(1+salesVatRate()/100).toFixed(2)}. `+
-    (state.computedRows.some(r=>num(r.RetailPrice)>0)
-        ? 'Selling price uses the <strong>RetailPrice</strong> column where present'
-        : '<strong>No RetailPrice column detected yet</strong> \u2014 selling price is estimated from revenue \u00f7 units')
-    + (anyDerived?'; rows marked <em>~est</em> use revenue\u00f7units.':'.')
-    + (anyNone?' Rows with no price/sales show \u2014.':'');
+    `One row per SKU (sales de-duplicated across suppliers; <strong>cheapest</strong> supplier cost used for margin). `+
+    `All figures use the selected <strong>${W}-day</strong> window. Margin = net selling price (ex VAT) \u2212 cost (ex VAT); `+
+    (hasRetail ? 'price uses <strong>RetailPrice</strong> (inc VAT) where present, else revenue\u00f7units (ex VAT).'
+               : '<strong>no RetailPrice column yet</strong> \u2014 price estimated from revenue\u00f7units (ex VAT), marked <em>~est</em>.')
+    + ' Revenue & profit = units \u00d7 per-unit economics, so they always match the chosen window.';
 
   // sort
   const dir=salesSort.dir, col=salesSort.col;
-  const val=(d)=>{ const m=d.m; switch(col){
-    case 'sku': return d.r.SKU; case 'item': return d.r.ItemTitle; case 'supplier': return d.r.SupplierName;
+  const val=(d)=>{ const m=d.m,r=d.r; switch(col){
+    case 'sku':return r.SKU; case 'item':return r.ItemTitle; case 'supplier':return r.SupplierName;
     case 'u30':return m.u30; case 'u90':return m.u90; case 'u180':return m.u180; case 'daily':return m.daily;
-    case 'avg':return m.netSell; case 'retail':return num(d.r.RetailPrice); case 'cost':return m.cost;
+    case 'avg':return m.netSell; case 'cost':return m.cost;
     case 'gpu':return m.marginEur==null?-1e9:m.marginEur; case 'gppct':return m.marginPct==null?-1e9:m.marginPct;
-    case 'estGP180':return m.estGP180==null?-1e9:m.estGP180; default:return 0; } };
+    case 'revW':return m.revenueW; case 'estGPW':return m.estGPW==null?-1e9:m.estGPW; default:return 0; } };
   data.sort((a,b)=>{ const va=val(a),vb=val(b); if(typeof va==='string') return va.localeCompare(vb)*dir; return (va-vb)*dir; });
   const shown = data.slice(0, 600);
 
-  // header
+  // header — selected window's unit column is emphasised
+  const uHdr=(w)=>`U ${w}d`;
   const cols=[['l','sku','SKU'],['l','item','Item'],['l','supplier','Supplier'],
-    ['','u30','U 30d'],['','u90','U 90d'],['','u180','U 180d'],['','daily','/day'],
-    ['','mom','Mom'],['','avg','Net sell \u20ac'],['','retail','Retail \u20ac'],['','cost','Cost \u20ac'],
-    ['','gpu','GP/u'],['','gppct','GP%'],['','estGP180','Est GP 180d'],['','abc','ABC'],['','trend','Trend']];
+    ['','u30',uHdr(30)],['','u90',uHdr(90)],['','u180',uHdr(180)],['','daily','/day'],
+    ['','mom','Mom'],['','avg','Net sell \u20ac'],['','cost','Cost \u20ac'],
+    ['','gpu','GP/u'],['','gppct','GP%'],['','revW',`Rev ${W}d`],['','estGPW',`Est GP ${W}d`],['','abc','ABC'],['','trend','Trend']];
+  const wKey = W===30?'u30':W===90?'u90':'u180';
   document.querySelector('#salesTable thead').innerHTML='<tr>'+cols.map(([cls,key,lab])=>{
     const arrow = salesSort.col===key ? (salesSort.dir<0?' \u25bc':' \u25b2') : '';
     const sortable = !['mom','abc','trend'].includes(key);
-    return `<th class="${cls}" ${sortable?`onclick="sortSales('${key}')"`:''}>${lab}${arrow}</th>`;
+    const hi = key===wKey ? ' style="background:#dbe4f0"' : '';
+    return `<th class="${cls}"${hi} ${sortable?`onclick="sortSales('${key}')"`:''}>${lab}${arrow}</th>`;
   }).join('')+'</tr>';
 
   // rows
@@ -7831,19 +7879,21 @@ function renderSalesSelling(){
     const mom = r.momentum||{label:'\u2014',direction:'flat'};
     const momCls = mom.direction==='up'?'mom-up':mom.direction==='down'?'mom-down':'mom-flat';
     const estLabel = m.priceSrc==='derived' ? ' <span style="color:#94a3b8;font-size:9px">~est</span>' : '';
+    const supExtra = r._supplierCount>1 ? ` <span style="color:#94a3b8;font-size:10px">(+${r._supplierCount-1})</span>` : '';
+    const hcell = (key,html)=> `<td${key===wKey?' style="background:#eef3f9;font-weight:700"':''}>${html}</td>`;
     return `<tr>
       <td class="l sales-sku">${esc(r.SKU)}</td>
       <td class="l" style="max-width:260px">${esc(r.ItemTitle||'')}</td>
-      <td class="l" style="font-size:11px;color:var(--muted);max-width:140px">${esc(r.SupplierName||'')}</td>
-      <td>${fmtInt(m.u30)}</td><td>${fmtInt(m.u90)}</td><td><strong>${fmtInt(m.u180)}</strong></td>
+      <td class="l" style="font-size:11px;color:var(--muted);max-width:150px">${esc(r.SupplierName||'')}${supExtra}</td>
+      ${hcell('u30',fmtInt(m.u30))}${hcell('u90',fmtInt(m.u90))}${hcell('u180',fmtInt(m.u180))}
       <td>${m.daily>=10?fmtInt(m.daily):fmt1(m.daily)}</td>
       <td class="${momCls}">${mom.label}</td>
       <td>${m.netSell>0?salesEur(m.netSell)+estLabel:'\u2014'}</td>
-      <td>${num(r.RetailPrice)>0?salesEur(r.RetailPrice):'\u2014'}</td>
       <td>${m.cost>0?salesEur(m.cost):'\u2014'}</td>
       <td class="${mgnCls}">${m.marginEur!=null?salesEur(m.marginEur):'\u2014'}</td>
       <td class="${mgnCls}">${m.marginPct!=null?m.marginPct.toFixed(0)+'%':'\u2014'}</td>
-      <td><strong>${m.estGP180!=null?salesEur0(m.estGP180):'\u2014'}</strong></td>
+      <td>${m.revenueW>0?salesEur0(m.revenueW):'\u2014'}</td>
+      <td><strong>${m.estGPW!=null?salesEur0(m.estGPW):'\u2014'}</strong></td>
       <td><span class="abc-pill abc-${r.abcClass||'D'}">${r.abcClass||'D'}</span></td>
       <td>${r.isTrending?'<span class="mom-up">\u2191 hot</span>':''}</td>
     </tr>`;
@@ -7855,19 +7905,21 @@ function renderSalesSelling(){
 }
 
 function exportSalesCSV(){
-  const rows=state.computedRows; if(!rows||!rows.length){alert('No data loaded.');return;}
-  const head=['SKU','Item','Supplier','Units30d','Units90d','Units180d','DailyRate','NetSellExVat','RetailPriceIncVat','Cost','GP_per_unit','GP_pct','EstGrossProfit180d','ABC','Trending'];
+  const rows=salesDedup(); if(!rows||!rows.length){alert('No data loaded.');return;}
+  const W=salesWindow;
+  const head=['SKU','Item','Supplier','SupplierCount','Units30d','Units90d','Units180d',`Units${W}d`,'DailyRate',
+    'NetSellExVat','RetailPriceIncVat','Cost','GP_per_unit','GP_pct',`Revenue${W}d`,`EstGrossProfit${W}d`,'ABC','Trending'];
   const esc2=v=>{const t=String(v==null?'':v);return /[",\n]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t;};
   const lines=[head.join(',')];
-  rows.map(r=>({r,m:salesMetrics(r,salesScope)})).forEach(({r,m})=>{
-    lines.push([r.SKU,r.ItemTitle,r.SupplierName,m.u30,m.u90,m.u180,m.daily.toFixed(2),
+  rows.map(r=>({r,m:salesMetrics(r,salesScope,W)})).forEach(({r,m})=>{
+    lines.push([r.SKU,r.ItemTitle,r.SupplierName,r._supplierCount,m.u30,m.u90,m.u180,m.u,m.daily.toFixed(2),
       m.netSell?m.netSell.toFixed(2):'',num(r.RetailPrice)?num(r.RetailPrice).toFixed(2):'',
       m.cost?m.cost.toFixed(2):'',m.marginEur!=null?m.marginEur.toFixed(2):'',m.marginPct!=null?m.marginPct.toFixed(1):'',
-      m.estGP180!=null?m.estGP180.toFixed(2):'',r.abcClass||'D',r.isTrending?'Y':''].map(esc2).join(','));
+      m.revenueW?m.revenueW.toFixed(2):'',m.estGPW!=null?m.estGPW.toFixed(2):'',r.abcClass||'D',r.isTrending?'Y':''].map(esc2).join(','));
   });
   const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`lenehans_sales_${salesScope}_${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(a.href);
+  a.download=`lenehans_sales_${salesScope}_${W}d_${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(a.href);
 }
 
 // ─── PRICE CHANGE ANALYSIS ───────────────────────────────────────────────────
@@ -7887,8 +7939,9 @@ function pcInit(){
 function pcOnSearch(){
   const q=(document.getElementById('pcSearch').value||'').trim().toLowerCase();
   const box=document.getElementById('pcResults');
-  if(!q || !state.computedRows.length){ box.style.display='none'; return; }
-  const hits=state.computedRows.filter(r=>`${r.SKU} ${r.ItemTitle}`.toLowerCase().includes(q)).slice(0,12);
+  const rows=salesDedup();
+  if(!q || !rows.length){ box.style.display='none'; return; }
+  const hits=rows.filter(r=>`${r.SKU} ${r.ItemTitle}`.toLowerCase().includes(q)).slice(0,12);
   if(!hits.length){ box.innerHTML='<li style="color:var(--muted);cursor:default">No match</li>'; box.style.display='block'; return; }
   box.innerHTML=hits.map(r=>`<li onclick="pcSelect('${encodeURIComponent(r.SKU)}')"><span class="sales-sku">${esc(r.SKU)}</span> &nbsp; ${esc(r.ItemTitle||'')}</li>`).join('');
   box.style.display='block';
@@ -7896,7 +7949,7 @@ function pcOnSearch(){
 
 function pcSelect(skuEnc){
   const sku=decodeURIComponent(skuEnc);
-  const r=state.computedRows.find(x=>x.SKU===sku); if(!r) return;
+  const r=salesDedup().find(x=>x.SKU===sku); if(!r) return;
   pcState={sku, item:r.ItemTitle||'', cost:num(r.SupplierCostPrice), retail:num(r.RetailPrice)};
   document.getElementById('pcResults').style.display='none';
   document.getElementById('pcSearch').value=`${sku} — ${r.ItemTitle||''}`;
