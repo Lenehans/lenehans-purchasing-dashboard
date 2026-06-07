@@ -3919,7 +3919,15 @@ let _miFilter='all', _miStockFilter='all', _miCompare=false, _miBundleMode=false
 function renderMoveIn(){
   const root=document.getElementById('movein-root');
   if(!root) return;
-  const ch=state.channel;
+  try { _renderMoveInInner(root); }
+  catch(e){
+    root.innerHTML=`<div style="background:#fee2e2;border:1.5px solid #fca5a5;border-radius:10px;padding:16px 20px;color:#991b1b;font-size:13px">
+      <b>Move-In tab error:</b> ${String(e)}<br><pre style="font-size:11px;margin-top:8px;white-space:pre-wrap">${e.stack||''}</pre>
+    </div>`;
+    console.error('renderMoveIn error:',e);
+  }
+}
+function _renderMoveInInner(root){
   const rows=state.computedRows||[];
   const govRows=state.governedRows||[];
 
@@ -4077,7 +4085,8 @@ function renderMoveIn(){
             if(cov<=30) return `<span style="text-align:center;font-size:11px;color:#d97706">${cov+'d'}</span>`;
             return `<span style="text-align:center;font-size:11px;color:#16a34a">${cov>=900?'Stk':cov+'d'}</span>`;
           }
-          const short=(r.ItemTitle||'').substring(0,30)+(r.ItemTitle.length>30?'…':'');
+          const title=r.ItemTitle||'';
+          const short=title.substring(0,30)+(title.length>30?'…':'');
           return `<div style="display:grid;grid-template-columns:1fr 80px 80px 24px;gap:4px;align-items:center;padding:4px 0;border-bottom:0.5px solid #f8fafc">
             <span style="font-size:11px;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.ItemTitle||'')}">${esc(short)}</span>
             ${covCell(ak,akCover)}
