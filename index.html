@@ -3914,15 +3914,16 @@ const MOVEIN_ESSENTIALS=[
   ]},
 ];
 
-let _miFilter='all', _miStockFilter='all';
+let _miFilter='all', _miStockFilter='all', _miCompare=false, _miBundleMode=false, _miBundle=new Set();
 
 function renderMoveIn(){
   const root=document.getElementById('movein-root');
   if(!root) return;
-  const rows=state.computedRows||[];
   const ch=state.channel;
+  const rows=state.computedRows||[];
+  const govRows=state.governedRows||[];
 
-  // Match each essential against live inventory
+  // Match against computedRows (channel-aware) for status
   function match(kw){
     const kwLow=kw.map(k=>k.toLowerCase());
     return rows.filter(r=>{
@@ -3930,30 +3931,19 @@ function renderMoveIn(){
       return kwLow.some(k=>t.includes(k));
     });
   }
-
-  // Tally stats
-  let totalItems=0,oosCount=0,critCount=0,lowCount=0,gapCount=0;
-  for(const room of MOVEIN_ESSENTIALS){
-    for(const item of room.items){
-      totalItems++;
-      const matches=match(item.kw);
-      if(!matches.length){gapCount++;continue;}
-      const worst=matches.reduce((w,r)=>{
-        const s=r.coverStatus||'';
-        if(s==='Out of Stock') return 'oos';
-        if(w==='oos') return w;
-        if(s==='Critical') return 'critical';
-        if(w==='critical') return w;
-        if(s==='Low') return 'low';
-        return w;
-      },'ok');
-      if(worst==='oos') oosCount++;
-      else if(worst==='critical') critCount++;
-      else if(worst==='low') lowCount++;
-    }
+  // Match against governedRows for raw AK/CS stock (comparison mode)
+  function matchRaw(kw){
+    const kwLow=kw.map(k=>k.toLowerCase());
+    const seen=new Set();
+    return govRows.filter(r=>{
+      const t=((r.ItemTitle||'')+' '+(r.SKU||'')).toLowerCase();
+      const k=r.SKU+'||'+r.SupplierName;
+      if(seen.has(k)) return false;
+      seen.add(k);
+      return kwLow.some(k2=>t.includes(k2));
+    });
   }
 
-  // Filter
   function whoOk(who){
     if(_miFilter==='all') return true;
     if(_miFilter==='renter') return who==='both'||who==='renter';
@@ -3966,84 +3956,172 @@ function renderMoveIn(){
     if(_miStockFilter==='gap') return worst==='gap';
     return true;
   }
+  function worstStatus(matches){
+    return matches.reduce((w,r)=>{
+      const s=r.coverStatus||'';
+      if(s==='Out of Stock') return 'oos';
+      if(w==='oos') return w;
+      if(s==='Critical') return 'critical';
+      if(w==='critical') return w;
+      if(s==='Low') return 'low';
+      return w;
+    },'ok');
+  }
 
+  // ── Seasonal banner ───────────────────────────────────────────────────────
+  const mo=new Date().getMonth(); // 0=Jan
+  const isPeak=mo>=2&&mo<=6;     // March–July = peak moving season
+  const isPrePeak=mo===1||mo===7; // Feb or Aug = pre-stock warning
+  let seasonHtml='';
+  if(isPeak) seasonHtml=`<div style="background:#fef3c7;border:1.5px solid #fbbf24;border-radius:10px;padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:13px">
+    <span style="font-size:20px">📦</span>
+    <div><b style="color:#92400e">Peak moving season — March to July.</b> <span style="color:#78350f">Couples move most in spring and early summer. Prioritise OOS &amp; critical items now — these are your highest-risk lost sales.</span></div>
+  </div>`;
+  else if(isPrePeak) seasonHtml=`<div style="background:#e6f1fb;border:1.5px solid #b5d4f4;border-radius:10px;padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:13px">
+    <span style="font-size:20px">⏰</span>
+    <div><b style="color:#0c447c">Pre-season alert.</b> <span style="color:#185fa5">Moving season starts in ~6 weeks. Pre-stock essential categories now before the rush — lead times of 2–4 weeks mean ordering must happen this month.</span></div>
+  </div>`;
+
+  // ── Tally stats ───────────────────────────────────────────────────────────
+  let totalItems=0,oosCount=0,critCount=0,lowCount=0,gapCount=0;
+  for(const room of MOVEIN_ESSENTIALS){
+    for(const item of room.items){
+      totalItems++;
+      const m=match(item.kw);
+      if(!m.length){gapCount++;continue;}
+      const w=worstStatus(m);
+      if(w==='oos') oosCount++;
+      else if(w==='critical') critCount++;
+      else if(w==='low') lowCount++;
+    }
+  }
   const chLabel=ch==='capel'?'Capel Street':'Arklow Online';
+
+  // ── Bundle bar ────────────────────────────────────────────────────────────
+  const bundleCount=(_miBundle&&_miBundle.size)||0;
+  const bundleBar=bundleCount>0?`<div style="background:#1e3a5f;color:#fff;border-radius:10px;padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px">
+    <span style="font-size:14px;font-weight:700">🛒 New Mover Bundle: <b style="color:#93c5fd">${bundleCount} items</b> selected</span>
+    <button onclick="exportBundle()" style="padding:6px 14px;background:#185fa5;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">📄 Export bundle</button>
+    <button onclick="_miBundle.clear();renderMoveIn()" style="padding:6px 12px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:7px;font-size:11px;cursor:pointer">Clear</button>
+  </div>`:'';
+
+  // ── Header ────────────────────────────────────────────────────────────────
   let html=`<div class="mi-header">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
       <span style="font-size:22px">🏠</span>
-      <div>
+      <div style="flex:1">
         <div style="font-size:16px;font-weight:900;color:#1e293b">Move-In Essentials Tracker</div>
-        <div style="font-size:12px;color:#64748b">Live stock status · Channel: <b>${chLabel}</b> · ${rows.length.toLocaleString()} SKUs loaded</div>
+        <div style="font-size:12px;color:#64748b">Live stock · Channel: <b>${chLabel}</b> · ${rows.length.toLocaleString()} SKUs loaded</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="mi-filter-btn ${_miCompare?'active':''}" onclick="_miCompare=!_miCompare;renderMoveIn()">⚖️ Compare AK/CS</button>
+        <button class="mi-filter-btn" onclick="exportMoveInReport()">📄 Export Report</button>
+        <button class="mi-filter-btn ${bundleCount>0?'active':''}" onclick="toggleBundleMode()">🛒 Bundle${bundleCount>0?' ('+bundleCount+')':''}</button>
       </div>
     </div>
     <div class="mi-stats">
       <div class="mi-stat"><div class="mi-stat-n">${totalItems}</div><div class="mi-stat-l">Essentials</div></div>
       <div class="mi-stat"><div class="mi-stat-n" style="color:#dc2626">${oosCount}</div><div class="mi-stat-l">OOS ⛔</div></div>
-      <div class="mi-stat"><div class="mi-stat-n" style="color:#f97316">${critCount}</div><div class="mi-stat-l">Critical 🔴</div></div>
+      <div class="mi-stat"><div class="mi-stat-n" style="color:#f97316">${critCount}</div><div class="mi-stat-l">Critical</div></div>
       <div class="mi-stat"><div class="mi-stat-n" style="color:#eab308">${lowCount}</div><div class="mi-stat-l">Low stock</div></div>
       <div class="mi-stat"><div class="mi-stat-n" style="color:#94a3b8">${gapCount}</div><div class="mi-stat-l">Range gaps</div></div>
     </div>
     <div class="mi-filters">
       <span style="font-size:11px;color:#64748b;font-weight:700">SHOW:</span>
-      ${['all','renter','owner'].map(f=>`<button class="mi-filter-btn ${_miFilter===f?'active':''}" onclick="_miFilter='${f}';renderMoveIn()">${f==='all'?'All households':f==='renter'?'🏢 Renter essentials':'🏡 Owner essentials'}</button>`).join('')}
+      ${['all','renter','owner'].map(f=>`<button class="mi-filter-btn ${_miFilter===f?'active':''}" onclick="_miFilter='${f}';renderMoveIn()">${f==='all'?'All households':f==='renter'?'🏢 Renter':' 🏡 Owner'}</button>`).join('')}
       <span style="margin:0 4px;color:#cbd5e1">|</span>
       ${[['all','All stock'],['alert','🔴 OOS & Critical'],['gap','🚫 Gaps only']].map(([f,l])=>`<button class="mi-filter-btn ${_miStockFilter===f?'active':''}" onclick="_miStockFilter='${f}';renderMoveIn()">${l}</button>`).join('')}
     </div>
-  </div>`;
+  </div>
+  ${seasonHtml}${bundleBar}`;
 
-  if(oosCount>0){
-    html+=`<div class="mi-alert-bar">⛔ ${oosCount} move-in essential categor${oosCount===1?'y':'ies'} currently OUT OF STOCK — new movers cannot buy these from you right now</div>`;
-  }
+  if(oosCount>0) html+=`<div class="mi-alert-bar">⛔ ${oosCount} essential categor${oosCount===1?'y':'ies'} OUT OF STOCK — new movers cannot buy ${oosCount===1?'this':'these'} from you right now</div>`;
 
+  // ── Rooms ─────────────────────────────────────────────────────────────────
   for(const room of MOVEIN_ESSENTIALS){
     if(!whoOk(room.who)) continue;
     let roomHtml='';
+
     for(const item of room.items){
       if(!whoOk(room.who)) continue;
       const matches=match(item.kw);
-      let worst='gap';
-      if(matches.length){
-        worst=matches.reduce((w,r)=>{
-          const s=r.coverStatus||'';
-          if(s==='Out of Stock') return 'oos';
-          if(w==='oos') return w;
-          if(s==='Critical') return 'critical';
-          if(w==='critical') return w;
-          if(s==='Low') return 'low';
-          if(w==='low') return w;
-          return 'ok';
-        },'ok');
-      }
+      const worst=matches.length?worstStatus(matches):'gap';
       if(!stockOk(worst)) continue;
 
       const whoClass=room.who==='both'?'both':room.who==='renter'?'renter':'owner';
-      const whoLabel=room.who==='both'?'Both':'room.who'==='renter'?'Renter':'Owner';
       const whoLabelFix=room.who==='both'?'Both':room.who==='renter'?'Renter':'Owner';
+      const cardId=`mi-${room.room.replace(/\W/g,'')}-${item.name.replace(/\W/g,'')}`;
+      const showAll=_miExpanded&&_miExpanded[cardId];
 
       let cardContent='';
       if(!matches.length){
         cardContent=`<div class="mi-gap-label">Not in current range</div>
-          <div class="mi-gap-note">Consider adding to range — ${room.who==='owner'?'owner essential':'household essential'}</div>`;
-      } else {
-        const sorted=matches.slice().sort((a,b)=>{
-          const ord={['Out of Stock']:0,Critical:1,Low:2,Healthy:3};
-          return (ord[a.coverStatus]||3)-(ord[b.coverStatus]||3);
-        }).slice(0,5);
-        cardContent=sorted.map(r=>{
-          const s=r.coverStatus||'Healthy';
-          const sCls=s==='Out of Stock'?'oos':s==='Critical'?'critical':s==='Low'?'low':'ok';
-          const sLabel=s==='Out of Stock'?'OOS':s==='Critical'?'Critical':s==='Low'?'Low':'OK';
-          const cover=Math.round(r.daysOfCover||0);
-          const coverStr=s==='Out of Stock'?'0d':`${cover}d`;
-          const short=(r.ItemTitle||r.SKU||'').substring(0,40)+(((r.ItemTitle||'').length>40)?'…':'');
-          return `<div class="mi-sku-row">
-            <span class="mi-sku-status ${sCls}">${sLabel}</span>
-            <span class="mi-sku-name" title="${esc(r.ItemTitle||'')||''}">${esc(short)}</span>
-            <span class="mi-sku-cover">${coverStr}</span>
-            <button class="mi-noos-btn" onclick="addToNeverOOS('${esc(r.SKU||'')}','${esc(r.ItemTitle||'').replace(/'/g,'')}')" title="Add to Never OOS watchlist">★</button>
+          <div class="mi-gap-note">Range extension opportunity — ${room.who==='owner'?'owner essential':'household essential'}</div>`;
+      } else if(_miCompare){
+        // ── Comparison mode ──────────────────────────────────────────────
+        const rawMatches=matchRaw(item.kw);
+        const sorted=rawMatches.slice().sort((a,b)=>((b.NetStock_Arklow||0)+(b.NetStock_CapelStreet||0))-((a.NetStock_Arklow||0)+(a.NetStock_CapelStreet||0)));
+        const visible=showAll?sorted:sorted.slice(0,4);
+        const hdr=`<div style="display:grid;grid-template-columns:1fr 80px 80px 24px;gap:4px;font-size:10px;font-weight:700;color:#94a3b8;padding-bottom:4px;border-bottom:0.5px solid #e2e8f0;text-transform:uppercase;letter-spacing:.05em">
+          <span>Item</span><span style="text-align:center">AK</span><span style="text-align:center">CS</span><span></span></div>`;
+        cardContent=hdr+visible.map(r=>{
+          const ak=r.NetStock_Arklow||0;
+          const cs=r.NetStock_CapelStreet||0;
+          const akD=r.QtySold_Online_Total_30d||0;
+          const csD=r.QtySold_Shop_CapelStreet_30d||0;
+          const akCover=akD>0?Math.round(ak/(akD/30)):ak>0?9999:0;
+          const csCover=csD>0?Math.round(cs/(csD/30)):cs>0?9999:0;
+          function covCell(stk,cov){
+            if(stk<=0) return `<span style="text-align:center;font-size:11px;font-weight:700;color:#dc2626">OOS</span>`;
+            if(cov<=14) return `<span style="text-align:center;font-size:11px;font-weight:700;color:#f97316">${cov>=900?'Stk':cov+'d'}</span>`;
+            if(cov<=30) return `<span style="text-align:center;font-size:11px;color:#d97706">${cov+'d'}</span>`;
+            return `<span style="text-align:center;font-size:11px;color:#16a34a">${cov>=900?'Stk':cov+'d'}</span>`;
+          }
+          const short=(r.ItemTitle||'').substring(0,30)+(r.ItemTitle.length>30?'…':'');
+          return `<div style="display:grid;grid-template-columns:1fr 80px 80px 24px;gap:4px;align-items:center;padding:4px 0;border-bottom:0.5px solid #f8fafc">
+            <span style="font-size:11px;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.ItemTitle||'')}">${esc(short)}</span>
+            ${covCell(ak,akCover)}
+            ${covCell(cs,csCover)}
+            <button class="mi-noos-btn" onclick="addToNeverOOS('${esc(r.SKU||'')}','${esc((r.ItemTitle||'').replace(/'/g,''))}')" title="Never OOS">★</button>
           </div>`;
         }).join('');
-        if(matches.length>5) cardContent+=`<div style="font-size:10px;color:#94a3b8;padding-top:4px">+${matches.length-5} more matched SKUs</div>`;
+        if(sorted.length>4) cardContent+=showAll
+          ?`<button onclick="_miExpanded=_miExpanded||{};_miExpanded['${cardId}']=false;renderMoveIn()" style="font-size:10px;color:#64748b;padding:3px 0;cursor:pointer;background:none;border:none;width:100%;text-align:left">▲ Show less</button>`
+          :`<button onclick="_miExpanded=_miExpanded||{};_miExpanded['${cardId}']=true;renderMoveIn()" style="font-size:10px;color:#185fa5;font-weight:700;padding:3px 0;cursor:pointer;background:none;border:none;width:100%;text-align:left">▼ Show all ${sorted.length}</button>`;
+      } else {
+        // ── Single-channel mode ──────────────────────────────────────────
+        const sorted=matches.slice().sort((a,b)=>{
+          const ord={'Out of Stock':0,Critical:1,Low:2,Healthy:3};
+          return (ord[a.coverStatus]||3)-(ord[b.coverStatus]||3);
+        });
+        const visible=showAll?sorted:sorted.slice(0,5);
+        cardContent=visible.map(r=>{
+          const s=r.coverStatus||'Healthy';
+          const sCls=s==='Out of Stock'?'oos':s==='Critical'?'critical':s==='Low'?'low':'ok';
+          const sLabel=s==='Out of Stock'?'OOS':s==='Critical'?'Crit':s==='Low'?'Low':'OK';
+          const cover=r.daysOfCover||0;
+          const coverStr=s==='Out of Stock'?'0d':cover>=900?'In stock':cover===0?'No demand':`${Math.round(cover)}d`;
+          const rev=Math.round(r.Revenue_Online_Total_30d||0);
+          const revStr=rev>0?` · €${rev}/mo`:'';
+          const buyStr=(r.buy||0)>0?`<span style="color:#dc2626;font-weight:700;font-size:10px;margin-left:2px">Buy${r.buy}</span>`:'';
+          const sup=(r.SupplierName||'').split(' - ')[0].substring(0,10);
+          const short=(r.ItemTitle||r.SKU||'').substring(0,32)+(((r.ItemTitle||'').length>32)?'…':'');
+          const inBundle=_miBundle&&_miBundle.has(r.SKU);
+          const bundleChk=_miBundleMode?`<input type="checkbox" ${inBundle?'checked':''} onchange="if(this.checked){_miBundle=_miBundle||new Set();_miBundle.add('${esc(r.SKU||'')}');}else{if(_miBundle)_miBundle.delete('${esc(r.SKU||'')}');}renderMoveIn()" style="flex-shrink:0">`:'';
+          return `<div class="mi-sku-row">
+            ${bundleChk}
+            <span class="mi-sku-status ${sCls}">${sLabel}</span>
+            <span class="mi-sku-name" title="${esc(r.ItemTitle||'')}">${esc(short)}</span>
+            <span style="font-size:10px;color:#94a3b8;flex-shrink:0;max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.SupplierName||'')}">${esc(sup)}</span>
+            <span class="mi-sku-cover">${coverStr}${revStr}</span>
+            ${buyStr}
+            <button onclick="switchToSupplier('${esc(r.SupplierName||'')}')" title="Open in Workbench" style="font-size:10px;padding:1px 5px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:4px;cursor:pointer;flex-shrink:0">→</button>
+            <button class="mi-noos-btn" onclick="addToNeverOOS('${esc(r.SKU||'')}','${esc((r.ItemTitle||'').replace(/'/g,''))}')" title="Never OOS">★</button>
+          </div>`;
+        }).join('');
+        if(sorted.length>5) cardContent+=showAll
+          ?`<button onclick="_miExpanded=_miExpanded||{};_miExpanded['${cardId}']=false;renderMoveIn()" style="font-size:10px;color:#64748b;padding:3px 0;cursor:pointer;background:none;border:none;width:100%;text-align:left">▲ Show less</button>`
+          :`<button onclick="_miExpanded=_miExpanded||{};_miExpanded['${cardId}']=true;renderMoveIn()" style="font-size:10px;color:#185fa5;font-weight:700;padding:3px 0;cursor:pointer;background:none;border:none;width:100%;text-align:left">▼ Show all ${sorted.length} SKUs</button>`;
       }
 
       const cardCls=worst==='gap'?'gap':worst==='oos'?'oos':worst==='critical'?'critical':worst==='low'?'low':'';
@@ -4051,8 +4129,9 @@ function renderMoveIn(){
         <div class="mi-card-label">
           ${item.name}
           <span class="mi-who ${whoClass}">${whoLabelFix}</span>
-          ${worst==='gap'?'<span style="font-size:11px;margin-left:auto;color:#94a3b8">⬜ Gap</span>':worst==='oos'?'<span style="font-size:11px;margin-left:auto;color:#dc2626">⛔ OOS</span>':worst==='critical'?'<span style="font-size:11px;margin-left:auto;color:#f97316">🔴 Critical</span>':''}
+          ${worst==='gap'?'<span style="font-size:11px;margin-left:auto;color:#94a3b8">⬜ Gap</span>':worst==='oos'?'<span style="font-size:11px;margin-left:auto;color:#dc2626">⛔ OOS</span>':worst==='critical'?'<span style="font-size:11px;margin-left:auto;color:#f97316">🔴 Crit</span>':''}
         </div>
+        ${_miCompare&&matches.length?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;font-size:10px"><span style="background:#e6f1fb;color:#185fa5;text-align:center;padding:2px 4px;border-radius:4px;font-weight:700">🏭 Arklow</span><span style="background:#f0fdf4;color:#166534;text-align:center;padding:2px 4px;border-radius:4px;font-weight:700">🏪 CS Shop</span></div>`:''}
         ${cardContent}
       </div>`;
     }
@@ -4067,16 +4146,104 @@ function renderMoveIn(){
     </div>`;
   }
 
-  if(!rows.length){
-    html=`<div style="text-align:center;padding:60px 20px;color:#94a3b8">
-      <div style="font-size:40px;margin-bottom:12px">🏠</div>
-      <div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:8px">Load data first</div>
-      <div style="font-size:13px">Go to the Buying tab and load your Linnworks data — this tab will then match all ${totalItems} essential categories against your live inventory.</div>
-    </div>`;
-  }
+  if(!rows.length) html=`<div style="text-align:center;padding:60px 20px;color:#94a3b8">
+    <div style="font-size:40px;margin-bottom:12px">🏠</div>
+    <div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:8px">Load data first</div>
+    <div style="font-size:13px">Switch to the Buying tab and load your Linnworks data first.</div>
+  </div>`;
 
   root.innerHTML=html;
 }
+
+function switchToSupplier(name){
+  if(!name) return;
+  // Switch to Buying tab
+  const buyBtn=document.querySelector('[data-tab="buying"]');
+  if(buyBtn) buyBtn.click();
+  // Short delay then open workbench for that supplier
+  setTimeout(()=>openWorkbench(name),150);
+}
+
+function toggleBundleMode(){
+  _miBundleMode=!_miBundleMode;
+  if(!_miBundleMode) _miBundle=new Set();
+  renderMoveIn();
+}
+
+function exportBundle(){
+  const bundleSkus=_miBundle?[..._miBundle]:[];
+  if(!bundleSkus.length){alert('No items in bundle. Check items using the bundle checkboxes.');return;}
+  const rows=state.computedRows||[];
+  const items=bundleSkus.map(sku=>rows.find(r=>r.SKU===sku)).filter(Boolean);
+  const today=new Date().toLocaleDateString('en-IE',{day:'2-digit',month:'short',year:'numeric'});
+  let html=`<!DOCTYPE html><html><head><title>New Mover Bundle — Lenehans ${today}</title>
+  <style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:0 20px;color:#1e293b}
+  h1{font-size:20px;font-weight:700;margin:0 0 4px}
+  p.sub{font-size:12px;color:#64748b;margin:0 0 20px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{background:#1e3a5f;color:#fff;padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase}
+  td{padding:7px 10px;border-bottom:1px solid #e2e8f0}
+  tr:hover td{background:#f8fafc}
+  .ok{color:#16a34a;font-weight:700}.low{color:#d97706;font-weight:700}.crit{color:#f97316;font-weight:700}.oos{color:#dc2626;font-weight:700}
+  @media print{button{display:none}}</style></head><body>
+  <h1>🏠 New Mover Essential Bundle</h1>
+  <p class="sub">Lenehans Hardware · Generated ${today} · ${items.length} products</p>
+  <table><thead><tr><th>SKU</th><th>Product</th><th>Supplier</th><th>Status</th><th>Stock</th><th>Price</th><th>Buy Qty</th></tr></thead><tbody>`;
+  for(const r of items){
+    const s=r.coverStatus||'OK';
+    const cls=s==='Out of Stock'?'oos':s==='Critical'?'crit':s==='Low'?'low':'ok';
+    html+=`<tr><td style="font-family:monospace;color:#1d4ed8">${esc(r.SKU||'')}</td><td>${esc(r.ItemTitle||'')}</td><td>${esc((r.SupplierName||'').split(' - ')[0])}</td><td class="${cls}">${s}</td><td>${r.stock||0}</td><td>€${(r.SupplierCostPrice||0).toFixed(2)}</td><td>${r.buy||0}</td></tr>`;
+  }
+  html+=`</tbody></table><p style="font-size:10px;color:#94a3b8;margin-top:20px;border-top:1px solid #e2e8f0;padding-top:12px">Lenehans Purchasing Intelligence · buying.lenehans.ie</p><script>window.print();<\/script></body></html>`;
+  const w=window.open('','_blank');w.document.write(html);w.document.close();
+}
+
+function exportMoveInReport(){
+  const ch=state.channel==='capel'?'Capel Street':'Arklow Online';
+  const today=new Date().toLocaleDateString('en-IE',{day:'2-digit',month:'short',year:'numeric'});
+  const rows=state.computedRows||[];
+  function match(kw){
+    const kwLow=kw.map(k=>k.toLowerCase());
+    return rows.filter(r=>{const t=((r.ItemTitle||'')+' '+(r.SKU||'')).toLowerCase();return kwLow.some(k=>t.includes(k));});
+  }
+  function worstStatus(m){return m.reduce((w,r)=>{const s=r.coverStatus||'';if(s==='Out of Stock')return 'OOS';if(w==='OOS')return w;if(s==='Critical')return 'Critical';if(w==='Critical')return w;if(s==='Low')return 'Low';return w;},'OK');}
+  let rows_html='';
+  for(const room of MOVEIN_ESSENTIALS){
+    let first=true;
+    for(const item of room.items){
+      const m=match(item.kw);
+      const worst=m.length?worstStatus(m):'Not stocked';
+      const cls=worst==='OOS'?'oos':worst==='Critical'?'crit':worst==='Low'?'low':worst==='Not stocked'?'gap':'ok';
+      rows_html+=`<tr>
+        ${first?`<td rowspan="${room.items.length}" style="background:#f8fafc;font-weight:700;vertical-align:top;padding:8px 10px;border-right:2px solid #e2e8f0">${room.icon} ${room.room}</td>`:''}
+        <td>${item.name} <small style="color:#94a3b8">${room.who==='both'?'(Both)':room.who==='owner'?'(Owner)':'(Renter)'}</small></td>
+        <td class="${cls}" style="font-weight:700">${worst}</td>
+        <td>${m.length?m.slice(0,2).map(r=>`${(r.ItemTitle||'').substring(0,30)} [${r.SupplierName||''}]`).join('<br>'):'—'}</td>
+        <td style="text-align:right">${m.length}</td>
+      </tr>`;
+      first=false;
+    }
+  }
+  const html=`<!DOCTYPE html><html><head><title>Move-In Essentials Report — ${ch} — ${today}</title>
+  <style>body{font-family:Arial,sans-serif;max-width:1000px;margin:40px auto;padding:0 20px;color:#1e293b}
+  h1{font-size:20px;font-weight:700;margin:0 0 4px}p.sub{font-size:12px;color:#64748b;margin:0 0 24px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{background:#1e3a5f;color:#fff;padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase}
+  td{padding:6px 10px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+  .oos{color:#dc2626}.crit{color:#f97316}.low{color:#d97706}.ok{color:#16a34a}.gap{color:#94a3b8}
+  .summary{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+  .scard{border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;text-align:center}
+  .sn{font-size:24px;font-weight:700}.sl{font-size:11px;color:#64748b;margin-top:2px}
+  @media print{button{display:none}}</style></head><body>
+  <h1>🏠 New Mover Essentials — Stock Report</h1>
+  <p class="sub">Lenehans Hardware · Channel: ${ch} · Generated ${today}</p>
+  <table><thead><tr><th width="120">Room</th><th>Essential Category</th><th width="90">Status</th><th>Top Matches</th><th width="50">SKUs</th></tr></thead>
+  <tbody>${rows_html}</tbody></table>
+  <p style="font-size:10px;color:#94a3b8;margin-top:20px;border-top:1px solid #e2e8f0;padding-top:12px">Lenehans Purchasing Intelligence · buying.lenehans.ie · ${today}</p>
+  <script>window.print();<\/script></body></html>`;
+  const w=window.open('','_blank');w.document.write(html);w.document.close();
+}
+
 
 function addToNeverOOS(sku,title){
   if(!sku) return;
