@@ -3928,6 +3928,7 @@ function renderMoveIn(){
   }
 }
 function _renderMoveInInner(root){
+  const ch=state.channel;
   const rows=state.computedRows||[];
   const govRows=state.governedRows||[];
 
@@ -5973,12 +5974,21 @@ function renderActionNow(rows){
     // Badge top-right
     const badgeText = s.oos>0 ? `🔴 ${s.oos} OOS` : s.crit>0 ? `🟠 ${s.crit} critical` : s.low>0 ? `🟡 ${s.low} low` : `✓ Healthy`;
 
-    // Revenue at risk — prominent headline
+    // Order value (what the buyer will spend) — this is what matters to the buying team
+    const orderVal = (s.skus||[]).reduce((t,r)=>t+((r.buy||0)*(r.SupplierCostPrice||0)),0);
+    const critOrderVal = (s.skus||[]).filter(r=>r.coverStatus==='Out of Stock'||r.coverStatus==='Critical')
+      .reduce((t,r)=>t+((r.buy||0)*(r.SupplierCostPrice||0)),0);
+
     let revHtml;
-    if(s.lostRev>0){
+    if(orderVal>0){
+      const critPart = critOrderVal>0&&critOrderVal<orderVal
+        ? `<span style="color:#dc2626">€${fmtInt(Math.round(critOrderVal))}</span> critical · ` : '';
+      revHtml=`<div class="wl-tile-rev ${colour}">€${fmtInt(Math.round(orderVal))}</div>
+        <div class="wl-tile-rev-lbl">EST. ORDER VALUE${s.lostRev>0?` <span style="color:#94a3b8;font-weight:400">· €${fmtInt(s.lostRev)} rev at risk</span>`:''}</div>`;
+    } else if(s.lostRev>0){
       revHtml=`<div class="wl-tile-rev ${colour}">€${fmtInt(s.lostRev)}</div><div class="wl-tile-rev-lbl">est. revenue at risk</div>`;
     } else if(s.buy>0){
-      revHtml=`<div class="wl-tile-rev none">No rev data</div><div class="wl-tile-rev-lbl">&nbsp;</div>`;
+      revHtml=`<div class="wl-tile-rev none">Order pending</div><div class="wl-tile-rev-lbl">&nbsp;</div>`;
     } else {
       revHtml=`<div class="wl-tile-rev none">—</div><div class="wl-tile-rev-lbl">&nbsp;</div>`;
     }
