@@ -5679,6 +5679,9 @@ function getFilteredRows(){
   const show=document.getElementById('showFilter')?.value||'all';
   const excludeHealthy=document.getElementById('excludeHealthyFilter')?.value||'no';
   return state.computedRows.filter(r=>{
+    // Discontinued: zero sales in 12 months — never show in buying orders
+    // (still visible in Clear Stock for run-down decisions)
+    if(r.isDiscontinued) return false;
     if(q){const hay=`${r.SupplierName} ${r.SKU} ${r.ItemTitle}`.toLowerCase();if(!hay.includes(q))return false;}
     if(show==='buy'&&r.buy<=0) return false;
     if(show==='critical'&&!['Critical','Out of Stock'].includes(r.status)) return false;
