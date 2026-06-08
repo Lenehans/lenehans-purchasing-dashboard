@@ -3914,7 +3914,7 @@ const MOVEIN_ESSENTIALS=[
   ]},
 ];
 
-let _miFilter='all', _miStockFilter='all', _miCompare=false, _miBundleMode=false, _miBundle=new Set();
+let _miFilter='all', _miStockFilter='all', _miCompare=false, _miBundleMode=false, _miBundle=new Set(), _miExpanded={};
 
 function renderMoveIn(){
   const root=document.getElementById('movein-root');
