@@ -3932,25 +3932,71 @@ function _renderMoveInInner(root){
   const rows=state.computedRows||[];
   const govRows=state.governedRows||[];
 
-  // Match against computedRows (channel-aware) for status
+  // ── Active product filter — use 11-month (330d) window where available ──────
+  // Falls back to 180d if 11-month data not yet synced
+  function isActive(r){
+    const t330=(r.QtySold_Total_330d||0);
+    if(t330>0) return true; // 11-month data available — trust it
+    // Fallback to 180d until first 330d sync completes
+    return ((r.QtySold_Online_Total_180d||0)+(r.QtySold_Shop_CapelStreet_180d||0)+(r.QtySold_Online_CapelStreet_180d||0)) > 0;
+  }
+
+  // ── Colour deduplication — strip colour words, keep best-stocked per base title ──
+  // Keeps shape distinctions (round/oval/square) — strips colour/material variants
+  const COLOUR_WORDS=/\b(red|blue|green|yellow|white|black|grey|gray|silver|chrome|pink|purple|orange|brown|beige|natural|cream|gold|rose|clear|transparent|charcoal|navy|teal|ivory|burgundy|coral|lime|turquoise|indigo|maroon|olive|tan|khaki|graphite|gunmetal|brushed|polished|stainless|galvanised|painted)\b/gi;
+  const MATERIAL_WORDS=/\b(plastic|metal|steel|aluminium|aluminum|wooden|wood|rubber|silicone|ceramic|glass|fabric|cotton|polyester|nylon|chrome|acrylic|bamboo|wicker|rattan)\b/gi;
+
+  function baseTitle(title){
+    return (title||'').toLowerCase()
+      .replace(COLOUR_WORDS,'').replace(MATERIAL_WORDS,'')
+      .replace(/\s+/g,' ').trim();
+  }
+
+  function dedupeColours(items){
+    const groups=new Map();
+    const counts=new Map();
+    for(const r of items){
+      const key=baseTitle(r.ItemTitle||r.SKU||'');
+      counts.set(key,(counts.get(key)||0)+1);
+      if(!groups.has(key)){
+        groups.set(key,r);
+      } else {
+        // Keep the one with better cover (prefer stocked over OOS)
+        const ex=groups.get(key);
+        const exCov=ex.coverStatus==='Out of Stock'?-1:(ex.daysOfCover||0);
+        const nwCov=r.coverStatus==='Out of Stock'?-1:(r.daysOfCover||0);
+        if(nwCov>exCov) groups.set(key,r);
+      }
+    }
+    return [...groups.values()].map(r=>{
+      r._variantCount=(counts.get(baseTitle(r.ItemTitle||r.SKU||''))||1);
+      return r;
+    });
+  }
+
+  // Match against computedRows — active only, colour-deduped
   function match(kw){
     const kwLow=kw.map(k=>k.toLowerCase());
-    return rows.filter(r=>{
+    const raw=rows.filter(r=>{
+      if(!isActive(r)) return false;
       const t=((r.ItemTitle||'')+' '+(r.SKU||'')).toLowerCase();
       return kwLow.some(k=>t.includes(k));
     });
+    return dedupeColours(raw);
   }
-  // Match against governedRows for raw AK/CS stock (comparison mode)
+  // Match against governedRows for comparison mode — active only, colour-deduped
   function matchRaw(kw){
     const kwLow=kw.map(k=>k.toLowerCase());
     const seen=new Set();
-    return govRows.filter(r=>{
+    const raw=govRows.filter(r=>{
+      if(!isActive(r)) return false;
       const t=((r.ItemTitle||'')+' '+(r.SKU||'')).toLowerCase();
-      const k=r.SKU+'||'+r.SupplierName;
-      if(seen.has(k)) return false;
-      seen.add(k);
+      const key2=r.SKU+'||'+r.SupplierName;
+      if(seen.has(key2)) return false;
+      seen.add(key2);
       return kwLow.some(k2=>t.includes(k2));
     });
+    return dedupeColours(raw);
   }
 
   function whoOk(who){
@@ -4118,12 +4164,14 @@ function _renderMoveInInner(root){
           const short=(r.ItemTitle||r.SKU||'').substring(0,32)+(((r.ItemTitle||'').length>32)?'…':'');
           const inBundle=_miBundle&&_miBundle.has(r.SKU);
           const bundleChk=_miBundleMode?`<input type="checkbox" ${inBundle?'checked':''} onchange="if(this.checked){_miBundle=_miBundle||new Set();_miBundle.add('${esc(r.SKU||'')}');}else{if(_miBundle)_miBundle.delete('${esc(r.SKU||'')}');}renderMoveIn()" style="flex-shrink:0">`:'';
+          const variantTag=r._variantCount>1?`<span style="font-size:9px;color:#94a3b8;flex-shrink:0">${r._variantCount} cols</span>`:'';
           return `<div class="mi-sku-row">
             ${bundleChk}
             <span class="mi-sku-status ${sCls}">${sLabel}</span>
             <span class="mi-sku-name" title="${esc(r.ItemTitle||'')}">${esc(short)}</span>
             <span style="font-size:10px;color:#94a3b8;flex-shrink:0;max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.SupplierName||'')}">${esc(sup)}</span>
             <span class="mi-sku-cover">${coverStr}${revStr}</span>
+            ${variantTag}
             ${buyStr}
             <button onclick="switchToSupplier('${esc(r.SupplierName||'')}')" title="Open in Workbench" style="font-size:10px;padding:1px 5px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:4px;cursor:pointer;flex-shrink:0">→</button>
             <button class="mi-noos-btn" onclick="addToNeverOOS('${esc(r.SKU||'')}','${esc((r.ItemTitle||'').replace(/'/g,''))}')" title="Never OOS">★</button>
@@ -4583,6 +4631,9 @@ function normalizeRow(r){
     QtySold_Shop_CapelStreet_30d: n('QtySold_Shop_CapelStreet_30d')||n('QSold_ShCS30'),
     QtySold_Shop_CapelStreet_90d: n('QtySold_Shop_CapelStreet_90d')||0,
     QtySold_Shop_CapelStreet_180d:n('QtySold_Shop_CapelStreet_180d')||n('QSold_ShCS180'),
+    // 12-month total (365d) — combined all channels, for discontinued detection
+    // Live since 01/07/2025 — captures full Lenehans trading history
+    QtySold_Total_330d: n('QtySold_Total_330d')||n('Q11')||0,
     Revenue_Shop_CapelStreet_30d: n('Revenue_Shop_CapelStreet_30d')||n('Rev_ShCS30'),
     Barcode:     String(r.Barcode||'').trim(),
     BinRack_AK: String(r.BinRack_AK||'').trim(),
