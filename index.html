@@ -5575,6 +5575,19 @@ function computeRow(row){
     coverStatus = 'Healthy';
   }
 
+  // ── 12-month activity check — never recommend ordering discontinued products ──
+  // If a product has had zero sales across ALL channels in the last 12 months,
+  // it is either discontinued, dead stock, or a ranging error.
+  // Force buy=0 so it vanishes from tiles, Quick Order and table.
+  // It remains visible in Clear Stock for run-down decisions.
+  const q11Total = row.QtySold_Total_330d || 0;
+  const has180Activity = (row.QtySold_Online_Total_180d||0)+(row.QtySold_Shop_CapelStreet_180d||0);
+  if(q11Total === 0 && has180Activity === 0){
+    // Confirmed inactive: zero sales in 12 months (or 6 months as fallback pre-sync)
+    buy = 0;
+    if(coverStatus !== 'Healthy') coverStatus = 'Inactive';
+  }
+
   const status=stock<=0?'Out of Stock':(effectiveDaily>0?(Math.floor(stock/effectiveDaily)<14?'Critical':(Math.floor(stock/effectiveDaily)<28?'Low':'OK')):'No demand');
   const capelSignal=(!state.channel||state.channel==='arklow')&&row.QtySold_Online_CapelStreet_30d>0?`Capel Street online sales detected (${fmtInt(row.QtySold_Online_CapelStreet_30d)} units in the last 30 days).`:'';
   const ramp=hasRamp(row);
@@ -5596,7 +5609,8 @@ function computeRow(row){
     target,rawBuy,maxBuy,buy,stock,status,ramp,capelSignal,minOneFallbackApplied,
     _csRequired:row._csRequired||false,
     _csQtyFloor:row._csQtyFloor||0,
-    _csReason:row._csReason||''
+    _csReason:row._csReason||'',
+    isDiscontinued: q11Total===0 && has180Activity===0
   };
   res.momentum   = getDemandMomentum(row);
   res.confidence = getBuyerConfidence(row, res);
