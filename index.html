@@ -4145,41 +4145,56 @@ function _renderMoveInInner(root){
           ?`<button onclick="_miExpanded=_miExpanded||{};_miExpanded['${cardId}']=false;renderMoveIn()" style="font-size:10px;color:#64748b;padding:3px 0;cursor:pointer;background:none;border:none;width:100%;text-align:left">▲ Show less</button>`
           :`<button onclick="_miExpanded=_miExpanded||{};_miExpanded['${cardId}']=true;renderMoveIn()" style="font-size:10px;color:#185fa5;font-weight:700;padding:3px 0;cursor:pointer;background:none;border:none;width:100%;text-align:left">▼ Show all ${sorted.length}</button>`;
       } else {
-        // ── Single-channel mode ──────────────────────────────────────────
-        const sorted=matches.slice().sort((a,b)=>{
-          const ord={'Out of Stock':0,Critical:1,Low:2,Healthy:3};
-          return (ord[a.coverStatus]||3)-(ord[b.coverStatus]||3);
-        });
-        const visible=showAll?sorted:sorted.slice(0,5);
-        cardContent=visible.map(r=>{
+        // ── Single-channel: 3 price tiers ───────────────────────────────
+        // Sort by cost price to pick Budget / Mid-range / Premium representatives
+        const priced   = matches.filter(r=>(r.SupplierCostPrice||0)>0)
+                                .sort((a,b)=>(a.SupplierCostPrice||0)-(b.SupplierCostPrice||0));
+        const unpriced = matches.filter(r=>(r.SupplierCostPrice||0)===0)
+                                .sort((a,b)=>(b.daysOfCover||0)-(a.daysOfCover||0));
+
+        let tiers;
+        if(priced.length>=3){
+          tiers=[
+            {r:priced[0],                            label:'Budget',   col:'#16a34a'},
+            {r:priced[Math.floor(priced.length/2)],  label:'Mid',      col:'#d97706'},
+            {r:priced[priced.length-1],               label:'Premium',  col:'#7c3aed'},
+          ];
+        } else if(priced.length>0){
+          const lbl=['Budget','Mid','Premium'];
+          const clr=['#16a34a','#d97706','#7c3aed'];
+          tiers=priced.map((r,i)=>({r, label:lbl[i]||'', col:clr[i]||'#64748b'}));
+        } else {
+          const lbl=['Option 1','Option 2','Option 3'];
+          tiers=unpriced.slice(0,3).map((r,i)=>({r, label:lbl[i], col:'#64748b'}));
+        }
+
+        const totalInRange=matches.length;
+        const inStockCount=matches.filter(r=>r.coverStatus!=='Out of Stock').length;
+        const rangeSummary=`<div style="font-size:10px;color:#64748b;margin-bottom:6px;padding-bottom:5px;border-bottom:0.5px solid #f1f5f9">
+          ${totalInRange} in range · ${inStockCount} in stock — 3 price points shown</div>`;
+
+        cardContent=rangeSummary+tiers.map(({r,label,col})=>{
           const s=r.coverStatus||'Healthy';
           const sCls=s==='Out of Stock'?'oos':s==='Critical'?'critical':s==='Low'?'low':'ok';
-          const sLabel=s==='Out of Stock'?'OOS':s==='Critical'?'Crit':s==='Low'?'Low':'OK';
+          const sLabel=s==='Out of Stock'?'OOS':s==='Critical'?'Crit':s==='Low'?'Low':'✓';
           const cover=r.daysOfCover||0;
-          const coverStr=s==='Out of Stock'?'0d':cover>=900?'In stock':cover===0?'No demand':`${Math.round(cover)}d`;
-          const rev=Math.round(r.Revenue_Online_Total_30d||0);
-          const revStr=rev>0?` · €${rev}/mo`:'';
-          const buyStr=(r.buy||0)>0?`<span style="color:#dc2626;font-weight:700;font-size:10px;margin-left:2px">Buy${r.buy}</span>`:'';
+          const coverStr=s==='Out of Stock'?'OOS':cover>=900?'Stocked':cover===0?'—':`${Math.round(cover)}d`;
+          const priceStr=(r.SupplierCostPrice||0)>0?` €${r.SupplierCostPrice.toFixed(2)}`:'';
           const sup=(r.SupplierName||'').split(' - ')[0].substring(0,10);
           const short=(r.ItemTitle||r.SKU||'').substring(0,32)+(((r.ItemTitle||'').length>32)?'…':'');
           const inBundle=_miBundle&&_miBundle.has(r.SKU);
           const bundleChk=_miBundleMode?`<input type="checkbox" ${inBundle?'checked':''} onchange="if(this.checked){_miBundle=_miBundle||new Set();_miBundle.add('${esc(r.SKU||'')}');}else{if(_miBundle)_miBundle.delete('${esc(r.SKU||'')}');}renderMoveIn()" style="flex-shrink:0">`:'';
-          const variantTag=r._variantCount>1?`<span style="font-size:9px;color:#94a3b8;flex-shrink:0">${r._variantCount} cols</span>`:'';
           return `<div class="mi-sku-row">
             ${bundleChk}
+            <span style="font-size:9px;font-weight:800;padding:1px 5px;border-radius:4px;flex-shrink:0;color:${col};background:${col}22;min-width:44px;text-align:center">${label}</span>
             <span class="mi-sku-status ${sCls}">${sLabel}</span>
             <span class="mi-sku-name" title="${esc(r.ItemTitle||'')}">${esc(short)}</span>
             <span style="font-size:10px;color:#94a3b8;flex-shrink:0;max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.SupplierName||'')}">${esc(sup)}</span>
-            <span class="mi-sku-cover">${coverStr}${revStr}</span>
-            ${variantTag}
-            ${buyStr}
-            <button onclick="switchToSupplier('${esc(r.SupplierName||'')}')" title="Open in Workbench" style="font-size:10px;padding:1px 5px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:4px;cursor:pointer;flex-shrink:0">→</button>
+            <span class="mi-sku-cover">${coverStr}${priceStr}</span>
+            <button onclick="switchToSupplier('${esc(r.SupplierName||'')}')" title="View in Workbench" style="font-size:10px;padding:1px 5px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:4px;cursor:pointer;flex-shrink:0">→</button>
             <button class="mi-noos-btn" onclick="addToNeverOOS('${esc(r.SKU||'')}','${esc((r.ItemTitle||'').replace(/'/g,''))}')" title="Never OOS">★</button>
           </div>`;
         }).join('');
-        if(sorted.length>5) cardContent+=showAll
-          ?`<button onclick="_miExpanded=_miExpanded||{};_miExpanded['${cardId}']=false;renderMoveIn()" style="font-size:10px;color:#64748b;padding:3px 0;cursor:pointer;background:none;border:none;width:100%;text-align:left">▲ Show less</button>`
-          :`<button onclick="_miExpanded=_miExpanded||{};_miExpanded['${cardId}']=true;renderMoveIn()" style="font-size:10px;color:#185fa5;font-weight:700;padding:3px 0;cursor:pointer;background:none;border:none;width:100%;text-align:left">▼ Show all ${sorted.length} SKUs</button>`;
       }
 
       const cardCls=worst==='gap'?'gap':worst==='oos'?'oos':worst==='critical'?'critical':worst==='low'?'low':'';
