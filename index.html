@@ -4784,6 +4784,21 @@ function parsePOFeed(rows){
     if(csLatest) map[`${supplier}||capel street`] = { ...csLatest, history: csEntries.filter(e=>e.isDone).slice(0,6) };
   }
 
+  // ── Read Lead-Time column from PO Status sheet ───────────────────────────
+  // Column named "Lead-Time", "Lead Time", "LeadTime" etc. (flexible match)
+  const ltCol = hdrs.find(h=>h.toLowerCase().replace(/[\s_-]/g,'').includes('leadtime'));
+  if(ltCol){
+    const leadTimes = {};
+    for(const r of rows){
+      const supplier = String(r[supplierCol]||'').trim();
+      if(!supplier) continue;
+      const lt = parseFloat(r[ltCol]);
+      if(!isNaN(lt) && lt >= 0) leadTimes[supplier] = lt;
+    }
+    state.supplierLeadTimes = leadTimes;
+    console.log(`Lead-Time loaded: ${Object.keys(leadTimes).length} suppliers`);
+  }
+
   return map;
 }
 
@@ -5539,7 +5554,15 @@ function computeRow(row){
   // Apply multiplier, clamp between 21d (min viable) and 180d (max sensible)
   const dynamicCoverDays = Math.round(Math.min(180, Math.max(21, coverDays * dynamicCoverMult)));
 
-  const target=ceilNonNeg(effectiveDaily*dynamicCoverDays);
+  // ── Lead-time cap: don't hold more cover than 3× delivery time allows ──────
+  // A 3-day supplier needs ~9-21 days cover, not 73+ days.
+  // state.supplierLeadTimes populated from "Lead-Time" column in PO Status sheet.
+  // leadTime = 0 → no cap (not configured). leadTime >= 1 → cap = max(leadTime × 3, 21).
+  const leadTimeDays = (state.supplierLeadTimes && state.supplierLeadTimes[row.SupplierName]) || 0;
+  const leadTimeCap  = leadTimeDays > 0 ? Math.max(leadTimeDays * 3, 21) : 180;
+  const effectiveCoverDays = Math.min(dynamicCoverDays, leadTimeCap);
+
+  const target=ceilNonNeg(effectiveDaily*effectiveCoverDays);
 
   // Buy calculation
   const rawBuy=Math.max(0,target-stock);
@@ -5563,7 +5586,7 @@ function computeRow(row){
   const daysOfCover=effectiveDaily>0?(stock/effectiveDaily):(stock>0?9999:0);
   const rawCoverStatus=effectiveDaily<=0?(stock>0?'No demand':'Out of Stock')
     :(daysOfCover<14?'Critical':(daysOfCover<30?'Low':(daysOfCover<=60?'Healthy':'High')));
-  const rawBuyCheck=Math.max(0,ceilNonNeg(effectiveDaily*dynamicCoverDays)-stock);
+  const rawBuyCheck=Math.max(0,ceilNonNeg(effectiveDaily*effectiveCoverDays)-stock);
   let coverStatus=(rawBuyCheck>0&&(rawCoverStatus==='Healthy'||rawCoverStatus==='High'))?'Low':rawCoverStatus;
 
   // FIX 3: Hard 90-day cover exclusion — items with >90d cover on raw 30D rate
@@ -5605,7 +5628,7 @@ function computeRow(row){
     autoSelectedMode, resolvedMode,                          // auto mode selection
     spikeRatio, spikeFactored,                               // 7D spike signals
     weatherMult, weatherActive,                          // weather signal
-    baseDaily:base30dDaily, adjustedDaily:effectiveDaily, daysOfCover,coverStatus,coverDays:dynamicCoverDays,
+    baseDaily:base30dDaily, adjustedDaily:effectiveDaily, daysOfCover,coverStatus,coverDays:effectiveCoverDays,leadTimeDays,leadTimeCap,
     target,rawBuy,maxBuy,buy,stock,status,ramp,capelSignal,minOneFallbackApplied,
     _csRequired:row._csRequired||false,
     _csQtyFloor:row._csQtyFloor||0,
