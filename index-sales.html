@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Dashboard · V6.5 · SALES + MARGIN</title>
+  <title>Lenehans Purchasing Dashboard · V6.4 · EMAIL INTELLIGENCE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -164,6 +164,82 @@
     .brief-intel-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;font-size:11px;font-weight:700;border:1.5px solid;cursor:pointer;transition:opacity .12s}
     .brief-intel-pill.green{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
     .brief-intel-pill.purple{background:#fdf4ff;color:#7e22ce;border-color:#e9d5ff}
+    /* ════ SALES INTELLIGENCE ════════════════════════════════════════════════ */
+    .si-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+    .si-view-btn{padding:7px 16px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;background:#fff;color:#374151;transition:all .12s}
+    .si-view-btn.active{background:#1e3a5f;color:#fff;border-color:#1e3a5f}
+    .si-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+    .si-stat{background:#f8fafc;border-radius:8px;padding:10px 12px}
+    .si-stat-n{font-size:20px;font-weight:900;line-height:1}
+    .si-stat-l{font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+    .si-table-wrap{background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:16px}
+    .si-table{width:100%;border-collapse:collapse;font-size:12px}
+    .si-table th{background:#f8fafc;padding:8px 12px;text-align:left;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#64748b;border-bottom:1.5px solid #e2e8f0;white-space:nowrap;cursor:pointer}
+    .si-table th:hover{background:#f1f5f9}
+    .si-table th.num{text-align:right}
+    .si-table td{padding:7px 12px;border-bottom:0.5px solid #f1f5f9;vertical-align:middle}
+    .si-table td.num{text-align:right;font-variant-numeric:tabular-nums}
+    .si-table tr:last-child td{border-bottom:none}
+    .si-table tr:hover td{background:#fafcff}
+    .si-bar-mini{display:inline-block;height:6px;border-radius:3px;background:#e6f1fb;vertical-align:middle;position:relative;overflow:hidden}
+    .si-bar-fill{height:100%;border-radius:3px;position:absolute;left:0;top:0}
+    .si-chat{background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden}
+    .si-chat-hdr{background:#1e3a5f;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;cursor:pointer}
+    .si-chat-body{padding:16px;display:none}
+    .si-chat-body.open{display:block}
+    .si-msgs{min-height:80px;max-height:300px;overflow-y:auto;margin-bottom:10px;display:flex;flex-direction:column;gap:8px}
+    .si-msg{padding:8px 12px;border-radius:8px;font-size:12px;line-height:1.5;max-width:85%}
+    .si-msg.user{background:#e6f1fb;color:#1e293b;align-self:flex-end}
+    .si-msg.ai{background:#f8fafc;color:#1e293b;border:1px solid #e2e8f0;align-self:flex-start}
+    .si-msg.thinking{color:#94a3b8;font-style:italic}
+    .si-input-row{display:flex;gap:8px}
+    .si-input{flex:1;padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;outline:none}
+    .si-input:focus{border-color:#185fa5}
+    .si-send{padding:8px 16px;background:#185fa5;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer}
+    .si-send:disabled{opacity:.5;cursor:default}
+    .si-quick-q{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+    .si-qq{padding:4px 10px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:6px;font-size:11px;cursor:pointer;color:#374151}
+    .si-qq:hover{background:#e6f1fb;border-color:#b5d4f4}
+    /* ════ MOVE-IN TAB ════════════════════════════════════════════════════════ */
+    .mi-header{background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:16px 20px;margin-bottom:16px}
+    .mi-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
+    .mi-stat{background:#f8fafc;border-radius:8px;padding:10px 12px;text-align:center}
+    .mi-stat-n{font-size:22px;font-weight:900;line-height:1}
+    .mi-stat-l{font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:3px}
+    .mi-filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .mi-filter-btn{padding:6px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;background:#fff;color:#374151;transition:all .12s}
+    .mi-filter-btn.active{background:#1e3a5f;color:#fff;border-color:#1e3a5f}
+    .mi-room{margin-bottom:20px}
+    .mi-room-hdr{display:flex;align-items:center;gap:10px;padding:10px 0 8px;border-bottom:2px solid #e2e8f0;margin-bottom:10px}
+    .mi-room-title{font-size:15px;font-weight:900;color:#1e293b}
+    .mi-room-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px}
+    .mi-room-badge.both{background:#f1f5f9;color:#475569}
+    .mi-room-badge.owner{background:#f0fdf4;color:#166534}
+    .mi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+    .mi-card{border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;background:#fff;position:relative}
+    .mi-card.oos{border-color:#dc2626;border-width:2px}
+    .mi-card.critical{border-color:#f97316;border-width:2px}
+    .mi-card.low{border-color:#eab308}
+    .mi-card.gap{border:1.5px dashed #94a3b8;background:#fafbfc}
+    .mi-card-label{font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+    .mi-who{font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700}
+    .mi-who.both{background:#f1f5f9;color:#475569}
+    .mi-who.renter{background:#e6f1fb;color:#185fa5}
+    .mi-who.owner{background:#f0fdf4;color:#166534}
+    .mi-sku-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid #f1f5f9;font-size:12px}
+    .mi-sku-row:last-child{border-bottom:none}
+    .mi-sku-name{flex:1;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .mi-sku-cover{font-size:11px;color:#64748b;flex-shrink:0}
+    .mi-sku-status{font-size:10px;padding:1px 6px;border-radius:4px;font-weight:800;flex-shrink:0}
+    .mi-sku-status.oos{background:#fee2e2;color:#991b1b}
+    .mi-sku-status.critical{background:#fff7ed;color:#c2410c}
+    .mi-sku-status.low{background:#fefce8;color:#854d0e}
+    .mi-sku-status.ok{background:#f0fdf4;color:#166534}
+    .mi-gap-label{font-size:12px;color:#94a3b8;font-style:italic;padding:6px 0}
+    .mi-gap-note{font-size:11px;color:#94a3b8;margin-top:4px}
+    .mi-noos-btn{font-size:10px;padding:2px 7px;background:#e6f1fb;color:#185fa5;border:1px solid #b5d4f4;border-radius:5px;cursor:pointer;font-weight:700}
+    .mi-noos-btn:hover{background:#b5d4f4}
+    .mi-alert-bar{background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#991b1b;font-weight:700;display:flex;align-items:center;gap:8px}
     #workbenchView{}
     .brief-back-bar{display:flex;align-items:center;gap:12px;padding:8px 0;margin-bottom:8px;border-bottom:2px solid #e2e8f0}
     .brief-back-btn{padding:8px 16px;background:#e6f1fb;color:#185fa5;border:1.5px solid #b5d4f4;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer}
@@ -433,55 +509,6 @@
     .tab-btn.active{color:#1e40af;border-bottom-color:#1e40af}
     .tab-btn:hover:not(.active){color:#1e293b;background:#f8fafc}
     .tab-panel{display:none}.tab-panel.active{display:block}
-    /* ── SALES TAB ── */
-    .sales-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:14px 0}
-    .sales-kpi{background:var(--panel);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px}
-    .sales-kpi .v{font-size:21px;font-weight:800;color:var(--text);line-height:1.1}
-    .sales-kpi .l{font-size:11px;color:var(--muted);margin-top:4px;font-weight:600}
-    .sales-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
-    .sales-seg{display:inline-flex;border:1.5px solid var(--line);border-radius:8px;overflow:hidden}
-    .sales-seg button{background:var(--panel);border:none;padding:7px 13px;font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer}
-    .sales-seg button.active{background:var(--accent);color:#fff}
-    .sales-search{padding:7px 11px;border:1.5px solid var(--line);border-radius:8px;font-size:13px;min-width:230px}
-    .sales-btn{padding:7px 14px;border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;color:#fff;background:var(--accent)}
-    .sales-btn.green{background:#16a34a}.sales-btn.grey{background:#64748b}
-    #salesTable{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
-    #salesTable th{background:var(--thead-bg);color:var(--text);padding:8px 9px;text-align:right;font-size:11px;font-weight:800;position:sticky;top:0;cursor:pointer;white-space:nowrap;border-bottom:2px solid var(--line)}
-    #salesTable th.l,#salesTable td.l{text-align:left}
-    #salesTable th:hover{background:#cfd8e3}
-    #salesTable td{padding:6px 9px;border-bottom:1px solid var(--line-light);text-align:right;vertical-align:middle}
-    #salesTable tr:nth-child(even) td{background:var(--row-alt)}
-    #salesTable tr:hover td{background:var(--row-hover)}
-    .sales-sku{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--muted)}
-    .mgn-good{color:#14532d;font-weight:800}.mgn-thin{color:#92400e;font-weight:800}.mgn-bad{color:#991b1b;font-weight:800}
-    .abc-A{background:#14532d}.abc-B{background:#1d55d4}.abc-C{background:#64748b}.abc-D{background:#94a3b8}
-    .abc-pill{display:inline-block;color:#fff;font-size:10px;font-weight:800;border-radius:5px;padding:1px 6px}
-    .mom-up{color:#14532d;font-weight:800}.mom-down{color:#991b1b;font-weight:800}.mom-flat{color:var(--muted);font-weight:700}
-    .sales-wrap{background:var(--panel);border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;overflow:auto;max-height:64vh}
-    /* price change */
-    .pc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
-    .pc-field{display:flex;flex-direction:column;gap:3px}
-    .pc-field label{font-size:11px;font-weight:700;color:var(--muted)}
-    .pc-field input,.pc-field select{padding:7px 9px;border:1.5px solid var(--line);border-radius:7px;font-size:13px}
-    .pc-results{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
-    .pc-card{background:var(--panel);border:1.5px solid var(--line);border-radius:10px;padding:14px}
-    .pc-card h4{margin:0 0 8px;font-size:13px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.04em}
-    .pc-stat{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line-light);font-size:13px}
-    .pc-stat .lab{color:var(--muted)}.pc-stat .num{font-weight:800}
-    .pc-verdict{margin-top:14px;padding:16px;border-radius:10px;font-size:15px;font-weight:700;line-height:1.5}
-    .pc-verdict.win{background:#dcfce7;border:2px solid #16a34a;color:#14532d}
-    .pc-verdict.lose{background:#fee2e2;border:2px solid #dc2626;color:#991b1b}
-    .pc-verdict.even{background:#fef9c3;border:2px solid #ca8a04;color:#854d0e}
-    .pc-chart{display:flex;align-items:flex-end;gap:3px;height:140px;padding:10px;background:var(--panel);border:1.5px solid var(--line);border-radius:10px;margin-top:12px;overflow-x:auto}
-    .pc-bar{flex:1;min-width:22px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
-    .pc-bar .b{width:70%;border-radius:3px 3px 0 0;background:#94a3b8}
-    .pc-bar.before .b{background:#1d55d4}.pc-bar.after .b{background:#16a34a}
-    .pc-bar .ym{font-size:9px;color:var(--muted);margin-top:4px;transform:rotate(-45deg);white-space:nowrap}
-    .pc-bar .qv{font-size:9px;color:var(--text);font-weight:700;margin-bottom:2px}
-    .pc-note{font-size:12px;color:var(--muted);background:#f1f5f9;border-left:3px solid var(--accent);padding:8px 11px;border-radius:0 6px 6px 0;margin-top:10px}
-    .pc-results-list{margin:6px 0 0;padding:0;list-style:none;border:1.5px solid var(--line);border-radius:8px;max-height:200px;overflow:auto}
-    .pc-results-list li{padding:7px 10px;border-bottom:1px solid var(--line-light);cursor:pointer;font-size:12.5px}
-    .pc-results-list li:hover{background:var(--row-hover)}
     /* ── Clear Stock ────────────────────────────────────────────────────── */
     .cs-summary-bar{display:flex;gap:16px;flex-wrap:wrap;background:#fef9ee;border:1.5px solid #fde68a;border-radius:10px;padding:12px 18px;margin-bottom:16px;align-items:center}
     .cs-summary-stat{text-align:center}
@@ -1051,7 +1078,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.5 · Seasonal · Signal-stack · Governance · Email Intelligence · Sales &amp; Margin</div>
+  <div class="sub">V6.4 · Seasonal · Signal-stack · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -1064,8 +1091,9 @@
     <button class="tab-btn" data-tab="clearstock">🏷️ Clear Stock</button>
     <button class="tab-btn" data-tab="transfers">🔄 Transfers</button>
     <button class="tab-btn" data-tab="noos">⭐ Never OOS</button>
+    <button class="tab-btn" data-tab="movein">🏠 Move-In</button>
+    <button class="tab-btn" data-tab="sales">📊 Sales</button>
     <button class="tab-btn" data-tab="email">📧 Email Intelligence</button>
-    <button class="tab-btn" data-tab="sales">📈 Sales</button>
     <button class="tab-btn" data-tab="deliveries" style="display:none">🚚 Deliveries</button>
     <div id="weatherChip" style="display:none;margin-left:auto;align-self:center;
       padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;
@@ -1617,6 +1645,16 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   </div><!-- /tab-alerts -->
 
   <!-- TAB: Email Intelligence -->
+  <div class="tab-panel" id="tab-movein">
+    <div id="movein-root" style="padding:0 0 32px"></div>
+  </div>
+
+
+  <!-- TAB: Sales Intelligence -->
+  <div class="tab-panel" id="tab-sales">
+    <div id="si-root" style="padding-bottom:32px"></div>
+  </div>
+
   <div class="tab-panel" id="tab-email">
     <div style="padding:14px 0">
 
@@ -1688,84 +1726,6 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
 
     </div>
   </div><!-- /tab-email -->
-
-  <div class="tab-panel" id="tab-sales">
-    <div style="padding:14px 0">
-      <h2 style="font-size:19px;font-weight:800;color:#1e3a5f;margin:0 0 2px">📈 Sales &amp; Margin</h2>
-      <p style="font-size:13px;color:var(--muted);margin:0 0 6px">What's selling, what's making money, and what happens to profit when you move a price. Uses the same Google Sheets feed as Buying.</p>
-
-      <div class="sales-toolbar">
-        <div class="sales-seg" id="salesViewSeg">
-          <button class="active" data-sview="selling">🏆 What's Selling</button>
-          <button data-sview="pricechange">💶 Price Change Analysis</button>
-        </div>
-      </div>
-
-      <!-- ── VIEW: WHAT'S SELLING ─────────────────────────────────────────── -->
-      <div id="salesSellingView">
-        <div class="sales-toolbar">
-          <span style="font-size:12px;font-weight:700;color:var(--muted)">Channel:</span>
-          <div class="sales-seg" id="salesScopeSeg">
-            <button class="active" data-sscope="all">All</button>
-            <button data-sscope="arklowOnline">Arklow Online</button>
-            <button data-sscope="capelOnline">Capel Online</button>
-            <button data-sscope="capelShop">Capel Shop</button>
-          </div>
-          <span style="font-size:12px;font-weight:700;color:var(--muted);margin-left:8px">Show:</span>
-          <div class="sales-seg" id="salesFilterSeg">
-            <button class="active" data-sfilter="all">All</button>
-            <button data-sfilter="winners">Top sellers</button>
-            <button data-sfilter="losers">Dead / slow</button>
-            <button data-sfilter="thin">Thin / neg. margin</button>
-          </div>
-          <input id="salesSearch" class="sales-search" placeholder="Search SKU, item, supplier…">
-          <button class="sales-btn green" onclick="exportSalesCSV()">⬇ Export CSV</button>
-        </div>
-
-        <div class="sales-kpis" id="salesKpis"></div>
-        <div class="pc-note" id="salesAssumeNote" style="margin:0 0 10px"></div>
-        <div class="sales-wrap">
-          <table id="salesTable"><thead></thead><tbody></tbody></table>
-        </div>
-      </div>
-
-      <!-- ── VIEW: PRICE CHANGE ───────────────────────────────────────────── -->
-      <div id="salesPriceView" style="display:none">
-        <div class="pc-note" style="margin-top:8px">
-          <strong>The question this answers:</strong> "When we dropped a product's price, did the extra sales actually make us more money — or did we just sell more for less profit?" Enter the old and new price; cost auto-fills. Units before/after come from the monthly sales history feed.
-        </div>
-
-        <div style="position:relative;margin-top:12px;max-width:520px">
-          <label style="font-size:11px;font-weight:700;color:var(--muted)">Find a product (SKU or name)</label>
-          <input id="pcSearch" class="sales-search" style="width:100%;box-sizing:border-box" placeholder="Type to search, e.g. borax…" autocomplete="off">
-          <ul id="pcResults" class="pc-results-list" style="display:none"></ul>
-        </div>
-        <div id="pcSelected" style="font-size:13px;font-weight:700;color:#1e3a5f;margin-top:8px"></div>
-
-        <div class="pc-grid">
-          <div class="pc-field"><label>Old price € (inc VAT)</label><input id="pcOldPrice" type="number" step="0.01" placeholder="6.99"></div>
-          <div class="pc-field"><label>New price € (inc VAT)</label><input id="pcNewPrice" type="number" step="0.01" placeholder="2.99"></div>
-          <div class="pc-field"><label>Unit cost € (ex VAT)</label><input id="pcCost" type="number" step="0.01" placeholder="auto"></div>
-          <div class="pc-field"><label>VAT %</label><input id="pcVat" type="number" step="0.5" value="23"></div>
-          <div class="pc-field"><label>Price changed in</label><select id="pcMonth"></select></div>
-          <div class="pc-field"><label>Window (months each side)</label><select id="pcWindow"><option>2</option><option selected>3</option><option>4</option><option>6</option></select></div>
-        </div>
-
-        <div id="pcManualWrap" style="display:none" class="pc-grid">
-          <div class="pc-field"><label>Units/month BEFORE (manual)</label><input id="pcManBefore" type="number" step="1" placeholder="e.g. 20"></div>
-          <div class="pc-field"><label>Units/month AFTER (manual)</label><input id="pcManAfter" type="number" step="1" placeholder="e.g. 55"></div>
-        </div>
-
-        <div style="margin-top:6px">
-          <button class="sales-btn" onclick="runPriceChange()">📊 Analyse profit impact</button>
-          <button class="sales-btn grey" onclick="pcToggleManual()" id="pcManualBtn">✏️ Enter units manually</button>
-        </div>
-
-        <div id="pcOutput"></div>
-      </div>
-
-    </div>
-  </div><!-- /tab-sales -->
 
 </div><!-- /wrap -->
 <!-- ═══════════════════════════════════════════════════════════════════════════
@@ -3900,6 +3860,864 @@ function openWorkbench(supplier){
   const lbl=document.getElementById('workbenchLabel');
   if(lbl) lbl.textContent=supplier?'Full view — '+supplier:'All suppliers';
 }
+// ─── MOVE-IN ESSENTIALS TAB ──────────────────────────────────────────────────
+const MOVEIN_ESSENTIALS=[
+  {room:'Kitchen',icon:'🍳',who:'both',items:[
+    {name:'Chopping boards',kw:['chopping board','cutting board']},
+    {name:'Food storage containers',kw:['food container','storage container','food box','lunch box']},
+    {name:'Washing-up bowl & rack',kw:['washing up bowl','dish rack','draining rack','washing bowl']},
+    {name:'Kitchen bin & bin bags',kw:['bin bag','refuse sack','kitchen bin','waste bin','pedal bin']},
+    {name:'Cleaning cloths & sponges',kw:['cloth','sponge','scrubber','kitchen roll']},
+    {name:'Washing-up liquid & cleaners',kw:['washing up liquid','dish soap','kitchen cleaner','degreaser','fairy']},
+    {name:'Bicarb & natural cleaners',kw:['bicarbonate','bicarb','dri-pak','soda crystals','citric acid']},
+    {name:'Cling film, foil & food wrap',kw:['cling film','aluminium foil','food wrap','baking paper']},
+    {name:'Kitchen scissors & can opener',kw:['kitchen scissors','can opener','tin opener']},
+  ]},
+  {room:'Bathroom',icon:'🚿',who:'both',items:[
+    {name:'Toilet brush & holder',kw:['toilet brush']},
+    {name:'Shower curtain, rail & rings',kw:['shower curtain','shower rail','curtain ring','shower pole']},
+    {name:'Bath mat & non-slip mat',kw:['bath mat','non-slip mat','shower mat']},
+    {name:'Towel hooks & rails',kw:['towel hook','towel rail','towel bar','robe hook']},
+    {name:'Toilet & bathroom cleaner',kw:['toilet cleaner','bleach','bathroom cleaner','bathroom spray']},
+    {name:'Plunger',kw:['plunger']},
+    {name:'Sink & drain unblocker',kw:['drain','unblocker','sink cleaner','mr muscle drain']},
+    {name:'Shower head',kw:['shower head','showerhead']},
+  ]},
+  {room:'Living Room & Hallway',icon:'🛋️',who:'both',items:[
+    {name:'LED light bulbs (all fittings)',kw:['led bulb','light bulb','led lamp','bayonet','screw cap','gu10','ses bulb','e27']},
+    {name:'Extension leads & adaptors',kw:['extension lead','extension cable','multi-socket','plug adaptor']},
+    {name:'Picture hooks & wall fixings',kw:['picture hook','wall hook','picture nail','mirror screw']},
+    {name:'Door mat (indoor & outdoor)',kw:['door mat','doormat']},
+    {name:'Door stop',kw:['door stop','doorstop','door wedge']},
+    {name:'Coat hooks',kw:['coat hook','hat hook','door hook']},
+    {name:'Draught excluder',kw:['draught excluder','draft excluder','door seal']},
+    {name:'Command strips & velcro',kw:['command strip','velcro','self-adhesive hook','removable hook']},
+  ]},
+  {room:'Bedroom',icon:'🛏️',who:'both',items:[
+    {name:'Curtain pole & brackets',kw:['curtain pole','curtain rod','curtain bracket','curtain track']},
+    {name:'Blackout blind',kw:['blackout blind','roller blind','blackout curtain']},
+    {name:'Over-door hooks',kw:['over door hook','over-door','door hook']},
+    {name:'Under-bed storage',kw:['storage box','underbed','under bed','storage bag']},
+    {name:'Wardrobe rail & hangers',kw:['wardrobe rail','clothes rail','coat hanger','clothes hanger']},
+  ]},
+  {room:'Laundry & Utility',icon:'🧺',who:'both',items:[
+    {name:'Laundry basket',kw:['laundry basket','clothes basket','linen basket']},
+    {name:'Clothes airer & drying rack',kw:['clothes airer','drying rack','clothes horse','airer']},
+    {name:'Washing line & pegs',kw:['washing line','clothes line','clothes peg','washing peg']},
+    {name:'Washing powder & detergent',kw:['washing powder','washing liquid','laundry detergent','laundry tablet','ariel','persil','bold']},
+    {name:'Fabric softener',kw:['fabric softener','fabric conditioner','lenor','comfort']},
+    {name:'Stain remover',kw:['stain remover','stain treatment','vanish']},
+    {name:'Ironing board',kw:['ironing board','iron board']},
+  ]},
+  {room:'Cleaning & General',icon:'🧹',who:'both',items:[
+    {name:'Mop & bucket',kw:['mop','mop bucket','floor mop']},
+    {name:'Brush & dustpan',kw:['dustpan','brush set','dustpan and brush','sweeping brush']},
+    {name:'Rubber gloves',kw:['rubber glove','household glove','marigold','latex glove']},
+    {name:'Microfibre cloths',kw:['microfibre','microfiber','cleaning cloth']},
+    {name:'Multi-surface & glass cleaner',kw:['multi surface','glass cleaner','multi-surface','window cleaner','mr muscle']},
+    {name:'Oven & kitchen degreaser',kw:['oven cleaner','degreaser','oven spray']},
+    {name:'Pest control (ants, mice, moths)',kw:['ant killer','mouse trap','moth killer','pest control','insect killer','rodent','ant bait','rat trap','ant clear','rentokil','pest-stop']},
+    {name:'Air freshener',kw:['air freshener','room spray','deodorant spray','plug-in freshener']},
+    {name:'Step stool',kw:['step stool','kick step','step ladder 2','2 step']},
+  ]},
+  {room:'Safety & Security',icon:'🔒',who:'both',items:[
+    {name:'Smoke alarm',kw:['smoke alarm','smoke detector','fire alarm']},
+    {name:'CO detector',kw:['carbon monoxide','co alarm','co detector','co2 alarm']},
+    {name:'Fire blanket',kw:['fire blanket']},
+    {name:'First aid kit',kw:['first aid','first-aid kit','plaster','bandage kit']},
+    {name:'Torch & batteries',kw:['torch','flashlight','battery','aa battery','aaa battery']},
+    {name:'Window & door locks',kw:['window lock','door lock','window restrictor','sash lock','bolt lock']},
+  ]},
+  {room:'DIY & Maintenance',icon:'🔨',who:'owner',items:[
+    {name:'Cordless drill & bit set',kw:['cordless drill','drill bit','power drill','combi drill']},
+    {name:'Screwdriver set',kw:['screwdriver','screwdriver set']},
+    {name:'Hammer & nails',kw:['hammer','nail','masonry nail']},
+    {name:'Screws, rawlplugs & fixings',kw:['rawlplug','wall plug','screw assortment','fixing kit','wood screw']},
+    {name:'Tape measure',kw:['tape measure','measuring tape']},
+    {name:'Spirit level',kw:['spirit level','torpedo level']},
+    {name:'Wall filler & caulk',kw:['filler','polyfilla','caulk','sealant','gap filler']},
+    {name:'Paint, roller & brushes',kw:['paint','roller','paintbrush','paint tray','dulux','crown paint']},
+    {name:'Masking & duct tape',kw:['masking tape','duct tape','gaffer tape','duck tape']},
+    {name:'WD-40 & lubricant',kw:['wd-40','wd40','lubricant','penetrating oil']},
+    {name:'Stepladder',kw:['stepladder','step ladder','loft ladder','extension ladder']},
+    {name:'Radiator bleeding key',kw:['radiator key','bleeding key','radiator bleed']},
+    {name:'PTFE & pipe tape',kw:['ptfe','pipe tape','thread tape']},
+  ]},
+  {room:'Garden',icon:'🌿',who:'owner',items:[
+    {name:'Garden hose & fittings',kw:['garden hose','hose pipe','hose fitting','hose connector','hose nozzle']},
+    {name:'Watering can',kw:['watering can']},
+    {name:'Garden fork & spade',kw:['garden fork','garden spade','border fork','digging spade']},
+    {name:'Weed killer',kw:['weed killer','weedkiller','weed control','glyphosate','roundup','pathclear']},
+    {name:'Lawn feed',kw:['lawn feed','lawn fertiliser','grass feed','lawn treatment','greenforce']},
+    {name:'Outdoor pest control',kw:['slug','snail pellet','ant killer','outdoor pest','garden pest','vine weevil']},
+    {name:'Pressure sprayer',kw:['pressure sprayer','garden sprayer','pump sprayer','knapsack sprayer','hygeia']},
+    {name:'Garden netting',kw:['garden netting','plant netting','bird netting','crop protection']},
+    {name:'Garden gloves',kw:['garden glove','gardening glove']},
+    {name:'Outdoor lighting',kw:['festoon light','solar light','garden light','outdoor light','string light']},
+  ]},
+];
+
+let _miFilter='all', _miStockFilter='all', _miCompare=false, _miBundleMode=false, _miBundle=new Set(), _miExpanded={};
+
+// ─── SALES INTELLIGENCE TAB ──────────────────────────────────────────────────
+const _SALES_PIN='2323'; // ← change to set management PIN
+let _siView='sellers', _siChatOpen=false, _siChatMsgs=[], _siSort={col:'rev30',dir:-1};
+
+function renderSalesPin(root){
+  root.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;gap:20px">
+    <div style="text-align:center">
+      <div style="font-size:32px;margin-bottom:8px">📊</div>
+      <div style="font-size:16px;font-weight:900;color:#1e293b">Sales Intelligence</div>
+      <div style="font-size:12px;color:#64748b;margin-top:4px">Management access only — enter PIN</div>
+    </div>
+    <div id="siPinDots" style="display:flex;gap:12px">
+      <span class="sipd"></span><span class="sipd"></span><span class="sipd"></span><span class="sipd"></span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,64px);gap:8px">
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="sipk" onclick="siPin(${n})">${n}</button>`).join('')}
+      <button class="sipk" onclick="siPin('C')" style="font-size:11px;font-weight:700;background:#f1f5f9;color:#64748b">Clear</button>
+      <button class="sipk" onclick="siPin(0)">0</button>
+      <button class="sipk" onclick="siPin('X')" style="font-size:16px;background:#f1f5f9;color:#64748b">⌫</button>
+    </div>
+    <div id="siPinErr" style="color:#dc2626;font-size:12px;font-weight:600;height:18px"></div>
+  </div>
+  <style>
+    .sipd{width:12px;height:12px;border-radius:50%;border:2px solid #cbd5e1;background:transparent;transition:background .12s}
+    .sipd.on{background:#185fa5;border-color:#185fa5}
+    .sipk{width:64px;height:64px;border-radius:50%;background:#f8fafc;border:1.5px solid #e2e8f0;font-size:20px;font-weight:500;cursor:pointer;color:#1e293b;font-family:inherit;transition:background .1s}
+    .sipk:hover{background:#e6f1fb}
+  </style>`;
+  window._siPinEntry='';
+}
+
+function siPin(k){
+  const err=document.getElementById('siPinErr');
+  if(!err) return;
+  err.textContent='';
+  if(k==='C'){window._siPinEntry='';siPinDots();return;}
+  if(k==='X'){window._siPinEntry=(window._siPinEntry||'').slice(0,-1);siPinDots();return;}
+  window._siPinEntry=(window._siPinEntry||'')+String(k);
+  siPinDots();
+  if(window._siPinEntry.length===_SALES_PIN.length){
+    if(window._siPinEntry===_SALES_PIN){
+      try{sessionStorage.setItem('salesAuth','1');}catch(e){}
+      renderSalesIntel();
+    } else {
+      err.textContent='Incorrect PIN';
+      window._siPinEntry='';
+      setTimeout(siPinDots,500);
+    }
+  }
+}
+function siPinDots(){
+  document.querySelectorAll('.sipd').forEach((d,i)=>d.classList.toggle('on',i<(window._siPinEntry||'').length));
+}
+
+function renderSalesIntel(){
+  const root=document.getElementById('si-root');
+  if(!root) return;
+  // PIN gate — management only
+  try{ if(sessionStorage.getItem('salesAuth')!=='1'){ renderSalesPin(root); return; } }
+  catch(e){ renderSalesPin(root); return; }
+  const rows=state.computedRows||[];
+  const ch=state.channel;
+  const isCS=ch==='capel';
+  const chLabel=isCS?'Capel Street':'Arklow Online';
+
+  if(!rows.length){
+    root.innerHTML=`<div style="text-align:center;padding:60px 20px;color:#94a3b8">
+      <div style="font-size:40px;margin-bottom:12px">📊</div>
+      <div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:8px">Load data first</div>
+      <div style="font-size:13px">Switch to Buying tab and load Linnworks data.</div></div>`;
+    return;
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  const rev30 = r => isCS?(r.Revenue_Shop_CapelStreet_30d||0):(r.Revenue_Online_Total_30d||0);
+  const qty30 = r => isCS?(r.QtySold_Shop_CapelStreet_30d||0):(r.QtySold_Online_Total_30d||0);
+  const qty180= r => (r.QtySold_Online_Total_180d||0);
+  const rev180= r => (r.Rev_On180||r.Revenue_Online_Total_180d||0);
+  const fmtE  = v => '€'+fmtInt(Math.round(v));
+  const fmtPct= v => (v>=0?'+':'')+v.toFixed(1)+'%';
+  const fmtN2 = v => v.toFixed(2);
+
+  // ── Build view data ────────────────────────────────────────────────────────
+  let viewRows=[], colDefs=[], title='', subtitle='';
+  const active=rows.filter(r=>!r.isDiscontinued&&rev30(r)>0||qty30(r)>0);
+
+  if(_siView==='sellers'){
+    title='Top Sellers';
+    subtitle=`Ranked by 30-day revenue · ${chLabel}`;
+    viewRows=active.filter(r=>rev30(r)>0)
+      .sort((a,b)=>rev30(b)-rev30(a)).slice(0,100)
+      .map((r,i)=>({...r,_rank:i+1,_rev30:rev30(r),_qty30:qty30(r),_avgPrice:qty30(r)>0?rev30(r)/qty30(r):0}));
+    colDefs=[
+      {k:'_rank',   label:'#',      num:true, fmt:r=>r._rank},
+      {k:'SKU',     label:'SKU',    fmt:r=>r.SKU},
+      {k:'title',   label:'Product',fmt:r=>(r.ItemTitle||'').substring(0,40),wide:true},
+      {k:'sup',     label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,14)},
+      {k:'abcClass',label:'ABC',    fmt:r=>r.abcClass||'?'},
+      {k:'_rev30',  label:'Rev/30d',num:true, fmt:r=>fmtE(r._rev30), sort:'_rev30'},
+      {k:'_qty30',  label:'Units/30d',num:true,fmt:r=>Math.round(r._qty30)},
+      {k:'_avgPrice',label:'Avg price',num:true,fmt:r=>r._avgPrice>0?fmtE(r._avgPrice):'-'},
+      {k:'coverStatus',label:'Cover',fmt:r=>r.coverStatus||'-'},
+    ];
+
+  }else if(_siView==='margins'){
+    title='Margin Analysis';
+    subtitle='Estimated gross margin by cost price · items with known cost';
+    viewRows=active.filter(r=>(r.SupplierCostPrice||0)>0&&qty30(r)>0&&rev30(r)>0)
+      .map(r=>{
+        const avgSell=rev30(r)/qty30(r);
+        const margin=(avgSell-r.SupplierCostPrice)/avgSell*100;
+        return {...r,_margin:margin,_avgSell:avgSell,_rev30:rev30(r),_qty30:qty30(r)};
+      })
+      .filter(r=>r._margin>-200&&r._margin<200)
+      .sort((a,b)=>{
+        if(_siSort.col==='_margin') return _siSort.dir*(b._margin-a._margin);
+        return b._rev30-a._rev30;
+      }).slice(0,100);
+    colDefs=[
+      {k:'SKU',label:'SKU',fmt:r=>r.SKU},
+      {k:'title',label:'Product',fmt:r=>(r.ItemTitle||'').substring(0,36),wide:true},
+      {k:'sup',label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,14)},
+      {k:'SupplierCostPrice',label:'Cost',num:true,fmt:r=>'€'+fmtN2(r.SupplierCostPrice)},
+      {k:'_avgSell',label:'Avg sell',num:true,fmt:r=>fmtE(r._avgSell)},
+      {k:'_margin',label:'Margin %',num:true,fmt:r=>{
+        const c=r._margin>=40?'#16a34a':r._margin>=20?'#d97706':'#dc2626';
+        return `<span style="color:${c};font-weight:700">${r._margin.toFixed(1)}%</span>`;
+      },sort:'_margin'},
+      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>fmtE(r._rev30)},
+      {k:'_qty30',label:'Units/30d',num:true,fmt:r=>Math.round(r._qty30)},
+    ];
+
+  }else if(_siView==='slow'){
+    title='Slow Movers';
+    subtitle='Stock held but low velocity — capital at risk';
+    viewRows=rows.filter(r=>!r.isDiscontinued&&(r.stock||0)>0&&(r.SupplierCostPrice||0)>0)
+      .map(r=>({...r,_capitalTied:(r.stock||0)*(r.SupplierCostPrice||0),_rev30:rev30(r),_qty30:qty30(r),_cover:r.daysOfCover||0}))
+      .filter(r=>r._cover>60||r._qty30===0)
+      .sort((a,b)=>b._capitalTied-a._capitalTied).slice(0,100);
+    colDefs=[
+      {k:'SKU',label:'SKU',fmt:r=>r.SKU},
+      {k:'title',label:'Product',fmt:r=>(r.ItemTitle||'').substring(0,36),wide:true},
+      {k:'sup',label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,14)},
+      {k:'stock',label:'Stock',num:true,fmt:r=>r.stock||0},
+      {k:'_cover',label:'Cover',num:true,fmt:r=>r._cover>=900?'No demand':Math.round(r._cover)+'d'},
+      {k:'_capitalTied',label:'Capital tied',num:true,fmt:r=>`<span style="color:#dc2626;font-weight:700">${fmtE(r._capitalTied)}</span>`},
+      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>r._rev30>0?fmtE(r._rev30):'—'},
+      {k:'_qty30',label:'Units/30d',num:true,fmt:r=>r._qty30>0?Math.round(r._qty30):'—'},
+    ];
+
+  }else if(_siView==='trending'){
+    title='Trending Now';
+    subtitle='30-day rate significantly above 180-day average — accelerating demand';
+    viewRows=active.filter(r=>qty30(r)>2&&qty180(r)>0)
+      .map(r=>{
+        const r30=qty30(r)/30, r180=qty180(r)/180;
+        return {...r,_spike:r180>0?r30/r180:0,_r30:r30,_r180:r180,_rev30:rev30(r)};
+      })
+      .filter(r=>r._spike>=1.3)
+      .sort((a,b)=>b._spike-a._spike).slice(0,60);
+    colDefs=[
+      {k:'SKU',label:'SKU',fmt:r=>r.SKU},
+      {k:'title',label:'Product',fmt:r=>(r.ItemTitle||'').substring(0,36),wide:true},
+      {k:'sup',label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,14)},
+      {k:'_spike',label:'Spike ×',num:true,fmt:r=>`<span style="color:#dc2626;font-weight:700">↑${r._spike.toFixed(1)}×</span>`},
+      {k:'_r30',label:'Now/day',num:true,fmt:r=>r._r30.toFixed(2)},
+      {k:'_r180',label:'Avg/day',num:true,fmt:r=>r._r180.toFixed(2)},
+      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>fmtE(r._rev30)},
+      {k:'coverStatus',label:'Cover',fmt:r=>r.coverStatus||'-'},
+      {k:'buy',label:'Buy',num:true,fmt:r=>(r.buy||0)>0?`<span style="color:#dc2626;font-weight:700">${r.buy}</span>`:'—'},
+    ];
+
+  }else if(_siView==='price'){
+    title='Price Impact';
+    subtitle='Average sell price now vs 6-month average — identifies price changes';
+    viewRows=active.filter(r=>qty30(r)>3&&qty180(r)>10&&rev180(r)>0&&rev30(r)>0)
+      .map(r=>{
+        const p30=rev30(r)/qty30(r);
+        const p180=rev180(r)/qty180(r);
+        const chg=(p30-p180)/p180*100;
+        return {...r,_p30:p30,_p180:p180,_pchg:chg,_rev30:rev30(r)};
+      })
+      .filter(r=>Math.abs(r._pchg)>5)
+      .sort((a,b)=>Math.abs(b._pchg)-Math.abs(a._pchg)).slice(0,80);
+    colDefs=[
+      {k:'SKU',label:'SKU',fmt:r=>r.SKU},
+      {k:'title',label:'Product',fmt:r=>(r.ItemTitle||'').substring(0,36),wide:true},
+      {k:'sup',label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,14)},
+      {k:'_p180',label:'6m avg price',num:true,fmt:r=>fmtE(r._p180)},
+      {k:'_p30',label:'Current price',num:true,fmt:r=>fmtE(r._p30)},
+      {k:'_pchg',label:'Change',num:true,fmt:r=>{
+        const c=r._pchg>0?'#16a34a':'#dc2626';
+        return `<span style="color:${c};font-weight:700">${fmtPct(r._pchg)}</span>`;
+      }},
+      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>fmtE(r._rev30)},
+    ];
+  }
+
+  // ── Summary stats ──────────────────────────────────────────────────────────
+  const totalRev=active.reduce((t,r)=>t+rev30(r),0);
+  const totalUnits=active.reduce((t,r)=>t+qty30(r),0);
+  const aItems=active.filter(r=>r.abcClass==='A');
+  const oosCount=active.filter(r=>r.coverStatus==='Out of Stock').length;
+  const trendCount=active.filter(r=>r.isTrending).length;
+
+  // ── Max value for bar charts ───────────────────────────────────────────────
+  const maxRev = viewRows.length ? Math.max(...viewRows.map(r=>r._rev30||0)) : 1;
+
+  // ── Build HTML ─────────────────────────────────────────────────────────────
+  const views=['sellers','margins','slow','trending','price'];
+  const viewLabels=['Top Sellers','Margins','Slow Movers','Trending','Price Impact'];
+
+  let html=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+    <div>
+      <div style="font-size:16px;font-weight:900;color:#1e293b">Sales Intelligence</div>
+      <div style="font-size:12px;color:#64748b">${chLabel} · ${rows.length.toLocaleString()} SKUs</div>
+    </div>
+  </div>
+  <div class="si-bar">
+    ${views.map((v,i)=>`<button class="si-view-btn ${_siView===v?'active':''}" onclick="_siView='${v}';renderSalesIntel()">${viewLabels[i]}</button>`).join('')}
+  </div>
+  <div class="si-stats">
+    <div class="si-stat"><div class="si-stat-n">${fmtE(totalRev)}</div><div class="si-stat-l">Revenue/30d</div></div>
+    <div class="si-stat"><div class="si-stat-n">${fmtInt(Math.round(totalUnits))}</div><div class="si-stat-l">Units/30d</div></div>
+    <div class="si-stat"><div class="si-stat-n">${aItems.length}</div><div class="si-stat-l">A-class SKUs</div></div>
+    <div class="si-stat"><div class="si-stat-n" style="color:#dc2626">${oosCount}</div><div class="si-stat-l">OOS now</div></div>
+    <div class="si-stat"><div class="si-stat-n" style="color:#d97706">${trendCount}</div><div class="si-stat-l">Trending</div></div>
+  </div>
+  <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:8px">${title} <span style="font-size:11px;color:#64748b;font-weight:400">— ${subtitle}</span></div>`;
+
+  if(!viewRows.length){
+    html+=`<div style="text-align:center;padding:32px;color:#94a3b8;font-size:13px">No data for this view — try switching channel or loading fresh data</div>`;
+  } else {
+    html+=`<div class="si-table-wrap"><table class="si-table"><thead><tr>`;
+    colDefs.forEach(c=>{
+      const sortable=c.sort||c.k;
+      const isSorted=_siSort.col===sortable;
+      html+=`<th class="${c.num?'num':''}" onclick="_siSort={col:'${sortable}',dir:${isSorted?-_siSort.dir:-1}};renderSalesIntel()">${c.label}${isSorted?(_siSort.dir===-1?' ↓':' ↑'):''}</th>`;
+    });
+    html+=`</tr></thead><tbody>`;
+    viewRows.slice(0,80).forEach(r=>{
+      html+=`<tr>`;
+      colDefs.forEach(c=>{
+        const val=c.fmt(r);
+        const extra=c.wide?'style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"':'';
+        if(c.k==='_rev30'&&_siView==='sellers'&&maxRev>0){
+          const pct=Math.round((r._rev30||0)/maxRev*60);
+          html+=`<td class="${c.num?'num':''}" ${extra}><span style="margin-right:6px">${val}</span><span class="si-bar-mini" style="width:${pct}px"><span class="si-bar-fill" style="width:100%;background:#185fa5;opacity:.5"></span></span></td>`;
+        } else {
+          html+=`<td class="${c.num?'num':''}" ${extra}>${val}</td>`;
+        }
+      });
+      html+=`</tr>`;
+    });
+    if(viewRows.length>80) html+=`<tr><td colspan="${colDefs.length}" style="text-align:center;color:#94a3b8;font-size:11px;padding:10px">Showing 80 of ${viewRows.length} — filter to narrow down</td></tr>`;
+    html+=`</tbody></table></div>`;
+  }
+
+  // ── AI Chat panel ──────────────────────────────────────────────────────────
+  const chatBodyCls=_siChatOpen?'open':'';
+  let msgsHtml=_siChatMsgs.length
+    ? _siChatMsgs.map(m=>`<div class="si-msg ${m.role}">${m.role==='ai'?m.text.replace(/\n/g,'<br>'):esc(m.text)}</div>`).join('')
+    : `<div class="si-msg ai">Hi! Ask me anything about your sales data — e.g. "What are my top 10 CS sellers?" or "Which products have the best margins?"</div>`;
+
+  html+=`<div class="si-chat">
+    <div class="si-chat-hdr" onclick="_siChatOpen=!_siChatOpen;renderSalesIntel()">
+      ✦ Ask AI about your sales data
+      <span style="margin-left:auto;font-size:12px;opacity:.7">${_siChatOpen?'▲ Close':'▼ Open'}</span>
+    </div>
+    <div class="si-chat-body ${chatBodyCls}">
+      <div class="si-quick-q">
+        ${['Top 10 CS sellers this month','Which products have worst margins?','What is trending right now?','Biggest slow movers by capital?','Where am I losing money?'].map(q=>`<button class="si-qq" onclick="siAsk('${q}')">${q}</button>`).join('')}
+      </div>
+      <div class="si-msgs" id="siMsgs">${msgsHtml}</div>
+      <div class="si-input-row">
+        <input class="si-input" id="siInput" placeholder="Ask about your sales data..." onkeydown="if(event.key==='Enter')siAsk()">
+        <button class="si-send" id="siSend" onclick="siAsk()">Send</button>
+      </div>
+    </div>
+  </div>`;
+
+  root.innerHTML=html;
+
+  // Scroll chat to bottom
+  if(_siChatOpen){
+    const m=document.getElementById('siMsgs');
+    if(m) m.scrollTop=m.scrollHeight;
+  }
+}
+
+async function siAsk(preset){
+  const input=document.getElementById('siInput');
+  const q=preset||input?.value?.trim();
+  if(!q) return;
+  if(input) input.value='';
+
+  _siChatMsgs.push({role:'user',text:q});
+  _siChatOpen=true;
+  renderSalesIntel();
+
+  // Build context summary (top 100 by revenue, key metrics)
+  const rows=state.computedRows||[];
+  const ch=state.channel;
+  const isCS=ch==='capel';
+  const rev30=r=>isCS?(r.Revenue_Shop_CapelStreet_30d||0):(r.Revenue_Online_Total_30d||0);
+  const qty30=r=>isCS?(r.QtySold_Shop_CapelStreet_30d||0):(r.QtySold_Online_Total_30d||0);
+
+  const top100=rows.filter(r=>rev30(r)>0)
+    .sort((a,b)=>rev30(b)-rev30(a)).slice(0,100)
+    .map(r=>`${r.SKU}|${(r.ItemTitle||'').substring(0,30)}|${(r.SupplierName||'').split(' - ')[0].substring(0,12)}|${r.abcClass||'?'}|€${Math.round(rev30(r))}/mo|${Math.round(qty30(r))}u|${r.coverStatus||'?'}|cost€${(r.SupplierCostPrice||0).toFixed(2)}`).join('\n');
+
+  const totalRev=rows.reduce((t,r)=>t+rev30(r),0);
+  const oosCount=rows.filter(r=>r.coverStatus==='Out of Stock').length;
+  const currentMonth=new Date().toLocaleDateString('en-IE',{month:'long',year:'numeric'});
+
+  const systemPrompt=`You are a sales analyst for Lenehans Hardware, an Irish hardware retailer (buying.lenehans.ie).
+Today is ${currentMonth}. Channel: ${isCS?'Capel Street Shop':'Arklow Online'}.
+Total revenue this month: €${Math.round(totalRev).toLocaleString()}. OOS items: ${oosCount}.
+Top 100 SKUs (format: SKU|Title|Supplier|ABC|Revenue|Units|Status|Cost):
+${top100}
+Answer concisely. Be specific and use actual numbers from the data. If you don't know something, say so.`;
+
+  _siChatMsgs.push({role:'ai thinking',text:'Thinking...'});
+  renderSalesIntel();
+
+  try {
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:600,
+        system:systemPrompt,
+        messages:[{role:'user',content:q}]
+      })
+    });
+    const data=await res.json();
+    const reply=data.content?.[0]?.text||'Sorry, no response.';
+    _siChatMsgs=_siChatMsgs.filter(m=>m.role!=='ai thinking');
+    _siChatMsgs.push({role:'ai',text:reply});
+  } catch(e){
+    _siChatMsgs=_siChatMsgs.filter(m=>m.role!=='ai thinking');
+    _siChatMsgs.push({role:'ai',text:'Error connecting to AI. Check your Anthropic API key in Code.gs.'});
+  }
+  renderSalesIntel();
+}
+
+function renderMoveIn(){
+  const root=document.getElementById('movein-root');
+  if(!root) return;
+  try { _renderMoveInInner(root); }
+  catch(e){
+    root.innerHTML=`<div style="background:#fee2e2;border:1.5px solid #fca5a5;border-radius:10px;padding:16px 20px;color:#991b1b;font-size:13px">
+      <b>Move-In tab error:</b> ${String(e)}<br><pre style="font-size:11px;margin-top:8px;white-space:pre-wrap">${e.stack||''}</pre>
+    </div>`;
+    console.error('renderMoveIn error:',e);
+  }
+}
+function _renderMoveInInner(root){
+  const ch=state.channel;
+  const rows=state.computedRows||[];
+  const govRows=state.governedRows||[];
+
+  // ── Active product filter — use 11-month (330d) window where available ──────
+  // Falls back to 180d if 11-month data not yet synced
+  function isActive(r){
+    const t330=(r.QtySold_Total_330d||0);
+    if(t330>0) return true; // 11-month data available — trust it
+    // Fallback to 180d until first 330d sync completes
+    return ((r.QtySold_Online_Total_180d||0)+(r.QtySold_Shop_CapelStreet_180d||0)+(r.QtySold_Online_CapelStreet_180d||0)) > 0;
+  }
+
+  // ── Colour deduplication — strip colour words, keep best-stocked per base title ──
+  // Keeps shape distinctions (round/oval/square) — strips colour/material variants
+  const COLOUR_WORDS=/\b(red|blue|green|yellow|white|black|grey|gray|silver|chrome|pink|purple|orange|brown|beige|natural|cream|gold|rose|clear|transparent|charcoal|navy|teal|ivory|burgundy|coral|lime|turquoise|indigo|maroon|olive|tan|khaki|graphite|gunmetal|brushed|polished|stainless|galvanised|painted)\b/gi;
+  const MATERIAL_WORDS=/\b(plastic|metal|steel|aluminium|aluminum|wooden|wood|rubber|silicone|ceramic|glass|fabric|cotton|polyester|nylon|chrome|acrylic|bamboo|wicker|rattan)\b/gi;
+
+  function baseTitle(title){
+    return (title||'').toLowerCase()
+      .replace(COLOUR_WORDS,'').replace(MATERIAL_WORDS,'')
+      .replace(/\s+/g,' ').trim();
+  }
+
+  function dedupeColours(items){
+    const groups=new Map();
+    const counts=new Map();
+    for(const r of items){
+      const key=baseTitle(r.ItemTitle||r.SKU||'');
+      counts.set(key,(counts.get(key)||0)+1);
+      if(!groups.has(key)){
+        groups.set(key,r);
+      } else {
+        // Keep the one with better cover (prefer stocked over OOS)
+        const ex=groups.get(key);
+        const exCov=ex.coverStatus==='Out of Stock'?-1:(ex.daysOfCover||0);
+        const nwCov=r.coverStatus==='Out of Stock'?-1:(r.daysOfCover||0);
+        if(nwCov>exCov) groups.set(key,r);
+      }
+    }
+    return [...groups.values()].map(r=>{
+      r._variantCount=(counts.get(baseTitle(r.ItemTitle||r.SKU||''))||1);
+      return r;
+    });
+  }
+
+  // Match against computedRows — active only, colour-deduped
+  function match(kw){
+    const kwLow=kw.map(k=>k.toLowerCase());
+    const raw=rows.filter(r=>{
+      if(!isActive(r)) return false;
+      const t=((r.ItemTitle||'')+' '+(r.SKU||'')).toLowerCase();
+      return kwLow.some(k=>t.includes(k));
+    });
+    return dedupeColours(raw);
+  }
+  // Match against governedRows for comparison mode — active only, colour-deduped
+  function matchRaw(kw){
+    const kwLow=kw.map(k=>k.toLowerCase());
+    const seen=new Set();
+    const raw=govRows.filter(r=>{
+      if(!isActive(r)) return false;
+      const t=((r.ItemTitle||'')+' '+(r.SKU||'')).toLowerCase();
+      const key2=r.SKU+'||'+r.SupplierName;
+      if(seen.has(key2)) return false;
+      seen.add(key2);
+      return kwLow.some(k2=>t.includes(k2));
+    });
+    return dedupeColours(raw);
+  }
+
+  function whoOk(who){
+    if(_miFilter==='all') return true;
+    if(_miFilter==='renter') return who==='both'||who==='renter';
+    if(_miFilter==='owner') return who==='both'||who==='owner';
+    return true;
+  }
+  function stockOk(worst){
+    if(_miStockFilter==='all') return true;
+    if(_miStockFilter==='alert') return worst==='oos'||worst==='critical';
+    if(_miStockFilter==='gap') return worst==='gap';
+    return true;
+  }
+  function worstStatus(matches){
+    return matches.reduce((w,r)=>{
+      const s=r.coverStatus||'';
+      if(s==='Out of Stock') return 'oos';
+      if(w==='oos') return w;
+      if(s==='Critical') return 'critical';
+      if(w==='critical') return w;
+      if(s==='Low') return 'low';
+      return w;
+    },'ok');
+  }
+
+  // ── Seasonal banner ───────────────────────────────────────────────────────
+  const mo=new Date().getMonth(); // 0=Jan
+  const isPeak=mo>=2&&mo<=6;     // March–July = peak moving season
+  const isPrePeak=mo===1||mo===7; // Feb or Aug = pre-stock warning
+  let seasonHtml='';
+  if(isPeak) seasonHtml=`<div style="background:#fef3c7;border:1.5px solid #fbbf24;border-radius:10px;padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:13px">
+    <span style="font-size:20px">📦</span>
+    <div><b style="color:#92400e">Peak moving season — March to July.</b> <span style="color:#78350f">Couples move most in spring and early summer. Prioritise OOS &amp; critical items now — these are your highest-risk lost sales.</span></div>
+  </div>`;
+  else if(isPrePeak) seasonHtml=`<div style="background:#e6f1fb;border:1.5px solid #b5d4f4;border-radius:10px;padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:13px">
+    <span style="font-size:20px">⏰</span>
+    <div><b style="color:#0c447c">Pre-season alert.</b> <span style="color:#185fa5">Moving season starts in ~6 weeks. Pre-stock essential categories now before the rush — lead times of 2–4 weeks mean ordering must happen this month.</span></div>
+  </div>`;
+
+  // ── Tally stats ───────────────────────────────────────────────────────────
+  let totalItems=0,oosCount=0,critCount=0,lowCount=0,gapCount=0;
+  for(const room of MOVEIN_ESSENTIALS){
+    for(const item of room.items){
+      totalItems++;
+      const m=match(item.kw);
+      if(!m.length){gapCount++;continue;}
+      const w=worstStatus(m);
+      if(w==='oos') oosCount++;
+      else if(w==='critical') critCount++;
+      else if(w==='low') lowCount++;
+    }
+  }
+  const chLabel=ch==='capel'?'Capel Street':'Arklow Online';
+
+  // ── Bundle bar ────────────────────────────────────────────────────────────
+  const bundleCount=(_miBundle&&_miBundle.size)||0;
+  const bundleBar=bundleCount>0?`<div style="background:#1e3a5f;color:#fff;border-radius:10px;padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px">
+    <span style="font-size:14px;font-weight:700">🛒 New Mover Bundle: <b style="color:#93c5fd">${bundleCount} items</b> selected</span>
+    <button onclick="exportBundle()" style="padding:6px 14px;background:#185fa5;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">📄 Export bundle</button>
+    <button onclick="_miBundle.clear();renderMoveIn()" style="padding:6px 12px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:7px;font-size:11px;cursor:pointer">Clear</button>
+  </div>`:'';
+
+  // ── Header ────────────────────────────────────────────────────────────────
+  let html=`<div class="mi-header">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+      <span style="font-size:22px">🏠</span>
+      <div style="flex:1">
+        <div style="font-size:16px;font-weight:900;color:#1e293b">Move-In Essentials Tracker</div>
+        <div style="font-size:12px;color:#64748b">Live stock · Channel: <b>${chLabel}</b> · ${rows.length.toLocaleString()} SKUs loaded</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="mi-filter-btn ${_miCompare?'active':''}" onclick="_miCompare=!_miCompare;renderMoveIn()">⚖️ Compare AK/CS</button>
+        <button class="mi-filter-btn" onclick="exportMoveInReport()">📄 Export Report</button>
+        <button class="mi-filter-btn ${bundleCount>0?'active':''}" onclick="toggleBundleMode()">🛒 Bundle${bundleCount>0?' ('+bundleCount+')':''}</button>
+      </div>
+    </div>
+    <div class="mi-stats">
+      <div class="mi-stat"><div class="mi-stat-n">${totalItems}</div><div class="mi-stat-l">Essentials</div></div>
+      <div class="mi-stat"><div class="mi-stat-n" style="color:#dc2626">${oosCount}</div><div class="mi-stat-l">OOS ⛔</div></div>
+      <div class="mi-stat"><div class="mi-stat-n" style="color:#f97316">${critCount}</div><div class="mi-stat-l">Critical</div></div>
+      <div class="mi-stat"><div class="mi-stat-n" style="color:#eab308">${lowCount}</div><div class="mi-stat-l">Low stock</div></div>
+      <div class="mi-stat"><div class="mi-stat-n" style="color:#94a3b8">${gapCount}</div><div class="mi-stat-l">Range gaps</div></div>
+    </div>
+    <div class="mi-filters">
+      <span style="font-size:11px;color:#64748b;font-weight:700">SHOW:</span>
+      ${['all','renter','owner'].map(f=>`<button class="mi-filter-btn ${_miFilter===f?'active':''}" onclick="_miFilter='${f}';renderMoveIn()">${f==='all'?'All households':f==='renter'?'🏢 Renter':' 🏡 Owner'}</button>`).join('')}
+      <span style="margin:0 4px;color:#cbd5e1">|</span>
+      ${[['all','All stock'],['alert','🔴 OOS & Critical'],['gap','🚫 Gaps only']].map(([f,l])=>`<button class="mi-filter-btn ${_miStockFilter===f?'active':''}" onclick="_miStockFilter='${f}';renderMoveIn()">${l}</button>`).join('')}
+    </div>
+  </div>
+  ${seasonHtml}${bundleBar}`;
+
+  if(oosCount>0) html+=`<div class="mi-alert-bar">⛔ ${oosCount} essential categor${oosCount===1?'y':'ies'} OUT OF STOCK — new movers cannot buy ${oosCount===1?'this':'these'} from you right now</div>`;
+
+  // ── Rooms ─────────────────────────────────────────────────────────────────
+  for(const room of MOVEIN_ESSENTIALS){
+    if(!whoOk(room.who)) continue;
+    let roomHtml='';
+
+    for(const item of room.items){
+      if(!whoOk(room.who)) continue;
+      const matches=match(item.kw);
+      const worst=matches.length?worstStatus(matches):'gap';
+      if(!stockOk(worst)) continue;
+
+      const whoClass=room.who==='both'?'both':room.who==='renter'?'renter':'owner';
+      const whoLabelFix=room.who==='both'?'Both':room.who==='renter'?'Renter':'Owner';
+      const cardId=`mi-${room.room.replace(/\W/g,'')}-${item.name.replace(/\W/g,'')}`;
+      const showAll=_miExpanded&&_miExpanded[cardId];
+
+      let cardContent='';
+      if(!matches.length){
+        cardContent=`<div class="mi-gap-label">Not in current range</div>
+          <div class="mi-gap-note">Range extension opportunity — ${room.who==='owner'?'owner essential':'household essential'}</div>`;
+      } else if(_miCompare){
+        // ── Comparison mode ──────────────────────────────────────────────
+        const rawMatches=matchRaw(item.kw);
+        const sorted=rawMatches.slice().sort((a,b)=>((b.NetStock_Arklow||0)+(b.NetStock_CapelStreet||0))-((a.NetStock_Arklow||0)+(a.NetStock_CapelStreet||0)));
+        const visible=showAll?sorted:sorted.slice(0,4);
+        const hdr=`<div style="display:grid;grid-template-columns:1fr 80px 80px 24px;gap:4px;font-size:10px;font-weight:700;color:#94a3b8;padding-bottom:4px;border-bottom:0.5px solid #e2e8f0;text-transform:uppercase;letter-spacing:.05em">
+          <span>Item</span><span style="text-align:center">AK</span><span style="text-align:center">CS</span><span></span></div>`;
+        cardContent=hdr+visible.map(r=>{
+          const ak=r.NetStock_Arklow||0;
+          const cs=r.NetStock_CapelStreet||0;
+          const akD=r.QtySold_Online_Total_30d||0;
+          const csD=r.QtySold_Shop_CapelStreet_30d||0;
+          const akCover=akD>0?Math.round(ak/(akD/30)):ak>0?9999:0;
+          const csCover=csD>0?Math.round(cs/(csD/30)):cs>0?9999:0;
+          function covCell(stk,cov){
+            if(stk<=0) return `<span style="text-align:center;font-size:11px;font-weight:700;color:#dc2626">OOS</span>`;
+            if(cov<=14) return `<span style="text-align:center;font-size:11px;font-weight:700;color:#f97316">${cov>=900?'Stk':cov+'d'}</span>`;
+            if(cov<=30) return `<span style="text-align:center;font-size:11px;color:#d97706">${cov+'d'}</span>`;
+            return `<span style="text-align:center;font-size:11px;color:#16a34a">${cov>=900?'Stk':cov+'d'}</span>`;
+          }
+          const title=r.ItemTitle||'';
+          const short=title.substring(0,30)+(title.length>30?'…':'');
+          return `<div style="display:grid;grid-template-columns:1fr 80px 80px 24px;gap:4px;align-items:center;padding:4px 0;border-bottom:0.5px solid #f8fafc">
+            <span style="font-size:11px;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.ItemTitle||'')}">${esc(short)}</span>
+            ${covCell(ak,akCover)}
+            ${covCell(cs,csCover)}
+            <button class="mi-noos-btn" onclick="addToNeverOOS('${esc(r.SKU||'')}','${esc((r.ItemTitle||'').replace(/'/g,''))}')" title="Never OOS">★</button>
+          </div>`;
+        }).join('');
+        if(sorted.length>4) cardContent+=showAll
+          ?`<button onclick="_miExpanded=_miExpanded||{};_miExpanded['${cardId}']=false;renderMoveIn()" style="font-size:10px;color:#64748b;padding:3px 0;cursor:pointer;background:none;border:none;width:100%;text-align:left">▲ Show less</button>`
+          :`<button onclick="_miExpanded=_miExpanded||{};_miExpanded['${cardId}']=true;renderMoveIn()" style="font-size:10px;color:#185fa5;font-weight:700;padding:3px 0;cursor:pointer;background:none;border:none;width:100%;text-align:left">▼ Show all ${sorted.length}</button>`;
+      } else {
+        // ── Single-channel: 3 price tiers ───────────────────────────────
+        // Sort by cost price to pick Budget / Mid-range / Premium representatives
+        const priced   = matches.filter(r=>(r.SupplierCostPrice||0)>0)
+                                .sort((a,b)=>(a.SupplierCostPrice||0)-(b.SupplierCostPrice||0));
+        const unpriced = matches.filter(r=>(r.SupplierCostPrice||0)===0)
+                                .sort((a,b)=>(b.daysOfCover||0)-(a.daysOfCover||0));
+
+        let tiers;
+        if(priced.length>=3){
+          tiers=[
+            {r:priced[0],                            label:'Budget',   col:'#16a34a'},
+            {r:priced[Math.floor(priced.length/2)],  label:'Mid',      col:'#d97706'},
+            {r:priced[priced.length-1],               label:'Premium',  col:'#7c3aed'},
+          ];
+        } else if(priced.length>0){
+          const lbl=['Budget','Mid','Premium'];
+          const clr=['#16a34a','#d97706','#7c3aed'];
+          tiers=priced.map((r,i)=>({r, label:lbl[i]||'', col:clr[i]||'#64748b'}));
+        } else {
+          const lbl=['Option 1','Option 2','Option 3'];
+          tiers=unpriced.slice(0,3).map((r,i)=>({r, label:lbl[i], col:'#64748b'}));
+        }
+
+        const totalInRange=matches.length;
+        const inStockCount=matches.filter(r=>r.coverStatus!=='Out of Stock').length;
+        const rangeSummary=`<div style="font-size:10px;color:#64748b;margin-bottom:6px;padding-bottom:5px;border-bottom:0.5px solid #f1f5f9">
+          ${totalInRange} in range · ${inStockCount} in stock — 3 price points shown</div>`;
+
+        cardContent=rangeSummary+tiers.map(({r,label,col})=>{
+          const s=r.coverStatus||'Healthy';
+          const sCls=s==='Out of Stock'?'oos':s==='Critical'?'critical':s==='Low'?'low':'ok';
+          const sLabel=s==='Out of Stock'?'OOS':s==='Critical'?'Crit':s==='Low'?'Low':'✓';
+          const cover=r.daysOfCover||0;
+          const coverStr=s==='Out of Stock'?'OOS':cover>=900?'Stocked':cover===0?'—':`${Math.round(cover)}d`;
+          const priceStr=(r.SupplierCostPrice||0)>0?` €${r.SupplierCostPrice.toFixed(2)}`:'';
+          const sup=(r.SupplierName||'').split(' - ')[0].substring(0,10);
+          const short=(r.ItemTitle||r.SKU||'').substring(0,32)+(((r.ItemTitle||'').length>32)?'…':'');
+          const inBundle=_miBundle&&_miBundle.has(r.SKU);
+          const bundleChk=_miBundleMode?`<input type="checkbox" ${inBundle?'checked':''} onchange="if(this.checked){_miBundle=_miBundle||new Set();_miBundle.add('${esc(r.SKU||'')}');}else{if(_miBundle)_miBundle.delete('${esc(r.SKU||'')}');}renderMoveIn()" style="flex-shrink:0">`:'';
+          return `<div class="mi-sku-row">
+            ${bundleChk}
+            <span style="font-size:9px;font-weight:800;padding:1px 5px;border-radius:4px;flex-shrink:0;color:${col};background:${col}22;min-width:44px;text-align:center">${label}</span>
+            <span class="mi-sku-status ${sCls}">${sLabel}</span>
+            <span class="mi-sku-name" title="${esc(r.ItemTitle||'')}">${esc(short)}</span>
+            <span style="font-size:10px;color:#94a3b8;flex-shrink:0;max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.SupplierName||'')}">${esc(sup)}</span>
+            <span class="mi-sku-cover">${coverStr}${priceStr}</span>
+            <button onclick="switchToSupplier('${esc(r.SupplierName||'')}')" title="View in Workbench" style="font-size:10px;padding:1px 5px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:4px;cursor:pointer;flex-shrink:0">→</button>
+            <button class="mi-noos-btn" onclick="addToNeverOOS('${esc(r.SKU||'')}','${esc((r.ItemTitle||'').replace(/'/g,''))}')" title="Never OOS">★</button>
+          </div>`;
+        }).join('');
+      }
+
+      const cardCls=worst==='gap'?'gap':worst==='oos'?'oos':worst==='critical'?'critical':worst==='low'?'low':'';
+      roomHtml+=`<div class="mi-card ${cardCls}">
+        <div class="mi-card-label">
+          ${item.name}
+          <span class="mi-who ${whoClass}">${whoLabelFix}</span>
+          ${worst==='gap'?'<span style="font-size:11px;margin-left:auto;color:#94a3b8">⬜ Gap</span>':worst==='oos'?'<span style="font-size:11px;margin-left:auto;color:#dc2626">⛔ OOS</span>':worst==='critical'?'<span style="font-size:11px;margin-left:auto;color:#f97316">🔴 Crit</span>':''}
+        </div>
+        ${_miCompare&&matches.length?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;font-size:10px"><span style="background:#e6f1fb;color:#185fa5;text-align:center;padding:2px 4px;border-radius:4px;font-weight:700">🏭 Arklow</span><span style="background:#f0fdf4;color:#166534;text-align:center;padding:2px 4px;border-radius:4px;font-weight:700">🏪 CS Shop</span></div>`:''}
+        ${cardContent}
+      </div>`;
+    }
+    if(!roomHtml) continue;
+    html+=`<div class="mi-room">
+      <div class="mi-room-hdr">
+        <span style="font-size:20px">${room.icon}</span>
+        <span class="mi-room-title">${room.room}</span>
+        <span class="mi-room-badge ${room.who==='owner'?'owner':'both'}">${room.who==='owner'?'Owner / homeowner':'All households'}</span>
+      </div>
+      <div class="mi-grid">${roomHtml}</div>
+    </div>`;
+  }
+
+  if(!rows.length) html=`<div style="text-align:center;padding:60px 20px;color:#94a3b8">
+    <div style="font-size:40px;margin-bottom:12px">🏠</div>
+    <div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:8px">Load data first</div>
+    <div style="font-size:13px">Switch to the Buying tab and load your Linnworks data first.</div>
+  </div>`;
+
+  root.innerHTML=html;
+}
+
+function switchToSupplier(name){
+  if(!name) return;
+  // Switch to Buying tab
+  const buyBtn=document.querySelector('[data-tab="buying"]');
+  if(buyBtn) buyBtn.click();
+  // Short delay then open workbench for that supplier
+  setTimeout(()=>openWorkbench(name),150);
+}
+
+function toggleBundleMode(){
+  _miBundleMode=!_miBundleMode;
+  if(!_miBundleMode) _miBundle=new Set();
+  renderMoveIn();
+}
+
+function exportBundle(){
+  const bundleSkus=_miBundle?[..._miBundle]:[];
+  if(!bundleSkus.length){alert('No items in bundle. Check items using the bundle checkboxes.');return;}
+  const rows=state.computedRows||[];
+  const items=bundleSkus.map(sku=>rows.find(r=>r.SKU===sku)).filter(Boolean);
+  const today=new Date().toLocaleDateString('en-IE',{day:'2-digit',month:'short',year:'numeric'});
+  let html=`<!DOCTYPE html><html><head><title>New Mover Bundle — Lenehans ${today}</title>
+  <style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:0 20px;color:#1e293b}
+  h1{font-size:20px;font-weight:700;margin:0 0 4px}
+  p.sub{font-size:12px;color:#64748b;margin:0 0 20px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{background:#1e3a5f;color:#fff;padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase}
+  td{padding:7px 10px;border-bottom:1px solid #e2e8f0}
+  tr:hover td{background:#f8fafc}
+  .ok{color:#16a34a;font-weight:700}.low{color:#d97706;font-weight:700}.crit{color:#f97316;font-weight:700}.oos{color:#dc2626;font-weight:700}
+  @media print{button{display:none}}</style></head><body>
+  <h1>🏠 New Mover Essential Bundle</h1>
+  <p class="sub">Lenehans Hardware · Generated ${today} · ${items.length} products</p>
+  <table><thead><tr><th>SKU</th><th>Product</th><th>Supplier</th><th>Status</th><th>Stock</th><th>Price</th><th>Buy Qty</th></tr></thead><tbody>`;
+  for(const r of items){
+    const s=r.coverStatus||'OK';
+    const cls=s==='Out of Stock'?'oos':s==='Critical'?'crit':s==='Low'?'low':'ok';
+    html+=`<tr><td style="font-family:monospace;color:#1d4ed8">${esc(r.SKU||'')}</td><td>${esc(r.ItemTitle||'')}</td><td>${esc((r.SupplierName||'').split(' - ')[0])}</td><td class="${cls}">${s}</td><td>${r.stock||0}</td><td>€${(r.SupplierCostPrice||0).toFixed(2)}</td><td>${r.buy||0}</td></tr>`;
+  }
+  html+=`</tbody></table><p style="font-size:10px;color:#94a3b8;margin-top:20px;border-top:1px solid #e2e8f0;padding-top:12px">Lenehans Purchasing Intelligence · buying.lenehans.ie</p><script>window.print();<\/script></body></html>`;
+  const w=window.open('','_blank');w.document.write(html);w.document.close();
+}
+
+function exportMoveInReport(){
+  const ch=state.channel==='capel'?'Capel Street':'Arklow Online';
+  const today=new Date().toLocaleDateString('en-IE',{day:'2-digit',month:'short',year:'numeric'});
+  const rows=state.computedRows||[];
+  function match(kw){
+    const kwLow=kw.map(k=>k.toLowerCase());
+    return rows.filter(r=>{const t=((r.ItemTitle||'')+' '+(r.SKU||'')).toLowerCase();return kwLow.some(k=>t.includes(k));});
+  }
+  function worstStatus(m){return m.reduce((w,r)=>{const s=r.coverStatus||'';if(s==='Out of Stock')return 'OOS';if(w==='OOS')return w;if(s==='Critical')return 'Critical';if(w==='Critical')return w;if(s==='Low')return 'Low';return w;},'OK');}
+  let rows_html='';
+  for(const room of MOVEIN_ESSENTIALS){
+    let first=true;
+    for(const item of room.items){
+      const m=match(item.kw);
+      const worst=m.length?worstStatus(m):'Not stocked';
+      const cls=worst==='OOS'?'oos':worst==='Critical'?'crit':worst==='Low'?'low':worst==='Not stocked'?'gap':'ok';
+      rows_html+=`<tr>
+        ${first?`<td rowspan="${room.items.length}" style="background:#f8fafc;font-weight:700;vertical-align:top;padding:8px 10px;border-right:2px solid #e2e8f0">${room.icon} ${room.room}</td>`:''}
+        <td>${item.name} <small style="color:#94a3b8">${room.who==='both'?'(Both)':room.who==='owner'?'(Owner)':'(Renter)'}</small></td>
+        <td class="${cls}" style="font-weight:700">${worst}</td>
+        <td>${m.length?m.slice(0,2).map(r=>`${(r.ItemTitle||'').substring(0,30)} [${r.SupplierName||''}]`).join('<br>'):'—'}</td>
+        <td style="text-align:right">${m.length}</td>
+      </tr>`;
+      first=false;
+    }
+  }
+  const html=`<!DOCTYPE html><html><head><title>Move-In Essentials Report — ${ch} — ${today}</title>
+  <style>body{font-family:Arial,sans-serif;max-width:1000px;margin:40px auto;padding:0 20px;color:#1e293b}
+  h1{font-size:20px;font-weight:700;margin:0 0 4px}p.sub{font-size:12px;color:#64748b;margin:0 0 24px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{background:#1e3a5f;color:#fff;padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase}
+  td{padding:6px 10px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+  .oos{color:#dc2626}.crit{color:#f97316}.low{color:#d97706}.ok{color:#16a34a}.gap{color:#94a3b8}
+  .summary{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+  .scard{border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;text-align:center}
+  .sn{font-size:24px;font-weight:700}.sl{font-size:11px;color:#64748b;margin-top:2px}
+  @media print{button{display:none}}</style></head><body>
+  <h1>🏠 New Mover Essentials — Stock Report</h1>
+  <p class="sub">Lenehans Hardware · Channel: ${ch} · Generated ${today}</p>
+  <table><thead><tr><th width="120">Room</th><th>Essential Category</th><th width="90">Status</th><th>Top Matches</th><th width="50">SKUs</th></tr></thead>
+  <tbody>${rows_html}</tbody></table>
+  <p style="font-size:10px;color:#94a3b8;margin-top:20px;border-top:1px solid #e2e8f0;padding-top:12px">Lenehans Purchasing Intelligence · buying.lenehans.ie · ${today}</p>
+  <script>window.print();<\/script></body></html>`;
+  const w=window.open('','_blank');w.document.write(html);w.document.close();
+}
+
+
+function addToNeverOOS(sku,title){
+  if(!sku) return;
+  const existing=(state.neverOosSkus||new Set());
+  existing.add(sku);
+  state.neverOosSkus=existing;
+  // Persist to localStorage if available
+  try{const arr=[...existing];localStorage.setItem('neverOosSkus',JSON.stringify(arr));}catch(e){}
+  alert(`✅ Added to Never OOS watchlist:\n${title||sku}`);
+}
+
 function closeWorkbench(){
   // Render briefing before showing it
   try { renderBriefing(); } catch(e){ console.error('renderBriefing error:',e); }
@@ -4218,12 +5036,14 @@ function normalizeRow(r){
     QtySold_Shop_CapelStreet_30d: n('QtySold_Shop_CapelStreet_30d')||n('QSold_ShCS30'),
     QtySold_Shop_CapelStreet_90d: n('QtySold_Shop_CapelStreet_90d')||0,
     QtySold_Shop_CapelStreet_180d:n('QtySold_Shop_CapelStreet_180d')||n('QSold_ShCS180'),
+    // 12-month total (365d) — combined all channels, for discontinued detection
+    // Live since 01/07/2025 — captures full Lenehans trading history
+    QtySold_Total_330d: n('QtySold_Total_330d')||n('Q11')||0,
     Revenue_Shop_CapelStreet_30d: n('Revenue_Shop_CapelStreet_30d')||n('Rev_ShCS30'),
     Barcode:     String(r.Barcode||'').trim(),
     BinRack_AK: String(r.BinRack_AK||'').trim(),
     BinRack_CS: String(r.BinRack_CS||'').trim(),
     SupplierCostPrice:num(r.SupplierCostPrice),
-    RetailPrice:num(r.RetailPrice||r.Retail||r.RRP||r.RetailPriceInc||0),
     SupplierMinOrder:num(r.SupplierMinOrder),
     SupplierPackSize:Math.max(1,num(r.SupplierPackSize)||1),
     _csRequired:false,
@@ -4367,6 +5187,21 @@ function parsePOFeed(rows){
 
     if(akLatest) map[`${supplier}||arklow`]       = { ...akLatest, history: akEntries.filter(e=>e.isDone).slice(0,6) };
     if(csLatest) map[`${supplier}||capel street`] = { ...csLatest, history: csEntries.filter(e=>e.isDone).slice(0,6) };
+  }
+
+  // ── Read Lead-Time column from PO Status sheet ───────────────────────────
+  // Column named "Lead-Time", "Lead Time", "LeadTime" etc. (flexible match)
+  const ltCol = hdrs.find(h=>h.toLowerCase().replace(/[\s_-]/g,'').includes('leadtime'));
+  if(ltCol){
+    const leadTimes = {};
+    for(const r of rows){
+      const supplier = String(r[supplierCol]||'').trim();
+      if(!supplier) continue;
+      const lt = parseFloat(r[ltCol]);
+      if(!isNaN(lt) && lt >= 0) leadTimes[supplier] = lt;
+    }
+    state.supplierLeadTimes = leadTimes;
+    console.log(`Lead-Time loaded: ${Object.keys(leadTimes).length} suppliers`);
   }
 
   return map;
@@ -5124,7 +5959,15 @@ function computeRow(row){
   // Apply multiplier, clamp between 21d (min viable) and 180d (max sensible)
   const dynamicCoverDays = Math.round(Math.min(180, Math.max(21, coverDays * dynamicCoverMult)));
 
-  const target=ceilNonNeg(effectiveDaily*dynamicCoverDays);
+  // ── Lead-time cap: don't hold more cover than 3× delivery time allows ──────
+  // A 3-day supplier needs ~9-21 days cover, not 73+ days.
+  // state.supplierLeadTimes populated from "Lead-Time" column in PO Status sheet.
+  // leadTime = 0 → no cap (not configured). leadTime >= 1 → cap = max(leadTime × 3, 21).
+  const leadTimeDays = (state.supplierLeadTimes && state.supplierLeadTimes[row.SupplierName]) || 0;
+  const leadTimeCap  = leadTimeDays > 0 ? Math.max(leadTimeDays * 3, 21) : 180;
+  const effectiveCoverDays = Math.min(dynamicCoverDays, leadTimeCap);
+
+  const target=ceilNonNeg(effectiveDaily*effectiveCoverDays);
 
   // Buy calculation
   const rawBuy=Math.max(0,target-stock);
@@ -5148,7 +5991,7 @@ function computeRow(row){
   const daysOfCover=effectiveDaily>0?(stock/effectiveDaily):(stock>0?9999:0);
   const rawCoverStatus=effectiveDaily<=0?(stock>0?'No demand':'Out of Stock')
     :(daysOfCover<14?'Critical':(daysOfCover<30?'Low':(daysOfCover<=60?'Healthy':'High')));
-  const rawBuyCheck=Math.max(0,ceilNonNeg(effectiveDaily*dynamicCoverDays)-stock);
+  const rawBuyCheck=Math.max(0,ceilNonNeg(effectiveDaily*effectiveCoverDays)-stock);
   let coverStatus=(rawBuyCheck>0&&(rawCoverStatus==='Healthy'||rawCoverStatus==='High'))?'Low':rawCoverStatus;
 
   // FIX 3: Hard 90-day cover exclusion — items with >90d cover on raw 30D rate
@@ -5158,6 +6001,19 @@ function computeRow(row){
   if(raw30dCover > 90 && !spikeFactored && !row._csRequired){
     buy = 0;
     coverStatus = 'Healthy';
+  }
+
+  // ── 12-month activity check — never recommend ordering discontinued products ──
+  // If a product has had zero sales across ALL channels in the last 12 months,
+  // it is either discontinued, dead stock, or a ranging error.
+  // Force buy=0 so it vanishes from tiles, Quick Order and table.
+  // It remains visible in Clear Stock for run-down decisions.
+  const q11Total = row.QtySold_Total_330d || 0;
+  const has180Activity = (row.QtySold_Online_Total_180d||0)+(row.QtySold_Shop_CapelStreet_180d||0);
+  if(q11Total === 0 && has180Activity === 0){
+    // Confirmed inactive: zero sales in 12 months (or 6 months as fallback pre-sync)
+    buy = 0;
+    if(coverStatus !== 'Healthy') coverStatus = 'Inactive';
   }
 
   const status=stock<=0?'Out of Stock':(effectiveDaily>0?(Math.floor(stock/effectiveDaily)<14?'Critical':(Math.floor(stock/effectiveDaily)<28?'Low':'OK')):'No demand');
@@ -5177,11 +6033,12 @@ function computeRow(row){
     autoSelectedMode, resolvedMode,                          // auto mode selection
     spikeRatio, spikeFactored,                               // 7D spike signals
     weatherMult, weatherActive,                          // weather signal
-    baseDaily:base30dDaily, adjustedDaily:effectiveDaily, daysOfCover,coverStatus,coverDays:dynamicCoverDays,
+    baseDaily:base30dDaily, adjustedDaily:effectiveDaily, daysOfCover,coverStatus,coverDays:effectiveCoverDays,leadTimeDays,leadTimeCap,
     target,rawBuy,maxBuy,buy,stock,status,ramp,capelSignal,minOneFallbackApplied,
     _csRequired:row._csRequired||false,
     _csQtyFloor:row._csQtyFloor||0,
-    _csReason:row._csReason||''
+    _csReason:row._csReason||'',
+    isDiscontinued: q11Total===0 && has180Activity===0
   };
   res.momentum   = getDemandMomentum(row);
   res.confidence = getBuyerConfidence(row, res);
@@ -5250,6 +6107,9 @@ function getFilteredRows(){
   const show=document.getElementById('showFilter')?.value||'all';
   const excludeHealthy=document.getElementById('excludeHealthyFilter')?.value||'no';
   return state.computedRows.filter(r=>{
+    // Discontinued: zero sales in 12 months — never show in buying orders
+    // (still visible in Clear Stock for run-down decisions)
+    if(r.isDiscontinued) return false;
     if(q){const hay=`${r.SupplierName} ${r.SKU} ${r.ItemTitle}`.toLowerCase();if(!hay.includes(q))return false;}
     if(show==='buy'&&r.buy<=0) return false;
     if(show==='critical'&&!['Critical','Out of Stock'].includes(r.status)) return false;
@@ -5610,12 +6470,21 @@ function renderActionNow(rows){
     // Badge top-right
     const badgeText = s.oos>0 ? `🔴 ${s.oos} OOS` : s.crit>0 ? `🟠 ${s.crit} critical` : s.low>0 ? `🟡 ${s.low} low` : `✓ Healthy`;
 
-    // Revenue at risk — prominent headline
+    // Order value (what the buyer will spend) — this is what matters to the buying team
+    const orderVal = (s.skus||[]).reduce((t,r)=>t+((r.buy||0)*(r.SupplierCostPrice||0)),0);
+    const critOrderVal = (s.skus||[]).filter(r=>r.coverStatus==='Out of Stock'||r.coverStatus==='Critical')
+      .reduce((t,r)=>t+((r.buy||0)*(r.SupplierCostPrice||0)),0);
+
     let revHtml;
-    if(s.lostRev>0){
+    if(orderVal>0){
+      const critPart = critOrderVal>0&&critOrderVal<orderVal
+        ? `<span style="color:#dc2626">€${fmtInt(Math.round(critOrderVal))}</span> critical · ` : '';
+      revHtml=`<div class="wl-tile-rev ${colour}">€${fmtInt(Math.round(orderVal))}</div>
+        <div class="wl-tile-rev-lbl">EST. ORDER VALUE${s.lostRev>0?` <span style="color:#94a3b8;font-weight:400">· €${fmtInt(s.lostRev)} rev at risk</span>`:''}</div>`;
+    } else if(s.lostRev>0){
       revHtml=`<div class="wl-tile-rev ${colour}">€${fmtInt(s.lostRev)}</div><div class="wl-tile-rev-lbl">est. revenue at risk</div>`;
     } else if(s.buy>0){
-      revHtml=`<div class="wl-tile-rev none">No rev data</div><div class="wl-tile-rev-lbl">&nbsp;</div>`;
+      revHtml=`<div class="wl-tile-rev none">Order pending</div><div class="wl-tile-rev-lbl">&nbsp;</div>`;
     } else {
       revHtml=`<div class="wl-tile-rev none">—</div><div class="wl-tile-rev-lbl">&nbsp;</div>`;
     }
@@ -7118,17 +7987,10 @@ function bindEvents(){
       if(btn.dataset.tab==='team')       renderTeam();
       if(btn.dataset.tab==='deliveries') renderDeliveries();
       if(btn.dataset.tab==='email')      eiOnTabOpen();
-      if(btn.dataset.tab==='sales')      renderSales();
+      if(btn.dataset.tab==='movein')     renderMoveIn();
+      if(btn.dataset.tab==='sales')      renderSalesIntel();
     });
   });
-  // ── Sales tab controls ─────────────────────────────────────────────────────
-  document.querySelectorAll('#salesViewSeg button').forEach(b=>b.addEventListener('click',()=>setSalesView(b.dataset.sview)));
-  document.querySelectorAll('#salesScopeSeg button').forEach(b=>b.addEventListener('click',()=>setSalesScope(b.dataset.sscope)));
-  document.querySelectorAll('#salesFilterSeg button').forEach(b=>b.addEventListener('click',()=>setSalesFilter(b.dataset.sfilter)));
-  const _ss=document.getElementById('salesSearch'); if(_ss) _ss.addEventListener('input',()=>renderSalesSelling());
-  const _pcs=document.getElementById('pcSearch'); if(_pcs) _pcs.addEventListener('input',()=>pcOnSearch());
-  document.addEventListener('click',e=>{ const box=document.getElementById('pcResults'); if(box&&!e.target.closest('#pcSearch')&&!e.target.closest('#pcResults')) box.style.display='none'; });
-
   // ── Clear Stock filter buttons ─────────────────────────────────────────────
   document.querySelectorAll('.cs-filter-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
@@ -7639,326 +8501,6 @@ function goToSupplier(supplierName, channel){
 }
 
 // ─── NEVER OUT OF STOCK TAB ──────────────────────────────────────────────────
-// ═══════════════════════════════════════════════════════════════════════════
-// SALES TAB  (added V6.5)
-// ═══════════════════════════════════════════════════════════════════════════
-let salesSort   = {col:'estGP180', dir:-1};
-let salesView   = 'selling';
-let salesScope  = 'all';
-let salesFilter = 'all';
-let pcState     = {sku:'', item:'', cost:0, retail:0};
-let pcManualMode= false;
-
-const salesEur  = v => '\u20ac' + num(v).toLocaleString('en-IE',{minimumFractionDigits:2,maximumFractionDigits:2});
-const salesEur0 = v => '\u20ac' + Math.round(num(v)).toLocaleString('en-IE');
-
-function salesVatRate(){ const v=num(document.getElementById('pcVat')?.value); return v>0?v:23; }
-
-// Per-scope unit & revenue extraction
-function salesScopeFields(r, scope){
-  const g=(k)=>num(r[k]||0);
-  if(scope==='arklowOnline') return {
-    u30:g('QtySold_Online_Arklow_30d'), u90:g('QtySold_Online_Arklow_90d'), u180:g('QtySold_Online_Arklow_180d'),
-    rev30:g('Revenue_Online_Total_30d'), rev180:g('Revenue_Online_Total_180d'),
-    stock:Math.max(0,g('NetStock_Arklow'))
-  };
-  if(scope==='capelOnline') return {
-    u30:g('QtySold_Online_CapelStreet_30d'), u90:g('QtySold_Online_CapelStreet_90d'), u180:g('QtySold_Online_CapelStreet_180d'),
-    rev30:g('Revenue_Online_CapelStreet_30d'), rev180:0,
-    stock:Math.max(0,g('NetStock_CapelStreet'))
-  };
-  if(scope==='capelShop') return {
-    u30:g('QtySold_Shop_CapelStreet_30d'), u90:g('QtySold_Shop_CapelStreet_90d'), u180:g('QtySold_Shop_CapelStreet_180d'),
-    rev30:g('Revenue_Shop_CapelStreet_30d'), rev180:0,
-    stock:Math.max(0,g('NetStock_CapelStreet'))
-  };
-  // all
-  return {
-    u30:g('QtySold_Online_Total_30d')+g('QtySold_Shop_CapelStreet_30d'),
-    u90:g('QtySold_Online_Total_90d')+g('QtySold_Shop_CapelStreet_90d'),
-    u180:g('QtySold_Online_Total_180d')+g('QtySold_Shop_CapelStreet_180d'),
-    rev30:g('Revenue_Online_Total_30d')+g('Revenue_Online_CapelStreet_30d')+g('Revenue_Shop_CapelStreet_30d'),
-    rev180:g('Revenue_Online_Total_180d'),
-    stock:Math.max(0,g('NetStock_Arklow'))+Math.max(0,g('NetStock_CapelStreet'))
-  };
-}
-
-function salesMetrics(r, scope){
-  const sf = salesScopeFields(r, scope);
-  const vat = salesVatRate();
-  const cost = num(r.SupplierCostPrice);
-  const retailRaw = num(r.RetailPrice);                 // inc VAT, from feed
-  const derived = sf.u30>0 ? sf.rev30/sf.u30 : 0;       // avg achieved (gross)
-  const grossPrice = retailRaw>0 ? retailRaw : derived; // best selling price we have
-  const priceSrc = retailRaw>0 ? 'retail' : (derived>0?'derived':'none');
-  const netSell = grossPrice>0 ? grossPrice/(1+vat/100) : 0;
-  const hasMargin = netSell>0 && cost>0;
-  const marginEur = hasMargin ? netSell-cost : null;
-  const marginPct = hasMargin ? (marginEur/netSell*100) : null;
-  const estGP180  = (marginEur!=null) ? marginEur*sf.u180 : null;
-  const daily     = sf.u30/30;
-  return {...sf, cost, grossPrice, priceSrc, netSell, marginEur, marginPct, estGP180, daily};
-}
-
-function setSalesView(v){
-  salesView=v;
-  document.querySelectorAll('#salesViewSeg button').forEach(b=>b.classList.toggle('active',b.dataset.sview===v));
-  document.getElementById('salesSellingView').style.display = v==='selling'?'block':'none';
-  document.getElementById('salesPriceView').style.display   = v==='pricechange'?'block':'none';
-  if(v==='pricechange') pcInit();
-}
-function setSalesScope(sc){ salesScope=sc; document.querySelectorAll('#salesScopeSeg button').forEach(b=>b.classList.toggle('active',b.dataset.sscope===sc)); renderSalesSelling(); }
-function setSalesFilter(fl){ salesFilter=fl; document.querySelectorAll('#salesFilterSeg button').forEach(b=>b.classList.toggle('active',b.dataset.sfilter===fl)); renderSalesSelling(); }
-function sortSales(col){ if(salesSort.col===col) salesSort.dir*=-1; else salesSort={col,dir:-1}; renderSalesSelling(); }
-
-function renderSales(){
-  if(!state.computedRows||!state.computedRows.length){
-    document.getElementById('salesKpis').innerHTML='<div style="color:var(--muted);padding:16px">\u23f3 Load data on the Buying tab first (Auto-load), then come back.</div>';
-    document.querySelector('#salesTable tbody').innerHTML='';
-    document.querySelector('#salesTable thead').innerHTML='';
-    return;
-  }
-  if(salesView==='selling') renderSalesSelling(); else pcInit();
-}
-
-function renderSalesSelling(){
-  const rows = state.computedRows;
-  const q = (document.getElementById('salesSearch')?.value||'').trim().toLowerCase();
-  let data = rows.map(r=>({r, m:salesMetrics(r, salesScope)}));
-
-  // filters
-  if(salesFilter==='winners') data = data.filter(d=>d.m.u180>0);
-  else if(salesFilter==='losers') data = data.filter(d=>d.m.u90===0 && d.m.stock>0);
-  else if(salesFilter==='thin')   data = data.filter(d=>d.m.marginPct!=null && d.m.marginPct<10 && d.m.u180>0);
-  if(q) data = data.filter(d=>`${d.r.SupplierName} ${d.r.SKU} ${d.r.ItemTitle}`.toLowerCase().includes(q));
-
-  // KPIs (computed before sort, over filtered set)
-  const totUnits180 = data.reduce((a,d)=>a+d.m.u180,0);
-  const hasRev180   = ['all','arklowOnline'].includes(salesScope);
-  const totRev      = data.reduce((a,d)=>a+(hasRev180?d.m.rev180:d.m.rev30),0);
-  const totGP       = data.reduce((a,d)=>a+(d.m.estGP180||0),0);
-  const wMarginNum  = data.reduce((a,d)=>a+((d.m.marginEur!=null)?d.m.marginEur*d.m.u180:0),0);
-  const wMarginDen  = data.reduce((a,d)=>a+((d.m.marginEur!=null)?d.m.netSell*d.m.u180:0),0);
-  const blended     = wMarginDen>0 ? (wMarginNum/wMarginDen*100) : null;
-  const selling     = data.filter(d=>d.m.u180>0).length;
-  const dead        = data.filter(d=>d.m.u180===0 && d.m.stock>0).length;
-
-  document.getElementById('salesKpis').innerHTML = [
-    [fmtInt(totUnits180),'Units sold (180d)'],
-    [salesEur0(totRev), hasRev180?'Revenue (180d, online)':'Revenue (30d)'],
-    [totGP>0?salesEur0(totGP):'\u2014','Est. gross profit (180d)'],
-    [blended!=null?blended.toFixed(1)+'%':'\u2014','Blended margin'],
-    [fmtInt(selling),'SKUs selling (180d)'],
-    [fmtInt(dead),'Dead w/ stock (0 in 180d)'],
-  ].map(([v,l])=>`<div class="sales-kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
-
-  // assumptions note
-  const anyDerived = data.some(d=>d.m.priceSrc==='derived');
-  const anyNone    = data.some(d=>d.m.priceSrc==='none');
-  document.getElementById('salesAssumeNote').innerHTML =
-    `Margin = (selling price \u00f7 ${(1+salesVatRate()/100).toFixed(2)} to strip ${salesVatRate()}% VAT) \u2212 supplier cost. `+
-    (state.computedRows.some(r=>num(r.RetailPrice)>0)
-        ? 'Selling price uses the <strong>RetailPrice</strong> column where present'
-        : '<strong>No RetailPrice column detected yet</strong> \u2014 selling price is estimated from revenue \u00f7 units')
-    + (anyDerived?'; rows marked <em>~est</em> use revenue\u00f7units.':'.')
-    + (anyNone?' Rows with no price/sales show \u2014.':'');
-
-  // sort
-  const dir=salesSort.dir, col=salesSort.col;
-  const val=(d)=>{ const m=d.m; switch(col){
-    case 'sku': return d.r.SKU; case 'item': return d.r.ItemTitle; case 'supplier': return d.r.SupplierName;
-    case 'u30':return m.u30; case 'u90':return m.u90; case 'u180':return m.u180; case 'daily':return m.daily;
-    case 'avg':return m.grossPrice; case 'retail':return num(d.r.RetailPrice); case 'cost':return m.cost;
-    case 'gpu':return m.marginEur==null?-1e9:m.marginEur; case 'gppct':return m.marginPct==null?-1e9:m.marginPct;
-    case 'estGP180':return m.estGP180==null?-1e9:m.estGP180; default:return 0; } };
-  data.sort((a,b)=>{ const va=val(a),vb=val(b); if(typeof va==='string') return va.localeCompare(vb)*dir; return (va-vb)*dir; });
-  const shown = data.slice(0, 600);
-
-  // header
-  const cols=[['l','sku','SKU'],['l','item','Item'],['l','supplier','Supplier'],
-    ['','u30','U 30d'],['','u90','U 90d'],['','u180','U 180d'],['','daily','/day'],
-    ['','mom','Mom'],['','avg','Avg \u20ac'],['','retail','Retail \u20ac'],['','cost','Cost \u20ac'],
-    ['','gpu','GP/u'],['','gppct','GP%'],['','estGP180','Est GP 180d'],['','abc','ABC'],['','trend','Trend']];
-  document.querySelector('#salesTable thead').innerHTML='<tr>'+cols.map(([cls,key,lab])=>{
-    const arrow = salesSort.col===key ? (salesSort.dir<0?' \u25bc':' \u25b2') : '';
-    const sortable = !['mom','abc','trend'].includes(key);
-    return `<th class="${cls}" ${sortable?`onclick="sortSales('${key}')"`:''}>${lab}${arrow}</th>`;
-  }).join('')+'</tr>';
-
-  // rows
-  document.querySelector('#salesTable tbody').innerHTML = shown.map(({r,m})=>{
-    const mgnCls = m.marginPct==null?'':(m.marginPct<0?'mgn-bad':m.marginPct<10?'mgn-thin':'mgn-good');
-    const mom = r.momentum||{label:'\u2014',direction:'flat'};
-    const momCls = mom.direction==='up'?'mom-up':mom.direction==='down'?'mom-down':'mom-flat';
-    const estLabel = m.priceSrc==='derived' ? ' <span style="color:#94a3b8;font-size:9px">~est</span>' : '';
-    return `<tr>
-      <td class="l sales-sku">${esc(r.SKU)}</td>
-      <td class="l" style="max-width:260px">${esc(r.ItemTitle||'')}</td>
-      <td class="l" style="font-size:11px;color:var(--muted);max-width:140px">${esc(r.SupplierName||'')}</td>
-      <td>${fmtInt(m.u30)}</td><td>${fmtInt(m.u90)}</td><td><strong>${fmtInt(m.u180)}</strong></td>
-      <td>${m.daily>=10?fmtInt(m.daily):fmt1(m.daily)}</td>
-      <td class="${momCls}">${mom.label}</td>
-      <td>${m.grossPrice>0?salesEur(m.grossPrice)+estLabel:'\u2014'}</td>
-      <td>${num(r.RetailPrice)>0?salesEur(r.RetailPrice):'\u2014'}</td>
-      <td>${m.cost>0?salesEur(m.cost):'\u2014'}</td>
-      <td class="${mgnCls}">${m.marginEur!=null?salesEur(m.marginEur):'\u2014'}</td>
-      <td class="${mgnCls}">${m.marginPct!=null?m.marginPct.toFixed(0)+'%':'\u2014'}</td>
-      <td><strong>${m.estGP180!=null?salesEur0(m.estGP180):'\u2014'}</strong></td>
-      <td><span class="abc-pill abc-${r.abcClass||'D'}">${r.abcClass||'D'}</span></td>
-      <td>${r.isTrending?'<span class="mom-up">\u2191 hot</span>':''}</td>
-    </tr>`;
-  }).join('') || '<tr><td colspan="16" style="text-align:center;color:var(--muted);padding:20px">No SKUs match.</td></tr>';
-  if(data.length>600){
-    document.querySelector('#salesTable tbody').insertAdjacentHTML('beforeend',
-      `<tr><td colspan="16" style="text-align:center;color:var(--muted);padding:10px">Showing top 600 of ${fmtInt(data.length)} \u2014 narrow with search or filters.</td></tr>`);
-  }
-}
-
-function exportSalesCSV(){
-  const rows=state.computedRows; if(!rows||!rows.length){alert('No data loaded.');return;}
-  const head=['SKU','Item','Supplier','Units30d','Units90d','Units180d','DailyRate','AvgPrice','RetailPrice','Cost','GP_per_unit','GP_pct','EstGrossProfit180d','ABC','Trending'];
-  const esc2=v=>{const t=String(v==null?'':v);return /[",\n]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t;};
-  const lines=[head.join(',')];
-  rows.map(r=>({r,m:salesMetrics(r,salesScope)})).forEach(({r,m})=>{
-    lines.push([r.SKU,r.ItemTitle,r.SupplierName,m.u30,m.u90,m.u180,m.daily.toFixed(2),
-      m.grossPrice?m.grossPrice.toFixed(2):'',num(r.RetailPrice)?num(r.RetailPrice).toFixed(2):'',
-      m.cost?m.cost.toFixed(2):'',m.marginEur!=null?m.marginEur.toFixed(2):'',m.marginPct!=null?m.marginPct.toFixed(1):'',
-      m.estGP180!=null?m.estGP180.toFixed(2):'',r.abcClass||'D',r.isTrending?'Y':''].map(esc2).join(','));
-  });
-  const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`lenehans_sales_${salesScope}_${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(a.href);
-}
-
-// ─── PRICE CHANGE ANALYSIS ───────────────────────────────────────────────────
-function salesMonthsForSku(sku){
-  const d = state.monthlyData[sku];
-  if(!d) return [];
-  return Object.keys(d).filter(k=>/^\d{4}_\d{2}$/.test(k)).sort();
-}
-
-function pcInit(){
-  // populate month dropdown from selected sku (or leave with hint)
-  const sel=document.getElementById('pcMonth');
-  if(!pcState.sku){ sel.innerHTML='<option value="">\u2014 pick a product first \u2014</option>'; }
-  // monthly feed status note handled in output
-}
-
-function pcOnSearch(){
-  const q=(document.getElementById('pcSearch').value||'').trim().toLowerCase();
-  const box=document.getElementById('pcResults');
-  if(!q || !state.computedRows.length){ box.style.display='none'; return; }
-  const hits=state.computedRows.filter(r=>`${r.SKU} ${r.ItemTitle}`.toLowerCase().includes(q)).slice(0,12);
-  if(!hits.length){ box.innerHTML='<li style="color:var(--muted);cursor:default">No match</li>'; box.style.display='block'; return; }
-  box.innerHTML=hits.map(r=>`<li onclick="pcSelect('${encodeURIComponent(r.SKU)}')"><span class="sales-sku">${esc(r.SKU)}</span> &nbsp; ${esc(r.ItemTitle||'')}</li>`).join('');
-  box.style.display='block';
-}
-
-function pcSelect(skuEnc){
-  const sku=decodeURIComponent(skuEnc);
-  const r=state.computedRows.find(x=>x.SKU===sku); if(!r) return;
-  pcState={sku, item:r.ItemTitle||'', cost:num(r.SupplierCostPrice), retail:num(r.RetailPrice)};
-  document.getElementById('pcResults').style.display='none';
-  document.getElementById('pcSearch').value=`${sku} — ${r.ItemTitle||''}`;
-  document.getElementById('pcSelected').textContent=`Selected: ${sku} · ${r.ItemTitle||''}`;
-  if(pcState.cost>0)   document.getElementById('pcCost').value=pcState.cost.toFixed(2);
-  if(pcState.retail>0) document.getElementById('pcNewPrice').value=pcState.retail.toFixed(2);
-  // populate months
-  const months=salesMonthsForSku(sku);
-  const sel=document.getElementById('pcMonth');
-  if(months.length){
-    sel.innerHTML=months.map(m=>`<option value="${m}">${m.replace('_','-')}</option>`).join('');
-    sel.selectedIndex=Math.max(0,Math.floor(months.length/2));
-  } else {
-    sel.innerHTML='<option value="">no monthly data for this SKU</option>';
-  }
-  document.getElementById('pcOutput').innerHTML='';
-}
-
-function pcToggleManual(){
-  pcManualMode=!pcManualMode;
-  document.getElementById('pcManualWrap').style.display=pcManualMode?'grid':'none';
-  document.getElementById('pcManualBtn').textContent=pcManualMode?'\ud83d\udcc5 Use feed data':'\u270f\ufe0f Enter units manually';
-}
-
-function runPriceChange(){
-  const out=document.getElementById('pcOutput');
-  const oldP=num(document.getElementById('pcOldPrice').value);
-  const newP=num(document.getElementById('pcNewPrice').value);
-  const cost=num(document.getElementById('pcCost').value);
-  const vat =salesVatRate();
-  const win =parseInt(document.getElementById('pcWindow').value,10)||3;
-  if(oldP<=0||newP<=0){ out.innerHTML='<div class="pc-note">Enter both the old and new price.</div>'; return; }
-  if(cost<=0){ out.innerHTML='<div class="pc-note">Enter the unit cost (ex VAT) so we can work out profit per unit. Select a product to auto-fill it, or type it in.</div>'; return; }
-
-  let uBefore=0, uAfter=0, chartHtml='', srcLabel='', monthsInfo='';
-  if(pcManualMode){
-    uBefore=num(document.getElementById('pcManBefore').value);
-    uAfter =num(document.getElementById('pcManAfter').value);
-    srcLabel='manual entry';
-    if(uBefore<=0&&uAfter<=0){ out.innerHTML='<div class="pc-note">Enter units/month before and after.</div>'; return; }
-  } else {
-    const sku=pcState.sku;
-    const months=salesMonthsForSku(sku);
-    const changeM=document.getElementById('pcMonth').value;
-    if(!sku||!months.length){ out.innerHTML='<div class="pc-note">No monthly sales history for this product (the monthly feed may not be loaded, or this SKU has no history). Click <strong>Enter units manually</strong> to run it with figures you know.</div>'; return; }
-    if(!changeM){ out.innerHTML='<div class="pc-note">Pick the month the price changed.</div>'; return; }
-    const d=state.monthlyData[sku];
-    const idx=months.indexOf(changeM);
-    const beforeMs=months.slice(Math.max(0,idx-win), idx);
-    const afterMs =months.slice(idx, idx+win);            // change month counts as first "after"
-    const sumB=beforeMs.reduce((a,m)=>a+num(d[m]||0),0);
-    const sumA=afterMs.reduce((a,m)=>a+num(d[m]||0),0);
-    uBefore = beforeMs.length? sumB/beforeMs.length : 0;
-    uAfter  = afterMs.length ? sumA/afterMs.length  : 0;
-    srcLabel=`monthly feed · ${beforeMs.length} mo before vs ${afterMs.length} mo from change`;
-    monthsInfo=`Before: ${beforeMs.map(m=>m.replace('_','-')).join(', ')||'\u2014'} &nbsp;|&nbsp; After: ${afterMs.map(m=>m.replace('_','-')).join(', ')||'\u2014'}`;
-    // chart over all months
-    const maxQ=Math.max(1,...months.map(m=>num(d[m]||0)));
-    chartHtml='<div class="pc-chart">'+months.map(m=>{
-      const qv=num(d[m]||0); const h=Math.round(qv/maxQ*100);
-      const cls = months.indexOf(m)<idx ? 'before' : 'after';
-      return `<div class="pc-bar ${cls}" title="${m} : ${qv}"><div class="qv">${qv||''}</div><div class="b" style="height:${h}%"></div><div class="ym">${m.replace('_','-')}</div></div>`;
-    }).join('')+'</div>';
-  }
-
-  const netOld=oldP/(1+vat/100), netNew=newP/(1+vat/100);
-  const mOld=netOld-cost, mNew=netNew-cost;          // margin €/unit (ex VAT)
-  const gpB=mOld*uBefore, gpA=mNew*uAfter;           // gross profit per month
-  const dGP=gpA-gpB, dGPpct=gpB!==0?dGP/Math.abs(gpB)*100:0;
-  const dU = uBefore!==0?(uAfter-uBefore)/uBefore*100:0;
-  const breakeven = mNew>0 ? gpB/mNew : Infinity;     // units/month at new price to match old profit
-
-  let verdict, vcls;
-  if(mNew<=0){ verdict=`\u26a0\ufe0f At \u20ac${newP.toFixed(2)} the net price (\u20ac${netNew.toFixed(2)}) is below cost (\u20ac${cost.toFixed(2)}) \u2014 every unit now loses \u20ac${Math.abs(mNew).toFixed(2)}. No volume can make this profitable.`; vcls='lose'; }
-  else if(dGP>Math.abs(gpB)*0.02){ verdict=`\u2705 More profitable. The price cut lifted volume enough to grow monthly gross profit by ${salesEur(dGP)} (${dGPpct>0?'+':''}${dGPpct.toFixed(0)}%). The extra sales more than covered the thinner margin.`; vcls='win'; }
-  else if(dGP<-Math.abs(gpB)*0.02){ verdict=`\u274c Less profitable. Even with ${dU>0?'+':''}${dU.toFixed(0)}% more units, monthly gross profit fell by ${salesEur(Math.abs(dGP))} (${dGPpct.toFixed(0)}%). You'd need \u2265 ${fmtInt(Math.ceil(breakeven))} units/month at the new price to match the old profit \u2014 you're selling ${fmtInt(Math.round(uAfter))}.`; vcls='lose'; }
-  else { verdict=`\u2248 Roughly break-even. Monthly gross profit changed by just ${salesEur(dGP)} (${dGPpct.toFixed(0)}%). The volume gain more or less offset the lower margin.`; vcls='even'; }
-
-  const stat=(lab,a,b,fmt)=>`<div class="pc-stat"><span class="lab">${lab}</span><span class="num">${fmt(a)} \u2192 ${fmt(b)}</span></div>`;
-  out.innerHTML = `
-    ${chartHtml}
-    ${monthsInfo?`<div class="pc-note">${monthsInfo}</div>`:''}
-    <div class="pc-results">
-      <div class="pc-card"><h4>Per unit</h4>
-        ${stat('Price (inc VAT)',oldP,newP,salesEur)}
-        ${stat('Net price (ex VAT)',netOld,netNew,salesEur)}
-        ${stat('Cost',cost,cost,salesEur)}
-        ${stat('Margin / unit',mOld,mNew,salesEur)}
-        <div class="pc-stat"><span class="lab">Margin %</span><span class="num">${netOld>0?(mOld/netOld*100).toFixed(0):'0'}% \u2192 ${netNew>0?(mNew/netNew*100).toFixed(0):'0'}%</span></div>
-      </div>
-      <div class="pc-card"><h4>Per month</h4>
-        ${stat('Units sold',uBefore,uAfter,v=>fmtInt(v))}
-        <div class="pc-stat"><span class="lab">Units change</span><span class="num ${dU>=0?'mom-up':'mom-down'}">${dU>0?'+':''}${dU.toFixed(0)}%</span></div>
-        ${stat('Gross profit',gpB,gpA,salesEur0)}
-        <div class="pc-stat"><span class="lab">Profit change</span><span class="num ${dGP>=0?'mom-up':'mom-down'}">${dGP>=0?'+':''}${salesEur(dGP)} (${dGPpct>0?'+':''}${dGPpct.toFixed(0)}%)</span></div>
-        <div class="pc-stat"><span class="lab">Break-even units/mo</span><span class="num">${isFinite(breakeven)?fmtInt(Math.ceil(breakeven)):'\u2014'}</span></div>
-      </div>
-    </div>
-    <div class="pc-verdict ${vcls}">${verdict}</div>
-    <div class="pc-note">Source: ${srcLabel}. Profit is gross (selling price ex VAT minus supplier cost) and excludes overheads/postage. ${pcManualMode?'':'\"After\" includes the change month, which may be partial.'} Cost is assumed steady across the period.</div>`;
-}
-
 function renderNOOS(){
   const threshold = parseInt(document.getElementById('noosThreshold')?.value||50,10);
   const el = id => document.getElementById(id);
