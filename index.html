@@ -164,6 +164,42 @@
     .brief-intel-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;font-size:11px;font-weight:700;border:1.5px solid;cursor:pointer;transition:opacity .12s}
     .brief-intel-pill.green{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
     .brief-intel-pill.purple{background:#fdf4ff;color:#7e22ce;border-color:#e9d5ff}
+    /* ════ SALES INTELLIGENCE ════════════════════════════════════════════════ */
+    .si-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+    .si-view-btn{padding:7px 16px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;background:#fff;color:#374151;transition:all .12s}
+    .si-view-btn.active{background:#1e3a5f;color:#fff;border-color:#1e3a5f}
+    .si-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+    .si-stat{background:#f8fafc;border-radius:8px;padding:10px 12px}
+    .si-stat-n{font-size:20px;font-weight:900;line-height:1}
+    .si-stat-l{font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+    .si-table-wrap{background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:16px}
+    .si-table{width:100%;border-collapse:collapse;font-size:12px}
+    .si-table th{background:#f8fafc;padding:8px 12px;text-align:left;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#64748b;border-bottom:1.5px solid #e2e8f0;white-space:nowrap;cursor:pointer}
+    .si-table th:hover{background:#f1f5f9}
+    .si-table th.num{text-align:right}
+    .si-table td{padding:7px 12px;border-bottom:0.5px solid #f1f5f9;vertical-align:middle}
+    .si-table td.num{text-align:right;font-variant-numeric:tabular-nums}
+    .si-table tr:last-child td{border-bottom:none}
+    .si-table tr:hover td{background:#fafcff}
+    .si-bar-mini{display:inline-block;height:6px;border-radius:3px;background:#e6f1fb;vertical-align:middle;position:relative;overflow:hidden}
+    .si-bar-fill{height:100%;border-radius:3px;position:absolute;left:0;top:0}
+    .si-chat{background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden}
+    .si-chat-hdr{background:#1e3a5f;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;cursor:pointer}
+    .si-chat-body{padding:16px;display:none}
+    .si-chat-body.open{display:block}
+    .si-msgs{min-height:80px;max-height:300px;overflow-y:auto;margin-bottom:10px;display:flex;flex-direction:column;gap:8px}
+    .si-msg{padding:8px 12px;border-radius:8px;font-size:12px;line-height:1.5;max-width:85%}
+    .si-msg.user{background:#e6f1fb;color:#1e293b;align-self:flex-end}
+    .si-msg.ai{background:#f8fafc;color:#1e293b;border:1px solid #e2e8f0;align-self:flex-start}
+    .si-msg.thinking{color:#94a3b8;font-style:italic}
+    .si-input-row{display:flex;gap:8px}
+    .si-input{flex:1;padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;outline:none}
+    .si-input:focus{border-color:#185fa5}
+    .si-send{padding:8px 16px;background:#185fa5;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer}
+    .si-send:disabled{opacity:.5;cursor:default}
+    .si-quick-q{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+    .si-qq{padding:4px 10px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:6px;font-size:11px;cursor:pointer;color:#374151}
+    .si-qq:hover{background:#e6f1fb;border-color:#b5d4f4}
     /* ════ MOVE-IN TAB ════════════════════════════════════════════════════════ */
     .mi-header{background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:16px 20px;margin-bottom:16px}
     .mi-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
@@ -1056,6 +1092,7 @@
     <button class="tab-btn" data-tab="transfers">🔄 Transfers</button>
     <button class="tab-btn" data-tab="noos">⭐ Never OOS</button>
     <button class="tab-btn" data-tab="movein">🏠 Move-In</button>
+    <button class="tab-btn" data-tab="sales">📊 Sales</button>
     <button class="tab-btn" data-tab="email">📧 Email Intelligence</button>
     <button class="tab-btn" data-tab="deliveries" style="display:none">🚚 Deliveries</button>
     <div id="weatherChip" style="display:none;margin-left:auto;align-self:center;
@@ -1610,6 +1647,12 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   <!-- TAB: Email Intelligence -->
   <div class="tab-panel" id="tab-movein">
     <div id="movein-root" style="padding:0 0 32px"></div>
+  </div>
+
+
+  <!-- TAB: Sales Intelligence -->
+  <div class="tab-panel" id="tab-sales">
+    <div id="si-root" style="padding-bottom:32px"></div>
   </div>
 
   <div class="tab-panel" id="tab-email">
@@ -3916,6 +3959,381 @@ const MOVEIN_ESSENTIALS=[
 
 let _miFilter='all', _miStockFilter='all', _miCompare=false, _miBundleMode=false, _miBundle=new Set(), _miExpanded={};
 
+// ─── SALES INTELLIGENCE TAB ──────────────────────────────────────────────────
+const _SALES_PIN='2323'; // ← change to set management PIN
+let _siView='sellers', _siChatOpen=false, _siChatMsgs=[], _siSort={col:'rev30',dir:-1}, _siRange='30d';
+
+function renderSalesPin(root){
+  root.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;gap:20px">
+    <div style="text-align:center">
+      <div style="font-size:32px;margin-bottom:8px">📊</div>
+      <div style="font-size:16px;font-weight:900;color:#1e293b">Sales Intelligence</div>
+      <div style="font-size:12px;color:#64748b;margin-top:4px">Management access only — enter PIN</div>
+    </div>
+    <div id="siPinDots" style="display:flex;gap:12px">
+      <span class="sipd"></span><span class="sipd"></span><span class="sipd"></span><span class="sipd"></span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,64px);gap:8px">
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="sipk" onclick="siPin(${n})">${n}</button>`).join('')}
+      <button class="sipk" onclick="siPin('C')" style="font-size:11px;font-weight:700;background:#f1f5f9;color:#64748b">Clear</button>
+      <button class="sipk" onclick="siPin(0)">0</button>
+      <button class="sipk" onclick="siPin('X')" style="font-size:16px;background:#f1f5f9;color:#64748b">⌫</button>
+    </div>
+    <div id="siPinErr" style="color:#dc2626;font-size:12px;font-weight:600;height:18px"></div>
+  </div>
+  <style>
+    .sipd{width:12px;height:12px;border-radius:50%;border:2px solid #cbd5e1;background:transparent;transition:background .12s}
+    .sipd.on{background:#185fa5;border-color:#185fa5}
+    .sipk{width:64px;height:64px;border-radius:50%;background:#f8fafc;border:1.5px solid #e2e8f0;font-size:20px;font-weight:500;cursor:pointer;color:#1e293b;font-family:inherit;transition:background .1s}
+    .sipk:hover{background:#e6f1fb}
+  </style>`;
+  window._siPinEntry='';
+}
+
+function siPin(k){
+  const err=document.getElementById('siPinErr');
+  if(!err) return;
+  err.textContent='';
+  if(k==='C'){window._siPinEntry='';siPinDots();return;}
+  if(k==='X'){window._siPinEntry=(window._siPinEntry||'').slice(0,-1);siPinDots();return;}
+  window._siPinEntry=(window._siPinEntry||'')+String(k);
+  siPinDots();
+  if(window._siPinEntry.length===_SALES_PIN.length){
+    if(window._siPinEntry===_SALES_PIN){
+      try{sessionStorage.setItem('salesAuth','1');}catch(e){}
+      renderSalesIntel();
+    } else {
+      err.textContent='Incorrect PIN';
+      window._siPinEntry='';
+      setTimeout(siPinDots,500);
+    }
+  }
+}
+function siPinDots(){
+  document.querySelectorAll('.sipd').forEach((d,i)=>d.classList.toggle('on',i<(window._siPinEntry||'').length));
+}
+
+function renderSalesIntel(){
+  const root=document.getElementById('si-root');
+  if(!root) return;
+  // PIN gate — management only
+  try{ if(sessionStorage.getItem('salesAuth')!=='1'){ renderSalesPin(root); return; } }
+  catch(e){ renderSalesPin(root); return; }
+  const rows=state.computedRows||[];
+  const ch=state.channel;
+  const isCS=ch==='capel';
+  const chLabel=isCS?'Capel Street':'Arklow Online';
+
+  if(!rows.length){
+    root.innerHTML=`<div style="text-align:center;padding:60px 20px;color:#94a3b8">
+      <div style="font-size:40px;margin-bottom:12px">📊</div>
+      <div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:8px">Load data first</div>
+      <div style="font-size:13px">Switch to Buying tab and load Linnworks data.</div></div>`;
+    return;
+  }
+
+  // ── Range-aware helpers ────────────────────────────────────────────────────
+  const rangeLabel={'7d':'Last 7 days','30d':'Last 30 days','90d':'Last 90 days','180d':'Last 6 months'};
+  const rev30 = r => {
+    if(_siRange==='180d') return (r.Rev_On180||r.Revenue_Online_Total_180d||0);
+    if(_siRange==='7d')   return 0;
+    return isCS?(r.Revenue_Shop_CapelStreet_30d||0):(r.Revenue_Online_Total_30d||0);
+  };
+  const qty30 = r => {
+    if(_siRange==='7d')   return (r.QtySold_Online_Total_7d||0);
+    if(_siRange==='90d')  return (r.QtySold_OnAK90||r.QtySold_Online_AK_90d||0);
+    if(_siRange==='180d') return (r.QtySold_Online_Total_180d||0)+(r.QtySold_Shop_CapelStreet_180d||0);
+    return isCS?(r.QtySold_Shop_CapelStreet_30d||0):(r.QtySold_Online_Total_30d||0);
+  };
+  const qty180= r => (r.QtySold_Online_Total_180d||0);
+  const rev180= r => (r.Rev_On180||r.Revenue_Online_Total_180d||0);
+  const fmtE  = v => '€'+fmtInt(Math.round(v));
+  const fmtPct= v => (v>=0?'+':'')+v.toFixed(1)+'%';
+  const fmtN2 = v => v.toFixed(2);
+
+  // ── Deduplicate by SKU — keep buy>0 row, then cheapest ─────────────────────
+  const skuBest=new Map();
+  rows.filter(r=>!r.isDiscontinued).forEach(r=>{
+    const key=r.SKU;
+    if(!skuBest.has(key)){skuBest.set(key,r);}
+    else{
+      const ex=skuBest.get(key);
+      if((r.buy>0&&ex.buy===0)||
+         (r.buy===ex.buy&&(r.SupplierCostPrice||0)<(ex.SupplierCostPrice||9999)))
+        skuBest.set(key,r);
+    }
+  });
+
+  // ── Build view data ────────────────────────────────────────────────────────
+  let viewRows=[], colDefs=[], title='', subtitle='';
+  const active=[...skuBest.values()].filter(r=>rev30(r)>0||qty30(r)>0);
+
+  if(_siView==='sellers'){
+    title='Top Sellers';
+    subtitle=`Ranked by ${rangeLabel[_siRange]} revenue · ${chLabel}`;
+    const hasRev=_siRange==='30d'||_siRange==='180d';
+    viewRows=active.filter(r=>hasRev?rev30(r)>0:qty30(r)>0)
+      .sort((a,b)=>hasRev?(rev30(b)-rev30(a)):(qty30(b)-qty30(a))).slice(0,100)
+      .map((r,i)=>({...r,_rank:i+1,_rev30:rev30(r),_qty30:qty30(r),_avgPrice:qty30(r)>0?rev30(r)/qty30(r):0}));
+    colDefs=[
+      {k:'_rank',   label:'#',      num:true, fmt:r=>r._rank},
+      {k:'SKU',     label:'SKU',    fmt:r=>r.SKU},
+      {k:'title',   label:'Product',fmt:r=>(r.ItemTitle||'').substring(0,40),wide:true},
+      {k:'sup',     label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,14)},
+      {k:'abcClass',label:'ABC',    fmt:r=>r.abcClass||'?'},
+      {k:'_rev30',  label:hasRev?'Revenue':'Units',num:true, fmt:r=>hasRev?fmtE(r._rev30):Math.round(r._qty30).toString(), sort:'_rev30'},
+      {k:'_qty30',  label:'Units/30d',num:true,fmt:r=>Math.round(r._qty30)},
+      {k:'_avgPrice',label:'Avg price',num:true,fmt:r=>r._avgPrice>0?fmtE(r._avgPrice):'-'},
+      {k:'coverStatus',label:'Cover',fmt:r=>r.coverStatus||'-'},
+    ];
+
+  }else if(_siView==='margins'){
+    title='Margin Analysis';
+    subtitle=`Estimated gross margin · ${rangeLabel[_siRange]} · items with known cost`;
+    viewRows=active.filter(r=>(r.SupplierCostPrice||0)>0&&qty30(r)>0&&rev30(r)>0)
+      .map(r=>{
+        const avgSell=rev30(r)/qty30(r);
+        const margin=(avgSell-r.SupplierCostPrice)/avgSell*100;
+        return {...r,_margin:margin,_avgSell:avgSell,_rev30:rev30(r),_qty30:qty30(r)};
+      })
+      .filter(r=>r._margin>-200&&r._margin<200)
+      .sort((a,b)=>{
+        if(_siSort.col==='_margin') return _siSort.dir*(b._margin-a._margin);
+        return b._rev30-a._rev30;
+      }).slice(0,100);
+    colDefs=[
+      {k:'SKU',label:'SKU',fmt:r=>r.SKU},
+      {k:'title',label:'Product',fmt:r=>(r.ItemTitle||'').substring(0,36),wide:true},
+      {k:'sup',label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,14)},
+      {k:'SupplierCostPrice',label:'Cost',num:true,fmt:r=>'€'+fmtN2(r.SupplierCostPrice)},
+      {k:'_avgSell',label:'Avg sell',num:true,fmt:r=>fmtE(r._avgSell)},
+      {k:'_margin',label:'Margin %',num:true,fmt:r=>{
+        const c=r._margin>=40?'#16a34a':r._margin>=20?'#d97706':'#dc2626';
+        return `<span style="color:${c};font-weight:700">${r._margin.toFixed(1)}%</span>`;
+      },sort:'_margin'},
+      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>fmtE(r._rev30)},
+      {k:'_qty30',label:'Units/30d',num:true,fmt:r=>Math.round(r._qty30)},
+    ];
+
+  }else if(_siView==='slow'){
+    title='Slow Movers';
+    subtitle=`Stock held, low velocity · ${rangeLabel[_siRange]} — capital at risk`;
+    viewRows=rows.filter(r=>!r.isDiscontinued&&(r.stock||0)>0&&(r.SupplierCostPrice||0)>0)
+      .map(r=>({...r,_capitalTied:(r.stock||0)*(r.SupplierCostPrice||0),_rev30:rev30(r),_qty30:qty30(r),_cover:r.daysOfCover||0}))
+      .filter(r=>r._cover>60||r._qty30===0)
+      .sort((a,b)=>b._capitalTied-a._capitalTied).slice(0,100);
+    colDefs=[
+      {k:'SKU',label:'SKU',fmt:r=>r.SKU},
+      {k:'title',label:'Product',fmt:r=>(r.ItemTitle||'').substring(0,36),wide:true},
+      {k:'sup',label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,14)},
+      {k:'stock',label:'Stock',num:true,fmt:r=>r.stock||0},
+      {k:'_cover',label:'Cover',num:true,fmt:r=>r._cover>=900?'No demand':Math.round(r._cover)+'d'},
+      {k:'_capitalTied',label:'Capital tied',num:true,fmt:r=>`<span style="color:#dc2626;font-weight:700">${fmtE(r._capitalTied)}</span>`},
+      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>r._rev30>0?fmtE(r._rev30):'—'},
+      {k:'_qty30',label:'Units/30d',num:true,fmt:r=>r._qty30>0?Math.round(r._qty30):'—'},
+    ];
+
+  }else if(_siView==='trending'){
+    title='Trending Now';
+    subtitle=`${rangeLabel[_siRange]} rate vs 180-day average — accelerating demand`;
+    viewRows=active.filter(r=>qty30(r)>2&&qty180(r)>0)
+      .map(r=>{
+        const r30=qty30(r)/30, r180=qty180(r)/180;
+        return {...r,_spike:r180>0?r30/r180:0,_r30:r30,_r180:r180,_rev30:rev30(r)};
+      })
+      .filter(r=>r._spike>=1.3)
+      .sort((a,b)=>b._spike-a._spike).slice(0,60);
+    colDefs=[
+      {k:'SKU',label:'SKU',fmt:r=>r.SKU},
+      {k:'title',label:'Product',fmt:r=>(r.ItemTitle||'').substring(0,36),wide:true},
+      {k:'sup',label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,14)},
+      {k:'_spike',label:'Spike ×',num:true,fmt:r=>`<span style="color:#dc2626;font-weight:700">↑${r._spike.toFixed(1)}×</span>`},
+      {k:'_r30',label:'Now/day',num:true,fmt:r=>r._r30.toFixed(2)},
+      {k:'_r180',label:'Avg/day',num:true,fmt:r=>r._r180.toFixed(2)},
+      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>fmtE(r._rev30)},
+      {k:'coverStatus',label:'Cover',fmt:r=>r.coverStatus||'-'},
+      {k:'buy',label:'Buy',num:true,fmt:r=>(r.buy||0)>0?`<span style="color:#dc2626;font-weight:700">${r.buy}</span>`:'—'},
+    ];
+
+  }else if(_siView==='price'){
+    title='Price Impact';
+    subtitle=`Price shift: ${rangeLabel[_siRange]} avg vs 6-month avg`;
+    viewRows=active.filter(r=>qty30(r)>3&&qty180(r)>10&&rev180(r)>0&&rev30(r)>0)
+      .map(r=>{
+        const p30=rev30(r)/qty30(r);
+        const p180=rev180(r)/qty180(r);
+        const chg=(p30-p180)/p180*100;
+        return {...r,_p30:p30,_p180:p180,_pchg:chg,_rev30:rev30(r)};
+      })
+      .filter(r=>Math.abs(r._pchg)>5)
+      .sort((a,b)=>Math.abs(b._pchg)-Math.abs(a._pchg)).slice(0,80);
+    colDefs=[
+      {k:'SKU',label:'SKU',fmt:r=>r.SKU},
+      {k:'title',label:'Product',fmt:r=>(r.ItemTitle||'').substring(0,36),wide:true},
+      {k:'sup',label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,14)},
+      {k:'_p180',label:'6m avg price',num:true,fmt:r=>fmtE(r._p180)},
+      {k:'_p30',label:'Current price',num:true,fmt:r=>fmtE(r._p30)},
+      {k:'_pchg',label:'Change',num:true,fmt:r=>{
+        const c=r._pchg>0?'#16a34a':'#dc2626';
+        return `<span style="color:${c};font-weight:700">${fmtPct(r._pchg)}</span>`;
+      }},
+      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>fmtE(r._rev30)},
+    ];
+  }
+
+  // ── Summary stats ──────────────────────────────────────────────────────────
+  const totalRev=active.reduce((t,r)=>t+rev30(r),0);
+  const totalUnits=active.reduce((t,r)=>t+qty30(r),0);
+  const aItems=active.filter(r=>r.abcClass==='A');
+  const oosCount=active.filter(r=>r.coverStatus==='Out of Stock').length;
+  const trendCount=active.filter(r=>r.isTrending).length;
+
+  // ── Max value for bar charts ───────────────────────────────────────────────
+  const maxRev = viewRows.length ? Math.max(...viewRows.map(r=>r._rev30||0)) : 1;
+
+  // ── Build HTML ─────────────────────────────────────────────────────────────
+  const views=['sellers','margins','slow','trending','price'];
+  const viewLabels=['Top Sellers','Margins','Slow Movers','Trending','Price Impact'];
+
+  let html=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+    <div>
+      <div style="font-size:16px;font-weight:900;color:#1e293b">Sales Intelligence</div>
+      <div style="font-size:12px;color:#64748b">${chLabel} · ${rows.length.toLocaleString()} SKUs · ${rangeLabel[_siRange]}</div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <span style="font-size:11px;color:#64748b;font-weight:700">RANGE:</span>
+      ${['7d','30d','90d','180d'].map(r=>`<button class="si-view-btn ${_siRange===r?'active':''}" style="padding:5px 12px" onclick="_siRange='${r}';renderSalesIntel()">${{'7d':'7 days','30d':'30 days','90d':'90 days','180d':'6 months'}[r]}</button>`).join('')}
+    </div>
+  </div>
+  <div class="si-bar">
+    ${views.map((v,i)=>`<button class="si-view-btn ${_siView===v?'active':''}" onclick="_siView='${v}';renderSalesIntel()">${viewLabels[i]}</button>`).join('')}
+  </div>
+  <div class="si-stats">
+    <div class="si-stat"><div class="si-stat-n">${fmtE(totalRev)}</div><div class="si-stat-l">Revenue/30d</div></div>
+    <div class="si-stat"><div class="si-stat-n">${fmtInt(Math.round(totalUnits))}</div><div class="si-stat-l">Units/30d</div></div>
+    <div class="si-stat"><div class="si-stat-n">${aItems.length}</div><div class="si-stat-l">A-class SKUs</div></div>
+    <div class="si-stat"><div class="si-stat-n" style="color:#dc2626">${oosCount}</div><div class="si-stat-l">OOS now</div></div>
+    <div class="si-stat"><div class="si-stat-n" style="color:#d97706">${trendCount}</div><div class="si-stat-l">Trending</div></div>
+  </div>
+  <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:8px">${title} <span style="font-size:11px;color:#64748b;font-weight:400">— ${subtitle}</span></div>`;
+
+  if(!viewRows.length){
+    html+=`<div style="text-align:center;padding:32px;color:#94a3b8;font-size:13px">No data for this view — try switching channel or loading fresh data</div>`;
+  } else {
+    html+=`<div class="si-table-wrap"><table class="si-table"><thead><tr>`;
+    colDefs.forEach(c=>{
+      const sortable=c.sort||c.k;
+      const isSorted=_siSort.col===sortable;
+      html+=`<th class="${c.num?'num':''}" onclick="_siSort={col:'${sortable}',dir:${isSorted?-_siSort.dir:-1}};renderSalesIntel()">${c.label}${isSorted?(_siSort.dir===-1?' ↓':' ↑'):''}</th>`;
+    });
+    html+=`</tr></thead><tbody>`;
+    viewRows.slice(0,80).forEach(r=>{
+      html+=`<tr>`;
+      colDefs.forEach(c=>{
+        const val=c.fmt(r);
+        const extra=c.wide?'style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"':'';
+        if(c.k==='_rev30'&&_siView==='sellers'&&maxRev>0){
+          const pct=Math.round((r._rev30||0)/maxRev*60);
+          html+=`<td class="${c.num?'num':''}" ${extra}><span style="margin-right:6px">${val}</span><span class="si-bar-mini" style="width:${pct}px"><span class="si-bar-fill" style="width:100%;background:#185fa5;opacity:.5"></span></span></td>`;
+        } else {
+          html+=`<td class="${c.num?'num':''}" ${extra}>${val}</td>`;
+        }
+      });
+      html+=`</tr>`;
+    });
+    if(viewRows.length>80) html+=`<tr><td colspan="${colDefs.length}" style="text-align:center;color:#94a3b8;font-size:11px;padding:10px">Showing 80 of ${viewRows.length} — filter to narrow down</td></tr>`;
+    html+=`</tbody></table></div>`;
+  }
+
+  // ── AI Chat panel ──────────────────────────────────────────────────────────
+  const chatBodyCls=_siChatOpen?'open':'';
+  let msgsHtml=_siChatMsgs.length
+    ? _siChatMsgs.map(m=>`<div class="si-msg ${m.role}">${m.role==='ai'?m.text.replace(/\n/g,'<br>'):esc(m.text)}</div>`).join('')
+    : `<div class="si-msg ai">Hi! Ask me anything about your sales data — e.g. "What are my top 10 CS sellers?" or "Which products have the best margins?"</div>`;
+
+  html+=`<div class="si-chat">
+    <div class="si-chat-hdr" onclick="_siChatOpen=!_siChatOpen;renderSalesIntel()">
+      ✦ Ask AI about your sales data
+      <span style="margin-left:auto;font-size:12px;opacity:.7">${_siChatOpen?'▲ Close':'▼ Open'}</span>
+    </div>
+    <div class="si-chat-body ${chatBodyCls}">
+      <div class="si-quick-q">
+        ${['Top 10 CS sellers this month','Which products have worst margins?','What is trending right now?','Biggest slow movers by capital?','Where am I losing money?'].map(q=>`<button class="si-qq" onclick="siAsk('${q}')">${q}</button>`).join('')}
+      </div>
+      <div class="si-msgs" id="siMsgs">${msgsHtml}</div>
+      <div class="si-input-row">
+        <input class="si-input" id="siInput" placeholder="Ask about your sales data..." onkeydown="if(event.key==='Enter')siAsk()">
+        <button class="si-send" id="siSend" onclick="siAsk()">Send</button>
+      </div>
+    </div>
+  </div>`;
+
+  root.innerHTML=html;
+
+  // Scroll chat to bottom
+  if(_siChatOpen){
+    const m=document.getElementById('siMsgs');
+    if(m) m.scrollTop=m.scrollHeight;
+  }
+}
+
+async function siAsk(preset){
+  const input=document.getElementById('siInput');
+  const q=preset||input?.value?.trim();
+  if(!q) return;
+  if(input) input.value='';
+
+  _siChatMsgs.push({role:'user',text:q});
+  _siChatOpen=true;
+  renderSalesIntel();
+
+  // Build context summary (top 100 by revenue, key metrics)
+  const rows=state.computedRows||[];
+  const ch=state.channel;
+  const isCS=ch==='capel';
+  const rev30=r=>isCS?(r.Revenue_Shop_CapelStreet_30d||0):(r.Revenue_Online_Total_30d||0);
+  const qty30=r=>isCS?(r.QtySold_Shop_CapelStreet_30d||0):(r.QtySold_Online_Total_30d||0);
+
+  const top100=rows.filter(r=>rev30(r)>0)
+    .sort((a,b)=>rev30(b)-rev30(a)).slice(0,100)
+    .map(r=>`${r.SKU}|${(r.ItemTitle||'').substring(0,30)}|${(r.SupplierName||'').split(' - ')[0].substring(0,12)}|${r.abcClass||'?'}|€${Math.round(rev30(r))}/mo|${Math.round(qty30(r))}u|${r.coverStatus||'?'}|cost€${(r.SupplierCostPrice||0).toFixed(2)}`).join('\n');
+
+  const totalRev=rows.reduce((t,r)=>t+rev30(r),0);
+  const oosCount=rows.filter(r=>r.coverStatus==='Out of Stock').length;
+  const currentMonth=new Date().toLocaleDateString('en-IE',{month:'long',year:'numeric'});
+
+  const systemPrompt=`You are a sales analyst for Lenehans Hardware, an Irish hardware retailer (buying.lenehans.ie).
+Today is ${currentMonth}. Channel: ${isCS?'Capel Street Shop':'Arklow Online'}.
+Total revenue this month: €${Math.round(totalRev).toLocaleString()}. OOS items: ${oosCount}.
+Top 100 SKUs (format: SKU|Title|Supplier|ABC|Revenue|Units|Status|Cost):
+${top100}
+Answer concisely. Be specific and use actual numbers from the data. If you don't know something, say so.`;
+
+  _siChatMsgs.push({role:'ai thinking',text:'Thinking...'});
+  renderSalesIntel();
+
+  try {
+    const proxyUrl = state.appsScriptUrl || '';
+    if(!proxyUrl){
+      _siChatMsgs=_siChatMsgs.filter(m=>m.role!=='ai thinking');
+      _siChatMsgs.push({role:'ai',text:'⚠️ Apps Script proxy URL not set. Load data from the Buying tab first.'});
+      renderSalesIntel(); return;
+    }
+    const url = proxyUrl + '?action=sales_chat'
+      + '&prompt=' + encodeURIComponent(q)
+      + '&system=' + encodeURIComponent(systemPrompt);
+    const res = await fetch(url);
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || data.error || 'No response.';
+    _siChatMsgs=_siChatMsgs.filter(m=>m.role!=='ai thinking');
+    _siChatMsgs.push({role:'ai',text:reply});
+  } catch(e){
+    _siChatMsgs=_siChatMsgs.filter(m=>m.role!=='ai thinking');
+    _siChatMsgs.push({role:'ai',text:'Error connecting to AI. Check your Anthropic API key in Code.gs.'});
+  }
+  renderSalesIntel();
+}
+
 function renderMoveIn(){
   const root=document.getElementById('movein-root');
   if(!root) return;
@@ -5716,9 +6134,9 @@ function getFilteredRows(){
   const q=(document.getElementById('searchBox')?.value||'').trim().toLowerCase();
   const show=document.getElementById('showFilter')?.value||'all';
   const excludeHealthy=document.getElementById('excludeHealthyFilter')?.value||'no';
-  return state.computedRows.filter(r=>{
-    // Discontinued: zero sales in 12 months — never show in buying orders
-    // (still visible in Clear Stock for run-down decisions)
+
+  // First pass: filter
+  const filtered = state.computedRows.filter(r=>{
     if(r.isDiscontinued) return false;
     if(q){const hay=`${r.SupplierName} ${r.SKU} ${r.ItemTitle}`.toLowerCase();if(!hay.includes(q))return false;}
     if(show==='buy'&&r.buy<=0) return false;
@@ -5727,6 +6145,31 @@ function getFilteredRows(){
     if(state.activeSupplier&&r.SupplierName!==state.activeSupplier) return false;
     return true;
   });
+
+  // Second pass: deduplicate by SKU — keep buy>0 row first, then lowest cost
+  // (multi-supplier SKUs should appear once; the detail table shows the best supplier)
+  const seen = new Map();
+  filtered.forEach(r => {
+    const key = r.SKU;
+    if(!seen.has(key)){
+      seen.set(key, {...r, _supplierCount:1, _otherSuppliers:[]});
+    } else {
+      const ex = seen.get(key);
+      ex._supplierCount++;
+      ex._otherSuppliers.push(r.SupplierName);
+      // Prefer: buy>0 over buy=0; then cheaper cost price
+      if((r.buy>0 && ex.buy===0) ||
+         (r.buy===ex.buy && (r.SupplierCostPrice||0)<(ex.SupplierCostPrice||9999))){
+        const count=ex._supplierCount; const others=[...ex._otherSuppliers];
+        const displaced=ex.SupplierName;
+        Object.assign(ex, r);
+        ex._supplierCount=count;
+        ex._otherSuppliers=[...others.slice(0,-1), displaced];
+      }
+    }
+  });
+
+  return [...seen.values()];
 }
 
 async function recompute(){
@@ -6276,7 +6719,6 @@ function render(){
     document.getElementById('mRows').textContent=fmtInt(rows.length);
     document.getElementById('mBuy').textContent=fmtInt(rows.reduce((s,r)=>s+r.buy,0));
     document.getElementById('detailTbody').innerHTML=rows.sort((a,b)=>{
-      // CS-required lines first, then by buy desc
       if(a._csRequired&&!b._csRequired) return -1;
       if(!a._csRequired&&b._csRequired) return 1;
       return b.buy-a.buy||b.target-a.target||a.SKU.localeCompare(b.SKU);
@@ -6292,7 +6734,9 @@ function render(){
         ?`<span class="chip cs-req" title="Cannot omit CS-required lines">🔒</span>`
         :`<input type="checkbox" title="Untick to omit from PO export" ${isOmitted?'':'checked'} data-sku="${esc(r.SKU)}" class="omit-toggle">`;
 
-      // Rank badge
+      const supBadge=(r._supplierCount||1)>1
+        ?`<span title="Also from: ${(r._otherSuppliers||[]).join(', ')}" style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;background:#e0f2fe;color:#0369a1;margin-left:4px;cursor:default">${r._supplierCount} sup</span>`
+        :'';
       const rank=state.skuRankMap.get(r.SKU)||9999;
       const rankBadge=rank<=100
         ?`<span style="display:inline-block;padding:2px 6px;border-radius:10px;background:#fef08a;color:#713f12;font-size:11px;font-weight:900;text-align:center;white-space:normal">⭐<br>#${rank}</span>`
@@ -6306,6 +6750,7 @@ function render(){
       const chips=[];
       if(r._csRequired) chips.push(`<span class="chip cs-req">🔒 CS floor ${fmtInt(r._csQtyFloor)}</span>`);
       chips.push(`<span class="chip ${coverCls||''}">` + esc(r.coverStatus) + `</span>`);
+      if((r._supplierCount||1)>1) chips.push(`<span class="chip" style="background:#e0f2fe;color:#0369a1" title="Also available from: ${(r._otherSuppliers||[]).join(', ')}">+${r._supplierCount-1} supplier${r._supplierCount>2?'s':''}</span>`);
       if(r.seasonalDataUsed) chips.push(`<span class="chip season" title="${esc(r.seasonalNote)}">📅 ${r.seasonalDataUsed.yr} actuals</span>`);
       else if(seasonalRule) chips.push(`<span class="chip season">${seasonalRule.name}</span>`);
       if(hiddenSeasonal.label!=='Normal') chips.push(`<span class="chip rule">${hiddenSeasonal.label}</span>`);
@@ -7598,6 +8043,7 @@ function bindEvents(){
       if(btn.dataset.tab==='deliveries') renderDeliveries();
       if(btn.dataset.tab==='email')      eiOnTabOpen();
       if(btn.dataset.tab==='movein')     renderMoveIn();
+      if(btn.dataset.tab==='sales')      renderSalesIntel();
     });
   });
   // ── Clear Stock filter buttons ─────────────────────────────────────────────
