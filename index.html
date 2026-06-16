@@ -3961,7 +3961,7 @@ let _miFilter='all', _miStockFilter='all', _miCompare=false, _miBundleMode=false
 
 // ─── SALES INTELLIGENCE TAB ──────────────────────────────────────────────────
 const _SALES_PIN='2323'; // ← change to set management PIN
-let _siView='sellers', _siChatOpen=false, _siChatMsgs=[], _siSort={col:'rev30',dir:-1}, _siRange='30d';
+let _siView='sellers', _siChatOpen=false, _siChatMsgs=[], _siSort={col:'rev30',dir:-1}, _siRange='30d', _siSearch='';
 
 function renderSalesPin(root){
   root.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;gap:20px">
@@ -4066,27 +4066,56 @@ function renderSalesIntel(){
 
   // ── Build view data ────────────────────────────────────────────────────────
   let viewRows=[], colDefs=[], title='', subtitle='';
+  const hasRev=(_siRange==='30d'||_siRange==='180d');
   const active=[...skuBest.values()].filter(r=>rev30(r)>0||qty30(r)>0);
 
   if(_siView==='sellers'){
     title='Top Sellers';
     subtitle=`Ranked by ${rangeLabel[_siRange]} revenue · ${chLabel}`;
-    const hasRev=(_siRange==='30d'||_siRange==='180d');
+    const totalRevAll=active.reduce((t,r)=>t+rev30(r),0)||1;
     viewRows=active.filter(r=>hasRev?rev30(r)>0:qty30(r)>0)
-      .sort((a,b)=>hasRev?(rev30(b)-rev30(a)):(qty30(b)-qty30(a))).slice(0,100)
-      .map((r,i)=>({...r,_rank:i+1,_rev30:rev30(r),_qty30:qty30(r),_avgPrice:qty30(r)>0?rev30(r)/qty30(r):0}));
+      .sort((a,b)=>hasRev?(rev30(b)-rev30(a)):(qty30(b)-qty30(a))).slice(0,150)
+      .map((r,i)=>{
+        const _rev30v=rev30(r), _qty30v=qty30(r);
+        const _avgPrice=_qty30v>0?_rev30v/_qty30v:0;
+        const _cost=r.SupplierCostPrice||0;
+        const _margin=_cost>0&&_avgPrice>0?(_avgPrice-_cost)/_avgPrice*100:null;
+        // Trend: 7d daily rate vs 30d daily rate
+        const qty7=r.QtySold_Online_Total_7d||0;
+        const r7=qty7/7, r30=_qty30v/30;
+        const _trend=r30>0.05?(r7/r30):null; // null if too low volume to be meaningful
+        const _revShare=(_rev30v/totalRevAll*100);
+        const _atRisk=(_rev30v>500||_qty30v>20)&&(r.coverStatus==='Out of Stock'||r.coverStatus==='Critical');
+        return {...r,_rank:i+1,_rev30:_rev30v,_qty30:_qty30v,_avgPrice,_cost,_margin,_trend,_revShare,_atRisk};
+      });
     colDefs=[
-      {k:'_rank',   label:'#',      num:true, fmt:r=>r._rank},
-      {k:'SKU',     label:'SKU',    fmt:r=>r.SKU},
-      {k:'title',   label:'Product',fmt:r=>(r.ItemTitle||'').substring(0,40),wide:true},
-      {k:'sup',     label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,14)},
-      {k:'abcClass',label:'ABC',    fmt:r=>r.abcClass||'?'},
-      {k:'_rev30',  label:hasRev?'Revenue':'Units',num:true, fmt:r=>hasRev?fmtE(r._rev30):Math.round(r._qty30).toString(), sort:'_rev30'},
+      {k:'_rank',   label:'#',       num:true, fmt:r=>`<span style="color:#94a3b8">${r._rank}</span>`},
+      {k:'SKU',     label:'SKU',     fmt:r=>`<span style="font-family:monospace;color:#1d4ed8">${r.SKU}</span>`},
+      {k:'title',   label:'Product', fmt:r=>(r.ItemTitle||'').substring(0,38),wide:true},
+      {k:'sup',     label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,12)},
+      {k:'abcClass',label:'ABC',     fmt:r=>{const c={'A':'#16a34a','B':'#d97706','C':'#64748b'}[r.abcClass]||'#94a3b8';return `<span style="color:${c};font-weight:700">${r.abcClass||'?'}</span>`;}},
+      {k:'_rev30',  label:hasRev?'Revenue':'Units', num:true, fmt:r=>hasRev?`<b>${fmtE(r._rev30)}</b>`:Math.round(r._qty30).toString(), sort:'_rev30'},
       ...(hasRev?[
-        {k:'_qty30',   label:'Units',    num:true,fmt:r=>Math.round(r._qty30)},
-        {k:'_avgPrice',label:'Avg price',num:true,fmt:r=>r._avgPrice>0?fmtE(r._avgPrice):'-'},
+        {k:'_revShare',label:'Share%',  num:true,fmt:r=>`<span style="color:#64748b;font-size:10px">${r._revShare.toFixed(1)}%</span>`},
+        {k:'_qty30',   label:'Units',   num:true,fmt:r=>Math.round(r._qty30)},
+        {k:'_avgPrice',label:'Avg sell',num:true,fmt:r=>r._avgPrice>0?fmtE(r._avgPrice):'-'},
+        {k:'_cost',    label:'Cost',    num:true,fmt:r=>r._cost>0?`€${r._cost.toFixed(2)}`:'-'},
+        {k:'_margin',  label:'Margin',  num:true,fmt:r=>{
+          if(r._margin===null) return '-';
+          const c=r._margin>=40?'#16a34a':r._margin>=20?'#d97706':'#dc2626';
+          return `<span style="color:${c};font-weight:700">${r._margin.toFixed(0)}%</span>`;
+        }},
       ]:[]),
-      {k:'coverStatus',label:'Cover',fmt:r=>r.coverStatus||'-'},
+      {k:'_trend', label:'Trend', fmt:r=>{
+        if(!r._trend) return '<span style="color:#cbd5e1">—</span>';
+        if(r._trend>=1.3) return `<span style="color:#16a34a;font-weight:700">↑ ${r._trend.toFixed(1)}×</span>`;
+        if(r._trend<=0.7) return `<span style="color:#dc2626;font-weight:700">↓ ${r._trend.toFixed(1)}×</span>`;
+        return `<span style="color:#94a3b8">→</span>`;
+      }},
+      {k:'coverStatus',label:'Cover',fmt:r=>{
+        const c={'Out of Stock':'#dc2626','Critical':'#f97316','Low':'#d97706'}[r.coverStatus]||'#16a34a';
+        return `<span style="color:${c};font-weight:600">${r.coverStatus||'OK'}</span>`;
+      }},
     ];
 
   }else if(_siView==='margins'){
@@ -4197,18 +4226,52 @@ function renderSalesIntel(){
   const views=['sellers','margins','slow','trending','price'];
   const viewLabels=['Top Sellers','Margins','Slow Movers','Trending','Price Impact'];
 
+  // ── Apply search filter ────────────────────────────────────────────────────
+  if(_siSearch){
+    const sq=_siSearch.toLowerCase();
+    viewRows=viewRows.filter(r=>(r.SKU||'').toLowerCase().includes(sq)||(r.ItemTitle||'').toLowerCase().includes(sq)||(r.SupplierName||'').toLowerCase().includes(sq));
+  }
+
+  // ── Supplier revenue summary (sellers view only) ──────────────────────────
+  let supplierSummaryHtml='';
+  if(_siView==='sellers'&&hasRev){
+    const supMap=new Map();
+    active.filter(r=>rev30(r)>0).forEach(r=>{
+      const s=(r.SupplierName||'').split(' - ')[0];
+      supMap.set(s,(supMap.get(s)||0)+rev30(r));
+    });
+    const topSups=[...supMap.entries()].sort((a,b)=>b[1]-a[1]).slice(0,8);
+    const supMax=topSups[0]?.[1]||1;
+    supplierSummaryHtml=`<div style="margin-bottom:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px">
+      <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Revenue by Supplier — ${rangeLabel[_siRange]}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px">
+      ${topSups.map(([s,v])=>`<div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+          <span style="color:#1e293b;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px" title="${esc(s)}">${esc(s)}</span>
+          <span style="color:#185fa5;font-weight:700">${fmtE(v)}</span>
+        </div>
+        <div style="background:#e2e8f0;border-radius:3px;height:5px"><div style="background:#185fa5;height:5px;border-radius:3px;width:${Math.round(v/supMax*100)}%"></div></div>
+      </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
   let html=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
     <div>
       <div style="font-size:16px;font-weight:900;color:#1e293b">Sales Intelligence</div>
       <div style="font-size:12px;color:#64748b">${chLabel} · ${rows.length.toLocaleString()} SKUs · ${rangeLabel[_siRange]}</div>
     </div>
-    <div style="display:flex;gap:6px;align-items:center">
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+      <input id="siSearchBox" value="${esc(_siSearch)}" placeholder="Search SKU / product / supplier…"
+        oninput="_siSearch=this.value;renderSalesIntel()"
+        style="padding:6px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;width:220px;outline:none"
+        onfocus="this.style.borderColor='#185fa5'" onblur="this.style.borderColor='#e2e8f0'">
       <span style="font-size:11px;color:#64748b;font-weight:700">RANGE:</span>
       ${['7d','30d','90d','180d'].map(r=>`<button class="si-view-btn ${_siRange===r?'active':''}" style="padding:5px 12px" onclick="_siRange='${r}';renderSalesIntel()">${{'7d':'7 days','30d':'30 days','90d':'90 days','180d':'6 months'}[r]}</button>`).join('')}
     </div>
   </div>
   <div class="si-bar">
-    ${views.map((v,i)=>`<button class="si-view-btn ${_siView===v?'active':''}" onclick="_siView='${v}';renderSalesIntel()">${viewLabels[i]}</button>`).join('')}
+    ${views.map((v,i)=>`<button class="si-view-btn ${_siView===v?'active':''}" onclick="_siView='${v}';_siSearch='';renderSalesIntel()">${viewLabels[i]}</button>`).join('')}
   </div>
   <div class="si-stats">
     <div class="si-stat"><div class="si-stat-n">${(_siRange==='7d'||_siRange==='90d')?'N/A':fmtE(totalRev)}</div><div class="si-stat-l">Revenue/${_siRange}</div></div>
@@ -4222,6 +4285,7 @@ function renderSalesIntel(){
   if(!viewRows.length){
     html+=`<div style="text-align:center;padding:32px;color:#94a3b8;font-size:13px">No data for this view — try switching channel or loading fresh data</div>`;
   } else {
+    html+=supplierSummaryHtml;
     html+=`<div class="si-table-wrap"><table class="si-table"><thead><tr>`;
     colDefs.forEach(c=>{
       const sortable=c.sort||c.k;
@@ -4230,7 +4294,8 @@ function renderSalesIntel(){
     });
     html+=`</tr></thead><tbody>`;
     viewRows.slice(0,80).forEach(r=>{
-      html+=`<tr>`;
+      const atRisk=r._atRisk?'style="background:#fff5f5"':'';
+      html+=`<tr ${atRisk}>`;
       colDefs.forEach(c=>{
         const val=c.fmt(r);
         const extra=c.wide?'style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"':'';
