@@ -4036,12 +4036,12 @@ function renderSalesIntel(){
   const rangeLabel={'7d':'Last 7 days','30d':'Last 30 days','90d':'Last 90 days','180d':'Last 6 months'};
   const rev30 = r => {
     if(_siRange==='180d') return (r.Rev_On180||r.Revenue_Online_Total_180d||0);
-    if(_siRange==='7d')   return 0;
+    if(_siRange==='7d'||_siRange==='90d') return 0; // no revenue data for these windows
     return isCS?(r.Revenue_Shop_CapelStreet_30d||0):(r.Revenue_Online_Total_30d||0);
   };
   const qty30 = r => {
     if(_siRange==='7d')   return (r.QtySold_Online_Total_7d||0);
-    if(_siRange==='90d')  return (r.QtySold_OnAK90||r.QtySold_Online_AK_90d||0);
+    if(_siRange==='90d')  return (r.QtySold_Online_Arklow_90d||r.QtySold_Online_Total_90d||0);
     if(_siRange==='180d') return (r.QtySold_Online_Total_180d||0)+(r.QtySold_Shop_CapelStreet_180d||0);
     return isCS?(r.QtySold_Shop_CapelStreet_30d||0):(r.QtySold_Online_Total_30d||0);
   };
@@ -4071,7 +4071,7 @@ function renderSalesIntel(){
   if(_siView==='sellers'){
     title='Top Sellers';
     subtitle=`Ranked by ${rangeLabel[_siRange]} revenue · ${chLabel}`;
-    const hasRev=_siRange==='30d'||_siRange==='180d';
+    const hasRev=(_siRange==='30d'||_siRange==='180d');
     viewRows=active.filter(r=>hasRev?rev30(r)>0:qty30(r)>0)
       .sort((a,b)=>hasRev?(rev30(b)-rev30(a)):(qty30(b)-qty30(a))).slice(0,100)
       .map((r,i)=>({...r,_rank:i+1,_rev30:rev30(r),_qty30:qty30(r),_avgPrice:qty30(r)>0?rev30(r)/qty30(r):0}));
@@ -4082,8 +4082,10 @@ function renderSalesIntel(){
       {k:'sup',     label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,14)},
       {k:'abcClass',label:'ABC',    fmt:r=>r.abcClass||'?'},
       {k:'_rev30',  label:hasRev?'Revenue':'Units',num:true, fmt:r=>hasRev?fmtE(r._rev30):Math.round(r._qty30).toString(), sort:'_rev30'},
-      {k:'_qty30',  label:'Units/30d',num:true,fmt:r=>Math.round(r._qty30)},
-      {k:'_avgPrice',label:'Avg price',num:true,fmt:r=>r._avgPrice>0?fmtE(r._avgPrice):'-'},
+      ...(hasRev?[
+        {k:'_qty30',   label:'Units',    num:true,fmt:r=>Math.round(r._qty30)},
+        {k:'_avgPrice',label:'Avg price',num:true,fmt:r=>r._avgPrice>0?fmtE(r._avgPrice):'-'},
+      ]:[]),
       {k:'coverStatus',label:'Cover',fmt:r=>r.coverStatus||'-'},
     ];
 
@@ -4209,8 +4211,8 @@ function renderSalesIntel(){
     ${views.map((v,i)=>`<button class="si-view-btn ${_siView===v?'active':''}" onclick="_siView='${v}';renderSalesIntel()">${viewLabels[i]}</button>`).join('')}
   </div>
   <div class="si-stats">
-    <div class="si-stat"><div class="si-stat-n">${fmtE(totalRev)}</div><div class="si-stat-l">Revenue/30d</div></div>
-    <div class="si-stat"><div class="si-stat-n">${fmtInt(Math.round(totalUnits))}</div><div class="si-stat-l">Units/30d</div></div>
+    <div class="si-stat"><div class="si-stat-n">${(_siRange==='7d'||_siRange==='90d')?'N/A':fmtE(totalRev)}</div><div class="si-stat-l">Revenue/${_siRange}</div></div>
+    <div class="si-stat"><div class="si-stat-n">${fmtInt(Math.round(totalUnits))}</div><div class="si-stat-l">Units/${_siRange}</div></div>
     <div class="si-stat"><div class="si-stat-n">${aItems.length}</div><div class="si-stat-l">A-class SKUs</div></div>
     <div class="si-stat"><div class="si-stat-n" style="color:#dc2626">${oosCount}</div><div class="si-stat-l">OOS now</div></div>
     <div class="si-stat"><div class="si-stat-n" style="color:#d97706">${trendCount}</div><div class="si-stat-l">Trending</div></div>
