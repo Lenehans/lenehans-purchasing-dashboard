@@ -4035,7 +4035,7 @@ function renderSalesIntel(){
   // ── Range-aware helpers ────────────────────────────────────────────────────
   const rangeLabel={'7d':'Last 7 days','30d':'Last 30 days','90d':'Last 90 days','180d':'Last 6 months'};
   const rev30 = r => {
-    if(_siRange==='180d') return (r.Rev_On180||r.Revenue_Online_Total_180d||0);
+    if(_siRange==='180d') return (r.Revenue_Online_Total_180d||0); // VAT-corrected; never use raw Rev_On180
     if(_siRange==='7d'||_siRange==='90d') return 0; // no revenue data for these windows
     return isCS?(r.Revenue_Shop_CapelStreet_30d||0):(r.Revenue_Online_Total_30d||0);
   };
@@ -4046,7 +4046,7 @@ function renderSalesIntel(){
     return isCS?(r.QtySold_Shop_CapelStreet_30d||0):(r.QtySold_Online_Total_30d||0);
   };
   const qty180= r => (r.QtySold_Online_Total_180d||0);
-  const rev180= r => (r.Rev_On180||r.Revenue_Online_Total_180d||0);
+  const rev180= r => (r.Revenue_Online_Total_180d||0); // VAT-corrected; never use raw Rev_On180
   const fmtE  = v => '€'+fmtInt(Math.round(v));
   const fmtPct= v => (v>=0?'+':'')+v.toFixed(1)+'%';
   const fmtN2 = v => v.toFixed(2);
@@ -5122,11 +5122,18 @@ function normalizeRow(r){
     QtySold_Online_Arklow_180d: n('QtySold_Online_Arklow_180d')||n('QSold_OnAK180'),
     QtySold_Online_CapelStreet_90d:  n('QtySold_Online_CapelStreet_90d')||n('QSold_OnCS90'),
     QtySold_Online_CapelStreet_180d: n('QtySold_Online_CapelStreet_180d')||n('QSold_OnCS180'),
+    // VAT NORMALISATION — Magento stores fPricePerUnit EX-VAT; Vend/Tide (Capel
+    // Street shop till) stores it INC-VAT. Confirmed by direct comparison: e.g.
+    // Magento €44.7073 × 1.23 = €54.99, an actual Vend price for the same product
+    // in the same period. Without correction, blended revenue figures understate
+    // true sale value whenever Magento sales dominate the window.
+    // Rev_OnAK30 / Rev_On30 / Rev_On180 / Rev_OnCS30 are all MAGENTO-sourced (ex-VAT)
+    // — gross up by ×1.23. Rev_ShCS30 (Vend) is already inc-VAT — left unchanged.
     // Rev_OnAK30 = Arklow online revenue 30D (new split column); Rev_On30 = combined fallback
-    Revenue_Online_Total_30d:   n('Revenue_Online_Total_30d')||n('Rev_OnAK30')||n('Rev_On30'),
-    Revenue_Online_Total_180d:  n('Revenue_Online_Total_180d')||n('Rev_On180')||n('Rev_OnAK180'),
+    Revenue_Online_Total_30d:   (n('Revenue_Online_Total_30d')||n('Rev_OnAK30')||n('Rev_On30'))*1.23,
+    Revenue_Online_Total_180d:  (n('Revenue_Online_Total_180d')||n('Rev_On180')||n('Rev_OnAK180'))*1.23,
     // Rev_OnCS30 = Capel Street online revenue 30D
-    Revenue_Online_CapelStreet_30d: n('Revenue_Online_CapelStreet_30d')||n('Rev_OnCS30'),
+    Revenue_Online_CapelStreet_30d: (n('Revenue_Online_CapelStreet_30d')||n('Rev_OnCS30'))*1.23,
     QtySold_Shop_CapelStreet_7d:  n('QtySold_Shop_CapelStreet_7d')||n('QSold_ShCS7'),
     QtySold_Shop_CapelStreet_30d: n('QtySold_Shop_CapelStreet_30d')||n('QSold_ShCS30'),
     QtySold_Shop_CapelStreet_90d: n('QtySold_Shop_CapelStreet_90d')||0,
@@ -6480,9 +6487,13 @@ function renderActionNow(rows){
   const sumEl=document.getElementById('actionNowSummary');
   if(!el||!sumEl) return;
 
-  // Rank ALL computed rows by 30D revenue (proxy for 90D importance)
-  const allRows=state.computedRows;
-  const top200=[...allRows]
+  // When a search is active, narrow the tile grid to matching SKUs only —
+  // otherwise show the default top-500-by-revenue watchlist across the business
+  const searchActive = (document.getElementById('searchBox')?.value||'').trim().length>0;
+  const baseRows = searchActive ? rows : state.computedRows;
+
+  // Rank by 30D revenue (proxy for 90D importance)
+  const top200=[...baseRows]
     .filter(r=>r.Revenue_Online_Total_30d>0||r.QtySold_Online_Total_90d>0)
     .sort((a,b)=>(b.Revenue_Online_Total_30d||0)-(a.Revenue_Online_Total_30d||0))
     .slice(0,500);
@@ -6547,13 +6558,13 @@ function renderActionNow(rows){
   const totalOos=suppliers.reduce((t,s)=>t+s.oos,0);
   const totalCrit=suppliers.reduce((t,s)=>t+s.crit,0);
 
-  sumEl.innerHTML=atRisk.length>0
+  sumEl.innerHTML=(searchActive?`<span style="color:#185fa5;font-weight:700">🔍 Showing ${top200.length} matching SKU${top200.length!==1?'s':''} for "${esc((document.getElementById('searchBox')?.value||'').trim())}"</span> &nbsp;·&nbsp; `:'')+(atRisk.length>0
     ?(()=>{
       const topNames=atRisk.slice(0,3).map(s=>`<strong>${esc(s.name.split(' ')[0])}</strong>`).join(', ')+(atRisk.length>3?` +${atRisk.length-3} more`:'');
       const lostStr=totalLost>0?` &nbsp;·&nbsp; <span style="color:#dc2626;font-weight:800">€${fmtInt(totalLost)} revenue at risk</span>`:'';
-      return `— <span style="color:#dc2626;font-weight:800">🔴 ${atRisk.length} supplier${atRisk.length!==1?'s':''} need orders now</span> · ${topNames}${lostStr}`;
+      return `<span style="color:#dc2626;font-weight:800">🔴 ${atRisk.length} supplier${atRisk.length!==1?'s':''} need orders now</span> · ${topNames}${lostStr}`;
     })()
-    :`— <span style="color:#16a34a;font-weight:700">✓ All top 500 SKUs are healthy</span>`;
+    :`<span style="color:#16a34a;font-weight:700">✓ ${searchActive?'All matching SKUs':'All top 500 SKUs'} ${searchActive?'are':'are'} healthy</span>`);
 
   const _chPoMap = getChannelPOMap();
   function poText(name){
@@ -6663,7 +6674,8 @@ function renderActionNow(rows){
     }
 
     const safeName=s.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    return `<div class="wl-tile ${colour}" data-supplier="${esc(s.name)}">
+    const openSupplierJs=`state.activeSupplier='${safeName}';render();const tb=document.getElementById('tableBody');if(tb&&tb.classList.contains('closed')){tb.classList.remove('closed');const tl=document.getElementById('tableToggle');if(tl)tl.textContent='▲ Hide';}setTimeout(()=>document.getElementById('detailTable')?.scrollIntoView({behavior:'smooth'}),80)`;
+    return `<div class="wl-tile ${colour}" data-supplier="${esc(s.name)}" onclick="${openSupplierJs}" style="cursor:pointer">
       <div class="wl-tile-hdr">
         <div class="wl-tile-name" title="${esc(s.name)}">${esc(s.name)}</div>
         <span class="wl-tile-badge ${colour}">${badgeText}</span>
@@ -6677,7 +6689,7 @@ function renderActionNow(rows){
       ${poLine}
       <div class="wl-tile-actions" onclick="event.stopPropagation()">
         <button class="wl-tile-btn${colour==='green'?' green':''}" onclick="if(window.openQuickOrder)openQuickOrder('${safeName}')">${colour==='green'?'✓ View SKUs':'⚡ Quick Order'}</button>
-        <button class="wl-tile-btn-icon" onclick="state.activeSupplier='${safeName}';render();const tb=document.getElementById('tableBody');if(tb&&tb.classList.contains('closed')){tb.classList.remove('closed');const tl=document.getElementById('tableToggle');if(tl)tl.textContent='▲ Hide';}setTimeout(()=>document.getElementById('detailTable')?.scrollIntoView({behavior:'smooth'}),80)" title="Open full supplier view">⊞</button>
+        <button class="wl-tile-btn-icon" onclick="${openSupplierJs}" title="Open full supplier view">⊞</button>
       </div>
     </div>`;
   }
