@@ -168,7 +168,9 @@
     .si-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
     .si-view-btn{padding:7px 16px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;background:#fff;color:#374151;transition:all .12s}
     .si-view-btn.active{background:#1e3a5f;color:#fff;border-color:#1e3a5f}
-    .si-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+    .si-stats{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:16px}
+    @media (max-width:900px){.si-stats{grid-template-columns:repeat(4,1fr)}}
+    @media (max-width:600px){.si-stats{grid-template-columns:repeat(2,1fr)}}
     .si-stat{background:#f8fafc;border-radius:8px;padding:10px 12px}
     .si-stat-n{font-size:20px;font-weight:900;line-height:1}
     .si-stat-l{font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
@@ -4219,6 +4221,14 @@ function renderSalesIntel(){
   const oosCount=active.filter(r=>r.coverStatus==='Out of Stock').length;
   const trendCount=active.filter(r=>r.isTrending).length;
 
+  // ── Gross Profit & blended margin — only items with a known cost price ─────
+  // (revenue-weighted, so high-volume SKUs count more than low-volume ones)
+  const pricedActive=active.filter(r=>(r.SupplierCostPrice||0)>0&&rev30(r)>0);
+  const revWithCost=pricedActive.reduce((t,r)=>t+rev30(r),0);
+  const costWithCost=pricedActive.reduce((t,r)=>t+(qty30(r)*(r.SupplierCostPrice||0)),0);
+  const totalGP=revWithCost-costWithCost;
+  const blendedMargin=revWithCost>0?(totalGP/revWithCost*100):null;
+
   // ── Max value for bar charts ───────────────────────────────────────────────
   const maxRev = viewRows.length ? Math.max(...viewRows.map(r=>r._rev30||0)) : 1;
 
@@ -4276,6 +4286,8 @@ function renderSalesIntel(){
   <div class="si-stats">
     <div class="si-stat"><div class="si-stat-n">${(_siRange==='7d'||_siRange==='90d')?'N/A':fmtE(totalRev)}</div><div class="si-stat-l">Revenue/${_siRange}</div></div>
     <div class="si-stat"><div class="si-stat-n">${fmtInt(Math.round(totalUnits))}</div><div class="si-stat-l">Units/${_siRange}</div></div>
+    <div class="si-stat"><div class="si-stat-n" style="color:${blendedMargin===null?'#94a3b8':blendedMargin>=40?'#16a34a':blendedMargin>=20?'#d97706':'#dc2626'}">${blendedMargin===null?'N/A':blendedMargin.toFixed(1)+'%'}</div><div class="si-stat-l">Margin %</div></div>
+    <div class="si-stat"><div class="si-stat-n" style="color:#185fa5">${(_siRange==='7d'||_siRange==='90d')?'N/A':fmtE(totalGP)}</div><div class="si-stat-l">GP €</div></div>
     <div class="si-stat"><div class="si-stat-n">${aItems.length}</div><div class="si-stat-l">A-class SKUs</div></div>
     <div class="si-stat"><div class="si-stat-n" style="color:#dc2626">${oosCount}</div><div class="si-stat-l">OOS now</div></div>
     <div class="si-stat"><div class="si-stat-n" style="color:#d97706">${trendCount}</div><div class="si-stat-l">Trending</div></div>
