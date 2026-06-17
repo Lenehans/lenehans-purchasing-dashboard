@@ -781,7 +781,9 @@
     .wl-tile-countdown.urgent{background:#fee2e2;color:#b91c1c}
     .wl-tile-countdown.warn{background:#fef3c7;color:#92400e}
     /* PO line */
-    .wl-tile-po{font-size:10px;color:#94a3b8;min-height:14px}
+    .wl-tile-po{font-size:13px;font-weight:700;color:#16a34a;min-height:18px;padding:3px 0}
+    .wl-tile-po.pending{color:#f97316;font-size:13px}
+    .wl-tile-po.none{color:#94a3b8;font-weight:500;font-size:11px}
     .po-review-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:flex;justify-content:flex-end}
     .po-review-modal{background:#fff;width:min(1140px,96vw);height:100vh;
       display:flex;flex-direction:column;box-shadow:-8px 0 40px rgba(0,0,0,.25);
@@ -4049,6 +4051,14 @@ function renderSalesIntel(){
   };
   const qty180= r => (r.QtySold_Online_Total_180d||0);
   const rev180= r => (r.Revenue_Online_Total_180d||0); // VAT-corrected; never use raw Rev_On180
+  // Net (ex-VAT) revenue — for margin/GP calculations ONLY, since SupplierCostPrice
+  // is always ex-VAT. rev30()/rev180() are gross (inc-VAT) by design, matching
+  // Linnworks' own reporting — but comparing gross revenue to ex-VAT cost would
+  // overstate margin by ~23%. Ireland VAT rate confirmed via direct price comparison
+  // (see A002485 investigation: Magento 44.7073 × 1.23 = Vend 54.99, exact match).
+  const VAT_RATE = 1.23;
+  const revNet30 = r => rev30(r) / VAT_RATE;
+  const revNet180 = r => rev180(r) / VAT_RATE;
   const fmtE  = v => '€'+fmtInt(Math.round(v));
   const fmtPct= v => (v>=0?'+':'')+v.toFixed(1)+'%';
   const fmtN2 = v => v.toFixed(2);
@@ -4079,9 +4089,10 @@ function renderSalesIntel(){
       .sort((a,b)=>hasRev?(rev30(b)-rev30(a)):(qty30(b)-qty30(a))).slice(0,150)
       .map((r,i)=>{
         const _rev30v=rev30(r), _qty30v=qty30(r);
-        const _avgPrice=_qty30v>0?_rev30v/_qty30v:0;
+        const _avgPrice=_qty30v>0?_rev30v/_qty30v:0; // gross — shown to buyers as the sell price
+        const _avgPriceNet=_qty30v>0?(revNet30(r)/_qty30v):0; // ex-VAT — used for margin only
         const _cost=r.SupplierCostPrice||0;
-        const _margin=_cost>0&&_avgPrice>0?(_avgPrice-_cost)/_avgPrice*100:null;
+        const _margin=_cost>0&&_avgPriceNet>0?(_avgPriceNet-_cost)/_avgPriceNet*100:null;
         // Trend: 7d daily rate vs 30d daily rate
         const qty7=r.QtySold_Online_Total_7d||0;
         const r7=qty7/7, r30=_qty30v/30;
@@ -4122,12 +4133,13 @@ function renderSalesIntel(){
 
   }else if(_siView==='margins'){
     title='Margin Analysis';
-    subtitle=`Estimated gross margin · ${rangeLabel[_siRange]} · items with known cost`;
+    subtitle=`Estimated gross margin (ex-VAT) · ${rangeLabel[_siRange]} · items with known cost`;
     viewRows=active.filter(r=>(r.SupplierCostPrice||0)>0&&qty30(r)>0&&rev30(r)>0)
       .map(r=>{
-        const avgSell=rev30(r)/qty30(r);
-        const margin=(avgSell-r.SupplierCostPrice)/avgSell*100;
-        return {...r,_margin:margin,_avgSell:avgSell,_rev30:rev30(r),_qty30:qty30(r)};
+        const avgSellGross=rev30(r)/qty30(r);
+        const avgSellNet=revNet30(r)/qty30(r); // ex-VAT — correct basis for margin vs ex-VAT cost
+        const margin=(avgSellNet-r.SupplierCostPrice)/avgSellNet*100;
+        return {...r,_margin:margin,_avgSell:avgSellGross,_avgSellNet:avgSellNet,_rev30:rev30(r),_qty30:qty30(r)};
       })
       .filter(r=>r._margin>-200&&r._margin<200)
       .sort((a,b)=>{
@@ -4223,8 +4235,9 @@ function renderSalesIntel(){
 
   // ── Gross Profit & blended margin — only items with a known cost price ─────
   // (revenue-weighted, so high-volume SKUs count more than low-volume ones)
+  // Uses NET (ex-VAT) revenue since SupplierCostPrice is always ex-VAT.
   const pricedActive=active.filter(r=>(r.SupplierCostPrice||0)>0&&rev30(r)>0);
-  const revWithCost=pricedActive.reduce((t,r)=>t+rev30(r),0);
+  const revWithCost=pricedActive.reduce((t,r)=>t+revNet30(r),0); // net basis
   const costWithCost=pricedActive.reduce((t,r)=>t+(qty30(r)*(r.SupplierCostPrice||0)),0);
   const totalGP=revWithCost-costWithCost;
   const blendedMargin=revWithCost>0?(totalGP/revWithCost*100):null;
@@ -4384,6 +4397,8 @@ async function siAsk(preset){
   const systemPrompt=`You are a sales analyst for Lenehans Hardware, an Irish hardware retailer (buying.lenehans.ie).
 Today is ${currentMonth}. Channel: ${isCS?'Capel Street Shop':'Arklow Online'}.
 Total revenue this month: €${Math.round(totalRev).toLocaleString()}. OOS items: ${oosCount}.
+IMPORTANT: Revenue figures below are GROSS (inc. 23% VAT). Cost figures are EX-VAT (net).
+If asked about margin or profit, divide revenue by 1.23 first to get net revenue, then calculate margin as (netRevenue - cost) / netRevenue. Never calculate margin using gross revenue directly — it will overstate margin by ~23%.
 Top 100 SKUs (format: SKU|Title|Supplier|ABC|Revenue|Units|Status|Cost):
 ${top100}
 Answer concisely. Be specific and use actual numbers from the data. If you don't know something, say so.`;
@@ -6676,13 +6691,13 @@ function renderActionNow(rows){
     const poSt=_chPoMap[s.name];
     let poLine='';
     if(poSt?.isDone){
-      const who = poSt.person ? ` · ${esc(poSt.person)}` : '';
+      const who = poSt.person ? ` · <strong>${esc(poSt.person)}</strong>` : '';
       const when = poSt.date ? ` · ${esc(poSt.date)}` : (poSt.month ? ` · ${esc(poSt.month)}` : '');
       poLine=`<div class="wl-tile-po">✅ PO done${when}${who}</div>`;
     } else if(poSt?.month){
-      poLine=`<div class="wl-tile-po" style="color:#f97316;font-weight:700">🔴 PO pending · ${esc(poSt.month)}</div>`;
+      poLine=`<div class="wl-tile-po pending">🔴 PO pending · ${esc(poSt.month)}</div>`;
     } else {
-      poLine=`<div class="wl-tile-po">— No PO on record</div>`;
+      poLine=`<div class="wl-tile-po none">— No PO on record</div>`;
     }
 
     const safeName=s.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
