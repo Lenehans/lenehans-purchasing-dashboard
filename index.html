@@ -9745,10 +9745,13 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuic
     }).catch(function(e){ list='ERR:'+e.message; fetched=true; cb&&cb(); });
   }
 
+  function normSku(s){ return String(s==null?'':s).replace(/[\s\u00a0]+/g,'').toUpperCase(); }
   function rowForSku(sku){
-    var rows=(window.state&&state.computedRows)||[];
-    var t=String(sku||'').trim().toUpperCase();
-    for(var i=0;i<rows.length;i++){ if(String(rows[i].SKU||'').trim().toUpperCase()===t) return rows[i]; }
+    var t=normSku(sku); if(!t) return null;
+    var pools=[ (window.state&&state.computedRows)||[], (window.state&&state.rawRows)||[] ];
+    for(var p=0;p<pools.length;p++){ var rows=pools[p];
+      for(var i=0;i<rows.length;i++){ if(normSku(rows[i].SKU)===t) return rows[i]; }
+    }
     return null;
   }
 
