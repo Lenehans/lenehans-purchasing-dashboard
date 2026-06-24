@@ -6281,18 +6281,28 @@ function seasonalTagStatus_(sku){
   return null;
 }
 function loadSeasonalTags(){
-  const URL='https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=613913104';
-  fetch(URL).then(r=>r.text()).then(t=>{
-    const lines=String(t).split(/\r?\n/).filter(l=>l.trim()!=='');
+  const BOOK='1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ';
+  const gviz=(name)=>`https://docs.google.com/spreadsheets/d/${BOOK}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`;
+  const parse=(t)=>{
     const map=new Map();
-    for(let i=1;i<lines.length;i++){            // skip header row
-      const cells=splitCSVLine_(lines[i]);
-      const sku=normSku_(cells[0]); if(!sku) continue;
-      const months=parseSeasonMonths_(cells[1]);
+    String(t||'').split(/\r?\n/).forEach((line,idx)=>{
+      if(idx===0 || !line.trim()) return;              // skip header / blanks
+      const c=splitCSVLine_(line);
+      const sku=normSku_(c[0]); if(!sku) return;
+      const months=parseSeasonMonths_(c[1]);
       if(months.length) map.set(sku, months);
-    }
+    });
+    return map;
+  };
+  Promise.all([
+    fetch(gviz('SeasonalMap')).then(r=>r.ok?r.text():'').catch(()=>''),        // bulk auto-classified
+    fetch(gviz('SeasonalWatchlist')).then(r=>r.ok?r.text():'').catch(()=>'')    // manual overrides
+  ]).then(([mapTxt, manTxt])=>{
+    const map=parse(mapTxt);
+    const man=parse(manTxt);
+    for(const [k,v] of man) map.set(k,v);   // manual always wins on conflict
     state.seasonalTags=map;
-    console.log('Seasonal tags loaded:', map.size, [...map.keys()].join(', '));
+    console.log('Seasonal tags loaded:', map.size, `(auto ${parse(mapTxt).size} + manual ${man.size}, merged)`);
     if(state.computedRows&&state.computedRows.length) render();
   }).catch(e=>console.warn('Seasonal tags load failed:', e));
 }
