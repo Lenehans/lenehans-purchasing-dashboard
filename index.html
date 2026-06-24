@@ -1082,7 +1082,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.5 · Seasonal uplift · AK demand visibility · Signal-stack · Governance · Email Intelligence</div>
+  <div class="sub">V6.6 · Seasonal watchlist · Seasonal uplift · AK demand visibility · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -9668,5 +9668,208 @@ function quickOrderGoFull() {
 }
 
 document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuickOrder(); });
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SEASONAL WATCHLIST ADD-ON — surfaces gut-feel seasonal lines the data can't
+     Self-contained. Reads a 'SeasonalWatchlist' tab (SKU|Season|Note) and cross-
+     references live stock from state.computedRows. Touches nothing else.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  'use strict';
+  var LS_KEY='lh_seasonal_url';
+  var SEASONS={spring:[3,4,5],summer:[6,7,8],autumn:[9,10,11],fall:[9,10,11],winter:[12,1,2]};
+  var MN3={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+  var MNAME=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var LEAD_MONTHS=2;            // surface this many months before a season starts
+  var list=null, fetched=false, panel=null;
+
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function getUrl(){ try{return localStorage.getItem(LS_KEY)||'';}catch(e){return '';} }
+  function setUrl(u){ try{localStorage.setItem(LS_KEY,u);}catch(e){} }
+
+  function parseSeason(str){
+    str=String(str||'').trim().toLowerCase(); if(!str) return [];
+    if(SEASONS[str]) return SEASONS[str].slice();
+    var months=[];
+    str.split(/[,;]/).forEach(function(part){
+      part=part.trim(); if(!part) return;
+      var rng=part.match(/^(\d{1,2})\s*-\s*(\d{1,2})$/);
+      if(rng){ var a=+rng[1],b=+rng[2],m=a,g=0; while(g++<13){ months.push(m); if(m===b)break; m=(m%12)+1; } return; }
+      if(/^\d{1,2}$/.test(part)){ months.push(+part); return; }
+      if(SEASONS[part]){ SEASONS[part].forEach(function(m){months.push(m);}); return; }
+      var k=part.slice(0,3); if(MN3[k]) months.push(MN3[k]);
+    });
+    return months.filter(function(m){return m>=1&&m<=12;});
+  }
+
+  // null = off-season (skip); else {state:'in'|'approaching', monthsAway}
+  function seasonStatus(months){
+    if(!months.length) return null;
+    var cm=new Date().getMonth()+1;
+    if(months.indexOf(cm)>=0) return {state:'in', monthsAway:0};
+    var ahead=99, first=null;
+    months.forEach(function(m){ var d=(m-cm+12)%12; if(d>0&&d<ahead){ahead=d;first=m;} });
+    if(ahead<=LEAD_MONTHS) return {state:'approaching', monthsAway:ahead, firstMonth:first};
+    return null;
+  }
+
+  function parseCSV(text){
+    var rows=[], row=[], cur='', q=false;
+    for(var i=0;i<text.length;i++){
+      var c=text[i];
+      if(q){ if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+      else if(c==='"') q=true;
+      else if(c===','){ row.push(cur); cur=''; }
+      else if(c==='\n'){ row.push(cur); rows.push(row); row=[]; cur=''; }
+      else if(c!=='\r') cur+=c;
+    }
+    if(cur!==''||row.length){ row.push(cur); rows.push(row); }
+    return rows;
+  }
+
+  function loadList(cb){
+    var url=getUrl();
+    if(!url){ list=null; fetched=true; cb&&cb(); return; }
+    fetch(url).then(function(r){return r.text();}).then(function(t){
+      var rows=parseCSV(t).filter(function(r){return r.length&&String(r[0]).trim();});
+      if(!rows.length){ list=[]; fetched=true; cb&&cb(); return; }
+      var head=rows[0].map(function(h){return String(h).trim().toLowerCase();});
+      var iS=0, iSe=head.indexOf('season'), iN=head.indexOf('note');
+      if(iSe<0) iSe=1; if(iN<0) iN=2;
+      list=rows.slice(1).map(function(r){
+        return { sku:String(r[iS]||'').trim(), seasonRaw:String(r[iSe]||'').trim(), note:String(r[iN]||'').trim() };
+      }).filter(function(x){return x.sku;});
+      fetched=true; cb&&cb();
+    }).catch(function(e){ list='ERR:'+e.message; fetched=true; cb&&cb(); });
+  }
+
+  function rowForSku(sku){
+    var rows=(window.state&&state.computedRows)||[];
+    var t=sku.trim();
+    for(var i=0;i<rows.length;i++){ if(String(rows[i].SKU||'').trim()===t) return rows[i]; }
+    return null;
+  }
+
+  function mount(){
+    if(panel&&document.body.contains(panel)) return panel;
+    var tab=document.getElementById('tab-buying'); if(!tab) return null;
+    panel=document.createElement('div'); panel.id='lhSeasonal';
+    panel.style.cssText='margin:0 0 14px;border:1.5px solid #fcd34d;background:#fffdf5;border-radius:10px;overflow:hidden';
+    tab.insertBefore(panel, tab.firstChild);
+    return panel;
+  }
+
+  function fmtStock(r){
+    var isCapel=window.state&&state.channel==='capel';
+    var stk=isCapel?(r.NetStock_CapelStreet||0):(r.NetStock_Arklow||0);
+    return {stk:stk, label:isCapel?'CS':'AK'};
+  }
+
+  function render(){
+    var p=mount(); if(!p) return;
+    var url=getUrl();
+
+    var head='<div onclick="window.__lhSeasonToggle()" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 14px;user-select:none">'
+      + '<span style="font-weight:800;color:#92400e;font-size:13px">📅 Seasonal Watchlist</span>'
+      + '<span id="lhSeasonCount" style="font-size:12px;color:#a16207"></span>'
+      + '<span style="margin-left:auto;font-size:11px;color:#a16207" id="lhSeasonChevron">▾</span></div>';
+
+    var bodyOpen = p.dataset.open==='1';
+    var body='<div id="lhSeasonBody" style="display:'+(bodyOpen?'block':'none')+';padding:0 14px 12px">';
+
+    if(!url){
+      body+='<div style="font-size:12px;color:#92400e;line-height:1.6">No watchlist connected yet.<br>'
+        +'1. In the sync Apps Script, run <code>seedSeasonalWatchlist()</code> — it creates the tab and logs a CSV URL.<br>'
+        +'2. Paste that URL below.</div>'
+        +'<div style="margin-top:8px;display:flex;gap:6px"><input id="lhSeasonUrl" placeholder="Seasonal watchlist CSV URL" style="flex:1;font-size:12px;padding:5px 8px;border:1px solid #fcd34d;border-radius:6px">'
+        +'<button onclick="window.__lhSeasonSave()" style="font-size:12px;font-weight:700;background:#92400e;color:#fff;border:none;border-radius:6px;padding:5px 12px;cursor:pointer">Save</button></div>';
+      document.getElementById('lhSeasonCount')&&(document.getElementById('lhSeasonCount').textContent='— not set up');
+      p.innerHTML=head+body+'</div>'; return;
+    }
+
+    if(list==='ERR'||(typeof list==='string'&&list.indexOf('ERR')===0)){
+      body+='<div style="font-size:12px;color:#b91c1c">Couldn\'t read the watchlist CSV — check the URL is published/shared. '
+        +'<button onclick="window.__lhSeasonReset()" style="font-size:11px;margin-left:6px">change URL</button></div>';
+      p.innerHTML=head+body+'</div>'; return;
+    }
+    if(!list){ body+='<div style="font-size:12px;color:#a16207">Loading…</div>'; p.innerHTML=head+body+'</div>'; return; }
+
+    // Build relevant (in-season or approaching) items with live stock
+    var items=[];
+    list.forEach(function(w){
+      var months=parseSeason(w.seasonRaw);
+      var st=seasonStatus(months); if(!st) return;             // off-season → skip
+      var r=rowForSku(w.sku);
+      var stk=r?fmtStock(r):{stk:null,label:''};
+      var title=r?(r.ItemTitle||''):'';
+      var cover=r?(r.coverStatus||''):'(not in data)';
+      var oos = r ? (stk.stk<=0) : false;
+      var urgent = st.state==='in' && (oos || cover==='Critical' || cover==='Low');
+      // urgency score: in+oos > in+low > approaching+oos > in healthy > approaching
+      var score=0;
+      if(st.state==='in') score+=100; else score+=40;
+      if(oos) score+=40; else if(cover==='Critical') score+=30; else if(cover==='Low') score+=20;
+      items.push({w:w,st:st,r:r,stk:stk,title:title,cover:cover,oos:oos,urgent:urgent,score:score,months:months});
+    });
+    items.sort(function(a,b){return b.score-a.score;});
+
+    var needCount=items.filter(function(x){return x.oos||x.cover==='Critical'||x.cover==='Low';}).length;
+    var cEl=document.getElementById('lhSeasonCount');
+
+    if(!items.length){
+      body+='<div style="font-size:12px;color:#a16207">Nothing in season right now. '+list.length+' SKU'+(list.length!==1?'s':'')+' on the list — they\'ll surface as their season approaches. '
+        +'<button onclick="window.__lhSeasonReset()" style="font-size:11px;margin-left:6px">change list URL</button></div>';
+      p.innerHTML=head+body+'</div>';
+      var c2=document.getElementById('lhSeasonCount'); if(c2) c2.textContent='— '+list.length+' tagged, none in season';
+      return;
+    }
+
+    body+='<div style="font-size:11px;color:#a16207;margin-bottom:8px">In season or starting soon · live '+(window.state&&state.channel==='capel'?'Capel':'Arklow')+' stock · '+needCount+' need attention</div>';
+    items.forEach(function(it){
+      var seasonMonths=it.months.map(function(m){return MNAME[m];}).join('/');
+      var badge = it.st.state==='in'
+        ? '<span style="background:#dcfce7;color:#14532d;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:800">IN SEASON</span>'
+        : '<span style="background:#e0f2fe;color:#075985;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:800">STARTS '+MNAME[it.st.firstMonth].toUpperCase()+'</span>';
+      var stockBit = it.r
+        ? (it.oos ? '<span style="color:#b91c1c;font-weight:800">🔴 OUT OF STOCK</span>'
+                  : (it.stk.label+' stock '+it.stk.stk+(it.cover&&it.cover!=='Healthy'&&it.cover!=='High'?' · <span style="color:#b45309;font-weight:700">'+esc(it.cover)+'</span>':'')))
+        : '<span style="color:#94a3b8">not in current data</span>';
+      body+='<div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid '+(it.urgent?'#fca5a5':'#fde68a')+';border-radius:8px;padding:8px 11px;margin-bottom:6px">'
+        + '<div style="min-width:0;flex:1">'
+        +   '<div style="font-size:12px;font-weight:700;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+        +     '<span style="font-family:monospace;color:#1e40af">'+esc(it.w.sku)+'</span> '+esc(it.title||it.w.note||'')+'</div>'
+        +   '<div style="font-size:11px;color:#64748b;margin-top:2px">'+stockBit+(it.w.note&&it.title?' · <span style="color:#a16207">'+esc(it.w.note)+'</span>':'')+'</div>'
+        + '</div>'
+        + '<div style="text-align:right;white-space:nowrap">'+badge+'<div style="font-size:10px;color:#94a3b8;margin-top:3px">'+seasonMonths+'</div></div>'
+        + '</div>';
+    });
+    body+='<div style="font-size:10px;color:#a16207;margin-top:4px"><button onclick="window.__lhSeasonReset()" style="font-size:10px">change list URL</button> · edit tags in the SeasonalWatchlist tab</div>';
+
+    p.innerHTML=head+body+'</div>';
+    if(cEl) cEl.textContent = needCount>0 ? ('· '+needCount+' need reordering') : ('· '+items.length+' in season');
+  }
+
+  // globals for inline handlers
+  window.__lhSeasonToggle=function(){ var p=document.getElementById('lhSeasonal'); if(!p)return; p.dataset.open=p.dataset.open==='1'?'0':'1'; render(); };
+  window.__lhSeasonSave=function(){ var i=document.getElementById('lhSeasonUrl'); if(i&&i.value.trim()){ setUrl(i.value.trim()); list=null; fetched=false; loadList(render); } };
+  window.__lhSeasonReset=function(){ setUrl(''); list=null; fetched=false; var p=document.getElementById('lhSeasonal'); if(p)p.dataset.open='1'; render(); };
+
+  function refresh(){ if(!fetched){ loadList(render); } else { render(); } }
+
+  function init(){
+    // wrap render() so the watchlist re-evaluates against fresh stock each time
+    var orig=window.render;
+    if(typeof orig==='function' && !window.__lhSeasonWrapped){
+      window.render=function(){ var r=orig.apply(this,arguments); try{refresh();}catch(e){console.warn('seasonal',e);} return r; };
+      window.__lhSeasonWrapped=true;
+    }
+    // first paint (collapsed)
+    var p=mount(); if(p && !p.dataset.open) p.dataset.open='0';
+    refresh();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
 </script>
 </body>
