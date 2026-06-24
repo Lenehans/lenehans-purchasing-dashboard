@@ -1082,7 +1082,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.6 · Seasonal rule (zero-sales) · Seasonal uplift · AK demand visibility · Governance · Email Intelligence</div>
+  <div class="sub">V6.7 · Auto seasonal map · Seasonal rule (zero-sales) · AK demand visibility · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -1319,9 +1319,9 @@
     <h3>📅 Next 30 Days</h3>
     <span class="sec-desc">Suppliers going critical if not ordered soon — act before the crisis</span>
     <span id="forecastSummary" class="small"></span>
-    <span class="wl-toggle" id="forecastToggle">▲ Hide</span>
+    <span class="wl-toggle" id="forecastToggle">▼ Show</span>
   </div>
-  <div id="forecastBody" class="wl-body">
+  <div id="forecastBody" class="wl-body closed">
     <div id="forecastPanel" style="margin:4px 0 6px"></div>
   </div>
   <!-- Section 3: Supplier Order Table — collapsible, starts closed -->
@@ -6282,11 +6282,23 @@ function seasonalTagStatus_(sku){
 }
 function loadSeasonalTags(){
   const BOOK='1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ';
-  const gviz=(name)=>`https://docs.google.com/spreadsheets/d/${BOOK}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`;
+  const SEASONAL_MAP_GID='';            // ← paste the SeasonalMap tab gid here for the proven export URL
+  const WATCHLIST_GID='613913104';      // SeasonalWatchlist tab (optional manual overrides)
+  const exportUrl=(gid)=>`https://docs.google.com/spreadsheets/d/${BOOK}/export?format=csv&gid=${gid}`;
+  const gvizUrl=(name)=>`https://docs.google.com/spreadsheets/d/${BOOK}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`;
+  const looksCsv=(t)=>{ const s=String(t||'').trim().toLowerCase(); return s && s[0]!=='<' && s.indexOf('<!doctype')===-1 && s.indexOf('<html')===-1; };
+  // try export-by-gid first (proven), fall back to gviz-by-name
+  const grab=(gid,name)=>{
+    const first = gid ? exportUrl(gid) : gvizUrl(name);
+    return fetch(first).then(r=>r.ok?r.text():'').then(t=>{
+      if(looksCsv(t)) return t;
+      return fetch(gvizUrl(name)).then(r=>r.ok?r.text():'').then(t2=>looksCsv(t2)?t2:'');
+    }).catch(()=>'');
+  };
   const parse=(t)=>{
     const map=new Map();
     String(t||'').split(/\r?\n/).forEach((line,idx)=>{
-      if(idx===0 || !line.trim()) return;              // skip header / blanks
+      if(idx===0 || !line.trim()) return;
       const c=splitCSVLine_(line);
       const sku=normSku_(c[0]); if(!sku) return;
       const months=parseSeasonMonths_(c[1]);
@@ -6294,15 +6306,14 @@ function loadSeasonalTags(){
     });
     return map;
   };
-  Promise.all([
-    fetch(gviz('SeasonalMap')).then(r=>r.ok?r.text():'').catch(()=>''),        // bulk auto-classified
-    fetch(gviz('SeasonalWatchlist')).then(r=>r.ok?r.text():'').catch(()=>'')    // manual overrides
-  ]).then(([mapTxt, manTxt])=>{
+  Promise.all([ grab(SEASONAL_MAP_GID,'SeasonalMap'), grab(WATCHLIST_GID,'SeasonalWatchlist') ])
+  .then(([mapTxt, manTxt])=>{
     const map=parse(mapTxt);
     const man=parse(manTxt);
-    for(const [k,v] of man) map.set(k,v);   // manual always wins on conflict
+    for(const [k,v] of man) map.set(k,v);   // manual always wins
     state.seasonalTags=map;
-    console.log('Seasonal tags loaded:', map.size, `(auto ${parse(mapTxt).size} + manual ${man.size}, merged)`);
+    console.log(`Seasonal tags loaded: ${map.size}  (SeasonalMap ${parse(mapTxt).size} + manual ${man.size})`);
+    if(!map.size) console.warn('Seasonal map empty — check the SeasonalMap tab is built and the sheet is link-readable.');
     if(state.computedRows&&state.computedRows.length) render();
   }).catch(e=>console.warn('Seasonal tags load failed:', e));
 }
