@@ -6363,6 +6363,33 @@ function getFilteredRows(){
     }
   });
 
+  // ── SEASONAL RESCUE ───────────────────────────────────────────────────────
+  // A watchlisted SKU in/approaching its season must surface even if governance
+  // dropped it before compute. Pull any such SKU from rawRows, compute it on the
+  // spot, and add it — so the seasonal rule outranks the governance gate.
+  if(state.seasonalTags && state.seasonalTags.size && state.rawRows && state.rawRows.length){
+    const present = new Set([...seen.keys()].map(k=>normSku_(k)));
+    for(const [tagSku] of state.seasonalTags){
+      if(present.has(tagSku)) continue;                 // already in the list
+      const seas = seasonalTagStatus_(tagSku);
+      if(!seas) continue;                               // out of season → skip
+      const raw = state.rawRows.find(r=>normSku_(r.SKU)===tagSku);
+      if(!raw) continue;                                // not even in raw feed
+      if(q){ const hay=`${raw.SupplierName} ${raw.SKU} ${raw.ItemTitle}`.toLowerCase(); if(!hay.includes(q)) continue; }
+      if(state.activeSupplier && raw.SupplierName!==state.activeSupplier) continue;
+      let cr; try { cr = computeRow(raw); } catch(e){ cr = Object.assign({}, raw); }
+      cr._seasonalForced=true; cr._seasonalState=seas.state; cr._seasonalMonths=seas.months; cr._seasonalRescued=true;
+      const stk = state.channel==='capel' ? (cr.NetStock_CapelStreet||0) : (cr.NetStock_Arklow||0);
+      if((cr.buy||0)<=0 && stk<=Math.max(cr.SupplierMinOrder||0,0)){
+        cr.buy = Math.max(cr.SupplierMinOrder||0, cr.SupplierPackSize||0, 6);
+        cr._seasonalBuy=true;
+      }
+      cr._supplierCount = cr._supplierCount||1;
+      cr._otherSuppliers = cr._otherSuppliers||[];
+      seen.set(cr.SKU, cr);
+    }
+  }
+
   return [...seen.values()];
 }
 
