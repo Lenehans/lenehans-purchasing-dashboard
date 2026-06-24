@@ -6310,8 +6310,60 @@ function loadSeasonalTags(){
     for(const [k,v] of man) merged.set(k,v);        // manual overrides all
     state.seasonalTags=merged;
     console.log(`Seasonal tags: ${merged.size} (baked ${base.size} + live ${liveMap.size} + manual ${man.size})`);
-    if(state.computedRows&&state.computedRows.length) render();
+    if(state.computedRows&&state.computedRows.length){
+      if(liveMap.size||man.size) recompute();   // refreshed tags → re-rescue/flag
+      else render();
+    }
   }).catch(e=>console.warn('Seasonal live refresh skipped:', e));
+}
+
+// ─── SEASONAL RESCUE + FLAGGING — runs once per recompute, not per keystroke ───
+// Injects tagged in-season SKUs that governance dropped (pulled from rawRows and
+// computed on the spot) so they appear in the cards/table, and flags every tagged
+// in-season row with _seasonalForced so the filter is a cheap boolean check.
+function applySeasonalRescue_(rows){
+  if(!state.seasonalTags || !state.seasonalTags.size) state.seasonalTags = seasonalBaseline_();
+  if(!state.seasonalTags.size) return;
+  const cm=new Date().getMonth()+1;
+  const inSeason=(months)=>{
+    if(!months) return null;
+    if(months.indexOf(cm)>=0) return 'in';
+    for(const m of months){ const d=(m-cm+12)%12; if(d>0&&d<=2) return 'approaching'; }
+    return null;
+  };
+  const have=new Set(rows.map(r=>normSku_(r.SKU)));
+  // rescue governance-dropped in-season SKUs from the raw feed
+  if(state.rawRows && state.rawRows.length){
+    if(!state._rawIdx || state._rawIdxLen!==state.rawRows.length){
+      state._rawIdx=new Map();
+      for(const r of state.rawRows){ const k=normSku_(r.SKU); if(!state._rawIdx.has(k)) state._rawIdx.set(k,r); }
+      state._rawIdxLen=state.rawRows.length;
+    }
+    for(const [tagSku,months] of state.seasonalTags){
+      if(have.has(tagSku)) continue;
+      if(!inSeason(months)) continue;
+      const raw=state._rawIdx.get(tagSku);
+      if(!raw) continue;
+      let cr; try{ cr=computeRow(raw); }catch(e){ continue; }
+      cr._alternatives=cr._alternatives||[]; cr._bestKnownCost=cr.SupplierCostPrice||0;
+      cr._supplierCount=cr._supplierCount||1; cr._otherSuppliers=cr._otherSuppliers||[];
+      cr._seasonalRescued=true;
+      rows.push(cr); have.add(tagSku);
+    }
+  }
+  // flag every tagged in-season row (cheap reads in the filter afterwards)
+  const capel = state.channel==='capel';
+  for(const r of rows){
+    const months=state.seasonalTags.get(normSku_(r.SKU));
+    const st = inSeason(months);
+    if(st){
+      r._seasonalForced=true; r._seasonalState=st; r._seasonalMonths=months;
+      const stk = capel ? (r.NetStock_CapelStreet||0) : (r.NetStock_Arklow||0);
+      if((r.buy||0)<=0 && stk<=Math.max(r.SupplierMinOrder||0,0)){
+        r.buy=Math.max(r.SupplierMinOrder||0, r.SupplierPackSize||0, 6); r._seasonalBuy=true;
+      }
+    } else { r._seasonalForced=false; r._seasonalBuy=false; }
+  }
 }
 
 // ─── FILTER ──────────────────────────────────────────────────────────────────
@@ -6326,19 +6378,8 @@ function getFilteredRows(){
     if(q){const hay=`${r.SupplierName} ${r.SKU} ${r.ItemTitle}`.toLowerCase();if(!hay.includes(q))return false;}
     if(state.activeSupplier&&r.SupplierName!==state.activeSupplier) return false;
 
-    // ── SEASONAL RULE: a watchlisted SKU in (or approaching) its season is shown
-    //    regardless of sales — bypasses discontinued / healthy / buy>0 gates ──
-    const seas = seasonalTagStatus_(r.SKU);
-    if(seas){
-      r._seasonalForced = true; r._seasonalState = seas.state; r._seasonalMonths = seas.months;
-      const stk = state.channel==='capel' ? (r.NetStock_CapelStreet||0) : (r.NetStock_Arklow||0);
-      // give it an actionable reorder qty if it's low/out and nothing else suggested one
-      if((r.buy||0)<=0 && stk<=Math.max(r.SupplierMinOrder||0,0)){
-        r.buy = Math.max(r.SupplierMinOrder||0, r.SupplierPackSize||0, 6);
-        r._seasonalBuy = true;
-      }
-      return true;
-    } else { r._seasonalForced = false; r._seasonalBuy = false; }
+    // Seasonal in-season SKUs (flagged once in recompute) bypass the gates below.
+    if(r._seasonalForced) return true;
 
     if(r.isDiscontinued) return false;
     if(show==='buy'&&r.buy<=0) return false;
@@ -6369,33 +6410,6 @@ function getFilteredRows(){
       }
     }
   });
-
-  // ── SEASONAL RESCUE ───────────────────────────────────────────────────────
-  // A watchlisted SKU in/approaching its season must surface even if governance
-  // dropped it before compute. Pull any such SKU from rawRows, compute it on the
-  // spot, and add it — so the seasonal rule outranks the governance gate.
-  if(state.seasonalTags && state.seasonalTags.size && state.rawRows && state.rawRows.length){
-    const present = new Set([...seen.keys()].map(k=>normSku_(k)));
-    for(const [tagSku] of state.seasonalTags){
-      if(present.has(tagSku)) continue;                 // already in the list
-      const seas = seasonalTagStatus_(tagSku);
-      if(!seas) continue;                               // out of season → skip
-      const raw = state.rawRows.find(r=>normSku_(r.SKU)===tagSku);
-      if(!raw) continue;                                // not even in raw feed
-      if(q){ const hay=`${raw.SupplierName} ${raw.SKU} ${raw.ItemTitle}`.toLowerCase(); if(!hay.includes(q)) continue; }
-      if(state.activeSupplier && raw.SupplierName!==state.activeSupplier) continue;
-      let cr; try { cr = computeRow(raw); } catch(e){ cr = Object.assign({}, raw); }
-      cr._seasonalForced=true; cr._seasonalState=seas.state; cr._seasonalMonths=seas.months; cr._seasonalRescued=true;
-      const stk = state.channel==='capel' ? (cr.NetStock_CapelStreet||0) : (cr.NetStock_Arklow||0);
-      if((cr.buy||0)<=0 && stk<=Math.max(cr.SupplierMinOrder||0,0)){
-        cr.buy = Math.max(cr.SupplierMinOrder||0, cr.SupplierPackSize||0, 6);
-        cr._seasonalBuy=true;
-      }
-      cr._supplierCount = cr._supplierCount||1;
-      cr._otherSuppliers = cr._otherSuppliers||[];
-      seen.set(cr.SKU, cr);
-    }
-  }
 
   return [...seen.values()];
 }
@@ -6439,6 +6453,7 @@ async function recompute(){
 
   state.computedRows = deduped;
   if(!state._seasonalTagsRequested){ state._seasonalTagsRequested = true; loadSeasonalTags(); }
+  applySeasonalRescue_(deduped);   // inject in-season tagged SKUs governance dropped + flag them (once, not per keystroke)
   window._eiRows = deduped;
   if(typeof window.eiOnDataReady === 'function') window.eiOnDataReady(deduped);
 
