@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V6.9.3 · EMAIL ATTRIBUTION</title>
+  <title>Lenehans Purchasing Dashboard · V6.9.4 · EMAIL ATTRIBUTION</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1082,7 +1082,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.9.3 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
+  <div class="sub">V6.9.4 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -4116,7 +4116,7 @@ function renderSalesIntel(){
         const _trend=r30>0.05?(r7/r30):null; // null if too low volume to be meaningful
         const _revShare=(_rev30v/totalRevAll*100);
         const _atRisk=(_rev30v>500||_qty30v>20)&&(r.coverStatus==='Out of Stock'||r.coverStatus==='Critical');
-        return {...r,_rank:i+1,_rev30:_rev30v,_qty30:_qty30v,_avgPrice,_cost,_margin,_trend,_revShare,_atRisk};
+        return {...r,_rank:i+1,_rev30:_rev30v,_qty30:_qty30v,_avgPrice,_avgPriceNet,_cost,_margin,_trend,_revShare,_atRisk};
       });
     colDefs=[
       {k:'_rank',   label:'#',       num:true, fmt:r=>`<span style="color:#94a3b8">${r._rank}</span>`},
@@ -4124,11 +4124,11 @@ function renderSalesIntel(){
       {k:'title',   label:'Product', fmt:r=>(r.ItemTitle||'').substring(0,38),wide:true},
       {k:'sup',     label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,12)},
       {k:'abcClass',label:'ABC',     fmt:r=>{const c={'A':'#16a34a','B':'#d97706','C':'#64748b'}[r.abcClass]||'#94a3b8';return `<span style="color:${c};font-weight:700">${r.abcClass||'?'}</span>`;}},
-      {k:'_rev30',  label:hasRev?'Revenue':'Units', num:true, fmt:r=>hasRev?`<b>${fmtE(r._rev30)}</b>`:Math.round(r._qty30).toString(), sort:'_rev30'},
+      {k:'_rev30',  label:hasRev?'Revenue inc-VAT':'Units', num:true, fmt:r=>hasRev?`<b>${fmtE(r._rev30)}</b>`:Math.round(r._qty30).toString(), sort:'_rev30'},
       ...(hasRev?[
         {k:'_revShare',label:'Share%',  num:true,fmt:r=>`<span style="color:#64748b;font-size:10px">${r._revShare.toFixed(1)}%</span>`},
         {k:'_qty30',   label:'Units',   num:true,fmt:r=>Math.round(r._qty30)},
-        {k:'_avgPrice',label:'Avg sell',num:true,fmt:r=>r._avgPrice>0?fmtE(r._avgPrice):'-'},
+        {k:'_avgPriceNet',label:'Avg sell ex-VAT',num:true,fmt:r=>r._avgPriceNet>0?fmtE(r._avgPriceNet):'-'},
         {k:'_cost',    label:'Cost',    num:true,fmt:r=>r._cost>0?`€${r._cost.toFixed(2)}`:'-'},
         {k:'_margin',  label:'Margin',  num:true,fmt:r=>{
           if(r._margin===null) return '-';
@@ -4168,12 +4168,12 @@ function renderSalesIntel(){
       {k:'title',label:'Product',fmt:r=>(r.ItemTitle||'').substring(0,36),wide:true},
       {k:'sup',label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,14)},
       {k:'SupplierCostPrice',label:'Cost',num:true,fmt:r=>'€'+fmtN2(r.SupplierCostPrice)},
-      {k:'_avgSell',label:'Avg sell',num:true,fmt:r=>fmtE(r._avgSell)},
+      {k:'_avgSellNet',label:'Avg sell ex-VAT',num:true,fmt:r=>fmtE(r._avgSellNet)},
       {k:'_margin',label:'Margin %',num:true,fmt:r=>{
         const c=r._margin>=40?'#16a34a':r._margin>=20?'#d97706':'#dc2626';
         return `<span style="color:${c};font-weight:700">${r._margin.toFixed(1)}%</span>`;
       },sort:'_margin'},
-      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>fmtE(r._rev30)},
+      {k:'_rev30',label:'Rev/30d inc-VAT',num:true,fmt:r=>fmtE(r._rev30)},
       {k:'_qty30',label:'Units/30d',num:true,fmt:r=>Math.round(r._qty30)},
     ];
 
@@ -4212,7 +4212,7 @@ function renderSalesIntel(){
       {k:'_spike',label:'Spike ×',num:true,fmt:r=>`<span style="color:#dc2626;font-weight:700">↑${r._spike.toFixed(1)}×</span>`},
       {k:'_r30',label:'Now/day',num:true,fmt:r=>r._r30.toFixed(2)},
       {k:'_r180',label:'Avg/day',num:true,fmt:r=>r._r180.toFixed(2)},
-      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>fmtE(r._rev30)},
+      {k:'_rev30',label:'Rev/30d inc-VAT',num:true,fmt:r=>fmtE(r._rev30)},
       {k:'coverStatus',label:'Cover',fmt:r=>r.coverStatus||'-'},
       {k:'buy',label:'Buy',num:true,fmt:r=>(r.buy||0)>0?`<span style="color:#dc2626;font-weight:700">${r.buy}</span>`:'—'},
     ];
@@ -4239,7 +4239,7 @@ function renderSalesIntel(){
         const c=r._pchg>0?'#16a34a':'#dc2626';
         return `<span style="color:${c};font-weight:700">${fmtPct(r._pchg)}</span>`;
       }},
-      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>fmtE(r._rev30)},
+      {k:'_rev30',label:'Rev/30d inc-VAT',num:true,fmt:r=>fmtE(r._rev30)},
     ];
   }
 
