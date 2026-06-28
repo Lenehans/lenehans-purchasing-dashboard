@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V6.9.1 · EMAIL ATTRIBUTION</title>
+  <title>Lenehans Purchasing Dashboard · V6.9.3 · EMAIL ATTRIBUTION</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1082,7 +1082,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.9.1 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
+  <div class="sub">V6.9.3 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -2142,6 +2142,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
             (cp.campaigns || []).forEach(function(c){ if (c.id) eiCampProd[c.id] = c; });
             eiCampProdState = 'cached';
           }
+          _eiAttrStart = false; // recompute coverage start against fresh feed
           // Re-render the parts that depend on real attribution
           eiRenderLastYear(curMonth());
           eiRenderSendThis(curMonth());
@@ -2364,6 +2365,16 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     return idx[s] || idx[s.replace(/^TP_/,'')] || idx['TP_'+s] || null;
   }
 
+  // Is a product on-theme for a campaign? Klaviyo attributes EVERYTHING a clicker
+  // bought, so a pest email gets credited with air coolers etc. We compare the
+  // campaign's theme to the product's own classification. Themeless campaigns
+  // (sale/clearance/general/seasonal) don't filter — everything counts.
+  function eiProductOnTheme(campTheme, prodName, buyRow) {
+    if (!campTheme || campTheme === 'sale' || campTheme === 'other' || campTheme === 'seasonal_oct') return true;
+    var pt = buyRow ? themeFromRow(buyRow) : themeFrom(prodName || '');
+    return pt === campTheme;
+  }
+
   // Campaigns actually sent in month m of year yr (real campaigns only — flows excluded)
   function eiMonthCampaigns(m, yr) {
     return eiCamps.filter(function(c){
@@ -2373,19 +2384,41 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     });
   }
 
+  // Does this month/year have ANY campaign with real attribution data?
+  function eiMonthHasAttr(m, yr) {
+    return eiMonthCampaigns(m, yr).some(function(c){ return !!eiCampProd[c.id]; });
+  }
+
+  // Earliest send date that carries attribution — the start of usable history
+  var _eiAttrStart = false;
+  function eiAttrCoverageStart() {
+    if (_eiAttrStart !== false) return _eiAttrStart;
+    var earliest = null;
+    eiCamps.forEach(function(c){
+      if (!c.sent_at || !eiCampProd[c.id]) return;
+      var d = new Date(c.sent_at);
+      if (!earliest || d < earliest) earliest = d;
+    });
+    _eiAttrStart = earliest;
+    return earliest;
+  }
+
   // Aggregate REAL email-attributed product sales across all campaigns sent in month m / year yr.
   // Returns { campaigns:[...], totalRev, totalQty, products:[{sku,name,qty,rev,row,stk,cov,vel,status}] }
   function eiMonthAttributedSales(m, yr) {
     var camps = eiMonthCampaigns(m, yr);
-    var byKey = {}, totalRev = 0, totalQty = 0, withAttr = 0;
+    var byKey = {}, totalRev = 0, totalQty = 0, withAttr = 0, onThemeRev = 0;
     camps.forEach(function(c){
       var cp = eiCampProd[c.id]; if (!cp || !cp.products) return;
       withAttr++;
+      var campTheme = c.theme || 'other';
       cp.products.forEach(function(p){
         var key = (p.sku || p.name || '').trim().toUpperCase(); if (!key) return;
-        if (!byKey[key]) byKey[key] = { sku:p.sku||'', name:p.name||'', qty:0, rev:0 };
+        var onT = eiProductOnTheme(campTheme, p.name, eiBuyRow(p.sku));
+        if (!byKey[key]) byKey[key] = { sku:p.sku||'', name:p.name||'', qty:0, rev:0, onTheme:false, onThemeRev:0 };
         byKey[key].qty += (p.qty||0);
         byKey[key].rev += (p.rev||0);
+        if (onT) { byKey[key].onTheme = true; byKey[key].onThemeRev += (p.rev||0); onThemeRev += (p.rev||0); }
         totalQty += (p.qty||0);
         totalRev += (p.rev||0);
       });
@@ -2398,9 +2431,10 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       var vel = br ? (br.QtySold_Online_Total_30d||br.QSold_On30||0) : null;
       var status = !br ? 'unknown' : (stk<=0 ? 'oos' : (cov!=null&&cov<14 ? 'low' : 'ready'));
       return { sku:p.sku, name:(br&&br.ItemTitle)||p.name, qty:Math.round(p.qty), rev:p.rev,
+               onTheme:p.onTheme, onThemeRev:p.onThemeRev,
                row:br, stk:stk, cov:cov, vel:vel, status:status };
     }).sort(function(a,b){ return b.rev - a.rev; });
-    return { campaigns:camps, campaignsWithAttr:withAttr, totalRev:totalRev, totalQty:totalQty, products:products };
+    return { campaigns:camps, campaignsWithAttr:withAttr, totalRev:totalRev, totalQty:totalQty, onThemeRev:onThemeRev, products:products };
   }
 
   function eiStatusChip(status) {
@@ -2443,7 +2477,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
 
       // REAL attribution summary for this email
       var cp = eiCampProd[c.id];
-      var soldLine = '', btnLabel = '📦 What to send next';
+      var soldLine = '', btnLabel = '📦 What to send next', showBtn = true;
       if (cp && cp.products && cp.products.length) {
         var topP = cp.products[0];
         soldLine = '<div style="display:flex;align-items:center;gap:6px;margin:4px 0 5px;padding:4px 8px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;font-size:11px;color:#0c4a6e">'
@@ -2453,6 +2487,10 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
           + (topP ? '<span style="color:#64748b">· top:</span><span style="font-weight:700" title="'+esc(topP.name||'')+'">'+esc((topP.sku||topP.name||'').toString().substring(0,14))+'</span>' : '')
           + '</div>';
         btnLabel = '📦 What it actually sold';
+      } else if (eiCampProdState === 'cached') {
+        // In real-attribution mode but this email drove no attributed sales — be honest, no estimate
+        soldLine = '<div style="font-size:10px;color:#94a3b8;margin:3px 0 5px">— no attributed sales recorded for this email</div>';
+        showBtn = false;
       } else if (eiCampProdState === 'no_cache') {
         soldLine = '<div style="font-size:10px;color:#94a3b8;margin:3px 0 5px">Run the campaign-products builder in the proxy to see what this email sold</div>';
       }
@@ -2470,7 +2508,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
               + (st.rev>0?'<span style="background:#eff6ff;color:#1e40af;border-radius:4px;padding:2px 7px;font-size:11px">€'+st.rev.toFixed(2)+'/r</span>':'')
             + '</div>'
             + soldLine
-            + '<button onclick="eiToggleProducts(\''+c.id+'\',this)" style="padding:3px 9px;font-size:10px;font-weight:700;background:#fff;border:1.5px solid #bfdbfe;color:#1e40af;border-radius:5px;cursor:pointer">'+btnLabel+'</button>'
+            + (showBtn ? '<button onclick="eiToggleProducts(\''+c.id+'\',this)" style="padding:3px 9px;font-size:10px;font-weight:700;background:#fff;border:1.5px solid #bfdbfe;color:#1e40af;border-radius:5px;cursor:pointer">'+btnLabel+'</button>' : '')
           + '</div>'
         + '</div>'
         + '<div id="eiProd_'+c.id+'" data-open="0"></div>'
@@ -2497,6 +2535,14 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
           + '<div style="font-size:18px;font-weight:900">€'+Math.round(agg.totalRev).toLocaleString('en-IE')+' <span style="font-size:12px;font-weight:600;opacity:.8">attributed · '+Math.round(agg.totalQty).toLocaleString('en-IE')+' units · '+agg.products.length+' SKUs</span></div>'
           + (topList?'<div style="font-size:11px;opacity:.85;margin-top:2px">Top: '+topList+'</div>':'')
           + '<div style="font-size:10px;opacity:.6;margin-top:3px">'+agg.campaignsWithAttr+' of '+agg.campaigns.length+' campaigns matched to sales · Klaviyo-attributed €</div>'
+          + '</div>';
+      } else {
+        // No real attribution for this month — be honest, don't show estimates
+        var startD = eiAttrCoverageStart();
+        var startTxt = startD ? startD.toLocaleDateString('en-IE',{month:'long',year:'numeric'}) : 'recently';
+        rollup = '<div style="background:#f8fafc;border:1px dashed #cbd5e1;border-radius:8px;padding:9px 13px;margin-bottom:10px">'
+          + '<div style="font-size:12px;font-weight:700;color:#475569;margin-bottom:2px">📭 No attributed-sales history for '+MN[m]+' '+ly+' yet</div>'
+          + '<div style="font-size:11px;color:#94a3b8">Per-email sales data starts '+startTxt+' (rolling 12-month window). '+MN[m]+' fills in automatically as the window advances. Open rates below are still real.</div>'
           + '</div>';
       }
     } else if (eiCampProdState === 'no_cache') {
@@ -2551,288 +2597,71 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     var rows = getRows();
     if (!rows.length) {
       el.innerHTML = '<div style="background:#f8fafc;border:1.5px solid var(--line);border-radius:10px;padding:20px;text-align:center">'
-        + '<div style="font-size:14px;font-weight:700;color:#374151;margin-bottom:8px">📊 Buying data needed</div>'
+        + '<div style="font-size:14px;font-weight:700;color:#374151;margin-bottom:8px">\u{1F4CA} Buying data needed</div>'
         + '<div style="font-size:12px;color:#64748b;margin-bottom:14px">Go to the <strong>Buying</strong> tab and wait for your data to load, then click below.</div>'
-        + '<button onclick="window.eiForceLoad()" style="padding:8px 18px;background:#1e40af;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer">🔄 Reload recommendations</button>'
+        + '<button onclick="window.eiForceLoad()" style="padding:8px 18px;background:#1e40af;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer">\u{1F504} Reload recommendations</button>'
         + '</div>';
       return;
     }
 
-    var now      = new Date();
-    var ly       = now.getFullYear() - 1;
-    var seasonal = SEASON[m] || [];
-    var wx       = getWeatherContext();
-    var wxTemp   = (typeof weatherData !== 'undefined' && weatherData.tempAvg != null) ? weatherData.tempAvg : null;
+    var now = new Date();
+    var ly  = now.getFullYear() - 1;
 
-    // ── Find best category recommendation ────────────────────────────────────
-    var bestRec = null;
-    seasonal.forEach(function(theme) {
-      var cat = CAT[theme]; if (!cat || cat.score < 5) return;
-      var ready = rows.filter(function(r){ return themeFromRow(r)===theme && coverDays(r)>30 && (r.stock||r.NetStock_Arklow||0)>0; });
-      if (ready.length < 3) return;
-      var lyBest = null, lyBestOpen = 0;
-      eiCamps.filter(function(c){ var d=new Date(c.sent_at); return c.theme===theme&&d.getMonth()===m&&d.getFullYear()===ly; })
-        .forEach(function(c){ var st=eiStMap[c.id]||{}; if((st.open_rate||0)>lyBestOpen){lyBestOpen=st.open_rate||0;lyBest=c;} });
-      var tc = eiCamps.filter(function(c){return c.theme===theme&&c.sent_at;}).sort(function(a,b){return new Date(b.sent_at)-new Date(a.sent_at);});
-      var lastSentDays = tc[0]?Math.round((now-new Date(tc[0].sent_at))/86400000):999;
-      var avgCov = Math.round(ready.reduce(function(s,r){return s+coverDays(r);},0)/ready.length);
-      var score = cat.score*10 + (lyBest?50:0) + (lyBestOpen>BENCH_OPEN?20:0) + (lastSentDays>60?15:0) + (avgCov>90?5:0);
-      if (!bestRec || score > bestRec.score)
-        bestRec = { theme:theme, cat:cat, ready:ready, lyBest:lyBest, lyBestOpen:lyBestOpen, lastSentDays:lastSentDays, avgCov:avgCov, score:score };
-    });
-
-    var html = '';
-
-    // ── Hero recommendation card ──────────────────────────────────────────────
-    if (bestRec) {
-      var r = bestRec, tpl = TPL[r.theme]||TPL.other;
-      var isCurrentMonth = (m === now.getMonth());
-      var dataNote = eiReady
-        ? (r.lyBest ? '✅ Matched to "'+r.lyBest.name+'" ('+r.lyBestOpen+'% open last '+MN[m]+')' : '📊 Based on current stock')
-        : '📊 Based on current stock · sync Klaviyo to add history';
-      var subj0 = tpl.s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      var briefEnc = r.theme+'|'+r.ready.length+'|'+r.avgCov+'|'+r.lastSentDays+'|'+MN[m]+'|'+(r.lyBestOpen||0);
-
-    // ── Feature 9: List fatigue warning ──────────────────────────────────
-    var fatigueHtml = '';
-    if (r.lastSentDays < 7) {
-      fatigueHtml = '<div style="margin-bottom:6px;padding:5px 10px;background:rgba(220,38,38,.15);border-radius:6px;font-size:11px;font-weight:700;color:'+(isCurrentMonth?'#fca5a5':'#991b1b')+'">🚨 Sent just ' + r.lastSentDays + ' day' + (r.lastSentDays!==1?'s':'') + ' ago — high fatigue risk, consider spacing</div>';
-    } else if (r.lastSentDays < 14) {
-      fatigueHtml = '<div style="margin-bottom:6px;padding:5px 10px;background:rgba(251,191,36,.2);border-radius:6px;font-size:11px;font-weight:700;color:'+(isCurrentMonth?'#fef3c7':'#92400e')+'">⚠ Sent ' + r.lastSentDays + ' days ago — may be too soon, consider waiting</div>';
+    if (eiCampProdState === 'loading') { el.innerHTML = '<div class="ei-empty">Loading per-email sales attribution\u2026</div>'; return; }
+    if (eiCampProdState === 'no_cache') {
+      el.innerHTML = '<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:14px;font-size:12px;color:#9a3412">\u2699\uFE0F Per-email sales not built yet \u2014 run <code>startCampaignProducts()</code> then <code>continueCampaignProducts()</code> in the Klaviyo proxy, then redeploy. The "Send this" recommendation appears once real attribution is cached.</div>';
+      return;
     }
+    if (eiCampProdState !== 'cached') { el.innerHTML = '<div class="ei-empty">Sync Klaviyo to see recommendations</div>'; return; }
 
-    // ── Feature 8: Revenue estimator ─────────────────────────────────────
-    var revEstHtml = '';
-    var revData = [];
-    eiCamps.forEach(function(c) {
-      if (!c.sent_at || c.theme !== r.theme) return;
-      var d = new Date(c.sent_at);
-      if (d.getMonth() !== m) return;
-      var st = eiStMap[c.id];
-      if (st && (st.rev || 0) > 0) revData.push(st.rev);
-    });
-    if (revData.length > 0) {
-      var avgRev = revData.reduce(function(s,v){return s+v;},0) / revData.length;
-      var minRev = Math.min.apply(null, revData);
-      var maxRev = Math.max.apply(null, revData);
-      var est5k  = Math.round(avgRev * 5000);
-      var est10k = Math.round(avgRev * 10000);
-      var rangeNote = revData.length > 1 ? ' (€'+minRev.toFixed(3)+'–€'+maxRev.toFixed(3)+'/rec, '+revData.length+' campaigns)' : '';
-      revEstHtml = '<div style="margin-bottom:8px;padding:7px 10px;background:rgba(255,255,255,.18);border-radius:7px;border:1px solid rgba(255,255,255,.25)">'
-        + '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;opacity:.7;margin-bottom:3px">💰 Revenue estimate</div>'
-        + '<div style="font-size:13px;font-weight:800">€' + est5k.toLocaleString('en-IE') + '–€' + est10k.toLocaleString('en-IE') + '</div>'
-        + '<div style="font-size:10px;opacity:.75;margin-top:2px">Based on €' + avgRev.toFixed(3) + '/recipient avg' + rangeNote + ' · estimate for 5k–10k list</div>'
+    var agg = eiMonthAttributedSales(m, ly);
+    if (agg.totalRev <= 0) {
+      var startD = eiAttrCoverageStart();
+      var startTxt = startD ? startD.toLocaleDateString('en-IE',{month:'long',year:'numeric'}) : 'recently';
+      el.innerHTML = '<div style="background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:16px;text-align:center">'
+        + '<div style="font-size:13px;font-weight:700;color:#475569;margin-bottom:4px">No ' + MN[m] + ' email history yet</div>'
+        + '<div style="font-size:11px;color:#94a3b8">Per-email attribution starts ' + startTxt + '. Pick a month from ' + startTxt + ' onward to see proven sellers, or wait for ' + MN[m] + ' to enter the rolling 12-month window.</div>'
         + '</div>';
-    } else if (eiReady) {
-      revEstHtml = '<div style="margin-bottom:6px;font-size:10px;opacity:.6">💰 No revenue data for past ' + MN[m] + ' ' + r.cat.label + ' campaigns — enable Klaviyo revenue tracking</div>';
+      return;
     }
 
-      html += '<div style="background:'+(isCurrentMonth?'#1e40af':'#f8fafc')+';border-radius:12px;padding:14px 16px;margin-bottom:16px;color:'+(isCurrentMonth?'#fff':'#1e293b')+'">'
-        + '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;opacity:.7;margin-bottom:4px">'+(isCurrentMonth?'💡 Send this week':'💡 Best bet for '+MN[m])+'</div>'
-        + '<div style="font-size:16px;font-weight:800;margin-bottom:4px">'+tpl.e+' '+r.cat.label+' email</div>'
-        + '<div style="font-size:11px;opacity:.85;margin-bottom:4px">'+r.ready.length+' SKUs · avg '+r.avgCov+'d cover'+(r.lyBest?' · sent last '+MN[m]+', <strong>'+r.lyBestOpen+'% open</strong>':'')+(r.lastSentDays<999?' · last sent '+r.lastSentDays+'d ago':'')+'</div>'
-        + fatigueHtml
-        + revEstHtml
-        + '<div style="font-size:10px;opacity:.6;margin-bottom:8px">'+dataNote+'</div>'
-        + '<div style="background:rgba(255,255,255,.15);border-radius:7px;padding:8px 10px;font-size:12px;font-style:italic;margin-bottom:10px">&ldquo;'+esc(tpl.s)+'&rdquo;</div>'
-        + '<div style="display:flex;gap:7px">'
-          + '<button onclick="navigator.clipboard.writeText(\''+subj0+'\');this.textContent=\'✓\'" style="padding:5px 12px;font-size:11px;font-weight:700;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);border-radius:6px;color:'+(isCurrentMonth?'#fff':'#1e40af')+';cursor:pointer">Copy subject</button>'
-          + '<button onclick="eiCopyBrief(\''+briefEnc+'\')" style="padding:5px 12px;font-size:11px;font-weight:700;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);border-radius:6px;color:'+(isCurrentMonth?'#fff':'#1e40af')+';cursor:pointer">📋 Brief</button>'
-        + '</div>'
-      + '</div>';
-    }
+    var proven  = agg.products.filter(function(p){ return p.onTheme && p.status === 'ready'; }).slice(0, 10);
+    var restock = agg.products.filter(function(p){ return p.onTheme && p.status === 'oos'; }).slice(0, 6);
+    var offCount = agg.products.filter(function(p){ return !p.onTheme; }).length;
 
-    // ── Send this in [Month] — grounded in what LAST year's emails actually sold ─
-    if (eiCampProdState === 'cached') {
-      var aggR = eiMonthAttributedSales(m, ly);
-      var proven = aggR.products.filter(function(p){ return p.status==='ready'; }).slice(0,8);
-      var restock = aggR.products.filter(function(p){ return p.status==='oos'; }).slice(0,5);
-      if (aggR.totalRev > 0) {
-        html += '<div style="border:1.5px solid #bae6fd;border-radius:12px;padding:13px 15px;margin-bottom:16px;background:#f0f9ff">'
-          + '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#0369a1;margin-bottom:3px">📨 Send this in '+MN[m]+' — proven email sellers</div>'
-          + '<div style="font-size:11px;color:#475569;margin-bottom:9px">These actually sold via your '+MN[m]+' '+ly+' emails (€'+Math.round(aggR.totalRev).toLocaleString('en-IE')+' attributed) <strong>and are in stock now</strong>. Lead your '+MN[m]+' '+(ly+1)+' send with these.</div>';
-        if (proven.length) {
-          html += '<table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:'+(restock.length?'10px':'2px')+'">'
-            + '<thead><tr style="background:#e0f2fe"><th style="padding:4px 7px;text-align:left">SKU</th><th style="padding:4px 7px;text-align:left">Product</th><th style="padding:4px 7px;text-align:right">Sold</th><th style="padding:4px 7px;text-align:right">€ Then</th><th style="padding:4px 7px;text-align:right">Cover</th></tr></thead><tbody>';
-          proven.forEach(function(p,i){
-            html += '<tr style="border-top:1px solid #e2e8f0;background:'+(i===0?'#eff6ff':'#fff')+'">'
-              + '<td style="padding:4px 7px;font-family:monospace;font-size:10px;color:#1e40af">'+esc(p.sku||'')+'</td>'
-              + '<td style="padding:4px 7px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(p.name||'')+'">'+esc(p.name||'—')+'</td>'
-              + '<td style="padding:4px 7px;text-align:right;font-weight:800">'+p.qty+'</td>'
-              + '<td style="padding:4px 7px;text-align:right;color:#1e40af">€'+Math.round(p.rev).toLocaleString('en-IE')+'</td>'
-              + '<td style="padding:4px 7px;text-align:right;color:'+(p.cov>45?'#14532d':p.cov>21?'#92400e':'#991b1b')+';font-weight:600">'+(p.cov!=null?p.cov+'d':'—')+'</td>'
-            + '</tr>';
-          });
-          html += '</tbody></table>';
-        } else {
-          html += '<div style="font-size:11px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:6px 10px;margin-bottom:'+(restock.length?'10px':'2px')+'">None of last '+MN[m]+'\'s email sellers are in healthy stock right now — see restock list below.</div>';
-        }
-        if (restock.length) {
-          html += '<div style="font-size:10px;font-weight:800;color:#991b1b;margin-bottom:4px">🔴 Restock first — sold last '+MN[m]+', OOS now</div>'
-            + '<div style="font-size:11px;color:#7f1d1d">'+restock.map(function(p){ return esc((p.sku||'')+' ('+p.qty+' sold)'); }).join(' · ')+'</div>';
-        }
-        html += '</div>';
-      }
-    }
+    var html = '<div style="border:1.5px solid #bae6fd;border-radius:12px;padding:14px 16px;background:#f0f9ff">'
+      + '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#0369a1;margin-bottom:3px">\u{1F4E8} Send this in ' + MN[m] + ' \u2014 proven email sellers</div>'
+      + '<div style="font-size:11px;color:#475569;margin-bottom:10px">On-theme products that actually sold via your ' + MN[m] + ' ' + ly + ' emails (\u20AC' + Math.round(agg.onThemeRev).toLocaleString('en-IE') + ' on-theme of \u20AC' + Math.round(agg.totalRev).toLocaleString('en-IE') + ' total) and are <strong>in stock now</strong>. Lead your ' + MN[m] + ' ' + (ly+1) + ' send with these.</div>';
 
-    // ── What email customers bought this month last year (monthly aggregate) ───
-    var emailSold = [];
-    var emailSoldSkus = {};
-    if (Object.keys(eiSalesMap).length > 0) {
-      Object.values(eiSalesMap).forEach(function(p) {
-        var qty = p.monthly[m]||0; if(!qty) return;
-        var sku = (p.sku||'').trim().toUpperCase();
-        var br  = eiBuyRow(sku);
-        if(!br) return;
-        var stk = br.stock||br.NetStock_Arklow||0;
-        var cov = Math.round(coverDays(br));
-        var vel = br.QtySold_Online_Total_30d||br.QSold_On30||0;
-        emailSold.push({ row:br, sku:sku, qty:qty, stk:stk, cov:cov, vel:vel });
-        emailSoldSkus[sku] = true;
+    if (proven.length) {
+      html += '<table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:' + (restock.length?'12px':'2px') + '">'
+        + '<thead><tr style="background:#e0f2fe"><th style="padding:5px 8px;text-align:left">SKU</th><th style="padding:5px 8px;text-align:left">Product</th><th style="padding:5px 8px;text-align:right">Sold</th><th style="padding:5px 8px;text-align:right">\u20AC Then</th><th style="padding:5px 8px;text-align:right">Stock</th><th style="padding:5px 8px;text-align:right">Cover</th></tr></thead><tbody>';
+      proven.forEach(function(p,i){
+        html += '<tr style="border-top:1px solid #e2e8f0;background:' + (i===0?'#eff6ff':'#fff') + '">'
+          + '<td style="padding:5px 8px;font-family:monospace;font-size:10px;color:#1e40af">' + esc(p.sku||'') + '</td>'
+          + '<td style="padding:5px 8px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(p.name||'') + '"><a href="https://www.lenehans.ie/search?q=' + encodeURIComponent(p.sku||'') + '" target="_blank" style="color:#1e293b;text-decoration:none">' + esc(p.name||'\u2014') + '</a></td>'
+          + '<td style="padding:5px 8px;text-align:right;font-weight:800">' + p.qty + '</td>'
+          + '<td style="padding:5px 8px;text-align:right;color:#1e40af;font-weight:700">\u20AC' + Math.round(p.rev).toLocaleString('en-IE') + '</td>'
+          + '<td style="padding:5px 8px;text-align:right">' + (p.stk==null?'\u2014':p.stk.toLocaleString('en-IE')) + '</td>'
+          + '<td style="padding:5px 8px;text-align:right;color:' + (p.cov>45?'#14532d':p.cov>21?'#92400e':'#991b1b') + ';font-weight:600">' + (p.cov!=null?p.cov+'d':'\u2014') + '</td>'
+        + '</tr>';
       });
-      emailSold.sort(function(a,b){ return b.qty-a.qty; });
+      html += '</tbody></table>';
+    } else {
+      html += '<div style="font-size:11px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:7px 10px;margin-bottom:' + (restock.length?'12px':'2px') + '">No on-theme ' + MN[m] + ' email sellers are in healthy stock right now' + (restock.length?' \u2014 restock list below':'') + '.</div>';
     }
 
-    var emailTotal   = emailSold.length;
-    var emailOOS     = emailSold.filter(function(p){ return p.stk<=0||p.cov<14; });
-    var emailReady   = emailSold.filter(function(p){ return p.stk>0&&p.cov>=30; });
-
-    // Seasonal opportunities (not yet emailed, good stock)
-    var seasonalKws = (MONTH_SEASONAL[m]||[[]])[0];
-    var seasonalLabel = (MONTH_SEASONAL[m]||[null,''])[1];
-    var wxKws  = (getWeatherContext()||{}).products||[];
-    var allKws = seasonalKws.concat(wxKws);
-    var kPats  = allKws.map(function(k){ return new RegExp(k,'i'); });
-    var newOpps = rows.filter(function(r) {
-      var stk = r.stock||r.NetStock_Arklow||0; if(stk<=0) return false;
-      var cov = coverDays(r); if(cov<30||cov>400) return false;
-      var sku = (r.SKU||'').trim().toUpperCase();
-      if(emailSoldSkus[sku]) return false; // already in email history
-      var title = (r.ItemTitle||'').toLowerCase();
-      return kPats.some(function(p){ return p.test(title); });
-    }).map(function(r){
-      return { row:r, sku:(r.SKU||'').trim().toUpperCase(),
-               cov:Math.round(coverDays(r)), vel:r.QtySold_Online_Total_30d||r.QSold_On30||0 };
-    }).sort(function(a,b){ return b.vel-a.vel; });
-
-    if(emailTotal > 0) {
-      // ── Intelligence chips ────────────────────────────────────────────────
-      var chipStyle = 'display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;padding:10px 12px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px';
-      var chipRed   = 'display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;padding:10px 12px;background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px';
-      var chipGreen = 'display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;padding:10px 12px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px';
-      html += '<div style="display:flex;gap:8px;margin-bottom:14px">'
-        + '<div style="'+chipStyle+'"><div style="font-size:18px;font-weight:900;color:#1e3a5f">'+emailTotal.toLocaleString('en-IE')+'</div><div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em">Sold via email last '+MN[m]+'</div></div>'
-        + '<div style="'+(emailOOS.length>0?chipRed:chipGreen)+'"><div style="font-size:18px;font-weight:900;color:'+(emailOOS.length>0?'#dc2626':'#16a34a')+'">'+emailOOS.length+'</div><div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em">'+(emailOOS.length>0?'OOS or critical now':'All OOS items restocked')+'</div></div>'
-        + '<div style="'+chipGreen+'"><div style="font-size:18px;font-weight:900;color:#16a34a">'+emailReady.length.toLocaleString('en-IE')+'</div><div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em">Ready to feature</div></div>'
-      + '</div>';
-
-      // ── Section A: Fix before sending ────────────────────────────────────
-      if(emailOOS.length > 0) {
-        html += '<div style="margin-bottom:14px">'
-          + '<div style="font-size:12px;font-weight:800;color:#991b1b;margin-bottom:6px">🔴 Fix before sending — these sold well via email but are now OOS or critical</div>';
-        emailOOS.slice(0,5).forEach(function(p) {
-          var status = p.stk<=0?'OOS':'❌ '+(p.cov<7?'<7d':p.cov+'d');
-          var statusCol = p.stk<=0?'#dc2626':'#d97706';
-          html += '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:#fef2f2;border:1px solid #fecaca;margin-bottom:4px">'
-            + '<div style="flex:1;min-width:0">'
-              + '<div style="font-size:12px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
-                + '<a href="https://www.lenehans.ie/search?q='+encodeURIComponent(p.row.SKU||'')+'" target="_blank" style="color:#1e293b;text-decoration:none">'+esc((p.row.ItemTitle||p.sku).substring(0,55))+'</a>'
-              + '</div>'
-              + '<div style="font-size:11px;color:#64748b;margin-top:1px">'+p.qty+' sold via email last '+MN[m]+'</div>'
-            + '</div>'
-            + '<span style="font-size:11px;font-weight:800;color:'+statusCol+';white-space:nowrap">'+status+'</span>'
-          + '</div>';
-        });
-        if(emailOOS.length>5) html += '<div style="font-size:11px;color:#991b1b;padding:4px 0">+ '+(emailOOS.length-5)+' more OOS items that sold via email</div>';
-        html += '</div>';
-      }
-
-      // ── Section B: Top products to feature ───────────────────────────────
-      if(emailReady.length > 0) {
-        html += '<div style="margin-bottom:14px">'
-          + '<div style="font-size:12px;font-weight:800;color:#166534;margin-bottom:6px">✅ Top products to feature — sold well via email, good stock now</div>';
-        emailReady.slice(0,8).forEach(function(p) {
-          var covCol = p.cov>60?'#16a34a':p.cov>30?'#92400e':'#991b1b';
-          html += '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0;margin-bottom:4px">'
-            + '<div style="flex:1;min-width:0">'
-              + '<div style="font-size:12px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
-                + '<a href="https://www.lenehans.ie/search?q='+encodeURIComponent(p.row.SKU||'')+'" target="_blank" style="color:#1e293b;text-decoration:none">'+esc((p.row.ItemTitle||p.sku).substring(0,55))+'</a>'
-              + '</div>'
-              + '<div style="font-size:11px;color:#64748b;margin-top:1px">'+p.qty+' sold via email · '+p.stk.toLocaleString('en-IE')+' in stock · <span style="color:'+covCol+';font-weight:700">'+p.cov+'d cover</span></div>'
-            + '</div>'
-          + '</div>';
-        });
-        if(emailReady.length>8) html += '<div style="font-size:11px;color:#166534;padding:4px 0">+ '+(emailReady.length-8)+' more ready products</div>';
-        html += '</div>';
-      }
-
-      // ── Section C: Hidden opportunities (not yet emailed) ─────────────────
-      if(newOpps.length > 0) {
-        var wxTemp2 = (typeof weatherData !== 'undefined' && weatherData.tempAvg != null) ? weatherData.tempAvg+'°C' : '';
-        html += '<div style="margin-bottom:14px">'
-          + '<div style="font-size:12px;font-weight:800;color:#92400e;margin-bottom:2px">🆕 Hidden opportunities — seasonal, in stock, never yet emailed</div>'
-          + '<div style="font-size:11px;color:#64748b;margin-bottom:6px">'+seasonalLabel+(wxTemp2?' · '+wxTemp2:'')+'</div>';
-        newOpps.slice(0,5).forEach(function(p) {
-          var stk = p.row.stock||p.row.NetStock_Arklow||0;
-          html += '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:#fffbeb;border:1px solid #fde68a;margin-bottom:4px">'
-            + '<div style="flex:1;min-width:0">'
-              + '<div style="font-size:12px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
-                + '<a href="https://www.lenehans.ie/search?q='+encodeURIComponent(p.row.SKU||'')+'" target="_blank" style="color:#1e293b;text-decoration:none">'+esc((p.row.ItemTitle||p.sku).substring(0,55))+'</a>'
-              + '</div>'
-              + '<div style="font-size:11px;color:#64748b;margin-top:1px">'+p.vel+'/month · '+stk.toLocaleString('en-IE')+' stock · '+p.cov+'d cover</div>'
-            + '</div>'
-            + '<span style="font-size:10px;font-weight:800;background:#fef08a;color:#713f12;padding:2px 7px;border-radius:6px;white-space:nowrap">NEW</span>'
-          + '</div>';
-        });
-        if(newOpps.length>5) html += '<div style="font-size:11px;color:#92400e;padding:4px 0">+ '+(newOpps.length-5)+' more untapped seasonal products</div>';
-        html += '</div>';
-      }
-
-      // ── Full detail (collapsed) ───────────────────────────────────────────
-      html += '<details style="margin-top:4px">'
-        + '<summary style="font-size:11px;font-weight:700;color:#64748b;cursor:pointer;padding:4px 0">▶ Full product lists ('+emailTotal+' email history · '+newOpps.length+' opportunities)</summary>'
-        + '<div style="margin-top:10px">'
-        // Compact email history table
-        + '<div style="font-size:11px;font-weight:800;color:#374151;margin-bottom:6px">📬 Email history — '+MN[m]+' '+ly+'</div>'
-        + '<div style="max-height:300px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:12px">'
-        + '<table style="width:100%;border-collapse:collapse;font-size:11px">'
-        + '<thead><tr style="background:#f8fafc"><th style="text-align:left;padding:5px 8px">#</th><th style="text-align:left;padding:5px 8px">Product</th><th style="text-align:right;padding:5px 8px">Email</th><th style="text-align:right;padding:5px 8px">Stock</th><th style="text-align:right;padding:5px 8px">Cover</th></tr></thead><tbody>';
-      emailSold.slice(0,200).forEach(function(p,i){
-        var rowBg = p.stk<=0?'#fef2f2':(i%2===0?'#f9fafb':'#fff');
-        var covCol = p.cov>45?'#16a34a':p.cov>21?'#92400e':'#991b1b';
-        html += '<tr style="border-top:1px solid #f1f5f9;background:'+rowBg+'">'
-          +'<td style="padding:4px 8px;color:#94a3b8;font-size:10px">'+(i+1)+'</td>'
-          +'<td style="padding:4px 8px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
-            +'<a href="https://www.lenehans.ie/search?q='+encodeURIComponent(p.row.SKU||'')+'" target="_blank" style="color:#1e293b;text-decoration:none">'+esc((p.row.ItemTitle||p.sku).substring(0,50))+'</a>'
-          +'</td>'
-          +'<td style="text-align:right;padding:4px 8px;font-weight:700">'+p.qty+'</td>'
-          +'<td style="text-align:right;padding:4px 8px">'+p.stk+'</td>'
-          +'<td style="text-align:right;padding:4px 8px;font-weight:700;color:'+covCol+'">'+p.cov+'d</td>'
-        +'</tr>';
-      });
-      if(emailSold.length>200) html += '<tr><td colspan="5" style="padding:6px 8px;font-size:10px;color:#64748b">Showing 200 of '+emailSold.length+'</td></tr>';
-      html += '</tbody></table></div>'
-      // Compact opportunities table
-      + '<div style="font-size:11px;font-weight:800;color:#374151;margin-bottom:6px">🆕 Not yet emailed</div>'
-      + '<div style="max-height:250px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px">'
-      + '<table style="width:100%;border-collapse:collapse;font-size:11px">'
-      + '<thead><tr style="background:#f8fafc"><th style="text-align:left;padding:5px 8px">Product</th><th style="text-align:right;padding:5px 8px">30d</th><th style="text-align:right;padding:5px 8px">Stock</th><th style="text-align:right;padding:5px 8px">Cover</th></tr></thead><tbody>';
-      newOpps.slice(0,100).forEach(function(p,i){
-        var stk = p.row.stock||p.row.NetStock_Arklow||0;
-        html += '<tr style="border-top:1px solid #f1f5f9;background:'+(i%2===0?'#fffbeb':'#fff')+'">'
-          +'<td style="padding:4px 8px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
-            +'<a href="https://www.lenehans.ie/search?q='+encodeURIComponent(p.row.SKU||'')+'" target="_blank" style="color:#1e293b;text-decoration:none">'+esc((p.row.ItemTitle||p.sku).substring(0,50))+'</a>'
-          +'</td>'
-          +'<td style="text-align:right;padding:4px 8px;font-weight:700">'+p.vel+'</td>'
-          +'<td style="text-align:right;padding:4px 8px">'+stk+'</td>'
-          +'<td style="text-align:right;padding:4px 8px">'+p.cov+'d</td>'
-        +'</tr>';
-      });
-      html += '</tbody></table></div>'
-      + '</div></details>';
+    if (restock.length) {
+      html += '<div style="font-size:11px;font-weight:800;color:#991b1b;margin-bottom:5px">\u{1F534} Restock first \u2014 sold last ' + MN[m] + ', OOS now</div>'
+        + '<div style="font-size:11px;color:#7f1d1d;line-height:1.7">' + restock.map(function(p){ return '<a href="https://www.lenehans.ie/search?q=' + encodeURIComponent(p.sku||'') + '" target="_blank" style="color:#7f1d1d;text-decoration:none">' + esc(p.sku||'') + '</a> (' + p.qty + ' sold)'; }).join(' \u00B7 ') + '</div>';
     }
 
-    el.innerHTML = html || '<div class="ei-empty">Sync Klaviyo to see recommendations</div>';
+    if (offCount > 0) {
+      html += '<div style="font-size:10px;color:#94a3b8;margin-top:10px;border-top:1px solid #dbeafe;padding-top:6px">' + offCount + ' off-theme product' + (offCount!==1?'s':'') + ' also bought by ' + MN[m] + ' email clickers (excluded \u2014 Klaviyo credits the email with everything a clicker buys, not just what it featured).</div>';
+    }
+
+    html += '</div>';
+    el.innerHTML = html;
   }
 
   function eiRenderArchive() {
@@ -2895,49 +2724,76 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     // ── PRIMARY: real per-email attribution (what THIS email actually sold) ─────
     var cp = eiCampProd[campId];
     if (cp && cp.products && cp.products.length) {
+      var campTheme = camp.theme || 'other';
       var prods = cp.products.map(function(p){
         var br  = eiBuyRow(p.sku);
         var stk = br ? (br.stock||br.NetStock_Arklow||0) : null;
         var cov = br ? Math.round(coverDays(br)) : null;
         var status = !br ? 'unknown' : (stk<=0 ? 'oos' : (cov!=null&&cov<14 ? 'low' : 'ready'));
-        return { sku:p.sku, name:(br&&br.ItemTitle)||p.name, qty:Math.round(p.qty), rev:p.rev, row:br, stk:stk, cov:cov, status:status };
+        var onTheme = eiProductOnTheme(campTheme, p.name, br);
+        return { sku:p.sku, name:(br&&br.ItemTitle)||p.name, qty:Math.round(p.qty), rev:p.rev, row:br, stk:stk, cov:cov, status:status, onTheme:onTheme };
       }).sort(function(a,b){ return b.rev - a.rev; });
 
-      var oosNow = prods.filter(function(p){ return p.status==='oos'; });
-      var ready  = prods.filter(function(p){ return p.status==='ready'; });
-      var top    = prods.slice(0, 15);
+      var onT  = prods.filter(function(p){ return p.onTheme; });
+      var offT = prods.filter(function(p){ return !p.onTheme; });
+      var hasThemeSplit = (campTheme !== 'sale' && campTheme !== 'other' && campTheme !== 'seasonal_oct' && offT.length > 0);
+      var mainList = hasThemeSplit ? onT : prods;       // when no real theme, show everything
+      var onThemeRev = onT.reduce(function(s,p){ return s + (p.rev||0); }, 0);
+      var oosNow = mainList.filter(function(p){ return p.status==='oos'; });
+      var ready  = mainList.filter(function(p){ return p.status==='ready'; });
+      var top    = mainList.slice(0, 15);
 
-      var html = '<div style="margin-top:10px;border-top:1px solid var(--line-light);padding-top:8px">'
-        + '<div style="font-size:11px;font-weight:800;color:#0c4a6e;margin-bottom:2px">💶 What this email actually sold — '+MN[m]+' '+yr+'</div>'
-        + '<div style="font-size:10px;color:#64748b;margin-bottom:6px">€'+Math.round(cp.totalRev).toLocaleString('en-IE')+' attributed · '+Math.round(cp.totalQty).toLocaleString('en-IE')+' units · '+prods.length+' SKUs · ranked by revenue</div>';
-
-      if (oosNow.length) {
-        html += '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:5px 9px;margin-bottom:7px;font-size:10px;color:#991b1b;font-weight:700">🔴 '+oosNow.length+' of these are OOS now — restock before resending this email</div>';
+      function prodRows(list){
+        var h = '';
+        list.forEach(function(p, i) {
+          h += '<tr style="border-top:1px solid var(--line-light);background:'+(i===0?'#fffbeb':'')+'">'
+            + '<td style="padding:4px 6px;font-family:monospace;font-size:10px;color:#1e40af">'+esc(p.sku||'')+'</td>'
+            + '<td style="padding:4px 6px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(p.name||'')+'">'+esc(p.name||'—')+'</td>'
+            + '<td style="padding:4px 6px;text-align:right;font-weight:800">'+p.qty+'</td>'
+            + '<td style="padding:4px 6px;text-align:right;font-weight:700;color:#1e40af">€'+Math.round(p.rev).toLocaleString('en-IE')+'</td>'
+            + '<td style="padding:4px 6px;text-align:right">'+(p.stk==null?'—':p.stk)+(p.cov!=null?' <span style="color:#94a3b8">('+p.cov+'d)</span>':'')+'</td>'
+            + '<td style="padding:4px 6px">'+eiStatusChip(p.status)+'</td>'
+          + '</tr>';
+        });
+        return h;
       }
-
-      html += '<table style="width:100%;border-collapse:collapse;font-size:11px">'
-        + '<thead><tr style="background:#f1f5f9">'
+      var thead = '<thead><tr style="background:#f1f5f9">'
         + '<th style="padding:4px 6px;text-align:left">SKU</th>'
         + '<th style="padding:4px 6px;text-align:left">Product</th>'
         + '<th style="padding:4px 6px;text-align:right;background:#fef3c7">Units</th>'
         + '<th style="padding:4px 6px;text-align:right;background:#eff6ff">€ Rev</th>'
         + '<th style="padding:4px 6px;text-align:right">Stock</th>'
         + '<th style="padding:4px 6px;text-align:left">Now</th>'
-        + '</tr></thead><tbody>';
-      top.forEach(function(p, i) {
-        html += '<tr style="border-top:1px solid var(--line-light);background:'+(i===0?'#fffbeb':'')+'">'
-          + '<td style="padding:4px 6px;font-family:monospace;font-size:10px;color:#1e40af">'+esc(p.sku||'')+'</td>'
-          + '<td style="padding:4px 6px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(p.name||'')+'">'+esc(p.name||'—')+'</td>'
-          + '<td style="padding:4px 6px;text-align:right;font-weight:800">'+p.qty+'</td>'
-          + '<td style="padding:4px 6px;text-align:right;font-weight:700;color:#1e40af">€'+Math.round(p.rev).toLocaleString('en-IE')+'</td>'
-          + '<td style="padding:4px 6px;text-align:right">'+(p.stk==null?'—':p.stk)+(p.cov!=null?' <span style="color:#94a3b8">('+p.cov+'d)</span>':'')+'</td>'
-          + '<td style="padding:4px 6px">'+eiStatusChip(p.status)+'</td>'
-        + '</tr>';
-      });
-      html += '</tbody></table>'
-        + '<div style="font-size:10px;color:#94a3b8;margin-top:4px">'+(top.length<prods.length?'Top '+top.length+' of '+prods.length+' by revenue · ':'')+ready.length+' ready to feature again · Klaviyo-attributed (verify VAT basis)</div>'
-        + '</div>';
+        + '</tr></thead>';
+
+      var html = '<div style="margin-top:10px;border-top:1px solid var(--line-light);padding-top:8px">'
+        + '<div style="font-size:11px;font-weight:800;color:#0c4a6e;margin-bottom:2px">💶 What this email actually sold — '+MN[m]+' '+yr+'</div>'
+        + '<div style="font-size:10px;color:#64748b;margin-bottom:6px">€'+Math.round(cp.totalRev).toLocaleString('en-IE')+' attributed · '+Math.round(cp.totalQty).toLocaleString('en-IE')+' units · '+prods.length+' SKUs'
+          + (hasThemeSplit ? ' · <strong style="color:#0c4a6e">€'+Math.round(onThemeRev).toLocaleString('en-IE')+' on-theme</strong>' : '') + '</div>';
+
+      if (oosNow.length) {
+        html += '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:5px 9px;margin-bottom:7px;font-size:10px;color:#991b1b;font-weight:700">🔴 '+oosNow.length+' of these are OOS now — restock before resending this email</div>';
+      }
+
+      html += '<table style="width:100%;border-collapse:collapse;font-size:11px">' + thead + '<tbody>' + prodRows(top) + '</tbody></table>'
+        + '<div style="font-size:10px;color:#94a3b8;margin-top:4px">'+(top.length<mainList.length?'Top '+top.length+' of '+mainList.length+' by revenue · ':'')+ready.length+' ready to feature again · Klaviyo-attributed (verify VAT basis)</div>';
+
+      if (hasThemeSplit) {
+        var offRev = offT.reduce(function(s,p){ return s + (p.rev||0); }, 0);
+        html += '<details style="margin-top:8px">'
+          + '<summary style="font-size:10px;font-weight:700;color:#94a3b8;cursor:pointer;padding:3px 0">▶ '+offT.length+' off-theme item'+(offT.length!==1?'s':'')+' also bought by clickers (€'+Math.round(offRev).toLocaleString('en-IE')+') — not what this email featured</summary>'
+          + '<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:5px">' + thead + '<tbody>' + prodRows(offT.slice(0,15)) + '</tbody></table>'
+          + '</details>';
+      }
+
+      html += '</div>';
       el.innerHTML = html;
+      return;
+    }
+
+    // In real-attribution mode, never show estimates — this email simply had no attributed sales
+    if (eiCampProdState === 'cached') {
+      el.innerHTML = '<div style="margin-top:10px;border-top:1px solid var(--line-light);padding-top:8px;font-size:11px;color:#94a3b8">No attributed sales recorded for this email in the 12-month window.</div>';
       return;
     }
 
