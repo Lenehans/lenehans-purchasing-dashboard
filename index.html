@@ -1082,7 +1082,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.7 · Auto seasonal map · Seasonal rule (zero-sales) · AK demand visibility · Governance · Email Intelligence</div>
+  <div class="sub">V6.8 · Seasonal map (name-based) · Seasonal rule (zero-sales) · AK demand visibility · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -6294,26 +6294,25 @@ function loadSeasonalTags(){
   state.seasonalTags=base;
   if(state.computedRows&&state.computedRows.length) render();
 
-  // 2) Best-effort live refresh from the sheet (overrides baseline if it loads).
+  // 2) Best-effort live refresh of the name-based map (overrides baseline if it loads).
+  //    The manual SeasonalWatchlist is intentionally NOT loaded — its seeded rows
+  //    were classified off thin sales data (e.g. VX125→autumn) and were overriding
+  //    the correct name-based map. The map is authoritative.
   const BOOK='1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ';
   const SEASONAL_MAP_GID='';            // set to the SeasonalMap tab gid for proven export refresh
-  const WATCHLIST_GID='613913104';      // manual overrides (optional)
   const exportUrl=(g)=>`https://docs.google.com/spreadsheets/d/${BOOK}/export?format=csv&gid=${g}`;
   const gvizUrl=(n)=>`https://docs.google.com/spreadsheets/d/${BOOK}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(n)}`;
   const looksCsv=(t)=>{ const s=String(t||'').trim().toLowerCase(); return s && s[0]!=='<' && s.indexOf('<!doctype')===-1 && s.indexOf('<html')===-1; };
   const grab=(g,n)=>fetch(g?exportUrl(g):gvizUrl(n)).then(r=>r.ok?r.text():'').then(t=>looksCsv(t)?t:fetch(gvizUrl(n)).then(r=>r.ok?r.text():'').then(t2=>looksCsv(t2)?t2:'')).catch(()=>'');
   const parse=(t)=>{ const m=new Map(); String(t||'').split(/\r?\n/).forEach((line,idx)=>{ if(idx===0||!line.trim())return; const c=splitCSVLine_(line); const sku=normSku_(c[0]); if(!sku)return; const mo=parseSeasonMonths_(c[1]); if(mo.length)m.set(sku,mo); }); return m; };
-  Promise.all([ grab(SEASONAL_MAP_GID,'SeasonalMap'), grab(WATCHLIST_GID,'SeasonalWatchlist') ]).then(([mapTxt,manTxt])=>{
-    const liveMap=parse(mapTxt), man=parse(manTxt);
+  grab(SEASONAL_MAP_GID,'SeasonalMap').then((mapTxt)=>{
+    const liveMap=parse(mapTxt);
+    if(!liveMap.size) return;                 // nothing live → baked baseline stands
     const merged=new Map(base);
-    for(const [k,v] of liveMap) merged.set(k,v);   // live refresh overrides baseline
-    for(const [k,v] of man) merged.set(k,v);        // manual overrides all
+    for(const [k,v] of liveMap) merged.set(k,v);
     state.seasonalTags=merged;
-    console.log(`Seasonal tags: ${merged.size} (baked ${base.size} + live ${liveMap.size} + manual ${man.size})`);
-    if(state.computedRows&&state.computedRows.length){
-      if(liveMap.size||man.size) recompute();   // refreshed tags → re-rescue/flag
-      else render();
-    }
+    console.log(`Seasonal tags refreshed: ${merged.size} (baked ${base.size} + live ${liveMap.size})`);
+    if(state.computedRows&&state.computedRows.length) recompute();
   }).catch(e=>console.warn('Seasonal live refresh skipped:', e));
 }
 
