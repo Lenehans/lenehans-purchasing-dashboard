@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V6.9 · EMAIL ATTRIBUTION</title>
+  <title>Lenehans Purchasing Dashboard · V6.9.1 · EMAIL ATTRIBUTION</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1082,7 +1082,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.9 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
+  <div class="sub">V6.9.1 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -1739,7 +1739,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
 (function() {
   'use strict';
 
-  var PROXY   = 'https://script.google.com/macros/s/AKfycbwds8N7-nMBGfVJp30rlxZ9Y9k6ncoDeATcKrIpnApqVqvwTkOmNIJfFBlFm6OOD1Z_/exec';
+  var PROXY   = 'https://script.google.com/macros/s/AKfycbyRaG5HIunGU9bk09w4wd4BrvFrP34aZ9c-7X8lXeWyT3FBvoipRVW0fCbaOqkONdCm/exec';
   var eiCamps    = [];
   var eiStMap    = {}; // campaignId → { open_rate, click_rate, rev }
   var eiSalesMap = {}; // sku/name → { totalQty, totalRevenue, byWeek } from Ordered Product events
@@ -3712,7 +3712,7 @@ const state = {
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 const DEFAULT_URL   = 'https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=734583899';
-const PO_UPDATER_URL = 'https://script.google.com/macros/s/AKfycbwds8N7-nMBGfVJp30rlxZ9Y9k6ncoDeATcKrIpnApqVqvwTkOmNIJfFBlFm6OOD1Z_/exec';
+const PO_UPDATER_URL = 'https://script.google.com/macros/s/AKfycbyRaG5HIunGU9bk09w4wd4BrvFrP34aZ9c-7X8lXeWyT3FBvoipRVW0fCbaOqkONdCm/exec';
 const CS_URL        = 'https://docs.google.com/spreadsheets/d/1RatBuXuxKn2mpznYga2pupmbTnv2m_H46BLZIxN3pKo/export?format=csv&gid=595917858';
 const PO_URL        = 'https://docs.google.com/spreadsheets/d/1RatBuXuxKn2mpznYga2pupmbTnv2m_H46BLZIxN3pKo/export?format=csv&gid=1814828386';
 // Monthly sales history — SKU × month columns (2024_01 … 2025_02)
