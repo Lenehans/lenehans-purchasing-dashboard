@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V6.9.4 · EMAIL ATTRIBUTION</title>
+  <title>Lenehans Purchasing Dashboard · V6.9.5 · EMAIL ATTRIBUTION</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1082,7 +1082,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.9.4 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
+  <div class="sub">V6.9.5 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -4073,9 +4073,14 @@ function renderSalesIntel(){
   // Linnworks' own reporting — but comparing gross revenue to ex-VAT cost would
   // overstate margin by ~23%. Ireland VAT rate confirmed via direct price comparison
   // (see A002485 investigation: Magento 44.7073 × 1.23 = Vend 54.99, exact match).
-  const VAT_RATE = 1.23;
-  const revNet30 = r => rev30(r) / VAT_RATE;
-  const revNet180 = r => rev180(r) / VAT_RATE;
+  // Magento online revenue is ALREADY ex-VAT — confirmed against A002485:
+  // €7,627 / 169 units = €45.13/unit, the actual ex-VAT sell price. Cost
+  // (SupplierCostPrice) is also ex-VAT, so margin = (rev/qty − cost)/(rev/qty)
+  // with NO further VAT division. The earlier ÷1.23 here removed VAT a second
+  // time and understated margin by ~23% (e.g. A002485 read 12% instead of 28.5%).
+  const VAT_RATE = 1.23; // retained for any gross-up display needs; NOT applied to margin
+  const revNet30 = r => rev30(r);
+  const revNet180 = r => rev180(r);
   const fmtE  = v => '€'+fmtInt(Math.round(v));
   const fmtPct= v => (v>=0?'+':'')+v.toFixed(1)+'%';
   const fmtN2 = v => v.toFixed(2);
@@ -4124,7 +4129,7 @@ function renderSalesIntel(){
       {k:'title',   label:'Product', fmt:r=>(r.ItemTitle||'').substring(0,38),wide:true},
       {k:'sup',     label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,12)},
       {k:'abcClass',label:'ABC',     fmt:r=>{const c={'A':'#16a34a','B':'#d97706','C':'#64748b'}[r.abcClass]||'#94a3b8';return `<span style="color:${c};font-weight:700">${r.abcClass||'?'}</span>`;}},
-      {k:'_rev30',  label:hasRev?'Revenue inc-VAT':'Units', num:true, fmt:r=>hasRev?`<b>${fmtE(r._rev30)}</b>`:Math.round(r._qty30).toString(), sort:'_rev30'},
+      {k:'_rev30',  label:hasRev?'Revenue':'Units', num:true, fmt:r=>hasRev?`<b>${fmtE(r._rev30)}</b>`:Math.round(r._qty30).toString(), sort:'_rev30'},
       ...(hasRev?[
         {k:'_revShare',label:'Share%',  num:true,fmt:r=>`<span style="color:#64748b;font-size:10px">${r._revShare.toFixed(1)}%</span>`},
         {k:'_qty30',   label:'Units',   num:true,fmt:r=>Math.round(r._qty30)},
@@ -4173,7 +4178,7 @@ function renderSalesIntel(){
         const c=r._margin>=40?'#16a34a':r._margin>=20?'#d97706':'#dc2626';
         return `<span style="color:${c};font-weight:700">${r._margin.toFixed(1)}%</span>`;
       },sort:'_margin'},
-      {k:'_rev30',label:'Rev/30d inc-VAT',num:true,fmt:r=>fmtE(r._rev30)},
+      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>fmtE(r._rev30)},
       {k:'_qty30',label:'Units/30d',num:true,fmt:r=>Math.round(r._qty30)},
     ];
 
@@ -4212,7 +4217,7 @@ function renderSalesIntel(){
       {k:'_spike',label:'Spike ×',num:true,fmt:r=>`<span style="color:#dc2626;font-weight:700">↑${r._spike.toFixed(1)}×</span>`},
       {k:'_r30',label:'Now/day',num:true,fmt:r=>r._r30.toFixed(2)},
       {k:'_r180',label:'Avg/day',num:true,fmt:r=>r._r180.toFixed(2)},
-      {k:'_rev30',label:'Rev/30d inc-VAT',num:true,fmt:r=>fmtE(r._rev30)},
+      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>fmtE(r._rev30)},
       {k:'coverStatus',label:'Cover',fmt:r=>r.coverStatus||'-'},
       {k:'buy',label:'Buy',num:true,fmt:r=>(r.buy||0)>0?`<span style="color:#dc2626;font-weight:700">${r.buy}</span>`:'—'},
     ];
@@ -4239,7 +4244,7 @@ function renderSalesIntel(){
         const c=r._pchg>0?'#16a34a':'#dc2626';
         return `<span style="color:${c};font-weight:700">${fmtPct(r._pchg)}</span>`;
       }},
-      {k:'_rev30',label:'Rev/30d inc-VAT',num:true,fmt:r=>fmtE(r._rev30)},
+      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>fmtE(r._rev30)},
     ];
   }
 
