@@ -1329,9 +1329,9 @@
     <h3>📋 Supplier Order Table</h3>
     <span class="sec-desc">Full drill-down · sort by column · SKU detail · PO export</span>
     <span id="tableSummary" class="small"></span>
-    <span class="wl-toggle" id="tableToggle">▼ Show</span>
+    <span class="wl-toggle" id="tableToggle">▲ Hide</span>
   </div>
-  <div id="tableBody" class="wl-body closed">
+  <div id="tableBody" class="wl-body">
 
   <div class="card" id="orderPreviewCard">
     <h3>Order Preview — <span id="opSupplierName" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"></span></h3>
@@ -8182,7 +8182,15 @@ function bindEvents(){
   const searchEl=byId('searchBox');
   if(searchEl){
     let _searchTimer=null;
-    const doSearch=()=>{ if(state.rawRows.length) render(); };
+    const doSearch=()=>{
+      if(!state.rawRows.length) return;
+      render();
+      // auto-open the Supplier Order Table when searching, so matches are visible
+      if((searchEl.value||'').trim()){
+        const tb=document.getElementById('tableBody');
+        if(tb&&tb.classList.contains('closed')){ tb.classList.remove('closed'); const tl=document.getElementById('tableToggle'); if(tl) tl.textContent='▲ Hide'; }
+      }
+    };
     searchEl.addEventListener('input',()=>{ clearTimeout(_searchTimer); _searchTimer=setTimeout(doSearch,300); });
     searchEl.addEventListener('change',doSearch);
   }
