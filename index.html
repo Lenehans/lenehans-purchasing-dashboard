@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V6.9.8 · EMAIL ATTRIBUTION</title>
+  <title>Lenehans Purchasing Dashboard · V6.9.9 · EMAIL ATTRIBUTION</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1082,7 +1082,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.9.8 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
+  <div class="sub">V6.9.9 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -2309,6 +2309,42 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     return '<span style="background:#f1f5f9;color:#475569;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700">✅ In stock</span>';
   }
 
+  // Render the green "fresh stock to add" block from a precomputed items list
+  function eiFreshAddsBlock(items, subtitle) {
+    if (!items || !items.length) return '';
+    var h = '<div style="margin:10px 0;border:1px solid #86efac;border-radius:8px;background:#f0fdf4;padding:9px 11px">'
+      + '<div style="font-size:11px;font-weight:800;color:#166534;margin-bottom:2px">🆕 Add to this year — fresh on-theme stock</div>'
+      + '<div style="font-size:10px;color:#64748b;margin-bottom:6px">'+subtitle+'</div>'
+      + '<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#dcfce7">'
+      + '<th style="padding:4px 6px;text-align:left">SKU</th><th style="padding:4px 6px;text-align:left">Product</th><th style="padding:4px 6px;text-align:left">Status</th><th style="padding:4px 6px;text-align:right">30d</th><th style="padding:4px 6px;text-align:right">Stock</th><th style="padding:4px 6px;text-align:right">Cover</th></tr></thead><tbody>';
+    items.forEach(function(p){
+      h += '<tr style="border-top:1px solid #bbf7d0">'
+        + '<td style="padding:4px 6px;font-family:monospace;font-size:10px;color:#1e40af">'+esc(p.sku||'')+'</td>'
+        + '<td style="padding:4px 6px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(p.name||'')+'">'+esc(p.name||'—')+'</td>'
+        + '<td style="padding:4px 6px">'+eiFreshChip(p.tag)+(p.onO>0?' <span style="font-size:9px;color:#64748b">+'+p.onO+' inbound</span>':'')+'</td>'
+        + '<td style="padding:4px 6px;text-align:right;font-weight:700">'+p.q30+'</td>'
+        + '<td style="padding:4px 6px;text-align:right">'+p.stk+'</td>'
+        + '<td style="padding:4px 6px;text-align:right;color:'+(p.cov>45?'#14532d':p.cov>21?'#92400e':'#991b1b')+';font-weight:600">'+p.cov+'d</td>'
+      + '</tr>';
+    });
+    return h + '</tbody></table></div>';
+  }
+
+  // Month-level fresh adds: union across all themes the month's emails covered
+  function eiFreshAddsForMonth(camps, soldSet) {
+    var themes = {};
+    camps.forEach(function(c){ var t=c.theme; if(t && t!=='sale' && t!=='other' && t!=='seasonal_oct') themes[t]=true; });
+    var seen={}, merged=[];
+    Object.keys(themes).forEach(function(t){
+      eiFreshOnThemeAdds(t, soldSet).forEach(function(p){
+        var k=(p.sku||'').trim().toUpperCase(); if(seen[k]) return; seen[k]=true; merged.push(p);
+      });
+    });
+    var rank={'new':0,'restock':1,'avail':2};
+    merged.sort(function(a,b){ return rank[a.tag]!==rank[b.tag]?rank[a.tag]-rank[b.tag]:b.q30-a.q30; });
+    return merged.slice(0,8);
+  }
+
   // Campaigns actually sent in month m of year yr (real campaigns only — flows excluded)
   function eiMonthCampaigns(m, yr) {
     return eiCamps.filter(function(c){
@@ -2595,6 +2631,16 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     }
 
     html += '</div>';
+
+    // Fresh on-theme stock to add this year — across the themes this month's emails covered
+    var soldUnion = {};
+    agg.campaigns.forEach(function(c){
+      var cp = eiCampProd[c.id]; if (!cp || !cp.products) return;
+      cp.products.forEach(function(p){ soldUnion[(p.sku||'').trim().toUpperCase()] = true; });
+    });
+    html += eiFreshAddsBlock(eiFreshAddsForMonth(agg.campaigns, soldUnion),
+      'On-theme with ' + MN[m] + '\u2019s emails, in stock now, and not yet featured \u2014 new or restocking. Candidates to add to this year\u2019s ' + MN[m] + ' send.');
+
     el.innerHTML = html;
   }
 
@@ -2709,6 +2755,11 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
         html += '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:5px 9px;margin-bottom:7px;font-size:10px;color:#991b1b;font-weight:700">🔴 '+oosNow.length+' of these are OOS now — restock before resending this email</div>';
       }
 
+      // Fresh on-theme stock to ADD this year — surfaced up top where it's actionable
+      var soldSet = {}; cp.products.forEach(function(p){ soldSet[(p.sku||'').trim().toUpperCase()] = true; });
+      html += eiFreshAddsBlock(eiFreshOnThemeAdds(campTheme, soldSet),
+        'On-theme, in stock now, and <strong>not</strong> in last year\'s email — newly selling or being restocked. Worth featuring in this year\'s send.');
+
       html += '<table style="width:100%;border-collapse:collapse;font-size:11px">' + thead + '<tbody>' + prodRows(top) + '</tbody></table>'
         + '<div style="font-size:10px;color:#94a3b8;margin-top:4px">'+(top.length<mainList.length?'Top '+top.length+' of '+mainList.length+' by revenue · ':'')+ready.length+' ready to feature again · Klaviyo-attributed (verify VAT basis)</div>';
 
@@ -2718,28 +2769,6 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
           + '<summary style="font-size:10px;font-weight:700;color:#94a3b8;cursor:pointer;padding:3px 0">▶ '+offT.length+' off-theme item'+(offT.length!==1?'s':'')+' also bought by clickers (€'+Math.round(offRev).toLocaleString('en-IE')+') — not what this email featured</summary>'
           + '<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:5px">' + thead + '<tbody>' + prodRows(offT.slice(0,15)) + '</tbody></table>'
           + '</details>';
-      }
-
-      // Fresh on-theme stock to ADD to this year's send (new / restocking, not in last year's email)
-      var soldSet = {}; cp.products.forEach(function(p){ soldSet[(p.sku||'').trim().toUpperCase()] = true; });
-      var fresh = eiFreshOnThemeAdds(campTheme, soldSet);
-      if (fresh.length) {
-        html += '<div style="margin-top:10px;border-top:1px dashed #86efac;padding-top:8px">'
-          + '<div style="font-size:11px;font-weight:800;color:#166534;margin-bottom:2px">🆕 Add to this year — fresh on-theme stock</div>'
-          + '<div style="font-size:10px;color:#64748b;margin-bottom:6px">On-theme, in stock now, and <strong>not</strong> in last year\'s email — newly selling or being restocked. Worth featuring in this year\'s send.</div>'
-          + '<table style="width:100%;border-collapse:collapse;font-size:11px">'
-          + '<thead><tr style="background:#f0fdf4"><th style="padding:4px 6px;text-align:left">SKU</th><th style="padding:4px 6px;text-align:left">Product</th><th style="padding:4px 6px;text-align:left">Status</th><th style="padding:4px 6px;text-align:right">30d</th><th style="padding:4px 6px;text-align:right">Stock</th><th style="padding:4px 6px;text-align:right">Cover</th></tr></thead><tbody>';
-        fresh.forEach(function(p){
-          html += '<tr style="border-top:1px solid var(--line-light)">'
-            + '<td style="padding:4px 6px;font-family:monospace;font-size:10px;color:#1e40af">'+esc(p.sku||'')+'</td>'
-            + '<td style="padding:4px 6px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(p.name||'')+'">'+esc(p.name||'—')+'</td>'
-            + '<td style="padding:4px 6px">'+eiFreshChip(p.tag)+(p.onO>0?' <span style="font-size:9px;color:#64748b">+'+p.onO+' inbound</span>':'')+'</td>'
-            + '<td style="padding:4px 6px;text-align:right;font-weight:700">'+p.q30+'</td>'
-            + '<td style="padding:4px 6px;text-align:right">'+p.stk+'</td>'
-            + '<td style="padding:4px 6px;text-align:right;color:'+(p.cov>45?'#14532d':p.cov>21?'#92400e':'#991b1b')+';font-weight:600">'+p.cov+'d</td>'
-          + '</tr>';
-        });
-        html += '</tbody></table></div>';
       }
 
       html += '</div>';
