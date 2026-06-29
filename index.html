@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V6.9.5 · EMAIL ATTRIBUTION</title>
+  <title>Lenehans Purchasing Dashboard · V6.9.7 · EMAIL ATTRIBUTION</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1082,7 +1082,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.9.5 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
+  <div class="sub">V6.9.7 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -1712,14 +1712,6 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
         <div id="eiArchiveList" style="margin-top:10px"><div class="ei-empty">Sync Klaviyo to see archive</div></div>
       </details>
 
-      <!-- Gap Finder -->
-      <details style="margin-top:12px" open>
-        <summary style="font-size:11px;font-weight:800;color:#52637a;text-transform:uppercase;letter-spacing:.07em;cursor:pointer;padding:6px 0;border-top:1.5px solid var(--line-light);list-style:none;display:flex;align-items:center;gap:8px">
-          <span id="eiGapArrow">▼</span> 🔍 Email gap finder — untapped stock categories
-        </summary>
-        <div id="eiGapFinder" style="margin-top:10px"><div class="ei-empty">Load buying data and sync Klaviyo to see gaps</div></div>
-      </details>
-
       <!-- Send day analysis -->
       <details style="margin-top:12px" open>
         <summary style="font-size:11px;font-weight:800;color:#52637a;text-transform:uppercase;letter-spacing:.07em;cursor:pointer;padding:6px 0;border-top:1.5px solid var(--line-light);list-style:none;display:flex;align-items:center;gap:8px">
@@ -2163,7 +2155,6 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     eiRenderLastYear(m);
     eiRenderSendThis(m);
     eiRenderArchive();
-    eiRenderGapFinder();
     eiRenderSendDayAnalysis();
   }
 
@@ -2208,8 +2199,8 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
 
     var tableRows = rows.map(function(r, i) {
       var isBest = i === 0;
-      var pctOpen  = Math.round(r.avgOpen * 1000) / 10;
-      var pctClick = r.avgClick > 0 ? Math.round(r.avgClick * 1000) / 10 : null;
+      var pctOpen  = Math.round(r.avgOpen * 10) / 10;
+      var pctClick = r.avgClick > 0 ? Math.round(r.avgClick * 10) / 10 : null;
       var barW     = Math.round((r.avgOpen / maxOpen) * 100);
       var rowBg    = isBest ? '#eff6ff' : i % 2 === 0 ? '#f9fafb' : '#fff';
       return '<tr style="background:' + rowBg + ';border-top:1px solid #f1f5f9">'
@@ -2231,7 +2222,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     }).join('');
 
     el.innerHTML = '<div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#1e3a5f;font-weight:700">'
-      + '📅 Best day to send: <strong>' + bestDay + '</strong> · avg ' + Math.round(rows[0].avgOpen*1000)/10 + '% open rate across ' + rows[0].count + ' campaigns'
+      + '📅 Best day to send: <strong>' + bestDay + '</strong> · avg ' + Math.round(rows[0].avgOpen*10)/10 + '% open rate across ' + rows[0].count + ' campaigns'
     + '</div>'
     + '<div style="overflow-x:auto">'
     + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
@@ -2248,107 +2239,6 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   }
 
   // ── Gap Finder ────────────────────────────────────────────────────────────────
-  function eiRenderGapFinder() {
-    var el = G('eiGapFinder'); if (!el) return;
-    var rows = getRows();
-    if (!rows.length) { el.innerHTML = '<div class="ei-empty">Load buying data to see gaps</div>'; return; }
-
-    // Theme order — same as seasonal calendar, excludes fixings/safety (score <2)
-    var THEMES = ['garden','power','paint','tools','plumbing','storage','cleaning','pest'];
-    var LABELS = { garden:'Garden & outdoor', power:'Power tools', paint:'Paint & decorating',
-                   tools:'Hand tools', plumbing:'Plumbing', storage:'Storage & organisation',
-                   cleaning:'Cleaning', pest:'Pest control', other:'Other / unclassified' };
-
-    // Build buying index
-    var buyCache = {};
-    rows.forEach(function(r){ buyCache[(r.SKU||'').trim().toUpperCase()] = r; });
-
-    // Aggregate stock + velocity by theme from buying rows
-    var td = {};
-    THEMES.forEach(function(t){ td[t] = { skuCount:0, inStockSkus:0, totalStock:0, vel30:0, emailQty:0, emailSkus:0 }; });
-    td.other = { skuCount:0, inStockSkus:0, totalStock:0, vel30:0, emailQty:0, emailSkus:0 };
-
-    rows.forEach(function(r) {
-      var t = themeFromRow(r);
-      if (!td[t]) t = 'other';
-      var stk = r.stock || r.NetStock_Arklow || 0;
-      td[t].skuCount++;
-      if (stk > 0) { td[t].inStockSkus++; td[t].totalStock += stk; }
-      td[t].vel30 += (r.QtySold_Online_Total_30d || r.QSold_On30 || 0);
-    });
-
-    // Accumulate email sales from eiSalesMap (all 12 months combined)
-    if (Object.keys(eiSalesMap).length > 0) {
-      Object.values(eiSalesMap).forEach(function(p) {
-        var sku = (p.sku || '').trim().toUpperCase();
-        var br = buyCache[sku] || buyCache[sku.replace(/^TP_/,'')] || buyCache['TP_'+sku];
-        if (!br) return;
-        var t = themeFromRow(br);
-        if (!td[t]) t = 'other';
-        var total = (p.totalQty || Object.values(p.monthly||{}).reduce(function(s,v){return s+v;},0));
-        if (total > 0) { td[t].emailQty += total; td[t].emailSkus++; }
-      });
-    }
-
-    // Compute gap score: in-stock SKUs with low email penetration
-    // gap % = 1 - (emailSkus / inStockSkus) — higher = bigger gap
-    var results = THEMES.concat(['other']).map(function(t) {
-      var d = td[t];
-      if (d.inStockSkus < 5) return null; // too small to be meaningful
-      var penetration = d.inStockSkus > 0 ? Math.round((d.emailSkus / d.inStockSkus) * 100) : 0;
-      var gapPct = 100 - penetration;
-      return { theme: t, label: LABELS[t]||t, skuCount: d.skuCount, inStockSkus: d.inStockSkus,
-               totalStock: d.totalStock, vel30: Math.round(d.vel30), emailQty: Math.round(d.emailQty),
-               emailSkus: d.emailSkus, penetration: penetration, gapPct: gapPct };
-    }).filter(Boolean).sort(function(a,b) {
-      // Sort by: (in-stock SKU count × gap%) desc — biggest untapped volume first
-      return (b.inStockSkus * b.gapPct) - (a.inStockSkus * a.gapPct);
-    });
-
-    if (!results.length) { el.innerHTML = '<div class="ei-empty">No gap data available</div>'; return; }
-
-    var hasSalesData = Object.keys(eiSalesMap).length > 0;
-    var note = hasSalesData ? '' : '<div style="font-size:11px;color:#92400e;background:#fff7ed;border:1px solid #fde68a;border-radius:6px;padding:6px 10px;margin-bottom:10px">⚠ Sync Klaviyo to load email sales history — stock data only shown below</div>';
-
-    var rows2 = results.map(function(r) {
-      var barPct = Math.min(100, r.penetration);
-      var gapCls = r.gapPct >= 80 ? '#dc2626' : r.gapPct >= 60 ? '#d97706' : '#16a34a';
-      var gapBg  = r.gapPct >= 80 ? '#fee2e2' : r.gapPct >= 60 ? '#fff7ed' : '#f0fdf4';
-      var velFmt = r.vel30 >= 1000 ? Math.round(r.vel30/100)/10+'k' : r.vel30.toLocaleString('en-IE');
-      return '<tr style="border-top:1px solid #f1f5f9">'
-        + '<td style="padding:7px 10px;font-weight:700;font-size:12px;color:#1e293b">'+esc(r.label)+'</td>'
-        + '<td style="padding:7px 10px;text-align:right;font-size:12px;color:#374151">'+r.inStockSkus.toLocaleString('en-IE')+'</td>'
-        + '<td style="padding:7px 10px;text-align:right;font-size:12px;color:#374151">'+velFmt+'</td>'
-        + '<td style="padding:7px 10px;text-align:right;font-size:12px;color:#1e40af;font-weight:700">'+(hasSalesData?r.emailSkus.toLocaleString('en-IE'):'—')+'</td>'
-        + '<td style="padding:7px 10px;min-width:130px">'
-          + '<div style="display:flex;align-items:center;gap:7px">'
-            + '<div style="flex:1;height:7px;background:#f1f5f9;border-radius:4px;overflow:hidden">'
-              + '<div style="height:100%;width:'+barPct+'%;background:'+(hasSalesData?'#1e40af':'#cbd5e1')+';border-radius:4px;transition:width .3s"></div>'
-            + '</div>'
-            + '<span style="font-size:11px;font-weight:700;color:#374151;white-space:nowrap">'+(hasSalesData?r.penetration+'%':'—')+'</span>'
-          + '</div>'
-        + '</td>'
-        + '<td style="padding:7px 10px;text-align:center">'
-          + '<span style="font-size:11px;font-weight:800;padding:2px 9px;border-radius:8px;background:'+gapBg+';color:'+gapCls+'">'+(hasSalesData?r.gapPct+'% gap':'New')+'</span>'
-        + '</td>'
-      + '</tr>';
-    }).join('');
-
-    el.innerHTML = note
-      + '<div style="overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px">'
-      + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
-      + '<thead><tr style="background:#f8fafc">'
-        + '<th style="text-align:left;padding:8px 10px;font-size:10px;font-weight:800;color:#52637a;text-transform:uppercase;letter-spacing:.05em">Category</th>'
-        + '<th style="text-align:right;padding:8px 10px;font-size:10px;font-weight:800;color:#52637a;text-transform:uppercase;letter-spacing:.05em" title="SKUs with stock > 0">SKUs in stock</th>'
-        + '<th style="text-align:right;padding:8px 10px;font-size:10px;font-weight:800;color:#52637a;text-transform:uppercase;letter-spacing:.05em">30d velocity</th>'
-        + '<th style="text-align:right;padding:8px 10px;font-size:10px;font-weight:800;color:#1e40af;text-transform:uppercase;letter-spacing:.05em">Email SKUs</th>'
-        + '<th style="padding:8px 10px;font-size:10px;font-weight:800;color:#52637a;text-transform:uppercase;letter-spacing:.05em">Email penetration</th>'
-        + '<th style="text-align:center;padding:8px 10px;font-size:10px;font-weight:800;color:#52637a;text-transform:uppercase;letter-spacing:.05em">Gap</th>'
-      + '</tr></thead>'
-      + '<tbody>'+rows2+'</tbody></table></div>'
-      + '<div style="font-size:11px;color:#64748b;padding:6px 4px;margin-top:4px">Sorted by untapped volume — categories with many in-stock SKUs but low email sales history. <strong>Gap %</strong> = % of in-stock SKUs never attributed to an email order.</div>';
-  }
-
   // ── Left: compact campaign cards ─────────────────────────────────────────────
   // ── Shared buy-index (built once per rows array, not per render) ─────────────
   var _eiBuyIdx = null, _eiBuyIdxFor = null;
@@ -4073,14 +3963,14 @@ function renderSalesIntel(){
   // Linnworks' own reporting — but comparing gross revenue to ex-VAT cost would
   // overstate margin by ~23%. Ireland VAT rate confirmed via direct price comparison
   // (see A002485 investigation: Magento 44.7073 × 1.23 = Vend 54.99, exact match).
-  // Magento online revenue is ALREADY ex-VAT — confirmed against A002485:
-  // €7,627 / 169 units = €45.13/unit, the actual ex-VAT sell price. Cost
-  // (SupplierCostPrice) is also ex-VAT, so margin = (rev/qty − cost)/(rev/qty)
-  // with NO further VAT division. The earlier ÷1.23 here removed VAT a second
-  // time and understated margin by ~23% (e.g. A002485 read 12% instead of 28.5%).
-  const VAT_RATE = 1.23; // retained for any gross-up display needs; NOT applied to margin
-  const revNet30 = r => rev30(r);
-  const revNet180 = r => rev180(r);
+  // Magento online revenue is ex-VAT in source and grossed ×1.23 at parse, so
+  // rev30 here is INC-VAT (that's what the Revenue column shows). For margin vs
+  // the ex-VAT SupplierCostPrice we divide back by 1.23 → ex-VAT realised price.
+  // Confirmed via A002716: €4,619/56 = €82.48 inc-VAT (blend of €79.99/€89.99
+  // shelf) → €67.06 ex-VAT → 36% margin. (A002485: €45.13 inc-VAT → €36.69 ex-VAT.)
+  const VAT_RATE = 1.23;
+  const revNet30 = r => rev30(r) / VAT_RATE;
+  const revNet180 = r => rev180(r) / VAT_RATE;
   const fmtE  = v => '€'+fmtInt(Math.round(v));
   const fmtPct= v => (v>=0?'+':'')+v.toFixed(1)+'%';
   const fmtN2 = v => v.toFixed(2);
@@ -4129,7 +4019,7 @@ function renderSalesIntel(){
       {k:'title',   label:'Product', fmt:r=>(r.ItemTitle||'').substring(0,38),wide:true},
       {k:'sup',     label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,12)},
       {k:'abcClass',label:'ABC',     fmt:r=>{const c={'A':'#16a34a','B':'#d97706','C':'#64748b'}[r.abcClass]||'#94a3b8';return `<span style="color:${c};font-weight:700">${r.abcClass||'?'}</span>`;}},
-      {k:'_rev30',  label:hasRev?'Revenue':'Units', num:true, fmt:r=>hasRev?`<b>${fmtE(r._rev30)}</b>`:Math.round(r._qty30).toString(), sort:'_rev30'},
+      {k:'_rev30',  label:hasRev?'Revenue inc-VAT':'Units', num:true, fmt:r=>hasRev?`<b>${fmtE(r._rev30)}</b>`:Math.round(r._qty30).toString(), sort:'_rev30'},
       ...(hasRev?[
         {k:'_revShare',label:'Share%',  num:true,fmt:r=>`<span style="color:#64748b;font-size:10px">${r._revShare.toFixed(1)}%</span>`},
         {k:'_qty30',   label:'Units',   num:true,fmt:r=>Math.round(r._qty30)},
@@ -4178,7 +4068,7 @@ function renderSalesIntel(){
         const c=r._margin>=40?'#16a34a':r._margin>=20?'#d97706':'#dc2626';
         return `<span style="color:${c};font-weight:700">${r._margin.toFixed(1)}%</span>`;
       },sort:'_margin'},
-      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>fmtE(r._rev30)},
+      {k:'_rev30',label:'Rev/30d inc-VAT',num:true,fmt:r=>fmtE(r._rev30)},
       {k:'_qty30',label:'Units/30d',num:true,fmt:r=>Math.round(r._qty30)},
     ];
 
@@ -4196,7 +4086,7 @@ function renderSalesIntel(){
       {k:'stock',label:'Stock',num:true,fmt:r=>r.stock||0},
       {k:'_cover',label:'Cover',num:true,fmt:r=>r._cover>=900?'No demand':Math.round(r._cover)+'d'},
       {k:'_capitalTied',label:'Capital tied',num:true,fmt:r=>`<span style="color:#dc2626;font-weight:700">${fmtE(r._capitalTied)}</span>`},
-      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>r._rev30>0?fmtE(r._rev30):'—'},
+      {k:'_rev30',label:'Rev/30d inc-VAT',num:true,fmt:r=>r._rev30>0?fmtE(r._rev30):'—'},
       {k:'_qty30',label:'Units/30d',num:true,fmt:r=>r._qty30>0?Math.round(r._qty30):'—'},
     ];
 
@@ -4217,7 +4107,7 @@ function renderSalesIntel(){
       {k:'_spike',label:'Spike ×',num:true,fmt:r=>`<span style="color:#dc2626;font-weight:700">↑${r._spike.toFixed(1)}×</span>`},
       {k:'_r30',label:'Now/day',num:true,fmt:r=>r._r30.toFixed(2)},
       {k:'_r180',label:'Avg/day',num:true,fmt:r=>r._r180.toFixed(2)},
-      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>fmtE(r._rev30)},
+      {k:'_rev30',label:'Rev/30d inc-VAT',num:true,fmt:r=>fmtE(r._rev30)},
       {k:'coverStatus',label:'Cover',fmt:r=>r.coverStatus||'-'},
       {k:'buy',label:'Buy',num:true,fmt:r=>(r.buy||0)>0?`<span style="color:#dc2626;font-weight:700">${r.buy}</span>`:'—'},
     ];
@@ -4244,7 +4134,7 @@ function renderSalesIntel(){
         const c=r._pchg>0?'#16a34a':'#dc2626';
         return `<span style="color:${c};font-weight:700">${fmtPct(r._pchg)}</span>`;
       }},
-      {k:'_rev30',label:'Rev/30d',num:true,fmt:r=>fmtE(r._rev30)},
+      {k:'_rev30',label:'Rev/30d inc-VAT',num:true,fmt:r=>fmtE(r._rev30)},
     ];
   }
 
