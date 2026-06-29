@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V6.9.7 · EMAIL ATTRIBUTION</title>
+  <title>Lenehans Purchasing Dashboard · V6.9.8 · EMAIL ATTRIBUTION</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1082,7 +1082,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.9.7 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
+  <div class="sub">V6.9.8 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -2265,6 +2265,50 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     return pt === campTheme;
   }
 
+  // Cached theme → rows index (built once per rows array, reused across expanders)
+  var _eiThemeIdx = null, _eiThemeIdxFor = null;
+  function eiThemeIndex() {
+    var rows = getRows();
+    if (_eiThemeIdx && _eiThemeIdxFor === rows) return _eiThemeIdx;
+    var idx = {};
+    rows.forEach(function(r){ var t = themeFromRow(r); (idx[t] = idx[t] || []).push(r); });
+    _eiThemeIdx = idx; _eiThemeIdxFor = rows;
+    return idx;
+  }
+
+  // Fresh on-theme stock NOT in last year's email — newly selling or being replenished.
+  // These are candidates to ADD to this year's send (e.g. a power washer now back in
+  // stock for a power-washer email). Signals available per row: 30/90/180d velocity,
+  // OnOrder (incoming), stock, cover. "New" = sales concentrated in the last 30d
+  // (little long-term history); "restock" = actively replenishing (OnOrder > 0).
+  function eiFreshOnThemeAdds(campTheme, soldSet) {
+    if (!campTheme || campTheme === 'sale' || campTheme === 'other' || campTheme === 'seasonal_oct') return [];
+    var rows = eiThemeIndex()[campTheme] || [];
+    var out = [];
+    rows.forEach(function(r){
+      var sku = (r.SKU||'').trim().toUpperCase(); if (!sku) return;
+      if (soldSet[sku]) return;                                   // already in last year's email
+      var stk = r.stock || r.NetStock_Arklow || 0; if (stk <= 0) return;
+      var cov = Math.round(coverDays(r)); if (cov < 14) return;   // must last a campaign cycle
+      var q30  = r.QtySold_Online_Total_30d  || r.QSold_On30  || 0;
+      var q180 = r.QtySold_Online_Total_180d || r.QSold_On180 || 0;
+      var onO  = r.OnOrder || 0;
+      var isNew   = q30 > 0 && q180 <= q30 * 2;                   // most of 6-month sales are recent
+      var restock = onO > 0;                                      // replenishment inbound
+      if (!isNew && !restock && q30 <= 0) return;                 // need a sign of life
+      out.push({ sku:r.SKU, name:r.ItemTitle, stk:stk, cov:cov, q30:q30, onO:onO,
+                 tag: isNew ? 'new' : (restock ? 'restock' : 'avail') });
+    });
+    var rank = { 'new':0, 'restock':1, 'avail':2 };
+    out.sort(function(a,b){ return rank[a.tag] !== rank[b.tag] ? rank[a.tag]-rank[b.tag] : b.q30 - a.q30; });
+    return out.slice(0, 8);
+  }
+  function eiFreshChip(tag) {
+    if (tag === 'new')     return '<span style="background:#dcfce7;color:#166534;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:800">🆕 New</span>';
+    if (tag === 'restock') return '<span style="background:#dbeafe;color:#1e40af;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:800">🔄 Restocking</span>';
+    return '<span style="background:#f1f5f9;color:#475569;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700">✅ In stock</span>';
+  }
+
   // Campaigns actually sent in month m of year yr (real campaigns only — flows excluded)
   function eiMonthCampaigns(m, yr) {
     return eiCamps.filter(function(c){
@@ -2674,6 +2718,28 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
           + '<summary style="font-size:10px;font-weight:700;color:#94a3b8;cursor:pointer;padding:3px 0">▶ '+offT.length+' off-theme item'+(offT.length!==1?'s':'')+' also bought by clickers (€'+Math.round(offRev).toLocaleString('en-IE')+') — not what this email featured</summary>'
           + '<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:5px">' + thead + '<tbody>' + prodRows(offT.slice(0,15)) + '</tbody></table>'
           + '</details>';
+      }
+
+      // Fresh on-theme stock to ADD to this year's send (new / restocking, not in last year's email)
+      var soldSet = {}; cp.products.forEach(function(p){ soldSet[(p.sku||'').trim().toUpperCase()] = true; });
+      var fresh = eiFreshOnThemeAdds(campTheme, soldSet);
+      if (fresh.length) {
+        html += '<div style="margin-top:10px;border-top:1px dashed #86efac;padding-top:8px">'
+          + '<div style="font-size:11px;font-weight:800;color:#166534;margin-bottom:2px">🆕 Add to this year — fresh on-theme stock</div>'
+          + '<div style="font-size:10px;color:#64748b;margin-bottom:6px">On-theme, in stock now, and <strong>not</strong> in last year\'s email — newly selling or being restocked. Worth featuring in this year\'s send.</div>'
+          + '<table style="width:100%;border-collapse:collapse;font-size:11px">'
+          + '<thead><tr style="background:#f0fdf4"><th style="padding:4px 6px;text-align:left">SKU</th><th style="padding:4px 6px;text-align:left">Product</th><th style="padding:4px 6px;text-align:left">Status</th><th style="padding:4px 6px;text-align:right">30d</th><th style="padding:4px 6px;text-align:right">Stock</th><th style="padding:4px 6px;text-align:right">Cover</th></tr></thead><tbody>';
+        fresh.forEach(function(p){
+          html += '<tr style="border-top:1px solid var(--line-light)">'
+            + '<td style="padding:4px 6px;font-family:monospace;font-size:10px;color:#1e40af">'+esc(p.sku||'')+'</td>'
+            + '<td style="padding:4px 6px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(p.name||'')+'">'+esc(p.name||'—')+'</td>'
+            + '<td style="padding:4px 6px">'+eiFreshChip(p.tag)+(p.onO>0?' <span style="font-size:9px;color:#64748b">+'+p.onO+' inbound</span>':'')+'</td>'
+            + '<td style="padding:4px 6px;text-align:right;font-weight:700">'+p.q30+'</td>'
+            + '<td style="padding:4px 6px;text-align:right">'+p.stk+'</td>'
+            + '<td style="padding:4px 6px;text-align:right;color:'+(p.cov>45?'#14532d':p.cov>21?'#92400e':'#991b1b')+';font-weight:600">'+p.cov+'d</td>'
+          + '</tr>';
+        });
+        html += '</tbody></table></div>';
       }
 
       html += '</div>';
