@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V6.9.12 · EMAIL ATTRIBUTION</title>
+  <title>Lenehans Purchasing Dashboard · V6.9.13 · EMAIL ATTRIBUTION</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1082,7 +1082,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.9.12 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
+  <div class="sub">V6.9.13 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -1130,7 +1130,7 @@
       <button id="autoLoadBtn" class="secondary">Auto-load all feeds</button>
       <button id="testUrlBtn" class="secondary">Test URL</button>
       <button onclick="(function(){var s=prompt('Supplier name to audit (e.g. WILSONS):');if(!s)return;openSupplierAudit(s.trim());})()">📋 Supplier Audit</button>
-      <button onclick="(function(){var sku=prompt('Enter SKU to diagnose (e.g. 802518):');if(!sku)return;var ch=state.channel;var rows=(state.computedRows||[]).filter(function(x){return String(x.SKU||'').trim()===sku.trim();});if(!rows.length){alert('SKU ['+sku+'] not found in computed rows.\n\nMake sure data is loaded and check channel.');return;}var msg='🔍 SKU: '+sku+' | Channel: '+ch+'\nFound in '+rows.length+' supplier row'+(rows.length>1?'s (multi-supplier!)':'')+'\n\n';rows.forEach(function(r,i){var rank=(state.skuRankMap&&state.skuRankMap.get(sku.trim()))||'?';var inTop500=rank<=500;msg+='━━━ Supplier '+(i+1)+': '+(r.SupplierName||'?')+' ━━━\n';msg+='Stock → CS:'+( r.NetStock_CapelStreet||0)+' AK:'+(r.NetStock_Arklow||0)+'\n';msg+='CS demand 30d: '+(r.QtySold_Shop_CapelStreet_30d||0)+' units\n';msg+='CS revenue 30d: €'+(r.Revenue_Shop_CapelStreet_30d||0).toFixed(2)+'\n';msg+='AK demand 30d: '+(r.QtySold_Online_Arklow_30d||0)+' units (online only)\n';msg+='AK demand 180d: '+(r.QtySold_Online_Arklow_180d||0)+' units\n';msg+='CS demand 90d/180d: '+(r.QtySold_Shop_CapelStreet_90d||0)+' / '+(r.QtySold_Shop_CapelStreet_180d||0)+' units\n';msg+='📅 12-mo total (330d): '+(r.QtySold_Total_330d||0)+' units'+(r.isLapsedSeller?' 💤 LAPSED SELLER — sold last year, OOS, BUY 0':'')+'\n';var _ak180=(r.QtySold_Online_Arklow_180d||0)/180,_ak30=(r.QtySold_Online_Arklow_30d||0)/30;msg+='Seasonal (AK): '+(_ak180>0?(_ak30/_ak180).toFixed(1)+'× its 180d avg'+((_ak30/_ak180)>=1.5?' 📈 in season':''):'n/a')+'\n';msg+='⚠️ AK till/counter sales are NOT in demand (online only)\n';msg+='Adj daily: '+((r.adjustedDaily||0).toFixed(2))+' | Days cover: '+Math.round(r.daysOfCover||0)+'\n';msg+='Status: '+(r.coverStatus||'?')+' | ABC: '+(r.abcClass||'?')+'\n';msg+='BUY: '+(r.buy||0)+' units\n';msg+='Rank: '+rank+(inTop500?' ✅ in QO':' ❌ not in Quick Order')+'\n';msg+='Governance: '+(!!(state.governedSuppliers&&state.governedSuppliers.has(r.SupplierName))?'✅ pass':'❌ FAIL — hidden!')+'\n\n';});alert(msg);})()">🔍 Diagnose SKU</button>
+      <button onclick="(function(){var sku=prompt('Enter SKU to diagnose (e.g. 802518):');if(!sku)return;var ch=state.channel;var rows=(state.computedRows||[]).filter(function(x){return String(x.SKU||'').trim()===sku.trim();});if(!rows.length){alert('SKU ['+sku+'] not found in computed rows.\n\nMake sure data is loaded and check channel.');return;}var msg='🔍 SKU: '+sku+' | Channel: '+ch+'\nFound in '+rows.length+' supplier row'+(rows.length>1?'s (multi-supplier!)':'')+'\n\n';rows.forEach(function(r,i){var rank=(state.skuRankMap&&state.skuRankMap.get(sku.trim()))||'?';var inTop500=rank<=500;msg+='━━━ Supplier '+(i+1)+': '+(r.SupplierName||'?')+' ━━━\n';msg+='Stock → CS:'+( r.NetStock_CapelStreet||0)+' AK:'+(r.NetStock_Arklow||0)+'\n';msg+='CS demand 30d: '+(r.QtySold_Shop_CapelStreet_30d||0)+' units\n';msg+='CS revenue 30d: €'+(r.Revenue_Shop_CapelStreet_30d||0).toFixed(2)+'\n';msg+='AK demand 30d: '+(r.QtySold_Online_Arklow_30d||0)+' units (online only)\n';msg+='AK demand 180d: '+(r.QtySold_Online_Arklow_180d||0)+' units\n';msg+='CS demand 90d/180d: '+(r.QtySold_Shop_CapelStreet_90d||0)+' / '+(r.QtySold_Shop_CapelStreet_180d||0)+' units\n';msg+='📅 12-mo total (330d): '+(r.QtySold_Total_330d||0)+' units'+(r.isLapsedSeller?' 💤 LAPSED SELLER — sold last year, OOS, BUY 0':'')+'\n';msg+='📊 365d by channel → CS till: '+(r.QtySold_Shop_CapelStreet_365d||0)+' · CS online: '+(r.QtySold_Online_CapelStreet_365d||0)+' · AK online: '+(r.QtySold_Online_Arklow_365d||0)+'\n';var _ak180=(r.QtySold_Online_Arklow_180d||0)/180,_ak30=(r.QtySold_Online_Arklow_30d||0)/30;msg+='Seasonal (AK): '+(_ak180>0?(_ak30/_ak180).toFixed(1)+'× its 180d avg'+((_ak30/_ak180)>=1.5?' 📈 in season':''):'n/a')+'\n';msg+='⚠️ AK till/counter sales are NOT in demand (online only)\n';msg+='Adj daily: '+((r.adjustedDaily||0).toFixed(2))+' | Days cover: '+Math.round(r.daysOfCover||0)+'\n';msg+='Status: '+(r.coverStatus||'?')+' | ABC: '+(r.abcClass||'?')+'\n';msg+='BUY: '+(r.buy||0)+' units\n';msg+='Rank: '+rank+(inTop500?' ✅ in QO':' ❌ not in Quick Order')+'\n';msg+='Governance: '+(!!(state.governedSuppliers&&state.governedSuppliers.has(r.SupplierName))?'✅ pass':'❌ FAIL — hidden!')+'\n\n';});alert(msg);})()">🔍 Diagnose SKU</button>
       <label>or CSV file
         <input id="csvFile" type="file" accept=".csv,text/csv">
       </label>
@@ -5180,6 +5180,10 @@ function normalizeRow(r){
     // 12-month total (365d) — combined all channels, for discontinued detection
     // Live since 01/07/2025 — captures full Lenehans trading history
     QtySold_Total_330d: n('QtySold_Total_330d')||n('Q11')||0,
+    // 365d split by channel (from the companion sync query — 0 until that's deployed)
+    QtySold_Shop_CapelStreet_365d:   n('QtySold_Shop_CapelStreet_365d')||n('QSold_ShCS365')||0,
+    QtySold_Online_CapelStreet_365d: n('QtySold_Online_CapelStreet_365d')||n('QSold_OnCS365')||0,
+    QtySold_Online_Arklow_365d:      n('QtySold_Online_Arklow_365d')||n('QSold_OnAK365')||0,
     Revenue_Shop_CapelStreet_30d: n('Revenue_Shop_CapelStreet_30d')||n('Rev_ShCS30'),
     Barcode:     String(r.Barcode||'').trim(),
     BinRack_AK: String(r.BinRack_AK||'').trim(),
@@ -5886,7 +5890,11 @@ function computeRow(row){
   const eff180On = supplierOverride ? supplierOverride==='180D' : fallback180On;
   const fallbackOn    = eff90On || eff180On;
   const baseCover    = num(document.getElementById('baseCoverDays').value)||56;
-  const lead         = num(document.getElementById('leadDays').value)||0;
+  const globalLead   = num(document.getElementById('leadDays').value)||0;
+  // LEAD-TIME INVERSION: longer lead = MORE cover (buffer the wait), not less.
+  // Prefer the per-supplier lead time (from the PO sheet) over the global input.
+  // baseCover is the order-cycle anchor; lead is added on top as safety buffer.
+  const lead         = (state.supplierLeadTimes && state.supplierLeadTimes[row.SupplierName]) || globalLead;
   const coverDays    = baseCover+lead;
   const isSeasonalMode = demandMode==='Seasonal';
   const isCapel = state.channel==='capel';
@@ -6112,9 +6120,13 @@ function computeRow(row){
   // A 3-day supplier needs ~9-21 days cover, not 73+ days.
   // state.supplierLeadTimes populated from "Lead-Time" column in PO Status sheet.
   // leadTime = 0 → no cap (not configured). leadTime >= 1 → cap = max(leadTime × 3, 21).
-  const leadTimeDays = (state.supplierLeadTimes && state.supplierLeadTimes[row.SupplierName]) || 0;
-  const leadTimeCap  = leadTimeDays > 0 ? Math.max(leadTimeDays * 3, 21) : 180;
-  const effectiveCoverDays = Math.min(dynamicCoverDays, leadTimeCap);
+  // Lead time now ADDS to cover (resolved above) instead of capping it. The old
+  // `min(cover, lead×3)` throttled fast-delivery suppliers — FLE328 (3–5d lead) was
+  // pinned to 21d cover. dynamicCoverDays already folds in the lead buffer and is
+  // clamped 21–180d, so that clamp is the only ceiling now.
+  const leadTimeDays = lead;
+  const leadTimeCap  = 180; // retained for display only — no longer caps cover
+  const effectiveCoverDays = dynamicCoverDays;
 
   const target=ceilNonNeg(effectiveDaily*effectiveCoverDays);
 
