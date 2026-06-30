@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V6.9.14 · EMAIL ATTRIBUTION</title>
+  <title>Lenehans Purchasing Dashboard · V6.9.15 · EMAIL ATTRIBUTION</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1082,7 +1082,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.9.14 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
+  <div class="sub">V6.9.15 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -8207,6 +8207,10 @@ function bindEvents(){
     let _searchTimer=null;
     const doSearch=()=>{
       if(!state.rawRows.length) return;
+      // A SKU/text search should span ALL suppliers — clear any active-supplier
+      // filter so searching e.g. a multi-supplier SKU isn't hidden by the
+      // previously-selected supplier (was: search AND activeSupplier → 0 rows).
+      if((searchEl.value||'').trim() && state.activeSupplier){ state.activeSupplier=''; }
       render();
       // auto-open the Supplier Order Table when searching, so matches are visible
       if((searchEl.value||'').trim()){
