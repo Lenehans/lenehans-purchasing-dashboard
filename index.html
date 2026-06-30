@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V6.9.16 · EMAIL ATTRIBUTION</title>
+  <title>Lenehans Purchasing Dashboard · V6.9.18 · EMAIL ATTRIBUTION</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -839,12 +839,13 @@
     .po-rev-qty:focus{outline:none;border-color:#1e40af}
     .po-rev-qty.changed{border-color:#d97706;background:#fefce8}
     /* ── Why Buy signal stack ──────────────────────────────────────────── */
-    .wbs{display:flex;flex-direction:column;gap:2px;font-size:12px}
-    .wbs-row{display:flex;align-items:baseline;gap:6px;padding:2px 0;line-height:1.5}
-    .wbs-row.wbs-result{background:#eff6ff;border-radius:5px;padding:4px 6px;margin-top:2px}
-    .wbs-icon{flex-shrink:0;width:18px;text-align:center;font-size:11px}
-    .wbs-lbl{flex-shrink:0;width:100px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#64748b}
-    .wbs-val{flex:1;color:#1e293b;font-size:12px}
+    .wbs{display:flex;flex-direction:column;gap:0;font-size:14px}
+    .wbs-row{display:flex;align-items:baseline;gap:11px;padding:8px 2px;line-height:1.45;border-bottom:1px solid #f1f5f9}
+    .wbs-row:last-child{border-bottom:none}
+    .wbs-row.wbs-result{background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:8px;padding:11px 13px;margin-top:9px;font-size:15px}
+    .wbs-icon{flex-shrink:0;width:26px;text-align:center;font-size:17px}
+    .wbs-lbl{flex-shrink:0;width:120px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#475569}
+    .wbs-val{flex:1;color:#0f172a;font-size:14px;line-height:1.45}
     .po-review-ftr{padding:12px 20px;border-top:2px solid #e2e8f0;display:flex;
       align-items:center;gap:10px;flex-shrink:0;background:#f8fafc;border-radius:0 0 14px 14px}
     .po-rev-total{font-size:13px;font-weight:700;color:#1e3a5f;flex:1}
@@ -1082,7 +1083,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.9.16 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
+  <div class="sub">V6.9.18 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -6163,7 +6164,11 @@ function computeRow(row){
   // It remains visible in Clear Stock for run-down decisions.
   const q11Total = row.QtySold_Total_330d || 0;
   const has180Activity = (row.QtySold_Online_Total_180d||0)+(row.QtySold_Shop_CapelStreet_180d||0);
-  if(q11Total === 0 && has180Activity === 0){
+  // Composite / bundle SKUs (TP_ prefix) record their sales against the COMPONENT
+  // SKUs, so the parent reads zero — that is NOT dead stock. Never flag a composite
+  // Inactive (it would hide a real, orderable bundle from the buying list).
+  const isComposite = /^TP[_-]/i.test(String(row.SKU||''));
+  if(q11Total === 0 && has180Activity === 0 && !isComposite){
     // Confirmed inactive: zero sales in 12 months (or 6 months as fallback pre-sync)
     buy = 0;
     if(coverStatus !== 'Healthy') coverStatus = 'Inactive';
@@ -6192,7 +6197,7 @@ function computeRow(row){
     _csRequired:row._csRequired||false,
     _csQtyFloor:row._csQtyFloor||0,
     _csReason:row._csReason||'',
-    isDiscontinued: q11Total===0 && has180Activity===0,
+    isDiscontinued: q11Total===0 && has180Activity===0 && !isComposite,
     // Lapsed seller: sold ≥3 in the last 12 months, now OUT OF STOCK, yet the engine
     // recommends BUY 0 — because nothing moved in the recent 30/90d window the demand
     // rate is built from. SLMIS9 = 34 units/yr, 14 in 180d, OOS, BUY 0: a clear
@@ -6413,7 +6418,7 @@ function getFilteredRows(){
     // Seasonal in-season SKUs (flagged once in recompute) bypass the gates below.
     if(r._seasonalForced) return true;
 
-    if(r.isDiscontinued) return false;
+    if(r.isDiscontinued && (r.buy||0)<=0) return false;
     if(show==='buy'&&r.buy<=0) return false;
     if(show==='critical'&&!['Critical','Out of Stock'].includes(r.status)) return false;
     if(excludeHealthy==='yes'&&['Healthy','High'].includes(r.coverStatus)&&!(r.seasonalHeating&&!r.isDiscontinued)) return false;
@@ -7582,7 +7587,7 @@ function buildWhyText(r){
   rows.push(`<div class="wbs-row wbs-result">
     <span class="wbs-icon">🎯</span>
     <span class="wbs-lbl">Target</span>
-    <span class="wbs-val">${fmtInt(r.coverDays)}d × ${(r.adjustedDaily||0).toFixed(2)}/day = <strong>${fmtInt(r.target)} needed</strong> · ${fmtInt(Math.max(0,r.target-r.stock))} gap · Buy: <strong style="color:#1e40af;font-size:13px">${fmtInt(r.buy)}</strong></span>
+    <span class="wbs-val">${fmtInt(r.coverDays)}d × ${(r.adjustedDaily||0).toFixed(2)}/day = <strong>${fmtInt(r.target)} needed</strong> · ${fmtInt(Math.max(0,r.target-r.stock))} gap &nbsp;→&nbsp; <strong style="color:#1e40af;font-size:20px;letter-spacing:-.01em">Buy ${fmtInt(r.buy)}</strong></span>
   </div>`);
 
   return `<div class="wbs">${rows.join('')}</div>`;
