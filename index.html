@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V6.9.15 · EMAIL ATTRIBUTION</title>
+  <title>Lenehans Purchasing Dashboard · V6.9.16 · EMAIL ATTRIBUTION</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1082,7 +1082,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.9.15 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
+  <div class="sub">V6.9.16 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -6420,30 +6420,18 @@ function getFilteredRows(){
     return true;
   });
 
-  // Second pass: deduplicate by SKU — keep buy>0 row first, then lowest cost
-  // (multi-supplier SKUs should appear once; the detail table shows the best supplier)
-  const seen = new Map();
+  // Multi-supplier SKUs must show under EVERY supplier they're linked to, so you can
+  // place the line on whichever supplier's PO you choose. We no longer collapse to one
+  // "best" supplier — we keep all supplier rows and annotate each with its siblings.
+  const bySku = new Map();
+  filtered.forEach(r => { let g = bySku.get(r.SKU); if(!g){ g=[]; bySku.set(r.SKU,g); } g.push(r); });
   filtered.forEach(r => {
-    const key = r.SKU;
-    if(!seen.has(key)){
-      seen.set(key, {...r, _supplierCount:1, _otherSuppliers:[]});
-    } else {
-      const ex = seen.get(key);
-      ex._supplierCount++;
-      ex._otherSuppliers.push(r.SupplierName);
-      // Prefer: buy>0 over buy=0; then cheaper cost price
-      if((r.buy>0 && ex.buy===0) ||
-         (r.buy===ex.buy && (r.SupplierCostPrice||0)<(ex.SupplierCostPrice||9999))){
-        const count=ex._supplierCount; const others=[...ex._otherSuppliers];
-        const displaced=ex.SupplierName;
-        Object.assign(ex, r);
-        ex._supplierCount=count;
-        ex._otherSuppliers=[...others.slice(0,-1), displaced];
-      }
-    }
+    const g = bySku.get(r.SKU);
+    r._supplierCount  = g.length;
+    r._otherSuppliers = g.length>1 ? g.filter(x=>x!==r).map(x=>x.SupplierName) : [];
   });
 
-  return [...seen.values()];
+  return filtered;
 }
 
 async function recompute(){
