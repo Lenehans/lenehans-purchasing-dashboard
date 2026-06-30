@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V6.9.9 · EMAIL ATTRIBUTION</title>
+  <title>Lenehans Purchasing Dashboard · V6.9.11 · EMAIL ATTRIBUTION</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1082,7 +1082,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.9.9 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
+  <div class="sub">V6.9.11 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -1130,7 +1130,7 @@
       <button id="autoLoadBtn" class="secondary">Auto-load all feeds</button>
       <button id="testUrlBtn" class="secondary">Test URL</button>
       <button onclick="(function(){var s=prompt('Supplier name to audit (e.g. WILSONS):');if(!s)return;openSupplierAudit(s.trim());})()">📋 Supplier Audit</button>
-      <button onclick="(function(){var sku=prompt('Enter SKU to diagnose (e.g. 802518):');if(!sku)return;var ch=state.channel;var rows=(state.computedRows||[]).filter(function(x){return String(x.SKU||'').trim()===sku.trim();});if(!rows.length){alert('SKU ['+sku+'] not found in computed rows.\n\nMake sure data is loaded and check channel.');return;}var msg='🔍 SKU: '+sku+' | Channel: '+ch+'\nFound in '+rows.length+' supplier row'+(rows.length>1?'s (multi-supplier!)':'')+'\n\n';rows.forEach(function(r,i){var rank=(state.skuRankMap&&state.skuRankMap.get(sku.trim()))||'?';var inTop500=rank<=500;msg+='━━━ Supplier '+(i+1)+': '+(r.SupplierName||'?')+' ━━━\n';msg+='Stock → CS:'+( r.NetStock_CapelStreet||0)+' AK:'+(r.NetStock_Arklow||0)+'\n';msg+='CS demand 30d: '+(r.QtySold_Shop_CapelStreet_30d||0)+' units\n';msg+='CS revenue 30d: €'+(r.Revenue_Shop_CapelStreet_30d||0).toFixed(2)+'\n';msg+='AK demand 30d: '+(r.QtySold_Online_Arklow_30d||0)+' units (online only)\n';msg+='AK demand 180d: '+(r.QtySold_Online_Arklow_180d||0)+' units\n';var _ak180=(r.QtySold_Online_Arklow_180d||0)/180,_ak30=(r.QtySold_Online_Arklow_30d||0)/30;msg+='Seasonal (AK): '+(_ak180>0?(_ak30/_ak180).toFixed(1)+'× its 180d avg'+((_ak30/_ak180)>=1.5?' 📈 in season':''):'n/a')+'\n';msg+='⚠️ AK till/counter sales are NOT in demand (online only)\n';msg+='Adj daily: '+((r.adjustedDaily||0).toFixed(2))+' | Days cover: '+Math.round(r.daysOfCover||0)+'\n';msg+='Status: '+(r.coverStatus||'?')+' | ABC: '+(r.abcClass||'?')+'\n';msg+='BUY: '+(r.buy||0)+' units\n';msg+='Rank: '+rank+(inTop500?' ✅ in QO':' ❌ not in Quick Order')+'\n';msg+='Governance: '+(!!(state.governedSuppliers&&state.governedSuppliers.has(r.SupplierName))?'✅ pass':'❌ FAIL — hidden!')+'\n\n';});alert(msg);})()">🔍 Diagnose SKU</button>
+      <button onclick="(function(){var sku=prompt('Enter SKU to diagnose (e.g. 802518):');if(!sku)return;var ch=state.channel;var rows=(state.computedRows||[]).filter(function(x){return String(x.SKU||'').trim()===sku.trim();});if(!rows.length){alert('SKU ['+sku+'] not found in computed rows.\n\nMake sure data is loaded and check channel.');return;}var msg='🔍 SKU: '+sku+' | Channel: '+ch+'\nFound in '+rows.length+' supplier row'+(rows.length>1?'s (multi-supplier!)':'')+'\n\n';rows.forEach(function(r,i){var rank=(state.skuRankMap&&state.skuRankMap.get(sku.trim()))||'?';var inTop500=rank<=500;msg+='━━━ Supplier '+(i+1)+': '+(r.SupplierName||'?')+' ━━━\n';msg+='Stock → CS:'+( r.NetStock_CapelStreet||0)+' AK:'+(r.NetStock_Arklow||0)+'\n';msg+='CS demand 30d: '+(r.QtySold_Shop_CapelStreet_30d||0)+' units\n';msg+='CS revenue 30d: €'+(r.Revenue_Shop_CapelStreet_30d||0).toFixed(2)+'\n';msg+='AK demand 30d: '+(r.QtySold_Online_Arklow_30d||0)+' units (online only)\n';msg+='AK demand 180d: '+(r.QtySold_Online_Arklow_180d||0)+' units\n';msg+='CS demand 90d/180d: '+(r.QtySold_Shop_CapelStreet_90d||0)+' / '+(r.QtySold_Shop_CapelStreet_180d||0)+' units\n';msg+='📅 12-mo total (330d): '+(r.QtySold_Total_330d||0)+' units'+(((r.QtySold_Total_330d||0)>0&&(r.QtySold_Shop_CapelStreet_180d||0)===0&&(r.QtySold_Online_Arklow_180d||0)===0)?' ⚠️ sold last year, dormant in 180d':'')+'\n';var _ak180=(r.QtySold_Online_Arklow_180d||0)/180,_ak30=(r.QtySold_Online_Arklow_30d||0)/30;msg+='Seasonal (AK): '+(_ak180>0?(_ak30/_ak180).toFixed(1)+'× its 180d avg'+((_ak30/_ak180)>=1.5?' 📈 in season':''):'n/a')+'\n';msg+='⚠️ AK till/counter sales are NOT in demand (online only)\n';msg+='Adj daily: '+((r.adjustedDaily||0).toFixed(2))+' | Days cover: '+Math.round(r.daysOfCover||0)+'\n';msg+='Status: '+(r.coverStatus||'?')+' | ABC: '+(r.abcClass||'?')+'\n';msg+='BUY: '+(r.buy||0)+' units\n';msg+='Rank: '+rank+(inTop500?' ✅ in QO':' ❌ not in Quick Order')+'\n';msg+='Governance: '+(!!(state.governedSuppliers&&state.governedSuppliers.has(r.SupplierName))?'✅ pass':'❌ FAIL — hidden!')+'\n\n';});alert(msg);})()">🔍 Diagnose SKU</button>
       <label>or CSV file
         <input id="csvFile" type="file" accept=".csv,text/csv">
       </label>
@@ -1236,6 +1236,7 @@
       <button id="buyRiskModeBtn" class="secondary">⚠ Buy risks</button>
       <button id="clearRiskFiltersBtn" class="secondary">Clear filters</button>
       <button id="neverOosBtn" class="secondary" onclick="openNeverOOS()">🚨 Never OOS</button>
+      <button id="lapsedSellersBtn" class="secondary" title="Sold in the last 12 months, nothing in 180d, now out of stock — re-order candidates the demand windows bury" onclick="state._lapsedOnly=!state._lapsedOnly;this.textContent=state._lapsedOnly?'💤 Lapsed: ON':'💤 Lapsed sellers';this.style.background=state._lapsedOnly?'#fde68a':'';this.style.color=state._lapsedOnly?'#78350f':'';render();">💤 Lapsed sellers</button>
     </div>
   </div>
 
@@ -6187,7 +6188,12 @@ function computeRow(row){
     _csRequired:row._csRequired||false,
     _csQtyFloor:row._csQtyFloor||0,
     _csReason:row._csReason||'',
-    isDiscontinued: q11Total===0 && has180Activity===0
+    isDiscontinued: q11Total===0 && has180Activity===0,
+    // Lapsed seller: sold in the last 12 months, but nothing in the last 180 days, and
+    // now out of stock. The demand-window engine scores these zero, so they sink out of
+    // view — yet they're "we've stocked & sold this before, re-order?" candidates.
+    _lapsed330: q11Total,
+    isLapsedSeller: q11Total >= 3 && has180Activity === 0 && stock <= 0
   };
   res.momentum   = getDemandMomentum(row);
   res.confidence = getBuyerConfidence(row, res);
@@ -6395,6 +6401,9 @@ function getFilteredRows(){
     // search + active-supplier always apply
     if(q){const hay=`${r.SupplierName} ${r.SKU} ${r.ItemTitle}`.toLowerCase();if(!hay.includes(q))return false;}
     if(state.activeSupplier&&r.SupplierName!==state.activeSupplier) return false;
+
+    // Lapsed-sellers mode: focused list of "sold last year, dormant now, OOS" — bypass other gates
+    if(state._lapsedOnly) return !!r.isLapsedSeller;
 
     // Seasonal in-season SKUs (flagged once in recompute) bypass the gates below.
     if(r._seasonalForced) return true;
