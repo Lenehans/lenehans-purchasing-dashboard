@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V6.9.18 · EMAIL ATTRIBUTION</title>
+  <title>Lenehans Purchasing Dashboard · V7.0.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1083,7 +1083,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V6.9.18 · Per-email sales attribution · Seasonal map · Governance · Email Intelligence</div>
+  <div class="sub">V7.0.0 · Reorder-point cover (lead + safety + run) · Per-grade safety × variability · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -1131,7 +1131,7 @@
       <button id="autoLoadBtn" class="secondary">Auto-load all feeds</button>
       <button id="testUrlBtn" class="secondary">Test URL</button>
       <button onclick="(function(){var s=prompt('Supplier name to audit (e.g. WILSONS):');if(!s)return;openSupplierAudit(s.trim());})()">📋 Supplier Audit</button>
-      <button onclick="(function(){var sku=prompt('Enter SKU to diagnose (e.g. 802518):');if(!sku)return;var ch=state.channel;var rows=(state.computedRows||[]).filter(function(x){return String(x.SKU||'').trim()===sku.trim();});if(!rows.length){alert('SKU ['+sku+'] not found in computed rows.\n\nMake sure data is loaded and check channel.');return;}var msg='🔍 SKU: '+sku+' | Channel: '+ch+'\nFound in '+rows.length+' supplier row'+(rows.length>1?'s (multi-supplier!)':'')+'\n\n';rows.forEach(function(r,i){var rank=(state.skuRankMap&&state.skuRankMap.get(sku.trim()))||'?';var inTop500=rank<=500;msg+='━━━ Supplier '+(i+1)+': '+(r.SupplierName||'?')+' ━━━\n';msg+='Stock → CS:'+( r.NetStock_CapelStreet||0)+' AK:'+(r.NetStock_Arklow||0)+'\n';msg+='CS demand 30d: '+(r.QtySold_Shop_CapelStreet_30d||0)+' units\n';msg+='CS revenue 30d: €'+(r.Revenue_Shop_CapelStreet_30d||0).toFixed(2)+'\n';msg+='AK demand 30d: '+(r.QtySold_Online_Arklow_30d||0)+' units (online only)\n';msg+='AK demand 180d: '+(r.QtySold_Online_Arklow_180d||0)+' units\n';msg+='CS demand 90d/180d: '+(r.QtySold_Shop_CapelStreet_90d||0)+' / '+(r.QtySold_Shop_CapelStreet_180d||0)+' units\n';msg+='📅 12-mo total (330d): '+(r.QtySold_Total_330d||0)+' units'+(r.isLapsedSeller?' 💤 LAPSED SELLER — sold last year, OOS, BUY 0':'')+'\n';msg+='📊 365d by channel → CS till: '+(r.QtySold_Shop_CapelStreet_365d||0)+' · CS online: '+(r.QtySold_Online_CapelStreet_365d||0)+' · AK online: '+(r.QtySold_Online_Arklow_365d||0)+'\n';var _ak180=(r.QtySold_Online_Arklow_180d||0)/180,_ak30=(r.QtySold_Online_Arklow_30d||0)/30;msg+='Seasonal (AK): '+(_ak180>0?(_ak30/_ak180).toFixed(1)+'× its 180d avg'+((_ak30/_ak180)>=1.5?' 📈 in season':''):'n/a')+'\n';msg+='⚠️ AK till/counter sales are NOT in demand (online only)\n';msg+='Adj daily: '+((r.adjustedDaily||0).toFixed(2))+' | Days cover: '+Math.round(r.daysOfCover||0)+'\n';msg+='⏱ Lead: '+((r.leadTimeDays||0)>0?(r.leadTimeDays)+'d → cover cap '+(r.leadTimeCap)+'d':'NOT MATCHED (no cap → full cover)')+' | cover target '+Math.round(r.coverDays||0)+'d\n';msg+='Status: '+(r.coverStatus||'?')+' | ABC: '+(r.abcClass||'?')+'\n';msg+='BUY: '+(r.buy||0)+' units\n';msg+='Rank: '+rank+(inTop500?' ✅ in QO':' ❌ not in Quick Order')+'\n';msg+='Governance: '+(!!(state.governedSuppliers&&state.governedSuppliers.has(r.SupplierName))?'✅ pass':'❌ FAIL — hidden!')+'\n\n';});alert(msg);})()">🔍 Diagnose SKU</button>
+      <button onclick="(function(){var sku=prompt('Enter SKU to diagnose (e.g. 802518):');if(!sku)return;var ch=state.channel;var rows=(state.computedRows||[]).filter(function(x){return String(x.SKU||'').trim()===sku.trim();});if(!rows.length){alert('SKU ['+sku+'] not found in computed rows.\n\nMake sure data is loaded and check channel.');return;}var msg='🔍 SKU: '+sku+' | Channel: '+ch+'\nFound in '+rows.length+' supplier row'+(rows.length>1?'s (multi-supplier!)':'')+'\n\n';rows.forEach(function(r,i){var rank=(state.skuRankMap&&state.skuRankMap.get(sku.trim()))||'?';var inTop500=rank<=500;msg+='━━━ Supplier '+(i+1)+': '+(r.SupplierName||'?')+' ━━━\n';msg+='Stock → CS:'+( r.NetStock_CapelStreet||0)+' AK:'+(r.NetStock_Arklow||0)+'\n';msg+='CS demand 30d: '+(r.QtySold_Shop_CapelStreet_30d||0)+' units\n';msg+='CS revenue 30d: €'+(r.Revenue_Shop_CapelStreet_30d||0).toFixed(2)+'\n';msg+='AK demand 30d: '+(r.QtySold_Online_Arklow_30d||0)+' units (online only)\n';msg+='AK demand 180d: '+(r.QtySold_Online_Arklow_180d||0)+' units\n';msg+='CS demand 90d/180d: '+(r.QtySold_Shop_CapelStreet_90d||0)+' / '+(r.QtySold_Shop_CapelStreet_180d||0)+' units\n';msg+='📅 12-mo total (330d): '+(r.QtySold_Total_330d||0)+' units'+(r.isLapsedSeller?' 💤 LAPSED SELLER — sold last year, OOS, BUY 0':'')+'\n';msg+='📊 365d by channel → CS till: '+(r.QtySold_Shop_CapelStreet_365d||0)+' · CS online: '+(r.QtySold_Online_CapelStreet_365d||0)+' · AK online: '+(r.QtySold_Online_Arklow_365d||0)+'\n';var _ak180=(r.QtySold_Online_Arklow_180d||0)/180,_ak30=(r.QtySold_Online_Arklow_30d||0)/30;msg+='Seasonal (AK): '+(_ak180>0?(_ak30/_ak180).toFixed(1)+'× its 180d avg'+((_ak30/_ak180)>=1.5?' 📈 in season':''):'n/a')+'\n';msg+='⚠️ AK till/counter sales are NOT in demand (online only)\n';msg+='Adj daily: '+((r.adjustedDaily||0).toFixed(2))+' | Days cover: '+Math.round(r.daysOfCover||0)+'\n';msg+='⏱ Lead '+(r.leadTimeDays||0)+'d + safety '+(r.safetyDays||0)+'d → reorder at '+(r.reorderPointDays||0)+'d cover | top up to '+(r.targetDays||0)+'d (run '+(r.runLengthDays||0)+'d)\n';msg+='📊 Variability ×'+(r.variabilityFactor||1)+' (1 steady → 2 jumpy)\n';msg+='Status: '+(r.coverStatus||'?')+' | ABC: '+(r.abcClass||'?')+'\n';msg+='BUY: '+(r.buy||0)+' units\n';msg+='Rank: '+rank+(inTop500?' ✅ in QO':' ❌ not in Quick Order')+'\n';msg+='Governance: '+(!!(state.governedSuppliers&&state.governedSuppliers.has(r.SupplierName))?'✅ pass':'❌ FAIL — hidden!')+'\n\n';});alert(msg);})()">🔍 Diagnose SKU</button>
       <label>or CSV file
         <input id="csvFile" type="file" accept=".csv,text/csv">
       </label>
@@ -1209,8 +1209,8 @@
       <label id="leadDaysLabel">Lead time
         <input id="leadDays" type="number" min="0" step="1" value="2">
       </label>
-      <label id="baseCoverLabel">Cover days
-        <input id="baseCoverDays" type="number" min="1" step="1" value="56">
+      <label id="baseCoverLabel" title="How long one order should last before the next reorder. Lower = leaner + more orders; higher = fewer, bigger orders.">Run length (days)
+        <input id="baseCoverDays" type="number" min="1" step="1" value="21">
       </label>
       <label id="fallback90Label">90D fallback
         <button id="fallback90Btn" class="fallback-btn fallback-on" data-active="true">✓ 90D</button>
@@ -5766,23 +5766,9 @@ function buildBuyerReason(res){
   if(res.seasonalBoostPct>0) lines.push(`Seasonal buy boost applied (+${fmtInt(res.seasonalBoostPct*100)}%) because cover is weak.`);
   if(res.adjustedDaily>0) lines.push(`Current stock is ${fmtInt(res.stock)}, giving about ${fmtInt(res.daysOfCover)} days of cover.`);
   else lines.push(`Current stock is ${fmtInt(res.stock)} and there is no active demand signal right now.`);
-  lines.push(`To maintain ${fmtInt(res.dynamicCoverDays||res.coverDays)} days of stock we need ${fmtInt(res.target)} units.`);
-  // Explain why the cover target differs from the base setting
-  if(res.dynamicCoverMult && Math.abs(res.dynamicCoverMult-1.0) > 0.05){
-    const baseCover = num(document.getElementById('baseCoverDays')?.value)||56;
-    const lead      = num(document.getElementById('leadDays')?.value)||0;
-    const flatDays  = baseCover+lead;
-    const reason = res.dynamicCoverMult >= 1.3
-      ? (res.abcClass==='A' ? `A-item${res.isTrending?' trending':''}${res.dynamicCoverMult>=1.5?' in-season':''} — increased buffer to protect top-seller availability`
-                            : `Trending ${res.abcClass}-item — increased buffer for growing demand`)
-      : res.dynamicCoverMult <= 0.75
-      ? (res.abcClass==='D' ? 'D-item: negligible demand — lean cover target applied'
-                            : `Declining demand — cover target reduced to avoid over-ordering`)
-      : res.dynamicCoverMult < 1.0
-      ? 'Stable lower-priority item — slightly reduced cover target'
-      : 'Growing item — cover target slightly increased';
-    lines.push(`📐 Dynamic cover: base ${fmtInt(flatDays)}d × ${res.dynamicCoverMult.toFixed(2)} = <strong>${fmtInt(res.dynamicCoverDays)}d target</strong> — ${reason}.`);
-  }
+  lines.push(`Reorder point is ${fmtInt(res.reorderPointDays)} days of cover (lead ${fmtInt(res.leadTimeDays)}d + safety ${fmtInt(res.safetyDays)}d). We top up to ${fmtInt(res.targetDays)} days = ${fmtInt(res.target)} units.`);
+  if(res.variabilityFactor>1.1)
+    lines.push(`📐 Safety buffer widened ×${(res.variabilityFactor||1).toFixed(2)} because sales are uneven across the 7/30/90/180-day windows.`);
   if(res._csRequired) lines.push(`CS-required line — minimum floor qty ${fmtInt(res._csQtyFloor)}. Cannot be omitted from PO export.${res._csReason?' Reason: '+res._csReason+'.':''}`);
   if(res.minOneFallbackApplied) lines.push(`Minimum order of 1 unit applied because fallback demand exists and stock is zero.`);
   else lines.push(`Recommended order: ${fmtInt(res.buy)} units.`);
@@ -6085,48 +6071,57 @@ function computeRow(row){
 
   const effectiveDaily=adjustedDaily*(1+seasonalBoostPct);
 
-  // ── Dynamic cover target — per-SKU, based on ABC class + trend + seasonal ──
-  // baseCover is the buyer's anchor. We multiply it per SKU so the UI setting
-  // still means something — it just scales differently for different items.
-  const isDeclining  = daily180rate > 0 && daily30rate < daily180rate * 0.7;
-  const hasSeasonalSignal = !!(seasonalRule || seasonalDataUsed);
+  // ── Reorder-point cover model (continuous review) ─────────────────────────
+  // Lenehans buys reactively — order when a line falls below lead + safety, and
+  // top up to lead + safety + a run length. Because the dashboard is reviewed
+  // daily, no fixed order cycle is needed. Replaces the old 56-day cover, the
+  // ABC multipliers and the 3×lead cap. (See Cover_and_Reorder_Spec.)
+  const isDeclining = daily180rate > 0 && daily30rate < daily180rate * 0.7;
 
-  const dynamicCoverMult = (()=>{
-    if(abcClass==='D') return 0.5;                                  // negligible items — keep lean
-    if(abcClass==='A'){
-      if(isTrending && hasSeasonalSignal) return 1.6;               // top seller, in season, accelerating
-      if(isTrending)                      return 1.5;               // top seller, accelerating
-      if(hasSeasonalSignal)               return 1.4;               // top seller, seasonal
-      return 1.3;                                                    // A-item — always needs buffer
-    }
-    if(abcClass==='B'){
-      if(isTrending)   return 1.2;                                  // growing B-item
-      if(isDeclining)  return 0.85;                                 // declining B-item
-      return 1.0;                                                    // stable B — unchanged
-    }
-    // C-item
-    if(isTrending)   return 1.1;                                    // emerging C
-    if(isDeclining)  return 0.75;                                   // declining C — don't over-order
-    return 0.9;                                                     // stable C — slightly leaner
-  })();
+  // Supplier delivery time — from the Lead-Time column in the PO sheet. Fall back
+  // to the global lead setting, then a 7-day default, so a missing value can't
+  // collapse the reorder point down to just the safety buffer.
+  const leadTimeDays = (state.supplierLeadTimes && state.supplierLeadTimes[row.SupplierName])
+                     || (num(document.getElementById('leadDays')?.value)||0)
+                     || 7;
 
-  // Apply multiplier, clamp between 21d (min viable) and 180d (max sensible)
-  const dynamicCoverDays = Math.round(Math.min(180, Math.max(21, coverDays * dynamicCoverMult)));
+  // Variability — how jumpy are this item's sales across the windows? Steady → 1.0,
+  // very erratic → 2.0. Seasonal ramps earn a bigger buffer here naturally.
+  const _r7  = (row.QtySold_Online_Total_7d  ||0)/7;
+  const _r30 = base30dDaily;
+  const _r90 = (row.QtySold_Online_Total_90d ||0)/90;
+  const _r180= (row.QtySold_Online_Total_180d||0)/180;
+  const _rates = [_r7,_r30,_r90,_r180].filter(x=>x>0);
+  let variabilityFactor = 1;
+  if(_rates.length >= 2){
+    const _mx = Math.max(..._rates), _mn = Math.min(..._rates);
+    variabilityFactor = 1 + (_mx>0 ? (_mx-_mn)/_mx : 0);   // 1.0 … 2.0
+  }
 
-  // ── Lead-time cap: don't hold more cover than 3× delivery time allows ──────
-  // A 3-day supplier needs ~9-21 days cover, not 73+ days.
-  // state.supplierLeadTimes populated from "Lead-Time" column in PO Status sheet.
-  // leadTime = 0 → no cap (not configured). leadTime >= 1 → cap = max(leadTime × 3, 21).
-  const leadTimeDays = (state.supplierLeadTimes && state.supplierLeadTimes[row.SupplierName]) || 0;
-  const leadTimeCap  = leadTimeDays > 0 ? Math.max(leadTimeDays * 3, 21) : 180;
-  const effectiveCoverDays = Math.min(dynamicCoverDays, leadTimeCap);
+  // Safety buffer = per-grade base (days) × variability
+  const _baseSafety = abcClass==='A'?7 : abcClass==='B'?4 : abcClass==='C'?2 : 1;
+  const safetyDays = _baseSafety * variabilityFactor;
 
-  const target=ceilNonNeg(effectiveDaily*effectiveCoverDays);
+  // Run length — how long one order should last before the next reorder (tunable;
+  // the input formerly labelled "Cover days" now drives this, default 21).
+  const runLengthDays = num(document.getElementById('baseCoverDays')?.value) || 21;
 
-  // Buy calculation
-  const rawBuy=Math.max(0,target-stock);
-  const maxBuy=getMaxBuy(resolvedMode,row);
-  let buy=Math.min(rawBuy,maxBuy);
+  const reorderPointDays = leadTimeDays + safetyDays;                  // order at/below this
+  const targetDays       = leadTimeDays + safetyDays + runLengthDays;  // top up to this
+
+  // Legacy aliases so the res object + downstream readouts keep working
+  const dynamicCoverMult   = 1;
+  const dynamicCoverDays   = Math.round(targetDays);
+  const leadTimeCap        = Math.round(reorderPointDays);
+  const effectiveCoverDays = dynamicCoverDays;
+
+  const target = ceilNonNeg(effectiveDaily * targetDays);
+
+  // Buy: top up to the target, net of net stock (NetStock already nets inbound
+  // POs). The run length is the ceiling now — no separate spike cap.
+  const rawBuy = Math.max(0, target - stock);
+  let buy = rawBuy;
+  const maxBuy = target;   // informational — the run-length target is the ceiling
 
   // FIX 2: May25 floor for OOS + seasonal items whose max-buy cap is suppressed by OOS history
   // When stock=0 AND we have strong May25 data AND the cap is artificially low (OOS last year too),
@@ -6143,10 +6138,14 @@ function computeRow(row){
   if(minOneFallbackApplied) buy=1;
 
   const daysOfCover=effectiveDaily>0?(stock/effectiveDaily):(stock>0?9999:0);
-  const rawCoverStatus=effectiveDaily<=0?(stock>0?'No demand':'Out of Stock')
-    :(daysOfCover<14?'Critical':(daysOfCover<30?'Low':(daysOfCover<=60?'Healthy':'High')));
-  const rawBuyCheck=Math.max(0,ceilNonNeg(effectiveDaily*effectiveCoverDays)-stock);
-  let coverStatus=(rawBuyCheck>0&&(rawCoverStatus==='Healthy'||rawCoverStatus==='High'))?'Low':rawCoverStatus;
+  // Status is now relative to the reorder point (lead + safety), not a flat 14d.
+  let coverStatus;
+  if(effectiveDaily<=0)                                        coverStatus = stock>0?'No demand':'Out of Stock';
+  else if(stock<=0)                                            coverStatus = 'Out of Stock';
+  else if(daysOfCover < reorderPointDays)                      coverStatus = 'Critical';   // at/below reorder point
+  else if(daysOfCover < reorderPointDays + runLengthDays*0.5)  coverStatus = 'Low';        // approaching it
+  else if(daysOfCover > targetDays * 1.5)                      coverStatus = 'High';        // well overstocked
+  else                                                         coverStatus = 'Healthy';
 
   // FIX 3: Hard 90-day cover exclusion — items with >90d cover on raw 30D rate
   // AND no active 7D spike should be excluded even if seasonal multiplier pushes them in.
@@ -6174,7 +6173,7 @@ function computeRow(row){
     if(coverStatus !== 'Healthy') coverStatus = 'Inactive';
   }
 
-  const status=stock<=0?'Out of Stock':(effectiveDaily>0?(Math.floor(stock/effectiveDaily)<14?'Critical':(Math.floor(stock/effectiveDaily)<28?'Low':'OK')):'No demand');
+  const status=stock<=0?'Out of Stock':(effectiveDaily>0?(daysOfCover<reorderPointDays?'Critical':(daysOfCover<reorderPointDays+runLengthDays*0.5?'Low':'OK')):'No demand');
   const capelSignal=(!state.channel||state.channel==='arklow')&&row.QtySold_Online_CapelStreet_30d>0?`Capel Street online sales detected (${fmtInt(row.QtySold_Online_CapelStreet_30d)} units in the last 30 days).`:'';
   const ramp=hasRamp(row);
 
@@ -6189,6 +6188,8 @@ function computeRow(row){
     isOosSuppressed,                                         // OOS reconstruction flag
     seasonalUplift, seasonalHeating,                         // self-baseline seasonal signal
     dynamicCoverDays, dynamicCoverMult, isDeclining,         // dynamic cover
+    reorderPointDays, targetDays, runLengthDays,             // reorder-point model
+    safetyDays:Math.round(safetyDays*10)/10, variabilityFactor:Math.round(variabilityFactor*100)/100,
     autoSelectedMode, resolvedMode,                          // auto mode selection
     spikeRatio, spikeFactored,                               // 7D spike signals
     weatherMult, weatherActive,                          // weather signal
