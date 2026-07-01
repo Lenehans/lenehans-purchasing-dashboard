@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.0.0 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.0.3 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1083,7 +1083,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.0.0 · Reorder-point cover (lead + safety + run) · Per-grade safety × variability · Email Intelligence</div>
+  <div class="sub">V7.0.2 · Reorder-point cover · Do-Not-Order list (live) · Email Intelligence</div>
 </header>
 
 <div class="wrap">
@@ -1238,6 +1238,7 @@
       <button id="clearRiskFiltersBtn" class="secondary">Clear filters</button>
       <button id="neverOosBtn" class="secondary" onclick="openNeverOOS()">🚨 Never OOS</button>
       <button id="lapsedSellersBtn" class="secondary" title="Sold in the last 12 months, nothing in 180d, now out of stock — re-order candidates the demand windows bury" onclick="state._lapsedOnly=!state._lapsedOnly;this.textContent=state._lapsedOnly?'💤 Lapsed: ON':'💤 Lapsed sellers';this.style.background=state._lapsedOnly?'#fde68a':'';this.style.color=state._lapsedOnly?'#78350f':'';render();">💤 Lapsed sellers</button>
+      <button id="doNotOrderBtn" class="secondary" title="Review the do-not-order list — supplier-discontinued / no-permission SKUs the engine is blocking from orders" onclick="state._excludedOnly=!state._excludedOnly;this.textContent=state._excludedOnly?'🚫 Do Not Order: ON':'🚫 Do Not Order';this.style.background=state._excludedOnly?'#fecaca':'';this.style.color=state._excludedOnly?'#7f1d1d':'';render();">🚫 Do Not Order</button>
     </div>
   </div>
 
@@ -3538,6 +3539,7 @@ const state = {
   computedRows: [],
   activeSupplier: '',
   csLines: [],
+  excludedSkus: new Map(),   // Linnworks SKU → [supplier scopes | '*'] — do-not-order list
   poStatusMap: {},
   governedSuppliers: new Set(),
   omittedSkus: new Set(),
@@ -3558,6 +3560,9 @@ const DEFAULT_URL   = 'https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsT
 const PO_UPDATER_URL = 'https://script.google.com/macros/s/AKfycbyRaG5HIunGU9bk09w4wd4BrvFrP34aZ9c-7X8lXeWyT3FBvoipRVW0fCbaOqkONdCm/exec';
 const CS_URL        = 'https://docs.google.com/spreadsheets/d/1RatBuXuxKn2mpznYga2pupmbTnv2m_H46BLZIxN3pKo/export?format=csv&gid=595917858';
 const PO_URL        = 'https://docs.google.com/spreadsheets/d/1RatBuXuxKn2mpznYga2pupmbTnv2m_H46BLZIxN3pKo/export?format=csv&gid=1814828386';
+// Do-not-order / supplier-discontinued list. New tab in the PO Status sheet.
+// Replace EXCLUDE_GID_HERE with the real gid once the "DoNotOrder" tab exists.
+const EXCLUDE_URL   = 'https://docs.google.com/spreadsheets/d/1RatBuXuxKn2mpznYga2pupmbTnv2m_H46BLZIxN3pKo/export?format=csv&gid=1233612353';
 // Monthly sales history — SKU × month columns (2024_01 … 2025_02)
 const MONTHLY_URL   = 'https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=1156598081';
 
@@ -5198,6 +5203,37 @@ function normalizeRow(r){
   };
 }
 
+// ─── DO-NOT-ORDER (exclusion) FEED PARSING ───────────────────────────────────
+// Tab columns: SKU, Supplier (optional), Reason, Title/Notes (optional).
+// Blank Supplier → exclude the SKU everywhere ('*'). Supplier filled → scope it.
+function parseExcludeFeed(rows){
+  const map = new Map();
+  if(!rows || !rows.length) return map;
+  const header = rows[0].map(h=>String(h||'').trim().toLowerCase());
+  const iSku = header.findIndex(h=>h==='sku'||h==='linnworks_sku'||h==='linnworks sku');
+  const iSup = header.findIndex(h=>h==='supplier'||h==='suppliername'||h==='supplier name');
+  if(iSku<0) return map;
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i]; if(!r) continue;
+    const sku=String(r[iSku]||'').trim();
+    if(!sku) continue;
+    const sup=iSup>=0?String(r[iSup]||'').trim():'';
+    const scope = sup || '*';
+    if(!map.has(sku)) map.set(sku,[]);
+    const arr=map.get(sku); if(!arr.includes(scope)) arr.push(scope);
+  }
+  return map;
+}
+// Is this SKU on the do-not-order list for this supplier? ('*' scope = everywhere)
+function isExcludedSku(sku, supplierName){
+  if(!state.excludedSkus || !state.excludedSkus.size) return false;
+  const scopes = state.excludedSkus.get(String(sku||'').trim());
+  if(!scopes) return false;
+  if(scopes.includes('*')) return true;
+  const sup = String(supplierName||'').toLowerCase();
+  return scopes.some(s => sup.includes(String(s).toLowerCase()));
+}
+
 // ─── CS FEED PARSING ─────────────────────────────────────────────────────────
 function parseCSFeed(rows){
   // Expected columns: SKU, Supplier, Qty, Reason, Active, Expires, Channel
@@ -5736,11 +5772,12 @@ function buildBuyerReason(res){
       lines.push(`No monthly history for this SKU — ${res.categoryLabel} profile estimate for ${monthLabel()} (${fmt1(res.seasonalMultiplier)}× multiplier).`);
     }
   }
-  // May25 floor applied
+  // Seasonal floor applied — uses last year's SAME month (auto-rolls with the date)
   if(res.seasonalDataUsed){
-    const may25qty = res.seasonalDataUsed.q1 || res.seasonalDataUsed.q2 || 0;
-    if(res.stock <= 0 && may25qty >= 10 && res.buy >= may25qty * 0.7){
-      lines.push(`📅 Quantity floored to last May's actual demand (${fmtInt(may25qty)} units) — max-buy cap was overridden because 90D data was suppressed by prior OOS.`);
+    const floorQty = res.seasonalDataUsed.q1 || res.seasonalDataUsed.q2 || 0;
+    if(res.stock <= 0 && floorQty >= 10 && res.buy >= floorQty * 0.7){
+      const floorMonth = new Date().toLocaleDateString('en-IE',{month:'long'});
+      lines.push(`📅 Quantity floored to last ${floorMonth}'s actual demand (${fmtInt(floorQty)} units) — the ceiling was overridden because recent data was suppressed by prior out-of-stock.`);
     }
   }
   // 90d cover exclusion applied
@@ -6173,6 +6210,12 @@ function computeRow(row){
     if(coverStatus !== 'Healthy') coverStatus = 'Inactive';
   }
 
+  // ── Do-not-order list — supplier discontinued / no permission (human-maintained
+  // tab). Force buy 0 and mark it so it drops out of the buying list. Reviewable
+  // via the 🚫 toggle. Overrides everything above — never order a dead line.
+  const _excluded = isExcludedSku(row.SKU, row.SupplierName);
+  if(_excluded){ buy = 0; coverStatus = 'Do Not Order'; }
+
   const status=stock<=0?'Out of Stock':(effectiveDaily>0?(daysOfCover<reorderPointDays?'Critical':(daysOfCover<reorderPointDays+runLengthDays*0.5?'Low':'OK')):'No demand');
   const capelSignal=(!state.channel||state.channel==='arklow')&&row.QtySold_Online_CapelStreet_30d>0?`Capel Street online sales detected (${fmtInt(row.QtySold_Online_CapelStreet_30d)} units in the last 30 days).`:'';
   const ramp=hasRamp(row);
@@ -6189,6 +6232,7 @@ function computeRow(row){
     seasonalUplift, seasonalHeating,                         // self-baseline seasonal signal
     dynamicCoverDays, dynamicCoverMult, isDeclining,         // dynamic cover
     reorderPointDays, targetDays, runLengthDays,             // reorder-point model
+    _excluded,                                                // do-not-order flag
     safetyDays:Math.round(safetyDays*10)/10, variabilityFactor:Math.round(variabilityFactor*100)/100,
     autoSelectedMode, resolvedMode,                          // auto mode selection
     spikeRatio, spikeFactored,                               // 7D spike signals
@@ -6389,6 +6433,7 @@ function applySeasonalRescue_(rows){
   // flag every tagged in-season row (cheap reads in the filter afterwards)
   const capel = state.channel==='capel';
   for(const r of rows){
+    if(isExcludedSku(r.SKU, r.SupplierName)){ r._seasonalForced=false; r._seasonalBuy=false; r.buy=0; continue; }
     const months=state.seasonalTags.get(normSku_(r.SKU));
     const st = inSeason(months);
     if(st){
@@ -6412,6 +6457,11 @@ function getFilteredRows(){
     // search + active-supplier always apply
     if(q){const hay=`${r.SupplierName} ${r.SKU} ${r.ItemTitle}`.toLowerCase();if(!hay.includes(q))return false;}
     if(state.activeSupplier&&r.SupplierName!==state.activeSupplier) return false;
+
+    // Do-not-order list: review mode shows only these; otherwise they're hidden
+    // from the buying list entirely (before seasonal/other bypasses below).
+    if(state._excludedOnly) return !!r._excluded;
+    if(r._excluded) return false;
 
     // Lapsed-sellers mode: focused list of "sold last year, dormant now, OOS" — bypass other gates
     if(state._lapsedOnly) return !!r.isLapsedSeller;
@@ -8009,6 +8059,17 @@ async function loadGovernanceFeeds(){
   }catch(e){
     msgs.push(`PO Status unavailable (${e.message})`);
     state.poStatusMap={};
+  }
+  // Do-not-order / supplier-discontinued list (optional tab)
+  try{
+    if(!EXCLUDE_URL.includes('EXCLUDE_GID_HERE')){
+      const exRaw=await fetchCSV(EXCLUDE_URL,'Do-Not-Order');
+      state.excludedSkus=parseExcludeFeed(exRaw);
+      msgs.push(`Do-Not-Order: ${state.excludedSkus.size} SKUs`);
+    }
+  }catch(e){
+    msgs.push(`Do-Not-Order unavailable (${e.message})`);
+    state.excludedSkus=new Map();
   }
   // Monthly sales history — load if URL is configured
   state.monthlyLoaded = false;
