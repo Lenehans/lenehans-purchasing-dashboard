@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.0.4 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.0.6 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -6909,24 +6909,38 @@ function renderActionNow(rows){
     const buyPart = s.buy>0 ? `<span class="wl-tile-buy">📦 Buy ${fmtInt(s.buy)}</span>` : '';
     const statsDivider = (buyPart && countdownHtml) ? '<span style="color:#cbd5e1">·</span>' : '';
 
-    // PO status — green ONLY if placed THIS month. A previous-month "done" is stale
-    // (needs re-ordering now), so it shows amber, not green. Compare period-proof so
-    // a Mac rendering "Jul." vs "Jul" can't break the match.
+    // PO status — cadence-aware re-order reminder. A "done" stays green only until
+    // the next scheduled order day (per the buyer schedule) passes; after that it
+    // flips amber "order due again". Falls back to a this-month check if the cadence
+    // or last-order date can't be read.
     const poSt=_chPoMap[s.name];
     const _nm = v=>String(v||'').replace(/\./g,'').trim().toLowerCase();
     const nowMonthStr = new Date().toLocaleDateString('en-IE',{month:'short',year:'numeric'});
-    const doneThisMonth = !!(poSt?.isDone && _nm(poSt.month)===_nm(nowMonthStr));
+    const cadence = getCadenceForSupplier(s.name);
+    let orderedRecently=false;
+    if(poSt?.isDone){
+      const lastOrd = parsePODate(poSt.date, poSt.month);
+      if(cadence && lastOrd){
+        const sched = lastScheduledOrderDay(cadence, new Date());
+        orderedRecently = !(sched && lastOrd < sched);   // still within this cadence window
+      } else {
+        orderedRecently = _nm(poSt.month)===_nm(nowMonthStr);   // fallback: done this month
+      }
+    }
+    const doneAndCurrent = !!(poSt?.isDone && orderedRecently);
+    const cadenceTag = cadence ? ` · ${esc(cadence)}` : '';
     let poLine='';
     if(poSt?.isDone){
       const who = poSt.person ? ` · <strong>${esc(poSt.person)}</strong>` : '';
       const when = poSt.date ? ` · ${esc(poSt.date)}` : (poSt.month ? ` · ${esc(poSt.month)}` : '');
-      poLine = doneThisMonth
-        ? `<div class="wl-tile-po">✅ PO done${when}${who}</div>`
-        : `<div class="wl-tile-po stale">⚠ Last ordered${when}${who} — not yet this month</div>`;
+      const lastTxt = poSt.date ? esc(poSt.date) : (poSt.month ? esc(poSt.month) : '');
+      poLine = doneAndCurrent
+        ? `<div class="wl-tile-po">✅ PO done${when}${who}${cadenceTag}</div>`
+        : `<div class="wl-tile-po stale">🔔 Order due again${lastTxt?` — last ordered ${lastTxt}`:''}${who}${cadenceTag}</div>`;
     } else if(poSt?.month){
-      poLine=`<div class="wl-tile-po pending">🔴 PO pending · ${esc(poSt.month)}</div>`;
+      poLine=`<div class="wl-tile-po pending">🔴 PO pending${cadenceTag}</div>`;
     } else {
-      poLine=`<div class="wl-tile-po none">— No PO on record</div>`;
+      poLine=`<div class="wl-tile-po none">— No PO on record${cadenceTag}</div>`;
     }
 
     const safeName=s.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
@@ -6938,10 +6952,9 @@ function renderActionNow(rows){
       </div>
       ${revHtml}
       ${aItemHtml}
-      <div class="wl-tile-stats">${buyPart}${statsDivider}${countdownHtml}</div>
       ${poLine}
       <div class="wl-tile-actions" onclick="event.stopPropagation()">
-        <button class="wl-tile-btn${doneThisMonth?' green':''}" onclick="if(window.openQuickOrder)openQuickOrder('${safeName}')">${doneThisMonth?'✓ View order':'⚡ Order Now'}</button>
+        <button class="wl-tile-btn${doneAndCurrent?' green':''}" onclick="if(window.openQuickOrder)openQuickOrder('${safeName}')">${doneAndCurrent?'✓ View order':'⚡ Order Now'}</button>
       </div>
     </div>`;
   }
@@ -8483,7 +8496,38 @@ function shouldFireToday(cadence, date){
   return false;
 }
 
-let teamDoneSet = new Set();
+// Cadence for a supplier on the current channel (from the buyer schedule)
+function getCadenceForSupplier(name){
+  const ch = String(state.channel||'').toLowerCase().includes('capel') ? 'Capel Street' : 'Arklow';
+  const hit = BUYER_SCHEDULE.find(r=>r.supplier===name && r.channel===ch)
+           || BUYER_SCHEDULE.find(r=>r.supplier===name);
+  return hit ? hit.cadence : null;
+}
+// Most recent scheduled order day on/before `today` for a cadence (walks back)
+function lastScheduledOrderDay(cadence, today){
+  const d=new Date(today); d.setHours(0,0,0,0);
+  for(let i=0;i<45;i++){ if(shouldFireToday(cadence,d)) return new Date(d); d.setDate(d.getDate()-1); }
+  return null;
+}
+// Parse a PO date string ("19.06", "02/06/26", "19-06-2026") → Date, else month label
+function parsePODate(dateStr, monthStr){
+  const s=String(dateStr||'').trim();
+  const today=new Date(); today.setHours(0,0,0,0);
+  const m=s.match(/(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?/);
+  if(m){
+    let day=+m[1], mon=+m[2]-1, yr=m[3]?+m[3]:today.getFullYear();
+    if(yr<100) yr+=2000;
+    const d=new Date(yr,mon,day); d.setHours(0,0,0,0);
+    if(!isNaN(d.getTime())){ if(d>today && !m[3]) d.setFullYear(d.getFullYear()-1); return d; }
+  }
+  const mm=String(monthStr||'').match(/([A-Za-z]{3,})\s*(\d{4})/);
+  if(mm){
+    const idx=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].indexOf(mm[1].slice(0,3).toLowerCase());
+    if(idx>=0) return new Date(+mm[2], idx, 1);
+  }
+  return null;
+}
+
 function nearestWeekday(d){ const day=d.getDay(); if(day===0) d.setDate(d.getDate()+1); if(day===6) d.setDate(d.getDate()-1); return d; }
 let teamDate = nearestWeekday(new Date()); // weekdays only
 
