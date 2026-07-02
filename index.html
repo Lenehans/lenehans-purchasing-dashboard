@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.0.8 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.1.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1133,7 +1133,7 @@
       <button id="autoLoadBtn" class="secondary">Auto-load all feeds</button>
       <button id="testUrlBtn" class="secondary">Test URL</button>
       <button onclick="(function(){var s=prompt('Supplier name to audit (e.g. WILSONS):');if(!s)return;openSupplierAudit(s.trim());})()">📋 Supplier Audit</button>
-      <button onclick="(function(){var sku=prompt('Enter SKU to diagnose (e.g. 802518):');if(!sku)return;var ch=state.channel;var rows=(state.computedRows||[]).filter(function(x){return String(x.SKU||'').trim()===sku.trim();});if(!rows.length){alert('SKU ['+sku+'] not found in computed rows.\n\nMake sure data is loaded and check channel.');return;}var msg='🔍 SKU: '+sku+' | Channel: '+ch+'\nFound in '+rows.length+' supplier row'+(rows.length>1?'s (multi-supplier!)':'')+'\n\n';rows.forEach(function(r,i){var rank=(state.skuRankMap&&state.skuRankMap.get(sku.trim()))||'?';var inTop500=rank<=500;msg+='━━━ Supplier '+(i+1)+': '+(r.SupplierName||'?')+' ━━━\n';msg+='Stock → CS:'+( r.NetStock_CapelStreet||0)+' AK:'+(r.NetStock_Arklow||0)+'\n';msg+='CS demand 30d: '+(r.QtySold_Shop_CapelStreet_30d||0)+' units\n';msg+='CS revenue 30d: €'+(r.Revenue_Shop_CapelStreet_30d||0).toFixed(2)+'\n';msg+='AK demand 30d: '+(r.QtySold_Online_Arklow_30d||0)+' units (online only)\n';msg+='AK demand 180d: '+(r.QtySold_Online_Arklow_180d||0)+' units\n';msg+='CS demand 90d/180d: '+(r.QtySold_Shop_CapelStreet_90d||0)+' / '+(r.QtySold_Shop_CapelStreet_180d||0)+' units\n';msg+='📅 12-mo total (330d): '+(r.QtySold_Total_330d||0)+' units'+(r.isLapsedSeller?' 💤 LAPSED SELLER — sold last year, OOS, BUY 0':'')+'\n';msg+='📊 365d by channel → CS till: '+(r.QtySold_Shop_CapelStreet_365d||0)+' · CS online: '+(r.QtySold_Online_CapelStreet_365d||0)+' · AK online: '+(r.QtySold_Online_Arklow_365d||0)+'\n';var _ak180=(r.QtySold_Online_Arklow_180d||0)/180,_ak30=(r.QtySold_Online_Arklow_30d||0)/30;msg+='Seasonal (AK): '+(_ak180>0?(_ak30/_ak180).toFixed(1)+'× its 180d avg'+((_ak30/_ak180)>=1.5?' 📈 in season':''):'n/a')+'\n';msg+='⚠️ AK till/counter sales are NOT in demand (online only)\n';msg+='Adj daily: '+((r.adjustedDaily||0).toFixed(2))+' | Days cover: '+Math.round(r.daysOfCover||0)+'\n';msg+='⏱ Lead '+(r.leadTimeDays||0)+'d + safety '+(r.safetyDays||0)+'d → reorder at '+(r.reorderPointDays||0)+'d cover | top up to '+(r.targetDays||0)+'d (run '+(r.runLengthDays||0)+'d)\n';msg+='📊 Variability ×'+(r.variabilityFactor||1)+' (1 steady → 2 jumpy)\n';msg+='Status: '+(r.coverStatus||'?')+' | ABC: '+(r.abcClass||'?')+'\n';msg+='BUY: '+(r.buy||0)+' units\n';msg+='Rank: '+rank+(inTop500?' ✅ in QO':' ❌ not in Quick Order')+'\n';msg+='Governance: '+(!!(state.governedSuppliers&&state.governedSuppliers.has(r.SupplierName))?'✅ pass':'❌ FAIL — hidden!')+'\n\n';});alert(msg);})()">🔍 Diagnose SKU</button>
+      <button onclick="(function(){var sku=prompt('Enter SKU to diagnose (e.g. 802518):');if(!sku)return;var ch=state.channel;var rows=(state.computedRows||[]).filter(function(x){return String(x.SKU||'').trim()===sku.trim();});if(!rows.length){alert('SKU ['+sku+'] not found in computed rows.\n\nMake sure data is loaded and check channel.');return;}var msg='🔍 SKU: '+sku+' | Channel: '+ch+'\nFound in '+rows.length+' supplier row'+(rows.length>1?'s (multi-supplier!)':'')+'\n\n';rows.forEach(function(r,i){var rank=(state.skuRankMap&&state.skuRankMap.get(sku.trim()))||'?';var inTop500=rank<=500;msg+='━━━ Supplier '+(i+1)+': '+(r.SupplierName||'?')+' ━━━\n';msg+='Stock → CS:'+( r.NetStock_CapelStreet||0)+' AK:'+(r.NetStock_Arklow||0)+'\n';msg+='CS demand 30d: '+(r.QtySold_Shop_CapelStreet_30d||0)+' units\n';msg+='CS revenue 30d: €'+(r.Revenue_Shop_CapelStreet_30d||0).toFixed(2)+'\n';msg+='AK demand 30d: '+(r.QtySold_Online_Arklow_30d||0)+' units (online only)\n';msg+='AK demand 180d: '+(r.QtySold_Online_Arklow_180d||0)+' units\n';msg+='CS demand 90d/180d: '+(r.QtySold_Shop_CapelStreet_90d||0)+' / '+(r.QtySold_Shop_CapelStreet_180d||0)+' units\n';msg+='📅 12-mo total (330d): '+(r.QtySold_Total_330d||0)+' units'+(r.isLapsedSeller?' 💤 LAPSED SELLER — sold last year, OOS, BUY 0':'')+'\n';msg+='📊 365d by channel → CS till: '+(r.QtySold_Shop_CapelStreet_365d||0)+' · CS online: '+(r.QtySold_Online_CapelStreet_365d||0)+' · AK online: '+(r.QtySold_Online_Arklow_365d||0)+'\n';var _ak180=(r.QtySold_Online_Arklow_180d||0)/180,_ak30=(r.QtySold_Online_Arklow_30d||0)/30;msg+='Seasonal (AK): '+(_ak180>0?(_ak30/_ak180).toFixed(1)+'× its 180d avg'+((_ak30/_ak180)>=1.5?' 📈 in season':''):'n/a')+'\n';msg+='⚠️ AK till/counter sales are NOT in demand (online only)\n';msg+='Adj daily: '+((r.adjustedDaily||0).toFixed(2))+' | Days cover: '+Math.round(r.daysOfCover||0)+'\n';msg+='⏱ Lead '+(r.leadTimeDays||0)+'d + safety '+(r.safetyDays||0)+'d → reorder at '+(r.reorderPointDays||0)+'d cover | top up to '+(r.targetDays||0)+'d\n';msg+='🔁 Cadence '+(r.cadence||'—')+' → review '+(r.reviewDays||0)+'d · location ×'+(r.locationFactor||1)+' · variability ×'+(r.variabilityFactor||1)+'\n';msg+='Status: '+(r.coverStatus||'?')+' | ABC: '+(r.abcClass||'?')+'\n';msg+='BUY: '+(r.buy||0)+' units\n';msg+='Rank: '+rank+(inTop500?' ✅ in QO':' ❌ not in Quick Order')+'\n';msg+='Governance: '+(!!(state.governedSuppliers&&state.governedSuppliers.has(r.SupplierName))?'✅ pass':'❌ FAIL — hidden!')+'\n\n';});alert(msg);})()">🔍 Diagnose SKU</button>
       <label>or CSV file
         <input id="csvFile" type="file" accept=".csv,text/csv">
       </label>
@@ -6137,16 +6137,31 @@ function computeRow(row){
     variabilityFactor = 1 + (_mx>0 ? (_mx-_mn)/_mx : 0);   // 1.0 … 2.0
   }
 
-  // Safety buffer = per-grade base (days) × variability
-  const _baseSafety = abcClass==='A'?7 : abcClass==='B'?4 : abcClass==='C'?2 : 1;
-  const safetyDays = _baseSafety * variabilityFactor;
+  // Review period = how often we actually reorder this supplier (from the buyer
+  // schedule cadence). A 2×/week supplier only bridges ~3-4 days between orders; a
+  // monthly one ~30. Falls back to the "default review" input if no cadence is set.
+  const _fallbackReview = num(document.getElementById('baseCoverDays')?.value) || 21;
+  let reviewDays = _fallbackReview, _cadence = null;
+  try{
+    _cadence = (typeof getCadenceForSupplier==='function') ? getCadenceForSupplier(row.SupplierName) : null;
+    reviewDays = (typeof cadenceReviewDays==='function') ? cadenceReviewDays(_cadence, _fallbackReview) : _fallbackReview;
+  }catch(_e){ reviewDays = _fallbackReview; }
+  const runLengthDays = reviewDays;   // legacy alias
 
-  // Run length — how long one order should last before the next reorder (tunable;
-  // the input formerly labelled "Cover days" now drives this, default 21).
-  const runLengthDays = num(document.getElementById('baseCoverDays')?.value) || 21;
+  // Safety buffer scales with the EXPOSURE window (lead + review) — the time you're
+  // committed before the next order can fix a shortfall — times importance and
+  // volatility. Fast + frequently-ordered → little safety; slow + infrequent → more.
+  // (Was a flat per-grade day count that ignored both lead and order frequency.)
+  const _exposure  = leadTimeDays + reviewDays;
+  const _safetyPct = abcClass==='A'?0.75 : abcClass==='B'?0.55 : abcClass==='C'?0.35 : 0.2;
+  const safetyDays = _exposure * _safetyPct * variabilityFactor;
 
-  const reorderPointDays = leadTimeDays + safetyDays;                  // order at/below this
-  const targetDays       = leadTimeDays + safetyDays + runLengthDays;  // top up to this
+  // Location holding factor — Capel has less space than Arklow, so it holds leaner.
+  const locationFactor = String(state.channel||'').toLowerCase().includes('capel') ? 0.7 : 1.0;
+
+  const reorderPointDays = leadTimeDays + safetyDays;   // order at/below this
+  const targetDays       = Math.max(reorderPointDays + 1,
+                                    (leadTimeDays + reviewDays + safetyDays) * locationFactor); // top up to this
 
   // Legacy aliases so the res object + downstream readouts keep working
   const dynamicCoverMult   = 1;
@@ -6234,6 +6249,7 @@ function computeRow(row){
     seasonalUplift, seasonalHeating,                         // self-baseline seasonal signal
     dynamicCoverDays, dynamicCoverMult, isDeclining,         // dynamic cover
     reorderPointDays, targetDays, runLengthDays,             // reorder-point model
+    reviewDays, locationFactor, cadence:_cadence,            // frequency + location
     _excluded,                                                // do-not-order flag
     safetyDays:Math.round(safetyDays*10)/10, variabilityFactor:Math.round(variabilityFactor*100)/100,
     autoSelectedMode, resolvedMode,                          // auto mode selection
@@ -8499,12 +8515,26 @@ function shouldFireToday(cadence, date){
   return false;
 }
 
-// Cadence for a supplier on the current channel (from the buyer schedule)
+// Cadence for a supplier on the current channel (from the buyer schedule) — memoised
+let _cadenceCache = {};
 function getCadenceForSupplier(name){
   const ch = String(state.channel||'').toLowerCase().includes('capel') ? 'Capel Street' : 'Arklow';
+  const key = ch+'|'+name;
+  if(key in _cadenceCache) return _cadenceCache[key];
   const hit = BUYER_SCHEDULE.find(r=>r.supplier===name && r.channel===ch)
            || BUYER_SCHEDULE.find(r=>r.supplier===name);
-  return hit ? hit.cadence : null;
+  return _cadenceCache[key] = (hit ? hit.cadence : null);
+}
+// Order cadence → review period in days (typical gap between reorders)
+function cadenceReviewDays(cadence, fallback){
+  switch(String(cadence||'').trim()){
+    case '3x week':     return 2.5;
+    case '2x week':     return 3.5;
+    case 'Weekly':      return 7;
+    case 'Fortnightly': return 14;
+    case 'Monthly':     return 30;
+    default:            return fallback || 10;
+  }
 }
 // Most recent scheduled order day on/before `today` for a cadence (walks back)
 function lastScheduledOrderDay(cadence, today){
