@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.0.7 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.0.8 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -8530,6 +8530,8 @@ function parsePODate(dateStr, monthStr){
   }
   return null;
 }
+
+let teamDoneSet = new Set();
 
 function nearestWeekday(d){ const day=d.getDay(); if(day===0) d.setDate(d.getDate()+1); if(day===6) d.setDate(d.getDate()-1); return d; }
 let teamDate = nearestWeekday(new Date()); // weekdays only
