@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.0.3 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.0.4 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -783,7 +783,9 @@
     /* PO line */
     .wl-tile-po{font-size:13px;font-weight:700;color:#16a34a;min-height:18px;padding:3px 0}
     .wl-tile-po.pending{color:#f97316;font-size:13px}
+    .wl-tile-po.stale{color:#b45309;font-size:12px;font-weight:700}
     .wl-tile-po.none{color:#94a3b8;font-weight:500;font-size:11px}
+    .wl-tile-risk{font-size:12px;font-weight:800;color:#b91c1c;margin-top:1px;letter-spacing:.01em}
     .po-review-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:flex;justify-content:flex-end}
     .po-review-modal{background:#fff;width:min(1140px,96vw);height:100vh;
       display:flex;flex-direction:column;box-shadow:-8px 0 40px rgba(0,0,0,.25);
@@ -6857,7 +6859,8 @@ function renderActionNow(rows){
       const critPart = critOrderVal>0&&critOrderVal<orderVal
         ? `<span style="color:#dc2626">€${fmtInt(Math.round(critOrderVal))}</span> critical · ` : '';
       revHtml=`<div class="wl-tile-rev ${colour}">€${fmtInt(Math.round(orderVal))}</div>
-        <div class="wl-tile-rev-lbl">EST. ORDER VALUE${s.lostRev>0?` <span style="color:#94a3b8;font-weight:400">· €${fmtInt(s.lostRev)} rev at risk</span>`:''}</div>`;
+        <div class="wl-tile-rev-lbl">EST. ORDER VALUE</div>
+        ${s.lostRev>0?`<div class="wl-tile-risk">€${fmtInt(s.lostRev)} revenue at risk</div>`:''}`;
     } else if(s.lostRev>0){
       revHtml=`<div class="wl-tile-rev ${colour}">€${fmtInt(s.lostRev)}</div><div class="wl-tile-rev-lbl">est. revenue at risk</div>`;
     } else if(s.buy>0){
@@ -6906,13 +6909,20 @@ function renderActionNow(rows){
     const buyPart = s.buy>0 ? `<span class="wl-tile-buy">📦 Buy ${fmtInt(s.buy)}</span>` : '';
     const statsDivider = (buyPart && countdownHtml) ? '<span style="color:#cbd5e1">·</span>' : '';
 
-    // PO status — channel-aware, includes person name
+    // PO status — green ONLY if placed THIS month. A previous-month "done" is stale
+    // (needs re-ordering now), so it shows amber, not green. Compare period-proof so
+    // a Mac rendering "Jul." vs "Jul" can't break the match.
     const poSt=_chPoMap[s.name];
+    const _nm = v=>String(v||'').replace(/\./g,'').trim().toLowerCase();
+    const nowMonthStr = new Date().toLocaleDateString('en-IE',{month:'short',year:'numeric'});
+    const doneThisMonth = !!(poSt?.isDone && _nm(poSt.month)===_nm(nowMonthStr));
     let poLine='';
     if(poSt?.isDone){
       const who = poSt.person ? ` · <strong>${esc(poSt.person)}</strong>` : '';
       const when = poSt.date ? ` · ${esc(poSt.date)}` : (poSt.month ? ` · ${esc(poSt.month)}` : '');
-      poLine=`<div class="wl-tile-po">✅ PO done${when}${who}</div>`;
+      poLine = doneThisMonth
+        ? `<div class="wl-tile-po">✅ PO done${when}${who}</div>`
+        : `<div class="wl-tile-po stale">⚠ Last ordered${when}${who} — not yet this month</div>`;
     } else if(poSt?.month){
       poLine=`<div class="wl-tile-po pending">🔴 PO pending · ${esc(poSt.month)}</div>`;
     } else {
@@ -6928,14 +6938,10 @@ function renderActionNow(rows){
       </div>
       ${revHtml}
       ${aItemHtml}
-      ${overstockHtml}
-      ${csGapHtml}
-      ${topSkuHtml}
       <div class="wl-tile-stats">${buyPart}${statsDivider}${countdownHtml}</div>
       ${poLine}
       <div class="wl-tile-actions" onclick="event.stopPropagation()">
-        <button class="wl-tile-btn${colour==='green'?' green':''}" onclick="if(window.openQuickOrder)openQuickOrder('${safeName}')">${colour==='green'?'✓ View SKUs':'⚡ Quick Order'}</button>
-        <button class="wl-tile-btn-icon" onclick="${openSupplierJs}" title="Open full supplier view">⊞</button>
+        <button class="wl-tile-btn${doneThisMonth?' green':''}" onclick="if(window.openQuickOrder)openQuickOrder('${safeName}')">${doneThisMonth?'✓ View order':'⚡ Order Now'}</button>
       </div>
     </div>`;
   }
