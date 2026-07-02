@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.0.6 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.0.7 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -6916,16 +6916,20 @@ function renderActionNow(rows){
     const poSt=_chPoMap[s.name];
     const _nm = v=>String(v||'').replace(/\./g,'').trim().toLowerCase();
     const nowMonthStr = new Date().toLocaleDateString('en-IE',{month:'short',year:'numeric'});
-    const cadence = getCadenceForSupplier(s.name);
-    let orderedRecently=false;
-    if(poSt?.isDone){
-      const lastOrd = parsePODate(poSt.date, poSt.month);
-      if(cadence && lastOrd){
-        const sched = lastScheduledOrderDay(cadence, new Date());
-        orderedRecently = !(sched && lastOrd < sched);   // still within this cadence window
-      } else {
-        orderedRecently = _nm(poSt.month)===_nm(nowMonthStr);   // fallback: done this month
+    let cadence=null, orderedRecently=false;
+    try{
+      cadence = getCadenceForSupplier(s.name);
+      if(poSt?.isDone){
+        const lastOrd = parsePODate(poSt.date, poSt.month);
+        if(cadence && lastOrd){
+          const sched = lastScheduledOrderDay(cadence, new Date());
+          orderedRecently = !(sched && lastOrd < sched);   // still within this cadence window
+        } else {
+          orderedRecently = _nm(poSt.month)===_nm(nowMonthStr);   // fallback: done this month
+        }
       }
+    }catch(_e){
+      orderedRecently = !!(poSt?.isDone && _nm(poSt.month)===_nm(nowMonthStr));
     }
     const doneAndCurrent = !!(poSt?.isDone && orderedRecently);
     const cadenceTag = cadence ? ` · ${esc(cadence)}` : '';
@@ -8079,16 +8083,15 @@ async function loadGovernanceFeeds(){
     msgs.push(`PO Status unavailable (${e.message})`);
     state.poStatusMap={};
   }
-  // Do-not-order / supplier-discontinued list (optional tab)
-  try{
-    if(!EXCLUDE_URL.includes('EXCLUDE_GID_HERE')){
-      const exRaw=await fetchCSV(EXCLUDE_URL,'Do-Not-Order');
-      state.excludedSkus=parseExcludeFeed(exRaw);
-      msgs.push(`Do-Not-Order: ${state.excludedSkus.size} SKUs`);
-    }
-  }catch(e){
-    msgs.push(`Do-Not-Order unavailable (${e.message})`);
-    state.excludedSkus=new Map();
+  // Do-not-order list — load in the BACKGROUND so a slow or unreachable tab can
+  // never delay the main load. Re-apply exclusions once it arrives.
+  if(!EXCLUDE_URL.includes('EXCLUDE_GID_HERE')){
+    fetchCSV(EXCLUDE_URL,'Do-Not-Order')
+      .then(exRaw=>{
+        state.excludedSkus=parseExcludeFeed(exRaw);
+        if(state.rawRows && state.rawRows.length && typeof recompute==='function') recompute();
+      })
+      .catch(()=>{ if(!state.excludedSkus) state.excludedSkus=new Map(); });
   }
   // Monthly sales history — load if URL is configured
   state.monthlyLoaded = false;
