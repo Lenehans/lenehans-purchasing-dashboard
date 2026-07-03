@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.1.2 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.1.3 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.1.2 · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history · Do-Not-Order list</div>
+  <div class="sub">V7.1.3 · Reorder-point cover: lead + cadence + safety × location · Unified order value (card = Order Now = full) · Capel seasonal needs Capel history</div>
 </header>
 
 <div class="wrap">
@@ -6783,6 +6783,21 @@ function renderActionNow(rows){
     return;
   }
 
+  // Full per-supplier order value — ALL buy lines for each supplier (not just the
+  // top-500 snapshot subset), so the card headline matches Order Now and the full
+  // order. One O(n) pass; cards look it up O(1). Excludes omitted lines unless
+  // CS-required, mirroring the Why-Buy / PO export scope.
+  const fullOrderBySupplier = new Map();
+  for(const r of (state.computedRows||[])){
+    if((r.buy||0)<=0) continue;
+    if(state.omittedSkus.has(r.SKU) && !r._csRequired) continue;
+    const k=r.SupplierName||'(Unknown)';
+    let f=fullOrderBySupplier.get(k); if(!f){ f={value:0,units:0,lines:0}; fullOrderBySupplier.set(k,f); }
+    f.value += (r.buy||0)*(r.SupplierCostPrice||0);
+    f.units += (r.buy||0);
+    f.lines += 1;
+  }
+
   // Group by supplier
   const supplierMap=new Map();
   for(const r of top200){
@@ -6881,7 +6896,8 @@ function renderActionNow(rows){
     const badgeText = s.oos>0 ? `🔴 ${s.oos} OOS` : s.crit>0 ? `🟠 ${s.crit} critical` : s.low>0 ? `🟡 ${s.low} low` : `✓ Healthy`;
 
     // Order value (what the buyer will spend) — this is what matters to the buying team
-    const orderVal = (s.skus||[]).reduce((t,r)=>t+((r.buy||0)*(r.SupplierCostPrice||0)),0);
+    const _fo = fullOrderBySupplier.get(s.name) || {value:0};
+    const orderVal = _fo.value;   // full order value — matches Order Now + full order
     const critOrderVal = (s.skus||[]).filter(r=>r.coverStatus==='Out of Stock'||r.coverStatus==='Critical')
       .reduce((t,r)=>t+((r.buy||0)*(r.SupplierCostPrice||0)),0);
 
@@ -9790,12 +9806,10 @@ function openQuickOrder(supplierName) {
     var matchRows = exactRows.length ? exactRows : state.computedRows.filter(function(r){
       return (r.SupplierName||'').trim().toLowerCase() === supplierName.trim().toLowerCase();
     });
-    // Keep only top-500 SKUs using the already-computed rank map
-    if (state.skuRankMap) {
-      matchRows = matchRows.filter(function(r){ return (state.skuRankMap.get(r.SKU)||9999) <= 500; });
-    }
-    // Only show rows with something to order — buy=0 means no demand signal, nothing actionable
-    matchRows = matchRows.filter(function(r){ return (r.buy||0) > 0; });
+    // Full supplier order — every line with something to buy (not just the top-500
+    // subset), so Order Now's total matches the card and the full order. Excludes
+    // omitted lines unless CS-required, same as Why-Buy / PO export.
+    matchRows = matchRows.filter(function(r){ return (r.buy||0) > 0 && (!state.omittedSkus.has(r.SKU) || r._csRequired); });
     _qo.rows = matchRows.sort(function(a,b){
       var rank = function(r){ return r.coverStatus==='Out of Stock'?0:r.coverStatus==='Critical'?1:r.coverStatus==='Low'?2:3; };
       return rank(a)-rank(b) || (a.daysOfCover||0)-(b.daysOfCover||0);
