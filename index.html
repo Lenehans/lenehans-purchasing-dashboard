@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.1.1 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.1.2 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header>
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.1.1 · Reorder-point cover: lead + cadence + safety × location · Do-Not-Order list · Email Intelligence</div>
+  <div class="sub">V7.1.2 · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history · Do-Not-Order list</div>
 </header>
 
 <div class="wrap">
@@ -5527,6 +5527,15 @@ function parseMonthlyFeed(rows){
 // Falls back to profile multiplier if no monthly data for this SKU.
 //
 // today = March 2026 → look for 2025_03 + 2025_04 first, then 2024_03 + 2024_04
+// Does this SKU have any Capel-specific sales history (till or Capel online)?
+// Used to stop all-channel (mostly Arklow) seasonal history driving a Capel buy
+// for a SKU that never sold at Capel.
+function hasCapelHistory(row){
+  return ((row.QtySold_Shop_CapelStreet_30d||0)+(row.QtySold_Shop_CapelStreet_90d||0)+(row.QtySold_Shop_CapelStreet_180d||0)
+        + (row.QtySold_Online_CapelStreet_30d||0)+(row.QtySold_Online_CapelStreet_90d||0)+(row.QtySold_Online_CapelStreet_180d||0)
+        + (row.QtySold_Shop_CapelStreet_365d||0)+(row.QtySold_Online_CapelStreet_365d||0)) > 0;
+}
+
 function getSeasonalDemandFromData(sku, baseDailyRate){
   const data = state.monthlyData[sku];
   if(!data || !state.monthlyLoaded) return null; // no data → caller uses fallback
@@ -6033,7 +6042,11 @@ function computeRow(row){
   let seasonalDataUsed = null;
 
   const monthlyResult = getSeasonalDemandFromData(row.SKU, base30dDaily);
-  if(monthlyResult){
+  // On the Capel channel, don't let all-channel (mostly Arklow) seasonal history
+  // drive a buy for a SKU with no Capel history of its own. No Capel history → no
+  // Capel seasonal build-ahead (e.g. a ladder that only ever sold in Arklow).
+  const _capelNoHist = (state.channel==='capel') && !hasCapelHistory(row);
+  if(monthlyResult && !_capelNoHist){
     // Apply growth multiplier to historical seasonal rate
     adjustedDaily = monthlyResult.daily * growthMult;
     // Seasonal floor: for known seasonal categories don't let stockout-suppressed
@@ -6452,6 +6465,8 @@ function applySeasonalRescue_(rows){
   const capel = state.channel==='capel';
   for(const r of rows){
     if(isExcludedSku(r.SKU, r.SupplierName)){ r._seasonalForced=false; r._seasonalBuy=false; r.buy=0; continue; }
+    // No Capel history → no seasonal buy on the Capel channel (don't inherit Arklow's)
+    if(state.channel==='capel' && !hasCapelHistory(r)){ r._seasonalForced=false; r._seasonalBuy=false; continue; }
     const months=state.seasonalTags.get(normSku_(r.SKU));
     const st = inSeason(months);
     if(st){
