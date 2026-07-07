@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.1.9 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.2.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.1.9 · built 2026-07-03 · data-age stamp + auto-refresh (open tabs stay fresh) · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
+  <div class="sub">V7.2.0 · built 2026-07-03 · auto-updates old open tabs to newest build · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -8582,6 +8582,33 @@ function bindEvents(){
   window.addEventListener('unhandledrejection',e=>banner((e&&e.reason&&(e.reason.message||e.reason))||'async error'));
 })();
 
+// ── Version watch: reload open tabs when a newer build is deployed ────────────
+function runningVersion(){ const m=(document.title||'').match(/V\d+\.\d+\.\d+/); return m?m[0]:''; }
+function showUpdateBanner(v){
+  if(document.getElementById('updateBanner')) return;
+  const b=document.createElement('div'); b.id='updateBanner';
+  b.style.cssText='position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:100001;background:#1e40af;color:#fff;font:13px/1.4 system-ui,sans-serif;padding:11px 16px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.35);display:flex;align-items:center;gap:12px';
+  const s=document.createElement('span'); s.textContent='🔄 A new version ('+v+') is available.';
+  const btn=document.createElement('button'); btn.textContent='Update now';
+  btn.style.cssText='background:#fff;color:#1e40af;border:none;border-radius:6px;padding:6px 13px;font-weight:800;cursor:pointer';
+  btn.onclick=()=>location.reload();
+  b.appendChild(s); b.appendChild(btn); document.body.appendChild(b);
+}
+async function checkForNewVersion(userIdle){
+  try{
+    const res = await fetch(location.pathname + '?_v=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) return;
+    const text = await res.text();
+    const m = text.match(/<title>[^<]*?(V\d+\.\d+\.\d+)/);
+    const deployed = m ? m[1] : '';
+    const running = runningVersion();
+    if(deployed && running && deployed !== running){
+      if(userIdle || document.hidden) location.reload();   // safe → reload to new build
+      else showUpdateBanner(deployed);                     // active → let them choose
+    }
+  }catch(e){}
+}
+
 // ── Data freshness: visible age stamp + auto-refresh (so open tabs don't go stale) ─
 function setupAutoRefresh(){
   const STALE_MS = 10*60*1000;   // data considered stale after 10 minutes
@@ -8589,6 +8616,7 @@ function setupAutoRefresh(){
   let lastInteraction = Date.now();
   ['mousedown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{lastInteraction=Date.now();},{passive:true}));
   const ageMs = ()=> state.lastLoadedAt ? (Date.now()-state.lastLoadedAt) : Infinity;
+  const isIdle = ()=> (Date.now()-lastInteraction) > IDLE_MS;
   function fmtAge(ms){
     if(!isFinite(ms)) return '—';
     const m=Math.floor(ms/60000);
@@ -8612,16 +8640,21 @@ function setupAutoRefresh(){
     finally{ refreshing=false; paintPill(); }
   }
   const btn=document.getElementById('dataRefreshBtn'); if(btn) btn.onclick=doRefresh;
-  // Returning to the tab with stale data → refresh (safe: you weren't using it)
+  // Returning to the tab → refresh stale data + check for a newer build
   document.addEventListener('visibilitychange',()=>{
-    if(document.visibilityState==='visible' && ageMs()>STALE_MS) doRefresh();
+    if(document.visibilityState==='visible'){
+      if(ageMs()>STALE_MS) doRefresh();
+      checkForNewVersion(isIdle());
+    }
   });
-  // Periodic refresh — only when the tab is hidden or the user is idle, so it never
-  // interrupts someone mid-order.
+  // Periodic — only when hidden or idle, so it never interrupts someone mid-order.
   setInterval(()=>{
-    if(ageMs()<STALE_MS) return;
-    if(document.hidden || (Date.now()-lastInteraction)>IDLE_MS) doRefresh();
+    const idle = document.hidden || isIdle();
+    if(ageMs()>STALE_MS && idle) doRefresh();
+    if(idle) checkForNewVersion(true);   // reload to a newer build while idle
   }, 5*60*1000);
+  // First version check shortly after load
+  setTimeout(()=>checkForNewVersion(isIdle()), 60*1000);
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
