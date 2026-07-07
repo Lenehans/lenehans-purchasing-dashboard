@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.1.7 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.1.9 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1083,9 +1083,13 @@
   </style>
 </head>
 <body>
-<header>
+<header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.1.7 · built 2026-07-03 · cadence now from BuyerSchedule sheet tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
+  <div class="sub">V7.1.9 · built 2026-07-03 · data-age stamp + auto-refresh (open tabs stay fresh) · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
+  <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
+    <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
+    <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
+  </div>
 </header>
 
 <div class="wrap">
@@ -7669,10 +7673,14 @@ function buildWhyText(r){
       <span class="wbs-val">${fmtInt(qty)} units ${vsLabel}</span>
     </div>`);
   } else if(r.categoryLabel && r.categoryLabel!=='General'){
+    const q12 = r.QtySold_Total_330d || 0;
+    const mName = new Date().toLocaleDateString('en-IE',{month:'long'});
     rows.push(`<div class="wbs-row">
       <span class="wbs-icon">📅</span>
       <span class="wbs-lbl">Last year</span>
-      <span class="wbs-val" style="color:#94a3b8">No data — using ${esc(r.categoryLabel)} profile estimate</span>
+      <span class="wbs-val" style="color:#94a3b8">${q12>0
+        ? `No ${esc(mName)} ${new Date().getFullYear()-1} sales · <span style="color:#334155;font-weight:600">${fmtInt(q12)} sold in last 12 mo</span> — ${esc(r.categoryLabel)} profile`
+        : `No data — using ${esc(r.categoryLabel)} profile estimate`}</span>
     </div>`);
   }
 
@@ -8329,6 +8337,7 @@ async function loadFromUrl(){
     setTimeout(()=>setLoadProgress(90,'Applying rules…'),100);
     setTimeout(()=>{ computeStockAlerts(); },600);
     await processRawRows(parsedRaw,'URL');
+    state.lastLoadedAt = Date.now();   // for the data-age stamp + auto-refresh
   }catch(err){
     let msg=`❌ ${err.message}`;
     if(err.name==='AbortError') msg='❌ Load timed out after 20 seconds — the sheet may be too large or unavailable.';
@@ -8573,6 +8582,48 @@ function bindEvents(){
   window.addEventListener('unhandledrejection',e=>banner((e&&e.reason&&(e.reason.message||e.reason))||'async error'));
 })();
 
+// ── Data freshness: visible age stamp + auto-refresh (so open tabs don't go stale) ─
+function setupAutoRefresh(){
+  const STALE_MS = 10*60*1000;   // data considered stale after 10 minutes
+  const IDLE_MS  = 5*60*1000;    // "idle" = no interaction for 5 minutes
+  let lastInteraction = Date.now();
+  ['mousedown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{lastInteraction=Date.now();},{passive:true}));
+  const ageMs = ()=> state.lastLoadedAt ? (Date.now()-state.lastLoadedAt) : Infinity;
+  function fmtAge(ms){
+    if(!isFinite(ms)) return '—';
+    const m=Math.floor(ms/60000);
+    if(m<1) return 'just now'; if(m<60) return m+'m ago';
+    const h=Math.floor(m/60); return h+'h '+(m%60)+'m ago';
+  }
+  function paintPill(){
+    const t=document.getElementById('dataAgeText'); if(!t) return;
+    const ms=ageMs();
+    if(!isFinite(ms)){ t.textContent='Loading…'; t.style.background='#334155'; return; }
+    if(ms>30*60*1000){ t.textContent='⚠ Stale · '+fmtAge(ms); t.style.background='#b91c1c'; }
+    else if(ms>STALE_MS){ t.textContent='Updated '+fmtAge(ms); t.style.background='#d97706'; }
+    else { t.textContent='Updated '+fmtAge(ms); t.style.background='#16a34a'; }
+  }
+  paintPill(); setInterval(paintPill, 30000);
+  let refreshing=false;
+  async function doRefresh(){
+    if(refreshing) return; refreshing=true;
+    const t=document.getElementById('dataAgeText'); if(t){ t.textContent='↻ Refreshing…'; t.style.background='#1e40af'; }
+    try{ await loadFromUrl(); }catch(e){}
+    finally{ refreshing=false; paintPill(); }
+  }
+  const btn=document.getElementById('dataRefreshBtn'); if(btn) btn.onclick=doRefresh;
+  // Returning to the tab with stale data → refresh (safe: you weren't using it)
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible' && ageMs()>STALE_MS) doRefresh();
+  });
+  // Periodic refresh — only when the tab is hidden or the user is idle, so it never
+  // interrupts someone mid-order.
+  setInterval(()=>{
+    if(ageMs()<STALE_MS) return;
+    if(document.hidden || (Date.now()-lastInteraction)>IDLE_MS) doRefresh();
+  }, 5*60*1000);
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   // Each init step is isolated — one failing panel can't take the whole tool down.
   const safe=(label,fn)=>{ try{ fn(); }catch(e){ console.error('[init] '+label+' failed:',e); } };
@@ -8595,6 +8646,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
   setStatus('⏳ Auto-loading all feeds…',false);
   safe('loadFromUrl',loadFromUrl);
+  safe('setupAutoRefresh',setupAutoRefresh);
   // Hide overlay once data renders (poll for rows)
   var _overlayCheck = setInterval(function(){
     var overlay = document.getElementById('buyingLoadOverlay');
