@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.2.0 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.2.2 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.2.0 · built 2026-07-03 · auto-updates old open tabs to newest build · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
+  <div class="sub">V7.2.2 · built 2026-07-06 · On-order column shows qty + placed date (needs Code.gs deploy) · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -5155,6 +5155,7 @@ function normalizeRow(r){
     SupplierName:r.SupplierName||'',
     SKU: rawSku,
     ItemTitle:r.ItemTitle||'',
+    OnOrderDate: String(r.OnOrderDate||'').trim(),   // per-SKU latest open-PO placed date (YYYY-MM-DD)
     AvailableQty_CapelStreet:   n('AvailableQty_CapelStreet')||n('AQty_CS'),
     AvailableQty_Arklow:        n('AvailableQty_Arklow')||n('AQty_AK'),
     OnOrderQty_CapelStreet:     n('OnOrderQty_CapelStreet')||n('OOQty_CS'),
@@ -7813,10 +7814,13 @@ function showPOReview(rows, autoExport){
     const coverLabel=r.stock<=0?'OOS':r.coverDays?fmtInt(r.coverDays)+'d':'—';
     const abc=r.ABCClass||r.abc||'';
     const unitCost=r.SupplierCostPrice||r.UnitCost||r.unit_cost||0;
+    const onOrder = state.channel==='capel' ? (r.OnOrderQty_CapelStreet||0) : (r.OnOrderQty_Arklow||0);
+    const ooDateShort = r.OnOrderDate ? r.OnOrderDate.split('-').reverse().slice(0,2).join('/') : '';
     tBody+=`<tr>
       <td><span class="po-rev-sku">${esc(r.SKU)}</span></td>
       <td style="max-width:210px;font-size:11.5px">${esc(r.ItemTitle||r.title||'')}</td>
       <td class="r"><span style="font-weight:700;color:${r.stock<=0?'#dc2626':r.stock<10?'#d97706':'#166534'}">${fmtInt(r.stock)}</span></td>
+      <td class="r">${onOrder>0?`<span style="font-weight:700;color:#1e40af" title="On order (inbound)${ooDateShort?' — placed '+ooDateShort:''} — factor this in before ordering more">📦 ${fmtInt(onOrder)}${ooDateShort?`<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px">placed ${ooDateShort}</div>`:''}</span>`:'<span style="color:#cbd5e1">—</span>'}</td>
       <td class="r"><input class="po-rev-qty" type="number" min="0" step="1" value="${r.buy}"
         data-sku="${esc(r.SKU)}" data-unitcost="${unitCost}" data-cover="${r.coverStatus||''}" data-abc="${abc}"
         data-orig="${r.buy}"
@@ -7859,6 +7863,7 @@ function showPOReview(rows, autoExport){
           <th style="width:105px">SKU</th>
           <th style="width:210px">Item</th>
           <th class="r" style="width:72px">In stock</th>
+          <th class="r" style="width:80px" title="Quantity already on order (inbound) for this SKU">On order</th>
           <th class="r" style="width:75px">Buy qty</th>
           <th class="r" style="width:82px">Cover</th>
           <th class="r" style="width:44px">ABC</th>
