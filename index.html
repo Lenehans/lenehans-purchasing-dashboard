@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.2.5 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.2.6 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.2.5 · built 2026-07-06 · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
+  <div class="sub">V7.2.6 · built 2026-07-08 · FIX: auto-refresh no longer unscopes per-supplier export · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -8275,8 +8275,16 @@ async function processRawRows(parsedRaw, sourceName){
   state.governedRows=governed;
 
   const hiddenCount=parsedRaw.length-governed.filter(r=>!r._synthetic).length;
-  state.activeSupplier='';
   await recompute();
+  // Preserve the buyer's active-supplier scope across reloads (including the silent
+  // auto-refresh). Clearing it here used to dump ALL suppliers into a per-supplier
+  // export whenever a refresh fired mid-order. Only drop it if that supplier is
+  // genuinely gone from the fresh data.
+  if(state.activeSupplier && state.computedRows &&
+     !state.computedRows.some(r=>r.SupplierName===state.activeSupplier)){
+    state.activeSupplier='';
+    try{ render(); }catch(e){}
+  }
 
   const govNote = state.governedSuppliers.size > 0
     ? ` · ${fmtInt(new Set(governed.map(r=>r.SupplierName)).size)} governed suppliers · ${hiddenCount} rows hidden by governance`
@@ -8652,15 +8660,19 @@ function setupAutoRefresh(){
     finally{ refreshing=false; paintPill(); }
   }
   const btn=document.getElementById('dataRefreshBtn'); if(btn) btn.onclick=doRefresh;
+  // Never auto-refresh or auto-reload while an order review panel is open — it would
+  // recompute numbers or reload the page out from under someone mid-order.
+  const panelOpen = ()=> !!document.getElementById('poReviewOverlay');
   // Returning to the tab → refresh stale data + check for a newer build
   document.addEventListener('visibilitychange',()=>{
-    if(document.visibilityState==='visible'){
+    if(document.visibilityState==='visible' && !panelOpen()){
       if(ageMs()>STALE_MS) doRefresh();
       checkForNewVersion(isIdle());
     }
   });
-  // Periodic — only when hidden or idle, so it never interrupts someone mid-order.
+  // Periodic — only when hidden or idle, and never over an open order panel.
   setInterval(()=>{
+    if(panelOpen()) return;
     const idle = document.hidden || isIdle();
     if(ageMs()>STALE_MS && idle) doRefresh();
     if(idle) checkForNewVersion(true);   // reload to a newer build while idle
