@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.2.6 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.2.7 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.2.6 · built 2026-07-08 · FIX: auto-refresh no longer unscopes per-supplier export · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
+  <div class="sub">V7.2.7 · built 2026-07-08 · FIX: "higher/lower than now" arrow no longer inverts when 30D is 0 · auto-refresh export-scope fix · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -7667,7 +7667,10 @@ function buildWhyText(r){
     const sd=r.seasonalDataUsed;
     const col=sd.q1>0?sd.col1.replace(/_/,'/'):sd.col2.replace(/_/,'/');
     const qty=sd.q1>0?sd.q1:sd.q2;
-    const vsRatio=base30>0?qty/base30:0;
+    // Compare last year's same-month sales to the current 30D rate. When current is
+    // 0 but last year had sales, last year was HIGHER than now (demand has since
+    // dropped) — the old code forced the ratio to 0 and wrongly showed "lower".
+    const vsRatio = base30>0 ? qty/base30 : (qty>0 ? 999 : 1);
     const vsLabel=vsRatio>1.2?`<span style="color:#16a34a;font-weight:600">↑ higher than now</span>`:
                   vsRatio<0.8?`<span style="color:#94a3b8">↓ lower than now</span>`:
                   `<span style="color:#64748b">≈ similar to now</span>`;
