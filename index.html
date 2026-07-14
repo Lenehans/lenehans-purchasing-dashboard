@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.2.7 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.3.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.2.7 · built 2026-07-08 · FIX: "higher/lower than now" arrow no longer inverts when 30D is 0 · auto-refresh export-scope fix · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
+  <div class="sub">V7.3.0 · built 2026-07-13 · Margins now use REALISED cost (actual cost of stock shipped) · FIX: "higher/lower than now" arrow no longer inverts when 30D is 0 · auto-refresh export-scope fix · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -4113,7 +4113,13 @@ function renderSalesIntel(){
         const _rev30v=rev30(r), _qty30v=qty30(r);
         const _avgPrice=_qty30v>0?_rev30v/_qty30v:0; // gross — shown to buyers as the sell price
         const _avgPriceNet=_qty30v>0?(revNet30(r)/_qty30v):0; // ex-VAT — used for margin only
-        const _cost=r.SupplierCostPrice||0;
+        // Cost basis: prefer the REALISED cost (what the stock actually cost when it
+        // shipped — 180d weighted avg of DispatchStockUnitCost) over SupplierCostPrice
+        // (today's cost). Realised cost is what the margin was actually earned at; it
+        // matches the Linnworks margin report. Falls back to supplier cost if absent.
+        const _realCost=r.RealCost||0;
+        const _cost=_realCost>0?_realCost:(r.SupplierCostPrice||0);
+        const _costIsReal=_realCost>0;
         const _margin=_cost>0&&_avgPriceNet>0?(_avgPriceNet-_cost)/_avgPriceNet*100:null;
         // Trend: 7d daily rate vs 30d daily rate
         const qty7=r.QtySold_Online_Total_7d||0;
@@ -4121,7 +4127,7 @@ function renderSalesIntel(){
         const _trend=r30>0.05?(r7/r30):null; // null if too low volume to be meaningful
         const _revShare=(_rev30v/totalRevAll*100);
         const _atRisk=(_rev30v>500||_qty30v>20)&&(r.coverStatus==='Out of Stock'||r.coverStatus==='Critical');
-        return {...r,_rank:i+1,_rev30:_rev30v,_qty30:_qty30v,_avgPrice,_avgPriceNet,_cost,_margin,_trend,_revShare,_atRisk};
+        return {...r,_rank:i+1,_rev30:_rev30v,_qty30:_qty30v,_avgPrice,_avgPriceNet,_cost,_costIsReal,_margin,_trend,_revShare,_atRisk};
       });
     colDefs=[
       {k:'_rank',   label:'#',       num:true, fmt:r=>`<span style="color:#94a3b8">${r._rank}</span>`},
@@ -4134,7 +4140,14 @@ function renderSalesIntel(){
         {k:'_revShare',label:'Share%',  num:true,fmt:r=>`<span style="color:#64748b;font-size:10px">${r._revShare.toFixed(1)}%</span>`},
         {k:'_qty30',   label:'Units',   num:true,fmt:r=>Math.round(r._qty30)},
         {k:'_avgPriceNet',label:'Avg sell ex-VAT',num:true,fmt:r=>r._avgPriceNet>0?fmtE(r._avgPriceNet):'-'},
-        {k:'_cost',    label:'Cost',    num:true,fmt:r=>r._cost>0?`€${r._cost.toFixed(2)}`:'-'},
+        {k:'_cost',    label:'Cost',    num:true,fmt:r=>{
+          if(!(r._cost>0)) return '-';
+          // ✓ = realised cost (what it actually cost when it shipped). No tick = today's
+          // supplier cost (theoretical — no recent sales to derive a realised cost from).
+          return r._costIsReal
+            ? `<span title="Realised cost — actual cost of stock shipped (${fmtInt(r.RealCostQty||0)} units, 180d)">€${r._cost.toFixed(2)} <span style="color:#16a34a;font-size:9px">✓</span></span>`
+            : `<span title="Supplier cost price (today's cost) — no recent sales to derive a realised cost" style="color:#64748b">€${r._cost.toFixed(2)}</span>`;
+        }},
         {k:'_margin',  label:'Margin',  num:true,fmt:r=>{
           if(r._margin===null) return '-';
           const c=r._margin>=40?'#16a34a':r._margin>=20?'#d97706':'#dc2626';
@@ -5157,6 +5170,8 @@ function normalizeRow(r){
     ItemTitle:r.ItemTitle||'',
     OnOrderQty_AK_PO: n('OO_AK'),   // on-order from PO tables, split by PO location
     OnOrderQty_CS_PO: n('OO_CS'),
+    RealCost: n('RealCost'),           // realised cost of goods sold (180d weighted avg)
+    RealCostQty: n('RealCostQty'),     // units that figure is based on (confidence)
     OnOrderDate_AK: String(r.OODate_AK||'').trim(),   // latest open-PO placed date (YYYY-MM-DD)
     OnOrderDate_CS: String(r.OODate_CS||'').trim(),
     AvailableQty_CapelStreet:   n('AvailableQty_CapelStreet')||n('AQty_CS'),
