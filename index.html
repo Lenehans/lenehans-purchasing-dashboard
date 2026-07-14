@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.3.0 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.3.1 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.3.0 · built 2026-07-13 · Margins now use REALISED cost (actual cost of stock shipped) · FIX: "higher/lower than now" arrow no longer inverts when 30D is 0 · auto-refresh export-scope fix · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
+  <div class="sub">V7.3.1 · built 2026-07-13 · NEW: Brands view (units/revenue/margin by brand, drill to SKUs) · Margins use REALISED cost · FIX: "higher/lower than now" arrow no longer inverts when 30D is 0 · auto-refresh export-scope fix · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -3983,6 +3983,31 @@ let _miFilter='all', _miStockFilter='all', _miCompare=false, _miBundleMode=false
 // ─── SALES INTELLIGENCE TAB ──────────────────────────────────────────────────
 const _SALES_PIN='2323'; // ← change to set management PIN
 let _siView='sellers', _siChatOpen=false, _siChatMsgs=[], _siSort={col:'rev30',dir:-1}, _siRange='30d', _siSearch='';
+let _siBrandDrill=null;   // when set, the Brands view drills into this brand's SKUs
+
+// Brand is NOT a field in Linnworks — it lives at the start of the product title
+// ("Skil 3210 Table Saw" → Skil). Hardware titles almost always lead with the brand,
+// so we take the leading word(s), skipping size/number-led titles. Multi-word brands
+// are handled explicitly; everything else falls back to the first word.
+const _MULTIWORD_BRANDS = ['black & decker','black and decker','wolf garten','wolf-garten',
+  'grill chef','zero in','the big cheese','green protect','fuel express','one for all',
+  'dr beckmann','mason cash','clean & natural','love mud','percy doughty','easy cook',
+  'charlie shiels','smart garden','fleetwood paints','draper tools'];
+function brandOf(title){
+  const t=String(title||'').trim();
+  if(!t) return '';
+  const low=t.toLowerCase();
+  for(const b of _MULTIWORD_BRANDS){ if(low.startsWith(b)) return b.replace(/\b\w/g,c=>c.toUpperCase()); }
+  // Some titles lead with a size ("150ml Acana Moth Killer", "2.5L Ronseal Decking
+  // Stain", "4 Pack ..."). Skip leading size/measure/quantity tokens to find the brand.
+  const SIZE=/^(\d+(\.\d+)?\s*(ml|l|ltr|litre|litres|g|kg|gm|grm|mm|cm|m|mtr|w|watt|pk|pack|pce|pcs|x|"|'|inch|in)?|pack|pk|twin|single|\d+)$/i;
+  const parts=t.split(/[\s,\-–—]+/).filter(Boolean);
+  let i=0;
+  while(i<parts.length && SIZE.test(parts[i].replace(/[^\w."']/g,''))) i++;
+  const first=(parts[i]||'').replace(/[^\w&'.]/g,'');
+  if(!first || /^\d/.test(first) || first.length<2) return '(Unbranded)';
+  return first.charAt(0).toUpperCase()+first.slice(1);
+}
 
 function renderSalesPin(root){
   root.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;gap:20px">
@@ -4259,6 +4284,71 @@ function renderSalesIntel(){
       }},
       {k:'_rev30',label:'Rev/30d inc-VAT',num:true,fmt:r=>fmtE(r._rev30)},
     ];
+  }else if(_siView==='brands'){
+    // ── BRANDS ──────────────────────────────────────────────────────────────
+    // "How much Skil did we sell?" Aggregates by brand (derived from the product
+    // title, since Linnworks has no brand field), showing units, revenue and the
+    // REALISED margin. Click a brand to drill into its SKUs.
+    if(_siBrandDrill){
+      title=`${_siBrandDrill} — products`;
+      subtitle=`<span style="cursor:pointer;color:#1e40af;font-weight:700" onclick="_siBrandDrill=null;renderSalesIntel()">← All brands</span> · ${rangeLabel[_siRange]} · ${chLabel}`;
+      viewRows=active.filter(r=>brandOf(r.ItemTitle)===_siBrandDrill)
+        .map(r=>{
+          const q=qty30(r), rv=rev30(r);
+          const net=revNet30(r);
+          const cost=(r.RealCost>0?r.RealCost:(r.SupplierCostPrice||0));
+          const lineCost=cost*q;
+          const gp=net-lineCost;
+          return {...r,_q:q,_rev:rv,_net:net,_gp:gp,_m:net>0?gp/net*100:null};
+        })
+        .sort((a,b)=>b._rev-a._rev);
+      colDefs=[
+        {k:'SKU',label:'SKU',fmt:r=>r.SKU},
+        {k:'title',label:'Product',fmt:r=>(r.ItemTitle||'').substring(0,40),wide:true},
+        {k:'sup',label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,14)},
+        {k:'_q',label:'Units',num:true,fmt:r=>fmtInt(r._q)},
+        {k:'_rev',label:'Revenue',num:true,fmt:r=>fmtE(r._rev)},
+        {k:'_gp',label:'Gross profit',num:true,fmt:r=>r._gp?fmtE(r._gp):'-'},
+        {k:'_m',label:'Margin',num:true,fmt:r=>{
+          if(r._m===null) return '-';
+          const c=r._m>=40?'#16a34a':r._m>=20?'#d97706':'#dc2626';
+          return `<span style="color:${c};font-weight:700">${r._m.toFixed(0)}%</span>`;
+        }},
+        {k:'stock',label:'Stock',num:true,fmt:r=>fmtInt(r.stock||0)},
+      ];
+    } else {
+      title='Brands';
+      subtitle=`Units, revenue &amp; realised margin by brand · ${rangeLabel[_siRange]} · ${chLabel} — click a brand to see its products`;
+      const bm=new Map();
+      active.forEach(r=>{
+        const b=brandOf(r.ItemTitle); if(!b) return;
+        const q=qty30(r), rv=rev30(r), net=revNet30(r);
+        const cost=(r.RealCost>0?r.RealCost:(r.SupplierCostPrice||0));
+        let e=bm.get(b);
+        if(!e){ e={brand:b,_q:0,_rev:0,_net:0,_cost:0,_skus:0,_oos:0,_sups:new Set()}; bm.set(b,e); }
+        e._q+=q; e._rev+=rv; e._net+=net; e._cost+=cost*q; e._skus++;
+        if(r.coverStatus==='Out of Stock') e._oos++;
+        if(r.SupplierName) e._sups.add((r.SupplierName||'').split(' - ')[0]);
+      });
+      viewRows=[...bm.values()].filter(e=>e._rev>0||e._q>0).map(e=>{
+        const gp=e._net-e._cost;
+        return {...e,_gp:gp,_m:e._net>0?gp/e._net*100:null,_supList:[...e._sups].join(', ')};
+      }).sort((a,b)=>b._rev-a._rev);
+      colDefs=[
+        {k:'brand',label:'Brand',wide:true,fmt:r=>`<span style="font-weight:700;color:#1e40af;cursor:pointer" onclick="_siBrandDrill='${String(r.brand).replace(/'/g,"\\'")}';renderSalesIntel();">${esc(r.brand)}</span>`},
+        {k:'_skus',label:'SKUs',num:true,fmt:r=>fmtInt(r._skus)},
+        {k:'_q',label:'Units',num:true,fmt:r=>fmtInt(r._q)},
+        {k:'_rev',label:'Revenue',num:true,fmt:r=>fmtE(r._rev)},
+        {k:'_gp',label:'Gross profit',num:true,fmt:r=>r._gp?fmtE(r._gp):'-'},
+        {k:'_m',label:'Margin',num:true,fmt:r=>{
+          if(r._m===null) return '-';
+          const c=r._m>=40?'#16a34a':r._m>=20?'#d97706':'#dc2626';
+          return `<span style="color:${c};font-weight:700">${r._m.toFixed(0)}%</span>`;
+        }},
+        {k:'_oos',label:'OOS',num:true,fmt:r=>r._oos>0?`<span style="color:#dc2626;font-weight:700">${r._oos}</span>`:'—'},
+        {k:'_supList',label:'Supplier(s)',fmt:r=>String(r._supList||'').substring(0,20)},
+      ];
+    }
   }
 
   // ── Summary stats ──────────────────────────────────────────────────────────
@@ -4281,8 +4371,8 @@ function renderSalesIntel(){
   const maxRev = viewRows.length ? Math.max(...viewRows.map(r=>r._rev30||0)) : 1;
 
   // ── Build HTML ─────────────────────────────────────────────────────────────
-  const views=['sellers','margins','slow','trending','price'];
-  const viewLabels=['Top Sellers','Margins','Slow Movers','Trending','Price Impact'];
+  const views=['sellers','brands','margins','slow','trending','price'];
+  const viewLabels=['Top Sellers','Brands','Margins','Slow Movers','Trending','Price Impact'];
 
   // ── Apply search filter ────────────────────────────────────────────────────
   if(_siSearch){
@@ -4329,7 +4419,7 @@ function renderSalesIntel(){
     </div>
   </div>
   <div class="si-bar">
-    ${views.map((v,i)=>`<button class="si-view-btn ${_siView===v?'active':''}" onclick="_siView='${v}';_siSearch='';renderSalesIntel()">${viewLabels[i]}</button>`).join('')}
+    ${views.map((v,i)=>`<button class="si-view-btn ${_siView===v?'active':''}" onclick="_siView='${v}';_siSearch='';_siBrandDrill=null;renderSalesIntel()">${viewLabels[i]}</button>`).join('')}
   </div>
   <div class="si-stats">
     <div class="si-stat"><div class="si-stat-n">${(_siRange==='7d'||_siRange==='90d')?'N/A':fmtE(totalRev)}</div><div class="si-stat-l">Revenue/${_siRange}</div></div>
