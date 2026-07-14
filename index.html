@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.3.1 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.3.3 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.3.1 · built 2026-07-13 · NEW: Brands view (units/revenue/margin by brand, drill to SKUs) · Margins use REALISED cost · FIX: "higher/lower than now" arrow no longer inverts when 30D is 0 · auto-refresh export-scope fix · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
+  <div class="sub">V7.3.3 · built 2026-07-13 · 12-month revenue + margin by brand (needs Code.gs sync) · FIX: Sales tab channel-mixing inflated margins · Brands view · Margins use REALISED cost · FIX: "higher/lower than now" arrow no longer inverts when 30D is 0 · auto-refresh export-scope fix · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -4068,7 +4068,7 @@ function renderSalesIntel(){
   const rows=state.computedRows||[];
   const ch=state.channel;
   const isCS=ch==='capel';
-  const chLabel=isCS?'Capel Street':'Arklow Online';
+  const chLabel=isCS?'Capel Street SHOP (till sales only)':'ONLINE (Arklow + Capel online)';
 
   if(!rows.length){
     root.innerHTML=`<div style="text-align:center;padding:60px 20px;color:#94a3b8">
@@ -4079,16 +4079,23 @@ function renderSalesIntel(){
   }
 
   // ── Range-aware helpers ────────────────────────────────────────────────────
-  const rangeLabel={'7d':'Last 7 days','30d':'Last 30 days','90d':'Last 90 days','180d':'Last 6 months'};
+  const rangeLabel={'7d':'Last 7 days','30d':'Last 30 days','90d':'Last 90 days','180d':'Last 6 months','365d':'Last 12 months'};
+  // Channel discipline: Capel Street = the SHOP TILL only. Arklow Online = ALL online
+  // (Arklow + Capel online). Revenue and units MUST come from the same basis — mixing
+  // online revenue with online+till units (as this did at 180d) produced impossible
+  // margins (Draper 96%, Acana 91%) because units were inflated against online-only revenue.
   const rev30 = r => {
-    if(_siRange==='180d') return (r.Revenue_Online_Total_180d||0); // VAT-corrected; never use raw Rev_On180
+    if(_siRange==='180d') return isCS?(r.Revenue_Shop_CapelStreet_180d||0):(r.Revenue_Online_Total_180d||0);
+    if(_siRange==='365d') return isCS?(r.Revenue_Shop_CapelStreet_365d||0):(r.Revenue_Online_Total_365d||0);
     if(_siRange==='7d'||_siRange==='90d') return 0; // no revenue data for these windows
     return isCS?(r.Revenue_Shop_CapelStreet_30d||0):(r.Revenue_Online_Total_30d||0);
   };
   const qty30 = r => {
-    if(_siRange==='7d')   return (r.QtySold_Online_Total_7d||0);
-    if(_siRange==='90d')  return (r.QtySold_Online_Arklow_90d||r.QtySold_Online_Total_90d||0);
-    if(_siRange==='180d') return (r.QtySold_Online_Total_180d||0)+(r.QtySold_Shop_CapelStreet_180d||0);
+    if(_siRange==='7d')   return isCS?0:(r.QtySold_Online_Total_7d||0);
+    if(_siRange==='90d')  return isCS?(r.QtySold_Shop_CapelStreet_90d||0):(r.QtySold_Online_Total_90d||0);
+    if(_siRange==='180d') return isCS?(r.QtySold_Shop_CapelStreet_180d||0):(r.QtySold_Online_Total_180d||0);
+    if(_siRange==='365d') return isCS?(r.QtySold_Shop_CapelStreet_365d||0)
+                                    :((r.QtySold_Online_Arklow_365d||0)+(r.QtySold_Online_CapelStreet_365d||0));
     return isCS?(r.QtySold_Shop_CapelStreet_30d||0):(r.QtySold_Online_Total_30d||0);
   };
   const qty180= r => (r.QtySold_Online_Total_180d||0);
@@ -4125,7 +4132,7 @@ function renderSalesIntel(){
 
   // ── Build view data ────────────────────────────────────────────────────────
   let viewRows=[], colDefs=[], title='', subtitle='';
-  const hasRev=(_siRange==='30d'||_siRange==='180d');
+  const hasRev=(_siRange==='30d'||_siRange==='180d'||_siRange==='365d');
   const active=[...skuBest.values()].filter(r=>rev30(r)>0||qty30(r)>0);
 
   if(_siView==='sellers'){
@@ -4318,7 +4325,9 @@ function renderSalesIntel(){
       ];
     } else {
       title='Brands';
-      subtitle=`Units, revenue &amp; realised margin by brand · ${rangeLabel[_siRange]} · ${chLabel} — click a brand to see its products`;
+      const _noRev=(_siRange==='7d'||_siRange==='90d');
+      subtitle=`Units, revenue &amp; realised margin by brand · ${rangeLabel[_siRange]} · <strong>${chLabel}</strong> — click a brand to see its products`
+        + (_noRev?` · <span style="color:#b45309;font-weight:700">⚠ Revenue/margin only available for 30-day and 6-month ranges — showing UNITS only</span>`:'');
       const bm=new Map();
       active.forEach(r=>{
         const b=brandOf(r.ItemTitle); if(!b) return;
@@ -4415,7 +4424,7 @@ function renderSalesIntel(){
         style="padding:6px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;width:220px;outline:none"
         onfocus="this.style.borderColor='#185fa5'" onblur="this.style.borderColor='#e2e8f0'">
       <span style="font-size:11px;color:#64748b;font-weight:700">RANGE:</span>
-      ${['7d','30d','90d','180d'].map(r=>`<button class="si-view-btn ${_siRange===r?'active':''}" style="padding:5px 12px" onclick="_siRange='${r}';renderSalesIntel()">${{'7d':'7 days','30d':'30 days','90d':'90 days','180d':'6 months'}[r]}</button>`).join('')}
+      ${['7d','30d','90d','180d','365d'].map(r=>`<button class="si-view-btn ${_siRange===r?'active':''}" style="padding:5px 12px" onclick="_siRange='${r}';renderSalesIntel()">${{'7d':'7 days','30d':'30 days','90d':'90 days','180d':'6 months','365d':'12 months'}[r]}</button>`).join('')}
     </div>
   </div>
   <div class="si-bar">
@@ -5260,6 +5269,8 @@ function normalizeRow(r){
     ItemTitle:r.ItemTitle||'',
     OnOrderQty_AK_PO: n('OO_AK'),   // on-order from PO tables, split by PO location
     OnOrderQty_CS_PO: n('OO_CS'),
+    Revenue_Online_Total_365d: n('Rev_On365'),        // 12-mo online revenue (inc-VAT)
+    Revenue_Shop_CapelStreet_365d: n('Rev_ShCS365'),  // 12-mo Capel till revenue (inc-VAT)
     RealCost: n('RealCost'),           // realised cost of goods sold (180d weighted avg)
     RealCostQty: n('RealCostQty'),     // units that figure is based on (confidence)
     OnOrderDate_AK: String(r.OODate_AK||'').trim(),   // latest open-PO placed date (YYYY-MM-DD)
