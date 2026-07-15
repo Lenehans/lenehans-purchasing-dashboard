@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.3.6 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.3.7 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.3.6 · built 2026-07-13 · Space/Bay view now on 12-month Capel shop data (fixes negative GP) · GP per 1.2m bay · Suppliers view (real supplier field, drill supplier→brand→SKU) · 12-month revenue + margin by brand (needs Code.gs sync) · FIX: Sales tab channel-mixing inflated margins · Brands view · Margins use REALISED cost · FIX: "higher/lower than now" arrow no longer inverts when 30D is 0 · auto-refresh export-scope fix · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
+  <div class="sub">V7.3.7 · built 2026-07-13 · Column-header sort works on all Sales views · Bay/Aisle sort in natural shelf order · Space/Bay on 12-month data · GP per 1.2m bay · Suppliers view (real supplier field, drill supplier→brand→SKU) · 12-month revenue + margin by brand (needs Code.gs sync) · FIX: Sales tab channel-mixing inflated margins · Brands view · Margins use REALISED cost · FIX: "higher/lower than now" arrow no longer inverts when 30D is 0 · auto-refresh export-scope fix · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -4506,6 +4506,32 @@ function renderSalesIntel(){
 
   // ── Max value for bar charts ───────────────────────────────────────────────
   const maxRev = viewRows.length ? Math.max(...viewRows.map(r=>r._rev30||0)) : 1;
+
+  // ── Apply column-header sort to the view rows ──────────────────────────────
+  // Views pre-sort by their headline metric, but a header click overrides that.
+  // Bay ("A1-4") and Aisle sort in natural shelf order (A1,A2…A10, not A1,A10,A2).
+  if(_siSort && _siSort.col && viewRows.length && (_siSort.col in viewRows[0])){
+    const col=_siSort.col, dir=_siSort.dir;
+    const natKey=v=>{
+      const s=String(v==null?'':v);
+      // split "A1-4" / "A10" into [letter, number] for proper ordering
+      const m=s.match(/^([A-Za-z]+)\D*(\d+)?/);
+      if(m) return [m[1].toUpperCase(), m[2]!=null?parseInt(m[2],10):-1, s];
+      return [s.toUpperCase(), 0, s];
+    };
+    viewRows.sort((a,b)=>{
+      const av=a[col], bv=b[col];
+      const an=(typeof av==='number'), bn=(typeof bv==='number');
+      if(an&&bn) return dir*(bv-av);
+      // string/bay/aisle → natural order
+      const ak=natKey(av), bk=natKey(bv);
+      for(let i=0;i<ak.length;i++){
+        if(ak[i]<bk[i]) return -dir;
+        if(ak[i]>bk[i]) return dir;
+      }
+      return 0;
+    });
+  }
 
   // ── Build HTML ─────────────────────────────────────────────────────────────
   const views=['sellers','brands','suppliers','space','margins','slow','trending','price'];
