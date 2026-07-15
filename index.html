@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.3.4 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.3.5 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.3.4 · built 2026-07-13 · NEW: Suppliers view (real supplier field, drill supplier→brand→SKU) · 12-month revenue + margin by brand (needs Code.gs sync) · FIX: Sales tab channel-mixing inflated margins · Brands view · Margins use REALISED cost · FIX: "higher/lower than now" arrow no longer inverts when 30D is 0 · auto-refresh export-scope fix · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
+  <div class="sub">V7.3.5 · built 2026-07-13 · NEW: Space/Bay view — GP per 1.2m bay (Capel, clean A1-x bins) · Suppliers view (real supplier field, drill supplier→brand→SKU) · 12-month revenue + margin by brand (needs Code.gs sync) · FIX: Sales tab channel-mixing inflated margins · Brands view · Margins use REALISED cost · FIX: "higher/lower than now" arrow no longer inverts when 30D is 0 · auto-refresh export-scope fix · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -3986,6 +3986,8 @@ let _siView='sellers', _siChatOpen=false, _siChatMsgs=[], _siSort={col:'rev30',d
 let _siBrandDrill=null;   // when set, the Brands view drills into this brand's SKUs
 let _siSupDrill=null;     // Suppliers view: {sup} = supplier level, then {sup,brand} = SKUs
 let _siSupBrand=null;     // brand-within-supplier drill
+let _siBayDrill=null;     // Space view: drill into one bay's SKUs
+let _siBaySort='gpper';   // 'gpper' = GP per bay | 'gp' = total GP
 
 // Brand is NOT a field in Linnworks — it lives at the start of the product title
 // ("Skil 3210 Table Saw" → Skil). Hardware titles almost always lead with the brand,
@@ -4424,6 +4426,63 @@ function renderSalesIntel(){
         {k:'_oos',label:'OOS',num:true,fmt:r=>r._oos>0?`<span style="color:#dc2626;font-weight:700">${r._oos}</span>`:'—'},
       ];
     }
+  }else if(_siView==='space'){
+    // ── SPACE (bay-adjusted profitability) — Capel only ───────────────────────
+    // Each bay is a standard 1.2m x 2m module, so GP ÷ bays = gross profit per 1.2m of
+    // shelf. Only items with a clean A1-x bin are included. Uses the 180d window's GP
+    // (the range with revenue + a full picture) regardless of the range selector.
+    const capel = active.filter(r=>r.BinClean && (r.QtySold_Online_Total_180d||r.QtySold_Shop_CapelStreet_180d||r.Revenue_Shop_CapelStreet_180d));
+    const costOf=r=>(r.RealCost>0?r.RealCost:(r.SupplierCostPrice||0));
+    // 180d Capel-till GP per SKU (shop is where the shelf space lives)
+    const gpOf=r=>{
+      const q=r.QtySold_Shop_CapelStreet_180d||0;
+      const net=(r.Revenue_Shop_CapelStreet_180d||0)/VAT_RATE;
+      return {q, net, gp:net-costOf(r)*q};
+    };
+    if(_siBayDrill){
+      title=`Bay ${_siBayDrill} — products`;
+      subtitle=`<span style="cursor:pointer;color:#1e40af;font-weight:700" onclick="_siBayDrill=null;renderSalesIntel()">← All bays</span> · 6-month Capel shop sales · one 1.2m bay`;
+      viewRows=active.filter(r=>r.BinClean===_siBayDrill).map(r=>{const g=gpOf(r);return {...r,_q:g.q,_gp:g.gp,_net:g.net,_m:g.net>0?g.gp/g.net*100:null};}).sort((a,b)=>b._gp-a._gp);
+      colDefs=[
+        {k:'SKU',label:'SKU',fmt:r=>r.SKU},
+        {k:'title',label:'Product',wide:true,fmt:r=>(r.ItemTitle||'').substring(0,40)},
+        {k:'brand',label:'Brand',fmt:r=>brandOf(r.ItemTitle).substring(0,14)},
+        {k:'_q',label:'Units/6mo',num:true,fmt:r=>fmtInt(r._q)},
+        {k:'_gp',label:'Gross profit',num:true,fmt:r=>r._gp?fmtE(r._gp):'-'},
+        {k:'_m',label:'Margin',num:true,fmt:r=>r._m===null?'-':`<span style="color:${r._m>=40?'#16a34a':r._m>=20?'#d97706':'#dc2626'};font-weight:700">${r._m.toFixed(0)}%</span>`},
+        {k:'stock',label:'Stock',num:true,fmt:r=>fmtInt(r.stock||0)},
+      ];
+    } else {
+      title='Space — profit per bay';
+      const totBays=new Set(capel.map(r=>r.BinClean)).size;
+      subtitle=`Gross profit per 1.2m bay · 6-month Capel shop sales · ${totBays} bays with clean bins — click a bay to see its products. <span style="color:#64748b">Sort: </span>`
+        + `<span style="cursor:pointer;font-weight:700;color:${_siBaySort==='gpper'?'#1e40af':'#94a3b8'}" onclick="_siBaySort='gpper';renderSalesIntel()">GP/bay</span> · `
+        + `<span style="cursor:pointer;font-weight:700;color:${_siBaySort==='gp'?'#1e40af':'#94a3b8'}" onclick="_siBaySort='gp';renderSalesIntel()">Total GP</span>`;
+      // Group by bay
+      const bm=new Map();
+      capel.forEach(r=>{
+        const b=r.BinClean;const g=gpOf(r);
+        let e=bm.get(b);if(!e){e={bay:b,aisle:r.Aisle,_gp:0,_net:0,_skus:0,_units:0,_brands:new Set()};bm.set(b,e);}
+        e._gp+=g.gp;e._net+=g.net;e._skus++;e._units+=g.q;
+        const br=brandOf(r.ItemTitle);if(br)e._brands.add(br);
+      });
+      viewRows=[...bm.values()].map(e=>({
+        ...e,_m:e._net>0?(e._gp/e._net*100):null,
+        _gpPer:e._gp,   // one bay = one unit of space, so GP/bay = the bay's GP
+        _topBrands:[...e._brands].slice(0,3).join(', ')
+      })).sort((a,b)=> _siBaySort==='gp' ? b._gp-a._gp : b._gpPer-a._gpPer);
+      // colour scale for the heat map
+      const gps=viewRows.map(r=>r._gpPer);const gMax=Math.max(1,...gps),gMin=Math.min(0,...gps);
+      const heat=v=>{const t=(v-gMin)/(gMax-gMin||1);const r=Math.round(220-t*160),g=Math.round(90+t*130);return `rgb(${r},${g},90)`;};
+      colDefs=[
+        {k:'bay',label:'Bay',wide:true,fmt:r=>`<span style="font-weight:700;color:#1e40af;cursor:pointer" onclick="_siBayDrill='${r.bay}';renderSalesIntel();">${esc(r.bay)}</span>`},
+        {k:'aisle',label:'Aisle',fmt:r=>r.aisle},
+        {k:'_skus',label:'SKUs',num:true,fmt:r=>fmtInt(r._skus)},
+        {k:'_units',label:'Units/6mo',num:true,fmt:r=>fmtInt(r._units)},
+        {k:'_gp',label:'GP / bay (1.2m)',num:true,fmt:r=>`<span style="font-weight:800;color:#fff;background:${heat(r._gpPer)};padding:2px 8px;border-radius:5px">${fmtE(r._gp)}</span>`},
+        {k:'_topBrands',label:'Main brands',wide:true,fmt:r=>String(r._topBrands||'').substring(0,30)},
+      ];
+    }
   }
 
   // ── Summary stats ──────────────────────────────────────────────────────────
@@ -4446,8 +4505,8 @@ function renderSalesIntel(){
   const maxRev = viewRows.length ? Math.max(...viewRows.map(r=>r._rev30||0)) : 1;
 
   // ── Build HTML ─────────────────────────────────────────────────────────────
-  const views=['sellers','brands','suppliers','margins','slow','trending','price'];
-  const viewLabels=['Top Sellers','Brands','Suppliers','Margins','Slow Movers','Trending','Price Impact'];
+  const views=['sellers','brands','suppliers','space','margins','slow','trending','price'];
+  const viewLabels=['Top Sellers','Brands','Suppliers','Space/Bay','Margins','Slow Movers','Trending','Price Impact'];
 
   // ── Apply search filter ────────────────────────────────────────────────────
   if(_siSearch){
@@ -4494,7 +4553,7 @@ function renderSalesIntel(){
     </div>
   </div>
   <div class="si-bar">
-    ${views.map((v,i)=>`<button class="si-view-btn ${_siView===v?'active':''}" onclick="_siView='${v}';_siSearch='';_siBrandDrill=null;_siSupDrill=null;_siSupBrand=null;renderSalesIntel()">${viewLabels[i]}</button>`).join('')}
+    ${views.map((v,i)=>`<button class="si-view-btn ${_siView===v?'active':''}" onclick="_siView='${v}';_siSearch='';_siBrandDrill=null;_siSupDrill=null;_siSupBrand=null;_siBayDrill=null;renderSalesIntel()">${viewLabels[i]}</button>`).join('')}
   </div>
   <div class="si-stats">
     <div class="si-stat"><div class="si-stat-n">${(_siRange==='7d'||_siRange==='90d')?'N/A':fmtE(totalRev)}</div><div class="si-stat-l">Revenue/${_siRange}</div></div>
@@ -5337,6 +5396,9 @@ function normalizeRow(r){
     OnOrderQty_CS_PO: n('OO_CS'),
     Revenue_Online_Total_365d: n('Rev_On365'),        // 12-mo online revenue (inc-VAT)
     Revenue_Shop_CapelStreet_365d: n('Rev_ShCS365'),  // 12-mo Capel till revenue (inc-VAT)
+    Aisle: String(r.Aisle||'').trim(),   // Capel aisle (clean A1-x bins only)
+    Bay: String(r.Bay||'').trim(),       // Capel bay within aisle (1.2m module)
+    BinClean: String(r.BinClean||'').trim(),
     RealCost: n('RealCost'),           // realised cost of goods sold (180d weighted avg)
     RealCostQty: n('RealCostQty'),     // units that figure is based on (confidence)
     OnOrderDate_AK: String(r.OODate_AK||'').trim(),   // latest open-PO placed date (YYYY-MM-DD)
