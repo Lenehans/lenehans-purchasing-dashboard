@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.3.3 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.3.4 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.3.3 · built 2026-07-13 · 12-month revenue + margin by brand (needs Code.gs sync) · FIX: Sales tab channel-mixing inflated margins · Brands view · Margins use REALISED cost · FIX: "higher/lower than now" arrow no longer inverts when 30D is 0 · auto-refresh export-scope fix · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
+  <div class="sub">V7.3.4 · built 2026-07-13 · NEW: Suppliers view (real supplier field, drill supplier→brand→SKU) · 12-month revenue + margin by brand (needs Code.gs sync) · FIX: Sales tab channel-mixing inflated margins · Brands view · Margins use REALISED cost · FIX: "higher/lower than now" arrow no longer inverts when 30D is 0 · auto-refresh export-scope fix · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -3984,6 +3984,8 @@ let _miFilter='all', _miStockFilter='all', _miCompare=false, _miBundleMode=false
 const _SALES_PIN='2323'; // ← change to set management PIN
 let _siView='sellers', _siChatOpen=false, _siChatMsgs=[], _siSort={col:'rev30',dir:-1}, _siRange='30d', _siSearch='';
 let _siBrandDrill=null;   // when set, the Brands view drills into this brand's SKUs
+let _siSupDrill=null;     // Suppliers view: {sup} = supplier level, then {sup,brand} = SKUs
+let _siSupBrand=null;     // brand-within-supplier drill
 
 // Brand is NOT a field in Linnworks — it lives at the start of the product title
 // ("Skil 3210 Table Saw" → Skil). Hardware titles almost always lead with the brand,
@@ -4358,6 +4360,70 @@ function renderSalesIntel(){
         {k:'_supList',label:'Supplier(s)',fmt:r=>String(r._supList||'').substring(0,20)},
       ];
     }
+  }else if(_siView==='suppliers'){
+    // ── SUPPLIERS (real SupplierName field — hard data, not title inference) ───
+    // 3-level drill: supplier → brands within that supplier → SKUs.
+    const _noRev=(_siRange==='7d'||_siRange==='90d');
+    const _revWarn=_noRev?` · <span style="color:#b45309;font-weight:700">⚠ UNITS only for this range</span>`:'';
+    const costOf=r=>(r.RealCost>0?r.RealCost:(r.SupplierCostPrice||0));
+    if(_siSupDrill && _siSupBrand){
+      // Level 3 — SKUs for a brand within a supplier
+      title=`${_siSupDrill.split(' - ')[0]} → ${_siSupBrand} — products`;
+      subtitle=`<span style="cursor:pointer;color:#1e40af;font-weight:700" onclick="_siSupBrand=null;renderSalesIntel()">← ${esc(_siSupDrill.split(' - ')[0])} brands</span> · ${rangeLabel[_siRange]} · <strong>${chLabel}</strong>`;
+      viewRows=active.filter(r=>r.SupplierName===_siSupDrill && brandOf(r.ItemTitle)===_siSupBrand).map(r=>{
+        const q=qty30(r),net=revNet30(r),gp=net-costOf(r)*q;
+        return {...r,_q:q,_rev:rev30(r),_gp:gp,_m:net>0?gp/net*100:null};
+      }).sort((a,b)=>b._rev-a._rev);
+      colDefs=[
+        {k:'SKU',label:'SKU',fmt:r=>r.SKU},
+        {k:'title',label:'Product',wide:true,fmt:r=>(r.ItemTitle||'').substring(0,42)},
+        {k:'_q',label:'Units',num:true,fmt:r=>fmtInt(r._q)},
+        {k:'_rev',label:'Revenue',num:true,fmt:r=>fmtE(r._rev)},
+        {k:'_gp',label:'Gross profit',num:true,fmt:r=>r._gp?fmtE(r._gp):'-'},
+        {k:'_m',label:'Margin',num:true,fmt:r=>r._m===null?'-':`<span style="color:${r._m>=40?'#16a34a':r._m>=20?'#d97706':'#dc2626'};font-weight:700">${r._m.toFixed(0)}%</span>`},
+        {k:'stock',label:'Stock',num:true,fmt:r=>fmtInt(r.stock||0)},
+      ];
+    } else if(_siSupDrill){
+      // Level 2 — brands within the supplier
+      title=`${_siSupDrill} — brands`;
+      subtitle=`<span style="cursor:pointer;color:#1e40af;font-weight:700" onclick="_siSupDrill=null;renderSalesIntel()">← All suppliers</span> · ${rangeLabel[_siRange]} · <strong>${chLabel}</strong>${_revWarn}`;
+      const bm=new Map();
+      active.filter(r=>r.SupplierName===_siSupDrill).forEach(r=>{
+        const b=brandOf(r.ItemTitle)||'(Unbranded)';const q=qty30(r),net=revNet30(r);
+        let e=bm.get(b);if(!e){e={brand:b,_q:0,_rev:0,_net:0,_cost:0,_skus:0};bm.set(b,e);}
+        e._q+=q;e._rev+=rev30(r);e._net+=net;e._cost+=costOf(r)*q;e._skus++;
+      });
+      viewRows=[...bm.values()].filter(e=>e._rev>0||e._q>0).map(e=>({...e,_gp:e._net-e._cost,_m:e._net>0?(e._net-e._cost)/e._net*100:null})).sort((a,b)=>b._rev-a._rev);
+      colDefs=[
+        {k:'brand',label:'Brand',wide:true,fmt:r=>`<span style="font-weight:700;color:#1e40af;cursor:pointer" onclick="_siSupBrand='${String(r.brand).replace(/'/g,"\\'")}';renderSalesIntel();">${esc(r.brand)}</span>`},
+        {k:'_skus',label:'SKUs',num:true,fmt:r=>fmtInt(r._skus)},
+        {k:'_q',label:'Units',num:true,fmt:r=>fmtInt(r._q)},
+        {k:'_rev',label:'Revenue',num:true,fmt:r=>fmtE(r._rev)},
+        {k:'_gp',label:'Gross profit',num:true,fmt:r=>r._gp?fmtE(r._gp):'-'},
+        {k:'_m',label:'Margin',num:true,fmt:r=>r._m===null?'-':`<span style="color:${r._m>=40?'#16a34a':r._m>=20?'#d97706':'#dc2626'};font-weight:700">${r._m.toFixed(0)}%</span>`},
+      ];
+    } else {
+      // Level 1 — all suppliers
+      title='Suppliers';
+      subtitle=`Units, revenue &amp; realised margin by supplier · ${rangeLabel[_siRange]} · <strong>${chLabel}</strong> — click a supplier to see its brands${_revWarn}`;
+      const sm=new Map();
+      active.forEach(r=>{
+        const s=r.SupplierName;if(!s)return;const q=qty30(r),net=revNet30(r);
+        let e=sm.get(s);if(!e){e={sup:s,_q:0,_rev:0,_net:0,_cost:0,_skus:0,_oos:0};sm.set(s,e);}
+        e._q+=q;e._rev+=rev30(r);e._net+=net;e._cost+=costOf(r)*q;e._skus++;
+        if(r.coverStatus==='Out of Stock')e._oos++;
+      });
+      viewRows=[...sm.values()].filter(e=>e._rev>0||e._q>0).map(e=>({...e,_gp:e._net-e._cost,_m:e._net>0?(e._net-e._cost)/e._net*100:null})).sort((a,b)=>b._rev-a._rev);
+      colDefs=[
+        {k:'sup',label:'Supplier',wide:true,fmt:r=>`<span style="font-weight:700;color:#1e40af;cursor:pointer" onclick="_siSupDrill='${String(r.sup).replace(/'/g,"\\'")}';renderSalesIntel();">${esc(r.sup)}</span>`},
+        {k:'_skus',label:'SKUs',num:true,fmt:r=>fmtInt(r._skus)},
+        {k:'_q',label:'Units',num:true,fmt:r=>fmtInt(r._q)},
+        {k:'_rev',label:'Revenue',num:true,fmt:r=>fmtE(r._rev)},
+        {k:'_gp',label:'Gross profit',num:true,fmt:r=>r._gp?fmtE(r._gp):'-'},
+        {k:'_m',label:'Margin',num:true,fmt:r=>r._m===null?'-':`<span style="color:${r._m>=40?'#16a34a':r._m>=20?'#d97706':'#dc2626'};font-weight:700">${r._m.toFixed(0)}%</span>`},
+        {k:'_oos',label:'OOS',num:true,fmt:r=>r._oos>0?`<span style="color:#dc2626;font-weight:700">${r._oos}</span>`:'—'},
+      ];
+    }
   }
 
   // ── Summary stats ──────────────────────────────────────────────────────────
@@ -4380,8 +4446,8 @@ function renderSalesIntel(){
   const maxRev = viewRows.length ? Math.max(...viewRows.map(r=>r._rev30||0)) : 1;
 
   // ── Build HTML ─────────────────────────────────────────────────────────────
-  const views=['sellers','brands','margins','slow','trending','price'];
-  const viewLabels=['Top Sellers','Brands','Margins','Slow Movers','Trending','Price Impact'];
+  const views=['sellers','brands','suppliers','margins','slow','trending','price'];
+  const viewLabels=['Top Sellers','Brands','Suppliers','Margins','Slow Movers','Trending','Price Impact'];
 
   // ── Apply search filter ────────────────────────────────────────────────────
   if(_siSearch){
@@ -4428,7 +4494,7 @@ function renderSalesIntel(){
     </div>
   </div>
   <div class="si-bar">
-    ${views.map((v,i)=>`<button class="si-view-btn ${_siView===v?'active':''}" onclick="_siView='${v}';_siSearch='';_siBrandDrill=null;renderSalesIntel()">${viewLabels[i]}</button>`).join('')}
+    ${views.map((v,i)=>`<button class="si-view-btn ${_siView===v?'active':''}" onclick="_siView='${v}';_siSearch='';_siBrandDrill=null;_siSupDrill=null;_siSupBrand=null;renderSalesIntel()">${viewLabels[i]}</button>`).join('')}
   </div>
   <div class="si-stats">
     <div class="si-stat"><div class="si-stat-n">${(_siRange==='7d'||_siRange==='90d')?'N/A':fmtE(totalRev)}</div><div class="si-stat-l">Revenue/${_siRange}</div></div>
