@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.3.7 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.4.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.3.7 · built 2026-07-13 · Column-header sort works on all Sales views · Bay/Aisle sort in natural shelf order · Space/Bay on 12-month data · GP per 1.2m bay · Suppliers view (real supplier field, drill supplier→brand→SKU) · 12-month revenue + margin by brand (needs Code.gs sync) · FIX: Sales tab channel-mixing inflated margins · Brands view · Margins use REALISED cost · FIX: "higher/lower than now" arrow no longer inverts when 30D is 0 · auto-refresh export-scope fix · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
+  <div class="sub">V7.4.0 · built 2026-07-14 · Why Buy: minimise + edits persist (survive leaving/returning) · NEW Why Buy—Critical · Brands/Suppliers/Space show all rows · Column-header sort on all Sales views · Bay/Aisle sort in natural shelf order · Space/Bay on 12-month data · GP per 1.2m bay · Suppliers view (real supplier field, drill supplier→brand→SKU) · 12-month revenue + margin by brand (needs Code.gs sync) · FIX: Sales tab channel-mixing inflated margins · Brands view · Margins use REALISED cost · FIX: "higher/lower than now" arrow no longer inverts when 30D is 0 · auto-refresh export-scope fix · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -3032,6 +3032,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   <div class="spb-info" id="spbInfo"></div>
   <button onclick="exportPO()">📄 Export PO</button>
   <button onclick="openWhyBuy()" style="background:#1e40af">🔍 Why Buy?</button>
+  <button onclick="openWhyBuyCritical()" style="background:#b91c1c" title="Why Buy — only Out-of-Stock &amp; Critical lines">🔴 Why Buy — Critical</button>
   <button onclick="exportTransferPickingNote()" style="background:#d97706" title="Capel mode = Arklow→Capel transfers. Arklow mode = Capel→Arklow transfers.">⇄ Transfer Note</button>
   <button class="spb-back" onclick="document.getElementById('backBtn').click()">← Back to suppliers</button>
 </div>
@@ -4606,7 +4607,12 @@ function renderSalesIntel(){
       html+=`<th class="${c.num?'num':''}" onclick="_siSort={col:'${sortable}',dir:${isSorted?-_siSort.dir:-1}};renderSalesIntel()">${c.label}${isSorted?(_siSort.dir===-1?' ↓':' ↑'):''}</th>`;
     });
     html+=`</tr></thead><tbody>`;
-    viewRows.slice(0,80).forEach(r=>{
+    // Aggregated views (Brands/Suppliers/Space bays) have at most a few hundred rows —
+    // show them all so a store walk-through isn't truncated. The big per-SKU lists
+    // (Top Sellers etc.) keep a cap for performance.
+    const _aggView = (_siView==='brands'||_siView==='suppliers'||_siView==='space');
+    const _rowCap = _aggView ? 100000 : 80;
+    viewRows.slice(0,_rowCap).forEach(r=>{
       const atRisk=r._atRisk?'style="background:#fff5f5"':'';
       html+=`<tr ${atRisk}>`;
       colDefs.forEach(c=>{
@@ -4621,7 +4627,7 @@ function renderSalesIntel(){
       });
       html+=`</tr>`;
     });
-    if(viewRows.length>80) html+=`<tr><td colspan="${colDefs.length}" style="text-align:center;color:#94a3b8;font-size:11px;padding:10px">Showing 80 of ${viewRows.length} — filter to narrow down</td></tr>`;
+    if(viewRows.length>_rowCap) html+=`<tr><td colspan="${colDefs.length}" style="text-align:center;color:#94a3b8;font-size:11px;padding:10px">Showing ${_rowCap} of ${viewRows.length} — filter to narrow down</td></tr>`;
     html+=`</tbody></table></div>`;
   }
 
@@ -7913,6 +7919,19 @@ function openWhyBuy(){
   showPOReview(rows, false);
 }
 
+// Why Buy limited to the URGENT lines — Out of Stock or Critical cover — same panel,
+// same edit persistence. Useful for a fast "just the fires" review.
+function openWhyBuyCritical(){
+  const rows=getFilteredRows().filter(r=>countsInOrderValue(r) && (r.stock<=0 || r.coverStatus==='Critical' || r.coverStatus==='Out of Stock'));
+  if(!rows.length){alert('No critical or out-of-stock buy lines in current view.');return;}
+  rows.sort((a,b)=>{
+    const pa=a.stock<=0?0:a.coverStatus==='Critical'?1:2;
+    const pb=b.stock<=0?0:b.coverStatus==='Critical'?1:2;
+    return pa!==pb?pa-pb:b.buy-a.buy;
+  });
+  showPOReview(rows, false);
+}
+
 function buildWhyText(r){
   const rows=[];
 
@@ -8085,6 +8104,7 @@ function showPOReview(rows, autoExport){
 
   const supplier=state.activeSupplier||'All Suppliers';
   const mode=document.getElementById('demandMode')?.value||'Seasonal';
+  window._poReviewCtx={rows, supplier};   // so a minimised/closed panel can be restored with edits
 
   // Build table rows HTML
   let tBody='';
@@ -8104,10 +8124,10 @@ function showPOReview(rows, autoExport){
       <td style="max-width:210px;font-size:11.5px">${esc(r.ItemTitle||r.title||'')}</td>
       <td class="r"><span style="font-weight:700;color:${r.stock<=0?'#dc2626':r.stock<10?'#d97706':'#166534'}">${fmtInt(r.stock)}</span></td>
       <td class="r">${onOrder>0?`<span style="font-weight:700;color:#1e40af" title="On order (inbound)${ooDateShort?' — placed '+ooDateShort:''} — factor this in before ordering more">📦 ${fmtInt(onOrder)}${ooDateShort?`<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px">placed ${ooDateShort}</div>`:''}</span>`:'<span style="color:#cbd5e1">—</span>'}</td>
-      <td class="r"><input class="po-rev-qty" type="number" min="0" step="1" value="${r.buy}"
+      <td class="r"><input class="po-rev-qty" type="number" min="0" step="1" value="${(window._poEdits[supplier]&&window._poEdits[supplier][r.SKU]!=null)?window._poEdits[supplier][r.SKU]:r.buy}"
         data-sku="${esc(r.SKU)}" data-unitcost="${unitCost}" data-cover="${r.coverStatus||''}" data-abc="${abc}"
         data-orig="${r.buy}"
-        oninput="this.classList.toggle('changed',parseInt(this.value)!==parseInt(this.dataset.orig));updateReviewSummary(this.closest('.po-review-modal'));const _lt=this.closest('tr')?.querySelector('.po-rev-line-total');if(_lt){const _q=parseInt(this.value)||0,_c=parseFloat(this.dataset.unitcost)||0;_lt.textContent=_q>0&&_c>0?'€'+fmtInt(_q*_c):'—';_lt.style.color=_q>0&&_c>0?'#0f172a':'#94a3b8';}"></td>
+        oninput="this.classList.toggle('changed',parseInt(this.value)!==parseInt(this.dataset.orig));(window._poEdits[${JSON.stringify(supplier)}]=window._poEdits[${JSON.stringify(supplier)}]||{})[this.dataset.sku]=parseInt(this.value)||0;updateReviewSummary(this.closest('.po-review-modal'));const _lt=this.closest('tr')?.querySelector('.po-rev-line-total');if(_lt){const _q=parseInt(this.value)||0,_c=parseFloat(this.dataset.unitcost)||0;_lt.textContent=_q>0&&_c>0?'€'+fmtInt(_q*_c):'—';_lt.style.color=_q>0&&_c>0?'#0f172a':'#94a3b8';}"></td>
       <td class="r"><span class="po-rev-cover ${cc}">${coverLabel}</span></td>
       <td class="r" style="font-size:11px;color:#475569">${abc}</td>
       <td class="r" style="font-size:11.5px">${unitCost?'€'+(+unitCost).toFixed(2):'—'}</td>
@@ -8127,7 +8147,7 @@ function showPOReview(rows, autoExport){
   const totalCost=rows.reduce((s,r)=>s+r.buy*(r.SupplierCostPrice||r.UnitCost||r.unit_cost||0),0);
   const totalUnits=rows.reduce((s,r)=>s+r.buy,0);
 
-  const html=`<div class="po-review-overlay" id="poReviewOverlay" onclick="if(event.target===this)this.remove()">
+  const html=`<div class="po-review-overlay" id="poReviewOverlay" onclick="if(event.target===this)poMinimise()">
   <div class="po-review-modal">
     <div class="po-review-hdr">
       <h3>🔍 Why Buy? — ${esc(supplier)} &nbsp;<span style="font-size:12px;font-weight:400;color:#64748b">Demand mode: ${esc(mode)}</span></h3>
@@ -8167,7 +8187,8 @@ function showPOReview(rows, autoExport){
     </div>
     <div class="po-review-ftr">
       <div class="po-rev-total">Total: <span id="prTotal">€${fmtInt(totalCost)}</span></div>
-      <button class="secondary" onclick="document.getElementById('poReviewOverlay').remove()">Close</button>
+      <button class="secondary" onclick="poMinimise()">▾ Minimise</button>
+      <button class="secondary" onclick="poClose()">Close</button>
       <button onclick="executePOExport()">📄 Export PO CSV</button>
       <button class="ai-btn" id="aiBriefBtn" onclick="generateAIBrief()">✦ AI Brief</button>
     </div>
@@ -8212,6 +8233,9 @@ function executePOExport(){
   a.href=URL.createObjectURL(blob);
   a.download=`PO_${supplierLabel.replace(/[^a-z0-9]+/gi,'_')}_${mode}.csv`;
   a.click();URL.revokeObjectURL(a.href);
+  // Order placed — clear this supplier's in-progress edits so they don't re-seed stale.
+  const _sup=state.activeSupplier||'All Suppliers';
+  if(window._poEdits && window._poEdits[_sup]) delete window._poEdits[_sup];
 }
 
 
@@ -9081,6 +9105,46 @@ function parsePODate(dateStr, monthStr){
 }
 
 let teamDoneSet = new Set();
+
+// ── Why-Buy panel persistence ────────────────────────────────────────────────
+// Edited buy quantities live here (keyed SKU→qty) so they survive minimise, leaving
+// the panel, and re-renders. Keyed by supplier too, so different suppliers' edits
+// don't collide. Cleared explicitly on Close or after export.
+window._poEdits = window._poEdits || {};        // { supplier: { sku: qty } }
+window._poReviewCtx = null;                       // remembers the last-opened panel args
+
+function poMinimise(){
+  const ov=document.getElementById('poReviewOverlay');
+  if(!ov) return;
+  ov.style.display='none';
+  let pill=document.getElementById('poRestorePill');
+  if(!pill){
+    pill=document.createElement('div'); pill.id='poRestorePill';
+    pill.style.cssText='position:fixed;bottom:18px;right:18px;z-index:99998;background:#1e3a8a;color:#fff;font:13px/1 system-ui,sans-serif;font-weight:700;padding:12px 16px;border-radius:10px;box-shadow:0 6px 22px rgba(0,0,0,.35);cursor:pointer;display:flex;align-items:center;gap:8px';
+    pill.onclick=poRestore;
+    document.body.appendChild(pill);
+  }
+  const sup=(window._poReviewCtx&&window._poReviewCtx.supplier)||'order';
+  pill.innerHTML='🔍 Why Buy — <span style="opacity:.85">'+esc(sup)+'</span> · <span style="text-decoration:underline">restore</span>';
+  pill.style.display='flex';
+}
+function poRestore(){
+  const ov=document.getElementById('poReviewOverlay');
+  const pill=document.getElementById('poRestorePill');
+  if(pill) pill.style.display='none';
+  if(ov){ ov.style.display='flex'; }          // still alive → just show it, edits intact
+  else if(window._poReviewCtx){               // was closed → rebuild, edits re-seed from _poEdits
+    showPOReview(window._poReviewCtx.rows, false);
+  }
+}
+function poClose(){
+  const ov=document.getElementById('poReviewOverlay'); if(ov) ov.remove();
+  const pill=document.getElementById('poRestorePill'); if(pill) pill.remove();
+  // Close = discard this supplier's in-progress edits
+  const sup=window._poReviewCtx&&window._poReviewCtx.supplier;
+  if(sup && window._poEdits[sup]) delete window._poEdits[sup];
+  window._poReviewCtx=null;
+}
 
 function nearestWeekday(d){ const day=d.getDay(); if(day===0) d.setDate(d.getDate()+1); if(day===6) d.setDate(d.getDate()-1); return d; }
 let teamDate = nearestWeekday(new Date()); // weekdays only
