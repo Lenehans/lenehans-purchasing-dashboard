@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.4.1 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.4.2 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.4.1 · built 2026-07-15 · Reorder-point engine</div>
+  <div class="sub">V7.4.2 · built 2026-07-15 · Reorder-point engine</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -3988,7 +3988,28 @@ let _siBrandDrill=null;   // when set, the Brands view drills into this brand's 
 let _siSupDrill=null;     // Suppliers view: {sup} = supplier level, then {sup,brand} = SKUs
 let _siSupBrand=null;     // brand-within-supplier drill
 let _siBayDrill=null;     // Space view: drill into one bay's SKUs
-let _siBaySort='gpper';   // 'gpper' = GP per bay | 'gp' = total GP
+let _siBaySort='bin';     // 'bin' = bin/shelf order (default) | 'gpper' = GP per bay | 'gp' = total GP
+
+// Natural shelf-order compare for clean bins "<aisle-letter>1-<bay-number>" (e.g. A1-4).
+// Sorts by aisle letter, then bay NUMBER numerically, so A1-1,A1-2,…,A1-10,A2-1 —
+// not the lexicographic A1-1,A1-10,A1-2. Non-clean codes sort last, alphabetically.
+function binCmp(x,y){
+  const parse=v=>{
+    const s=String(v==null?'':v).trim().toUpperCase();
+    const letters=(s.match(/^[A-Z]+/)||[''])[0];
+    const nums=(s.match(/\d+/g)||[]).map(n=>parseInt(n,10));
+    return {clean:letters!==''?0:1, letters, nums, s};
+  };
+  const a=parse(x), b=parse(y);
+  if(a.clean!==b.clean) return a.clean-b.clean;
+  if(a.letters!==b.letters) return a.letters<b.letters?-1:1;
+  const n=Math.max(a.nums.length,b.nums.length);
+  for(let i=0;i<n;i++){
+    const an=a.nums[i]==null?-1:a.nums[i], bn=b.nums[i]==null?-1:b.nums[i];
+    if(an!==bn) return an-bn;
+  }
+  return a.s<b.s?-1:(a.s>b.s?1:0);
+}
 
 // Brand is NOT a field in Linnworks — it lives at the start of the product title
 // ("Skil 3210 Table Saw" → Skil). Hardware titles almost always lead with the brand,
@@ -4457,6 +4478,7 @@ function renderSalesIntel(){
       title='Space — profit per bay';
       const totBays=new Set(capel.map(r=>r.BinClean)).size;
       subtitle=`Gross profit per 1.2m bay · <strong>12-month Capel shop sales</strong> · ${totBays} bays with clean bins — click a bay to see its products. <span style="color:#64748b">Sort: </span>`
+        + `<span style="cursor:pointer;font-weight:700;color:${_siBaySort==='bin'?'#1e40af':'#94a3b8'}" onclick="_siBaySort='bin';renderSalesIntel()">Bin</span> · `
         + `<span style="cursor:pointer;font-weight:700;color:${_siBaySort==='gpper'?'#1e40af':'#94a3b8'}" onclick="_siBaySort='gpper';renderSalesIntel()">GP/bay</span> · `
         + `<span style="cursor:pointer;font-weight:700;color:${_siBaySort==='gp'?'#1e40af':'#94a3b8'}" onclick="_siBaySort='gp';renderSalesIntel()">Total GP</span>`;
       const bm=new Map();
@@ -4470,7 +4492,7 @@ function renderSalesIntel(){
         ...e,_m:e._net>0?(e._gp/e._net*100):null,
         _gpPer:e._gp,   // one bay = one unit of space, so GP/bay = the bay's GP
         _topBrands:[...e._brands].slice(0,3).join(', ')
-      })).sort((a,b)=> _siBaySort==='gp' ? b._gp-a._gp : b._gpPer-a._gpPer);
+      })).sort((a,b)=> _siBaySort==='gp' ? b._gp-a._gp : _siBaySort==='gpper' ? b._gpPer-a._gpPer : binCmp(a.bay,b.bay));
       // Heat map anchored at 0 so loss-making bays read RED, strong bays GREEN
       const gps=viewRows.map(r=>r._gpPer);const gMax=Math.max(1,...gps);
       const heat=v=>{
