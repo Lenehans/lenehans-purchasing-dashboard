@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.4.2 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.4.3 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.4.2 · built 2026-07-15 · Reorder-point engine</div>
+  <div class="sub">V7.4.3 · built 2026-07-14 · FIX: orphaned dead code ("themed is not defined") was crashing the script mid-load · dnoCheck diagnostic (SKU column unmatched → list ignored) · buy-qty input escape fix · Why Buy: minimise + edits persist · NEW Why Buy—Critical · Brands/Suppliers/Space show all rows · Column-header sort on all Sales views · Bay/Aisle sort in natural shelf order · Space/Bay on 12-month data · GP per 1.2m bay · Suppliers view (real supplier field, drill supplier→brand→SKU) · 12-month revenue + margin by brand (needs Code.gs sync) · FIX: Sales tab channel-mixing inflated margins · Brands view · Margins use REALISED cost · FIX: "higher/lower than now" arrow no longer inverts when 30D is 0 · auto-refresh export-scope fix · On-order = open POs only (OPEN/PENDING/PARTIAL, excl DELIVERED) · date shows year · auto-updates old open tabs · data-age stamp + auto-refresh · Why-Buy shows 12-mo total (no false "no history") · cadence from BuyerSchedule tab · hardened: global error net + guarded init/compute · Reorder-point cover: lead + cadence + safety × location · Capel seasonal needs Capel history</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -2954,19 +2954,6 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     el.innerHTML = html;
   }
 
-    // If theme is 'other' or too narrow, broaden by campaign name keywords
-    if (themed.length < 5) {
-      var words = campName.toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(' ').filter(function(w){ return w.length > 3; });
-      themed = rows.filter(function(r) {
-        var title = (r.ItemTitle||'').toLowerCase();
-        return (r.stock||r.NetStock_Arklow||0) > 0
-          && coverDays(r) > 21
-          && words.some(function(w){ return title.indexOf(w) >= 0; });
-      });
-    }
-
-
-
   window.eiCopyBrief = function(enc) {
     var p = enc.split('|');
     var theme=p[0], skuCount=p[1], avgCov=p[2], daysSince=p[3], month=p[4], lyOpen=p[5], topSkus=p.slice(6).join(',');
@@ -3988,28 +3975,7 @@ let _siBrandDrill=null;   // when set, the Brands view drills into this brand's 
 let _siSupDrill=null;     // Suppliers view: {sup} = supplier level, then {sup,brand} = SKUs
 let _siSupBrand=null;     // brand-within-supplier drill
 let _siBayDrill=null;     // Space view: drill into one bay's SKUs
-let _siBaySort='bin';     // 'bin' = bin/shelf order (default) | 'gpper' = GP per bay | 'gp' = total GP
-
-// Natural shelf-order compare for clean bins "<aisle-letter>1-<bay-number>" (e.g. A1-4).
-// Sorts by aisle letter, then bay NUMBER numerically, so A1-1,A1-2,…,A1-10,A2-1 —
-// not the lexicographic A1-1,A1-10,A1-2. Non-clean codes sort last, alphabetically.
-function binCmp(x,y){
-  const parse=v=>{
-    const s=String(v==null?'':v).trim().toUpperCase();
-    const letters=(s.match(/^[A-Z]+/)||[''])[0];
-    const nums=(s.match(/\d+/g)||[]).map(n=>parseInt(n,10));
-    return {clean:letters!==''?0:1, letters, nums, s};
-  };
-  const a=parse(x), b=parse(y);
-  if(a.clean!==b.clean) return a.clean-b.clean;
-  if(a.letters!==b.letters) return a.letters<b.letters?-1:1;
-  const n=Math.max(a.nums.length,b.nums.length);
-  for(let i=0;i<n;i++){
-    const an=a.nums[i]==null?-1:a.nums[i], bn=b.nums[i]==null?-1:b.nums[i];
-    if(an!==bn) return an-bn;
-  }
-  return a.s<b.s?-1:(a.s>b.s?1:0);
-}
+let _siBaySort='gpper';   // 'gpper' = GP per bay | 'gp' = total GP
 
 // Brand is NOT a field in Linnworks — it lives at the start of the product title
 // ("Skil 3210 Table Saw" → Skil). Hardware titles almost always lead with the brand,
@@ -4478,7 +4444,6 @@ function renderSalesIntel(){
       title='Space — profit per bay';
       const totBays=new Set(capel.map(r=>r.BinClean)).size;
       subtitle=`Gross profit per 1.2m bay · <strong>12-month Capel shop sales</strong> · ${totBays} bays with clean bins — click a bay to see its products. <span style="color:#64748b">Sort: </span>`
-        + `<span style="cursor:pointer;font-weight:700;color:${_siBaySort==='bin'?'#1e40af':'#94a3b8'}" onclick="_siBaySort='bin';renderSalesIntel()">Bin</span> · `
         + `<span style="cursor:pointer;font-weight:700;color:${_siBaySort==='gpper'?'#1e40af':'#94a3b8'}" onclick="_siBaySort='gpper';renderSalesIntel()">GP/bay</span> · `
         + `<span style="cursor:pointer;font-weight:700;color:${_siBaySort==='gp'?'#1e40af':'#94a3b8'}" onclick="_siBaySort='gp';renderSalesIntel()">Total GP</span>`;
       const bm=new Map();
@@ -4492,7 +4457,7 @@ function renderSalesIntel(){
         ...e,_m:e._net>0?(e._gp/e._net*100):null,
         _gpPer:e._gp,   // one bay = one unit of space, so GP/bay = the bay's GP
         _topBrands:[...e._brands].slice(0,3).join(', ')
-      })).sort((a,b)=> _siBaySort==='gp' ? b._gp-a._gp : _siBaySort==='gpper' ? b._gpPer-a._gpPer : binCmp(a.bay,b.bay));
+      })).sort((a,b)=> _siBaySort==='gp' ? b._gp-a._gp : b._gpPer-a._gpPer);
       // Heat map anchored at 0 so loss-making bays read RED, strong bays GREEN
       const gps=viewRows.map(r=>r._gpPer);const gMax=Math.max(1,...gps);
       const heat=v=>{
@@ -5384,7 +5349,9 @@ function parseCSVLine_(s){
   out.push(f); return out;
 }
 function parseCSV(text){
-  const lines=String(text).split('\n'), rows=[];
+  text = String(text);
+  if(text.charCodeAt(0)===0xFEFF) text = text.slice(1);   // strip UTF-8 BOM (Google CSV exports add one; it was breaking header matches like SKU→\ufeffSKU)
+  const lines=text.split('\n'), rows=[];
   let buf=null, quotes=0;
   for(let i=0;i<lines.length;i++){
     const line=lines[i];
@@ -5522,7 +5489,7 @@ function normalizeRow(r){
 function parseExcludeFeed(rows){
   const map = new Map();
   if(!rows || !rows.length) return map;
-  const header = rows[0].map(h=>String(h||'').trim().toLowerCase());
+  const header = rows[0].map(h=>String(h||'').replace(/^\ufeff/,'').trim().toLowerCase());
   const iSku = header.findIndex(h=>h==='sku'||h==='linnworks_sku'||h==='linnworks sku');
   const iSup = header.findIndex(h=>h==='supplier'||h==='suppliername'||h==='supplier name');
   if(iSku<0) return map;
@@ -5546,6 +5513,36 @@ function isExcludedSku(sku, supplierName){
   const sup = String(supplierName||'').toLowerCase();
   return scopes.some(s => sup.includes(String(s).toLowerCase()));
 }
+
+// Diagnostic: type dnoCheck('SKU123') in the browser console to see exactly why a SKU
+// is or isn't being excluded — settles "the do-not-order list isn't working" reports.
+window.dnoCheck = function(testSku){
+  const sz = state.excludedSkus ? state.excludedSkus.size : 0;
+  console.log('%c── Do-Not-Order diagnostic ──','font-weight:bold');
+  console.log('List loaded?', sz>0 ? `YES — ${sz} SKUs` : 'NO — list is EMPTY (feed not loaded or parse found no SKU column)');
+  console.log('Feed URL gid:', EXCLUDE_URL.match(/gid=(\d+)/)?.[1]);
+  if(sz>0){
+    const sample=[...state.excludedSkus.keys()].slice(0,10);
+    console.log('First 10 excluded SKUs (exact strings):', sample.map(s=>JSON.stringify(s)));
+  }
+  if(testSku){
+    const raw=String(testSku), trimmed=raw.trim();
+    console.log(`\nTesting "${raw}":`);
+    console.log('  exact key present? ', state.excludedSkus?.has(raw));
+    console.log('  trimmed key present?', state.excludedSkus?.has(trimmed));
+    // case-insensitive / whitespace scan
+    const hit=[...(state.excludedSkus?.keys()||[])].find(k=>k.toLowerCase().trim()===trimmed.toLowerCase());
+    console.log('  case/space-insensitive match:', hit?JSON.stringify(hit):'none');
+    const row=(state.computedRows||[]).find(r=>String(r.SKU).trim()===trimmed);
+    if(row){
+      console.log('  dashboard row SKU:', JSON.stringify(row.SKU), '| supplier:', row.SupplierName);
+      console.log('  isExcludedSku() says:', isExcludedSku(row.SKU,row.SupplierName));
+      console.log('  row._excluded flag:  ', row._excluded);
+    } else {
+      console.log('  no matching row in computedRows for that SKU');
+    }
+  }
+};
 
 // ─── BUYER SCHEDULE FEED PARSING ─────────────────────────────────────────────
 // Tab columns: Buyer, Email, Channel, Supplier, Cadence, OrderDays (extra cols ignored)
@@ -8147,10 +8144,9 @@ function showPOReview(rows, autoExport){
       <td class="r"><span style="font-weight:700;color:${r.stock<=0?'#dc2626':r.stock<10?'#d97706':'#166534'}">${fmtInt(r.stock)}</span></td>
       <td class="r">${onOrder>0?`<span style="font-weight:700;color:#1e40af" title="On order (inbound)${ooDateShort?' — placed '+ooDateShort:''} — factor this in before ordering more">📦 ${fmtInt(onOrder)}${ooDateShort?`<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px">placed ${ooDateShort}</div>`:''}</span>`:'<span style="color:#cbd5e1">—</span>'}</td>
       <td class="r"><input class="po-rev-qty" type="number" min="0" step="1" value="${(window._poEdits[supplier]&&window._poEdits[supplier][r.SKU]!=null)?window._poEdits[supplier][r.SKU]:r.buy}"
-        data-sku="${esc(r.SKU)}" data-unitcost="${unitCost}" data-cover="${r.coverStatus||''}" data-abc="${abc}"
-        data-sup="${esc(supplier)}"
+        data-sku="${esc(r.SKU)}" data-sup="${esc(supplier)}" data-unitcost="${unitCost}" data-cover="${r.coverStatus||''}" data-abc="${abc}"
         data-orig="${r.buy}"
-        oninput="this.classList.toggle('changed',parseInt(this.value)!==parseInt(this.dataset.orig));(window._poEdits[this.dataset.sup]=window._poEdits[this.dataset.sup]||{})[this.dataset.sku]=parseInt(this.value)||0;updateReviewSummary(this.closest('.po-review-modal'));const _lt=this.closest('tr')?.querySelector('.po-rev-line-total');if(_lt){const _q=parseInt(this.value)||0,_c=parseFloat(this.dataset.unitcost)||0;_lt.textContent=_q>0&&_c>0?'€'+fmtInt(_q*_c):'—';_lt.style.color=_q>0&&_c>0?'#0f172a':'#94a3b8';}"></td>
+        oninput="poEditQty(this)"></td>
       <td class="r"><span class="po-rev-cover ${cc}">${coverLabel}</span></td>
       <td class="r" style="font-size:11px;color:#475569">${abc}</td>
       <td class="r" style="font-size:11.5px">${unitCost?'€'+(+unitCost).toFixed(2):'—'}</td>
@@ -9158,6 +9154,23 @@ function poRestore(){
   if(ov){ ov.style.display='flex'; }          // still alive → just show it, edits intact
   else if(window._poReviewCtx){               // was closed → rebuild, edits re-seed from _poEdits
     showPOReview(window._poReviewCtx.rows, false);
+  }
+}
+// Buy-qty edit handler for the Why-Buy panel. Persists the value per supplier+SKU,
+// flags the changed state, updates the line total and the panel summary. Reads the
+// supplier from data-sup (never inlined into the attribute — that broke escaping).
+function poEditQty(inp){
+  const sup=inp.dataset.sup, sku=inp.dataset.sku;
+  const q=parseInt(inp.value)||0;
+  inp.classList.toggle('changed', q!==parseInt(inp.dataset.orig));
+  (window._poEdits[sup]=window._poEdits[sup]||{})[sku]=q;
+  const modal=inp.closest('.po-review-modal');
+  if(modal) updateReviewSummary(modal);
+  const lt=inp.closest('tr')?.querySelector('.po-rev-line-total');
+  if(lt){
+    const c=parseFloat(inp.dataset.unitcost)||0;
+    lt.textContent = (q>0&&c>0) ? '€'+fmtInt(q*c) : '—';
+    lt.style.color = (q>0&&c>0) ? '#0f172a' : '#94a3b8';
   }
 }
 function poClose(){
