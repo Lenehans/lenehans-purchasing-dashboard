@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.4.3 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.4.4 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.4.3 · built 2026-07-14 · Reorder-point engine</div>
+  <div class="sub">V7.4.4 · built 2026-07-14 · Reorder-point engine</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -8926,12 +8926,15 @@ function runningVersion(){ const m=(document.title||'').match(/V\d+\.\d+\.\d+/);
 function showUpdateBanner(v){
   if(document.getElementById('updateBanner')) return;
   const b=document.createElement('div'); b.id='updateBanner';
-  b.style.cssText='position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:100001;background:#1e40af;color:#fff;font:13px/1.4 system-ui,sans-serif;padding:11px 16px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.35);display:flex;align-items:center;gap:12px';
-  const s=document.createElement('span'); s.textContent='🔄 A new version ('+v+') is available.';
+  b.style.cssText='position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:100001;background:#b45309;color:#fff;font:13px/1.4 system-ui,sans-serif;font-weight:600;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.4);display:flex;align-items:center;gap:14px;border:2px solid #fbbf24';
+  const s=document.createElement('span'); s.innerHTML='🔄 New version <b>'+v+'</b> available (you\'re on '+runningVersion()+')';
   const btn=document.createElement('button'); btn.textContent='Update now';
-  btn.style.cssText='background:#fff;color:#1e40af;border:none;border-radius:6px;padding:6px 13px;font-weight:800;cursor:pointer';
+  btn.style.cssText='background:#fff;color:#b45309;border:none;border-radius:7px;padding:7px 15px;font-weight:800;cursor:pointer;font-size:13px';
   btn.onclick=()=>location.reload();
-  b.appendChild(s); b.appendChild(btn); document.body.appendChild(b);
+  const x=document.createElement('button'); x.textContent='✕'; x.title='Dismiss';
+  x.style.cssText='background:transparent;color:#fff;border:none;cursor:pointer;font-size:15px;opacity:.8';
+  x.onclick=()=>b.remove();
+  b.appendChild(s); b.appendChild(btn); b.appendChild(x); document.body.appendChild(b);
 }
 async function checkForNewVersion(userIdle){
   try{
@@ -8942,8 +8945,9 @@ async function checkForNewVersion(userIdle){
     const deployed = m ? m[1] : '';
     const running = runningVersion();
     if(deployed && running && deployed !== running){
-      if(userIdle || document.hidden) location.reload();   // safe → reload to new build
-      else showUpdateBanner(deployed);                     // active → let them choose
+      // Always SHOW the banner so the user knows — never silently reload out from under
+      // them (they might be mid-order). They click Update when ready.
+      showUpdateBanner(deployed);
     }
   }catch(e){}
 }
@@ -8986,7 +8990,7 @@ function setupAutoRefresh(){
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='visible' && !panelOpen()){
       if(ageMs()>STALE_MS) doRefresh();
-      checkForNewVersion(isIdle());
+      checkForNewVersion(false);
     }
   });
   // Periodic — only when hidden or idle, and never over an open order panel.
@@ -8994,10 +8998,12 @@ function setupAutoRefresh(){
     if(panelOpen()) return;
     const idle = document.hidden || isIdle();
     if(ageMs()>STALE_MS && idle) doRefresh();
-    if(idle) checkForNewVersion(true);   // reload to a newer build while idle
   }, 5*60*1000);
+  // Version check runs on its own steady 3-min beat (even on an active tab) so a deploy
+  // is caught quickly. It only ever shows a banner — never reloads on its own.
+  setInterval(()=>{ if(!panelOpen()) checkForNewVersion(false); }, 3*60*1000);
   // First version check shortly after load
-  setTimeout(()=>checkForNewVersion(isIdle()), 60*1000);
+  setTimeout(()=>checkForNewVersion(false), 45*1000);
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
