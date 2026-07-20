@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.4.4 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.4.5 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.4.4 · built 2026-07-14 · Reorder-point engine</div>
+  <div class="sub">V7.4.5 · built 2026-07-14 · Reorder-point engine</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -8521,10 +8521,18 @@ async function loadGovernanceFeeds(){
   if(!EXCLUDE_URL.includes('EXCLUDE_GID_HERE')){
     fetchCSV(EXCLUDE_URL,'Do-Not-Order')
       .then(exRaw=>{
+        console.log('[Do-Not-Order] fetched', exRaw&&exRaw.length, 'rows. Header:', exRaw&&exRaw[0]);
         state.excludedSkus=parseExcludeFeed(exRaw);
+        console.log('[Do-Not-Order] parsed', state.excludedSkus.size, 'excluded SKUs');
+        if(!state.excludedSkus.size && exRaw && exRaw.length){
+          console.warn('[Do-Not-Order] feed loaded but 0 SKUs parsed — the tab has no column named SKU / Linnworks_SKU. Header was:', exRaw[0]);
+        }
         if(state.rawRows && state.rawRows.length && typeof recompute==='function') recompute();
       })
-      .catch(()=>{ if(!state.excludedSkus) state.excludedSkus=new Map(); });
+      .catch(e=>{
+        console.error('[Do-Not-Order] LOAD FAILED:', e.message, '— the tab (gid 1233612353) may be missing, renamed, or the sheet not shared for CSV export.');
+        if(!state.excludedSkus) state.excludedSkus=new Map();
+      });
   }
   // Buyer schedule — background load; replaces the baked cadence list once it arrives.
   if(!SCHEDULE_URL.includes('SCHEDULE_GID_HERE')){
