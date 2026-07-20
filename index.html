@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.4.5 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.4.6 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.4.5 · built 2026-07-14 · Reorder-point engine</div>
+  <div class="sub">V7.4.6 · built 2026-07-14 · Reorder-point engine</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -5489,20 +5489,42 @@ function normalizeRow(r){
 function parseExcludeFeed(rows){
   const map = new Map();
   if(!rows || !rows.length) return map;
-  const header = rows[0].map(h=>String(h||'').replace(/^\ufeff/,'').trim().toLowerCase());
-  const iSku = header.findIndex(h=>h==='sku'||h==='linnworks_sku'||h==='linnworks sku');
-  const iSup = header.findIndex(h=>h==='supplier'||h==='suppliername'||h==='supplier name');
-  if(iSku<0) return map;
-  for(let i=1;i<rows.length;i++){
-    const r=rows[i]; if(!r) continue;
-    const sku=String(r[iSku]||'').trim();
-    if(!sku) continue;
-    const sup=iSup>=0?String(r[iSup]||'').trim():'';
-    const scope = sup || '*';
-    if(!map.has(sku)) map.set(sku,[]);
-    const arr=map.get(sku); if(!arr.includes(scope)) arr.push(scope);
+  const norm = k => String(k||'').replace(/^\ufeff/,'').trim().toLowerCase();
+  const first = rows[0];
+
+  // Two possible shapes: array-of-arrays (first row = header) or array-of-objects
+  // (each row already keyed by column name). Handle both so a change in the CSV
+  // parser can never silently kill the do-not-order list again.
+  if(Array.isArray(first)){
+    const header = first.map(norm);
+    const iSku = header.findIndex(h=>h==='sku'||h==='linnworks_sku'||h==='linnworks sku');
+    const iSup = header.findIndex(h=>h==='supplier'||h==='suppliername'||h==='supplier name');
+    if(iSku<0) return map;
+    for(let i=1;i<rows.length;i++){
+      const r=rows[i]; if(!r) continue;
+      const sku=String(r[iSku]||'').trim(); if(!sku) continue;
+      const sup=iSup>=0?String(r[iSup]||'').trim():'';
+      addExcl(map, sku, sup);
+    }
+  } else if(typeof first==='object'){
+    // object rows — find the key names once
+    const keys={}; Object.keys(first).forEach(k=>{ keys[norm(k)]=k; });
+    const kSku = keys['sku']||keys['linnworks_sku']||keys['linnworks sku'];
+    const kSup = keys['supplier']||keys['suppliername']||keys['supplier name'];
+    if(!kSku) return map;
+    for(const r of rows){
+      if(!r) continue;
+      const sku=String(r[kSku]||'').trim(); if(!sku) continue;
+      const sup=kSup?String(r[kSup]||'').trim():'';
+      addExcl(map, sku, sup);
+    }
   }
   return map;
+}
+function addExcl(map, sku, sup){
+  const scope = sup || '*';
+  if(!map.has(sku)) map.set(sku,[]);
+  const arr=map.get(sku); if(!arr.includes(scope)) arr.push(scope);
 }
 // Is this SKU on the do-not-order list for this supplier? ('*' scope = everywhere)
 function isExcludedSku(sku, supplierName){
