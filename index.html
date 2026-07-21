@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.4.6 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.5.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.4.6 · built 2026-07-14 · Reorder-point engine</div>
+  <div class="sub">V7.5.0 · built 2026-07-14 · Reorder-point engine</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -1105,6 +1105,7 @@
     <button class="tab-btn" data-tab="movein">🏠 Move-In</button>
     <button class="tab-btn" data-tab="sales">📊 Sales</button>
     <button class="tab-btn" data-tab="email">📧 Email Intelligence</button>
+    <button class="tab-btn" data-tab="margincalc">🧮 Margin Calc</button>
     <button class="tab-btn" data-tab="deliveries" style="display:none">🚚 Deliveries</button>
     <div id="weatherChip" style="display:none;margin-left:auto;align-self:center;
       padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;
@@ -1731,6 +1732,59 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
 
     </div>
   </div><!-- /tab-email -->
+
+  <div class="tab-panel" id="tab-margincalc">
+    <div style="padding:16px 0;max-width:900px">
+      <h2 style="margin:0 0 4px">🧮 Lenehans Margin Calculator</h2>
+      <p style="color:#64748b;margin:0 0 16px;font-size:13px">Work out GP% from a cost + retail, or generate a retail price from a target margin. Handles Euro and Sterling costs. All GP% figures are on an ex-VAT basis.</p>
+
+      <!-- Rates -->
+      <div style="display:flex;gap:24px;flex-wrap:wrap;background:#f1f5f9;border-radius:10px;padding:12px 16px;margin-bottom:18px">
+        <label style="font-size:13px;font-weight:600">Sterling rate (£1 = €?)<br>
+          <input id="mcStg" type="number" step="0.0001" value="0.84" style="width:110px;margin-top:4px;padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px"></label>
+        <label style="font-size:13px;font-weight:600">VAT rate<br>
+          <input id="mcVat" type="number" step="0.01" value="1.23" style="width:110px;margin-top:4px;padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px"></label>
+        <div style="align-self:flex-end;font-size:11px;color:#94a3b8">STG cost is converted to € by dividing by the Sterling rate.</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px">
+
+        <!-- PATH A: cost + retail -> GP% -->
+        <div style="border:1px solid #e2e8f0;border-radius:12px;padding:16px">
+          <h3 style="margin:0 0 12px;color:#1e40af">Cost + Retail → GP%</h3>
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:8px">Cost price
+            <span style="font-weight:400;color:#94a3b8">(enter € or £)</span><br>
+            <input id="mcCost" type="number" step="0.01" placeholder="e.g. 9.30" style="width:100%;margin-top:4px;padding:8px;border:2px solid #16a34a;border-radius:6px;font-size:15px"></label>
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:12px">Retail price (inc-VAT)<br>
+            <input id="mcRetail" type="number" step="0.01" placeholder="e.g. 19.99" style="width:100%;margin-top:4px;padding:8px;border:2px solid #16a34a;border-radius:6px;font-size:15px"></label>
+          <table style="width:100%;font-size:13px;border-collapse:collapse">
+            <tr style="border-bottom:1px solid #e2e8f0"><td style="padding:6px 0;color:#64748b">Euro cost</td><td id="mcEuroCost" class="r" style="font-weight:700">—</td></tr>
+            <tr style="border-bottom:1px solid #e2e8f0"><td style="padding:6px 0;color:#64748b">STG cost → €</td><td id="mcStgCost" class="r" style="font-weight:700">—</td></tr>
+            <tr style="border-bottom:1px solid #e2e8f0"><td style="padding:6px 0;color:#64748b">Retail ex-VAT</td><td id="mcRetailNet" class="r" style="font-weight:700">—</td></tr>
+            <tr style="border-bottom:2px solid #cbd5e1"><td style="padding:8px 0;font-weight:700">Euro GP%</td><td id="mcEuroGP" class="r" style="font-weight:800;font-size:16px">—</td></tr>
+            <tr><td style="padding:8px 0;font-weight:700">STG GP%</td><td id="mcStgGP" class="r" style="font-weight:800;font-size:16px">—</td></tr>
+          </table>
+        </div>
+
+        <!-- PATH B: margin -> retail -->
+        <div style="border:1px solid #e2e8f0;border-radius:12px;padding:16px">
+          <h3 style="margin:0 0 12px;color:#b45309">Target Margin → Retail</h3>
+          <p style="font-size:12px;color:#94a3b8;margin:0 0 12px">Uses the cost entered on the left. Retail is rounded up to the nearest .99.</p>
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:12px">Target margin %<br>
+            <input id="mcMargin" type="number" step="1" value="40" style="width:100%;margin-top:4px;padding:8px;border:2px solid #f59e0b;border-radius:6px;font-size:15px"></label>
+          <table style="width:100%;font-size:13px;border-collapse:collapse">
+            <tr style="border-bottom:1px solid #e2e8f0"><td style="padding:6px 0;color:#64748b">Retail from € cost</td><td id="mcRetEuroRaw" class="r">—</td></tr>
+            <tr style="border-bottom:2px solid #cbd5e1"><td style="padding:8px 0;font-weight:700">Priced (€, .99)</td><td id="mcRetEuro" class="r" style="font-weight:800;font-size:16px;color:#166534">—</td></tr>
+            <tr style="border-bottom:1px solid #e2e8f0"><td style="padding:6px 0;color:#64748b">Retail from STG cost</td><td id="mcRetStgRaw" class="r">—</td></tr>
+            <tr><td style="padding:8px 0;font-weight:700">Priced (€, .99)</td><td id="mcRetStg" class="r" style="font-weight:800;font-size:16px;color:#166534">—</td></tr>
+          </table>
+          <p style="font-size:11px;color:#94a3b8;margin:12px 0 0">The two rows show the retail you'd need if the cost is treated as Euro vs as Sterling-converted.</p>
+        </div>
+
+      </div>
+    </div>
+  </div><!-- /tab-margincalc -->
+
 
 </div><!-- /wrap -->
 <!-- ═══════════════════════════════════════════════════════════════════════════
@@ -8892,6 +8946,7 @@ function bindEvents(){
       if(btn.dataset.tab==='team')       renderTeam();
       if(btn.dataset.tab==='deliveries') renderDeliveries();
       if(btn.dataset.tab==='email')      eiOnTabOpen();
+      if(btn.dataset.tab==='margincalc'){ ['mcStg','mcVat','mcCost','mcRetail','mcMargin'].forEach(id=>{const el=document.getElementById(id); if(el&&!el._mcWired){el.addEventListener('input',mcCalc); el._mcWired=true;}}); mcCalc(); }
       if(btn.dataset.tab==='movein')     renderMoveIn();
       if(btn.dataset.tab==='sales')      renderSalesIntel();
     });
@@ -9216,6 +9271,46 @@ function poClose(){
   const sup=window._poReviewCtx&&window._poReviewCtx.supplier;
   if(sup && window._poEdits[sup]) delete window._poEdits[sup];
   window._poReviewCtx=null;
+}
+
+// ── Margin Calculator ────────────────────────────────────────────────────────
+function mcCalc(){
+  const num=id=>{ const v=parseFloat(document.getElementById(id)?.value); return isNaN(v)?null:v; };
+  const set=(id,txt)=>{ const el=document.getElementById(id); if(el) el.textContent=txt; };
+  const stg=num('mcStg')||0.84, vat=num('mcVat')||1.23;
+  const cost=num('mcCost'), retail=num('mcRetail');
+  const eur=v=>'€'+v.toFixed(2), pct=v=>{
+    const c=v>=0.40?'#166534':v>=0.20?'#b45309':'#dc2626';
+    return `<span style="color:${c}">${(v*100).toFixed(1)}%</span>`;
+  };
+  const setHtml=(id,h)=>{ const el=document.getElementById(id); if(el) el.innerHTML=h; };
+
+  // Path A — cost + retail → GP%
+  if(cost!=null){
+    const euroCost=cost, stgCost=cost/stg;
+    set('mcEuroCost',eur(euroCost)); set('mcStgCost',eur(stgCost));
+    if(retail!=null && retail>0){
+      const retailNet=retail/vat;
+      set('mcRetailNet',eur(retailNet));
+      setHtml('mcEuroGP', pct((retailNet-euroCost)/retailNet));
+      setHtml('mcStgGP',  pct((retailNet-stgCost)/retailNet));
+    } else { set('mcRetailNet','—'); set('mcEuroGP','—'); set('mcStgGP','—'); }
+  } else {
+    ['mcEuroCost','mcStgCost','mcRetailNet','mcEuroGP','mcStgGP'].forEach(id=>set(id,'—'));
+  }
+
+  // Path B — target margin → retail (from the same cost)
+  const m=num('mcMargin');
+  if(cost!=null && m!=null && m<100){
+    const mg=m/100;
+    const euroCost=cost, stgCost=cost/stg;
+    const retEuro=euroCost/(1-mg)*vat, retStg=stgCost/(1-mg)*vat;
+    const price99=x=>Math.ceil(x)-0.01;
+    set('mcRetEuroRaw',eur(retEuro)); set('mcRetEuro',eur(price99(retEuro)));
+    set('mcRetStgRaw', eur(retStg));  set('mcRetStg', eur(price99(retStg)));
+  } else {
+    ['mcRetEuroRaw','mcRetEuro','mcRetStgRaw','mcRetStg'].forEach(id=>set(id,'—'));
+  }
 }
 
 function nearestWeekday(d){ const day=d.getDay(); if(day===0) d.setDate(d.getDate()+1); if(day===6) d.setDate(d.getDate()-1); return d; }
