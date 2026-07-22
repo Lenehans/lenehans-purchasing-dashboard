@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.5.0 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.5.1 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.5.0 · built 2026-07-14 · Reorder-point engine</div>
+  <div class="sub">V7.5.1 · built 2026-07-14 · Reorder-point engine</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -1771,7 +1771,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
           <h3 style="margin:0 0 12px;color:#b45309">Target Margin → Retail</h3>
           <p style="font-size:12px;color:#94a3b8;margin:0 0 12px">Uses the cost entered on the left. Retail is rounded up to the nearest .99.</p>
           <label style="font-size:13px;font-weight:600;display:block;margin-bottom:12px">Target margin %<br>
-            <input id="mcMargin" type="number" step="1" value="40" style="width:100%;margin-top:4px;padding:8px;border:2px solid #f59e0b;border-radius:6px;font-size:15px"></label>
+            <input id="mcMargin" type="number" step="1" value="60" style="width:100%;margin-top:4px;padding:8px;border:2px solid #f59e0b;border-radius:6px;font-size:15px"></label>
           <table style="width:100%;font-size:13px;border-collapse:collapse">
             <tr style="border-bottom:1px solid #e2e8f0"><td style="padding:6px 0;color:#64748b">Retail from € cost</td><td id="mcRetEuroRaw" class="r">—</td></tr>
             <tr style="border-bottom:2px solid #cbd5e1"><td style="padding:8px 0;font-weight:700">Priced (€, .99)</td><td id="mcRetEuro" class="r" style="font-weight:800;font-size:16px;color:#166534">—</td></tr>
