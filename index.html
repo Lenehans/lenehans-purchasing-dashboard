@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.5.1 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.6.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.5.1 · built 2026-07-14 · Reorder-point engine</div>
+  <div class="sub">V7.6.0 · built 2026-07-14 · Reorder-point engine</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -1106,6 +1106,7 @@
     <button class="tab-btn" data-tab="sales">📊 Sales</button>
     <button class="tab-btn" data-tab="email">📧 Email Intelligence</button>
     <button class="tab-btn" data-tab="margincalc">🧮 Margin Calc</button>
+    <button class="tab-btn" data-tab="barcodes">🏷️ Barcodes</button>
     <button class="tab-btn" data-tab="deliveries" style="display:none">🚚 Deliveries</button>
     <div id="weatherChip" style="display:none;margin-left:auto;align-self:center;
       padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;
@@ -1784,6 +1785,28 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       </div>
     </div>
   </div><!-- /tab-margincalc -->
+
+  <div class="tab-panel" id="tab-barcodes">
+    <div style="padding:16px 0;max-width:1000px">
+      <h2 style="margin:0 0 4px">🏷️ EAN-13 Barcode Generator</h2>
+      <p style="color:#64748b;margin:0 0 14px;font-size:13px">Turns each SKU into a valid internal EAN-13 (prefix <b>20</b> — the range reserved for in-store use, so it never clashes with real product barcodes at the till). Each SKU gets a permanent number from a register, so the same SKU always produces the same barcode. Enter SKUs (or bin codes), one per line.</p>
+
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+        <div style="flex:0 0 260px">
+          <textarea id="bcInput" placeholder="U100-3-11&#10;1920-12&#10;SBC0850" style="width:100%;height:180px;padding:10px;border:2px solid #16a34a;border-radius:8px;font-family:monospace;font-size:13px"></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <button onclick="bcGenerate()" style="background:#1e40af;flex:1">Generate</button>
+            <button onclick="bcPrint()" class="secondary" title="Open a print-ready label sheet">🖨️ Print labels</button>
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:#94a3b8">
+            The register is saved in this browser. <a href="#" onclick="bcExportRegister();return false;" style="color:#1e40af">Export register (CSV)</a> · <a href="#" onclick="bcResetRegister();return false;" style="color:#dc2626">Reset</a>
+          </div>
+        </div>
+        <div id="bcResults" style="flex:1;min-width:320px;display:flex;flex-wrap:wrap;gap:12px;align-content:flex-start"></div>
+      </div>
+    </div>
+  </div><!-- /tab-barcodes -->
+
 
 
 </div><!-- /wrap -->
@@ -8947,6 +8970,7 @@ function bindEvents(){
       if(btn.dataset.tab==='deliveries') renderDeliveries();
       if(btn.dataset.tab==='email')      eiOnTabOpen();
       if(btn.dataset.tab==='margincalc'){ ['mcStg','mcVat','mcCost','mcRetail','mcMargin'].forEach(id=>{const el=document.getElementById(id); if(el&&!el._mcWired){el.addEventListener('input',mcCalc); el._mcWired=true;}}); mcCalc(); }
+      if(btn.dataset.tab==='barcodes')   bcGenerate();
       if(btn.dataset.tab==='movein')     renderMoveIn();
       if(btn.dataset.tab==='sales')      renderSalesIntel();
     });
@@ -9310,6 +9334,96 @@ function mcCalc(){
     set('mcRetStgRaw', eur(retStg));  set('mcRetStg', eur(price99(retStg)));
   } else {
     ['mcRetEuroRaw','mcRetEuro','mcRetStgRaw','mcRetStg'].forEach(id=>set(id,'—'));
+  }
+}
+
+// ── EAN-13 Barcode Generator ─────────────────────────────────────────────────
+// Internal-use barcodes: prefix "20" + a permanent sequential number per SKU (held in
+// a register in localStorage), + EAN-13 check digit. Same SKU → same barcode, always,
+// with zero collisions (unlike a hash). Renders true EAN-13 bar patterns.
+const BC_KEY='lenehans_ean_register_v1';
+function bcLoadReg(){ try{ return JSON.parse(localStorage.getItem(BC_KEY))||{map:{},next:1}; }catch(e){ return {map:{},next:1}; } }
+function bcSaveReg(r){ try{ localStorage.setItem(BC_KEY, JSON.stringify(r)); }catch(e){} }
+function bcCheckDigit(d12){ let s=0; for(let i=0;i<12;i++){ const n=+d12[i]; s+=(i%2===0)?n:n*3; } return (10-(s%10))%10; }
+function bcEanForSku(sku){
+  const key=String(sku).trim().toUpperCase(); if(!key) return null;
+  const reg=bcLoadReg();
+  let seq=reg.map[key];
+  if(seq==null){ seq=reg.next++; reg.map[key]=seq; bcSaveReg(reg); }
+  const data='20'+String(seq).padStart(10,'0');
+  return data+bcCheckDigit(data);
+}
+// EAN-13 L/G/R code tables
+const BC_L=['0001101','0011001','0010011','0111101','0100011','0110001','0101111','0111011','0110111','0001011'];
+const BC_G=['0100111','0110011','0011011','0100001','0011101','0111001','0000101','0010001','0001001','0010111'];
+const BC_R=['1110010','1100110','1101100','1000010','1011100','1001110','1010000','1000100','1001000','1110100'];
+const BC_PARITY=['LLLLLL','LLGLGG','LLGGLG','LLGGGL','LGLLGG','LGGLLG','LGGGLL','LGLGLG','LGLGGL','LGGLGL'];
+function bcBars(ean){
+  const d=ean.split('').map(Number);
+  const parity=BC_PARITY[d[0]];
+  let bits='101'; // start guard
+  for(let i=1;i<=6;i++){ bits += (parity[i-1]==='L'?BC_L:BC_G)[d[i]]; }
+  bits+='01010'; // centre guard
+  for(let i=7;i<=12;i++){ bits += BC_R[d[i]]; }
+  bits+='101'; // end guard
+  return bits;
+}
+function bcSvg(ean, label){
+  const bits=bcBars(ean), h=60, x0=10, w=2;
+  let rects='';
+  for(let i=0;i<bits.length;i++){ if(bits[i]==='1') rects+=`<rect x="${x0+i*w}" y="4" width="${w}" height="${h}" fill="#000"/>`; }
+  const totalW=x0*2+bits.length*w;
+  return `<svg viewBox="0 0 ${totalW} ${h+22}" width="${totalW}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+    <rect width="100%" height="100%" fill="#fff"/>${rects}
+    <text x="${totalW/2}" y="${h+18}" text-anchor="middle" font-family="monospace" font-size="12" fill="#000">${ean}</text>
+    <text x="${totalW/2}" y="${h+2}" text-anchor="middle" font-family="Arial" font-size="0"></text>
+  </svg>`;
+}
+function bcCurrentList(){
+  return (document.getElementById('bcInput')?.value||'').split('\n').map(s=>s.trim()).filter(Boolean);
+}
+function bcGenerate(){
+  const skus=bcCurrentList();
+  const box=document.getElementById('bcResults'); if(!box) return;
+  if(!skus.length){ box.innerHTML='<div style="color:#94a3b8;font-size:13px">Enter one or more SKUs, then Generate.</div>'; return; }
+  box.innerHTML=skus.map(sku=>{
+    const ean=bcEanForSku(sku);
+    return `<div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px;text-align:center;background:#fff">
+      <div style="font-weight:700;font-size:13px;margin-bottom:4px">${esc(sku)}</div>
+      ${bcSvg(ean,sku)}
+    </div>`;
+  }).join('');
+}
+function bcPrint(){
+  const skus=bcCurrentList();
+  if(!skus.length){ alert('Enter some SKUs first.'); return; }
+  const cells=skus.map(sku=>{
+    const ean=bcEanForSku(sku);
+    return `<div class="lbl"><div class="sku">${esc(sku)}</div>${bcSvg(ean,sku)}</div>`;
+  }).join('');
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><title>Lenehans Labels</title><style>
+    @page{margin:8mm}
+    body{font-family:Arial,sans-serif;margin:0}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6mm}
+    .lbl{border:1px solid #ddd;border-radius:4px;padding:6px;text-align:center;page-break-inside:avoid}
+    .sku{font-weight:700;font-size:13px;margin-bottom:2px}
+    svg{max-width:100%}
+  </style></head><body><div class="grid">${cells}</div>
+  <script>window.onload=function(){window.print();}<\/script></body></html>`);
+  w.document.close();
+}
+function bcExportRegister(){
+  const reg=bcLoadReg();
+  const rows=[['SKU','EAN13']];
+  Object.keys(reg.map).sort().forEach(k=>{ const data='20'+String(reg.map[k]).padStart(10,'0'); rows.push([k, data+bcCheckDigit(data)]); });
+  const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='lenehans_ean_register.csv'; a.click(); URL.revokeObjectURL(a.href);
+}
+function bcResetRegister(){
+  if(confirm('Reset the barcode register? Existing SKUs will be re-numbered from scratch next time — any labels already printed would no longer match.')){
+    localStorage.removeItem(BC_KEY); bcGenerate();
   }
 }
 
