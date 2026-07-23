@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.6.0 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.6.1 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.6.0 · built 2026-07-14 · Reorder-point engine</div>
+  <div class="sub">V7.6.1 · built 2026-07-14 · Reorder-point engine</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -8016,6 +8016,11 @@ function applyInitialMode(){
 }
 
 function exportPO(){
+  // Never build an all-supplier PO — orders are always per supplier.
+  if(!state.activeSupplier){
+    alert('Select a supplier first.\n\nExporting an order for ALL suppliers is disabled.');
+    return;
+  }
   const rows=getFilteredRows().filter(countsInOrderValue);
   if(!rows.length){alert('No lines to export for current view.');return;}
   rows.sort((a,b)=>{
@@ -8027,6 +8032,7 @@ function exportPO(){
 }
 
 function openWhyBuy(){
+  if(!state.activeSupplier){ alert('Select a supplier first — Why Buy works on one supplier\'s order.'); return; }
   const rows=getFilteredRows().filter(countsInOrderValue);
   if(!rows.length){alert('No buy lines in current view.');return;}
   rows.sort((a,b)=>{
@@ -8040,6 +8046,7 @@ function openWhyBuy(){
 // Why Buy limited to the URGENT lines — Out of Stock or Critical cover — same panel,
 // same edit persistence. Useful for a fast "just the fires" review.
 function openWhyBuyCritical(){
+  if(!state.activeSupplier){ alert('Select a supplier first — Why Buy works on one supplier\'s order.'); return; }
   const rows=getFilteredRows().filter(r=>countsInOrderValue(r) && (r.stock<=0 || r.coverStatus==='Critical' || r.coverStatus==='Out of Stock'));
   if(!rows.length){alert('No critical or out-of-stock buy lines in current view.');return;}
   rows.sort((a,b)=>{
@@ -8330,9 +8337,26 @@ function filterPOReview(q){
 
 function executePOExport(){
   const modal=document.querySelector('.po-review-modal');
-  const supplierLabel=state.activeSupplier||'ALL_SUPPLIERS';
   const mode=document.getElementById('demandMode')?.value||'Seasonal';
-  const rows=getFilteredRows().filter(countsInOrderValue);
+
+  // BULLETPROOF SCOPE: export exactly the rows this panel was opened with, never a
+  // fresh global query. Previously this re-ran getFilteredRows(), so if activeSupplier
+  // was empty (e.g. cleared by a background refresh) it silently exported EVERY
+  // supplier. The panel's own rows are already scoped to the supplier being worked on.
+  const ctxRows = (window._poReviewCtx && Array.isArray(window._poReviewCtx.rows))
+    ? window._poReviewCtx.rows : null;
+  const supplierLabel = (window._poReviewCtx && window._poReviewCtx.supplier)
+    || state.activeSupplier || '';
+
+  // Refuse to export an unscoped/all-supplier order — we never send those.
+  if(!supplierLabel || supplierLabel==='All Suppliers'){
+    alert('Select a supplier first.\n\nExporting an order for ALL suppliers is disabled — open a single supplier, then export.');
+    return;
+  }
+  if(!ctxRows){ alert('Could not identify which order to export. Close the panel and reopen it from the supplier.'); return; }
+
+  // Belt and braces: keep only rows actually belonging to this supplier.
+  const rows = ctxRows.filter(r=>r.SupplierName===supplierLabel);
   const qtyMap={};
   if(modal) modal.querySelectorAll('.po-rev-qty').forEach(inp=>{ qtyMap[inp.dataset.sku]=parseInt(inp.value)||0; });
 
@@ -10059,21 +10083,36 @@ function computeStockAlerts(){
   for(const r of rows){
     const sold7   = r.QtySold_Online_Total_7d  || 0;
     const sold30  = r.QtySold_Online_Total_30d  || 0;
+    const sold180 = r.QtySold_Online_Total_180d || 0;
     const daily30 = sold30 / 30;
     const daily7  = sold7  / 7;
     const ratio   = daily30 > 0 ? daily7 / daily30 : 0;
     const stock   = r.stock ?? (r.NetStock_Arklow || 0);
     const cover   = daily30 > 0 ? stock / daily30 : (stock > 0 ? 999 : 0);
-    if(ratio >= 1.5 && sold7 >= 5 && cover < 5){
+
+    // Three independent reasons to flag. Previously ALL of (spiking + sold7>=5 +
+    // cover<5) had to be true, which silently excluded the most important case: a
+    // line that's already OUT OF STOCK sells 0 units, so its spike ratio is 0 and it
+    // disqualified itself. A proven seller at zero stock must always be flagged.
+    const isOOS      = stock <= 0 && (sold30 > 0 || sold180 > 0);
+    const isLowCover = stock > 0 && daily30 > 0 && cover < 5;
+    const isSpiking  = ratio >= 1.5 && sold7 >= 5;
+
+    if(isOOS || isLowCover || isSpiking){
       const item = {
         sku: r.SKU, title: r.ItemTitle||'',
         supplier: (r.SupplierName||'').split(' - ')[0].trim(),
-        stock: Math.round(stock), sold7, ratio, cover: Math.round(cover)
+        stock: Math.round(stock), sold7, ratio, cover: Math.round(cover),
+        reason: isOOS ? 'OOS' : (isLowCover ? 'LOW' : 'SPIKE')
       };
       if(top200.has(r.SKU)) critical.push(item);
       else                   watch.push(item);
     }
   }
+  // Most urgent first: out of stock, then thinnest cover, then biggest spike
+  const rank=x=>x.reason==='OOS'?0:x.reason==='LOW'?1:2;
+  critical.sort((a,b)=> rank(a)-rank(b) || a.cover-b.cover || b.ratio-a.ratio);
+  watch.sort((a,b)=> rank(a)-rank(b) || a.cover-b.cover || b.ratio-a.ratio);
   critical.sort((a,b)=>a.cover-b.cover||b.ratio-a.ratio);
   watch.sort((a,b)=>a.cover-b.cover||b.ratio-a.ratio);
   state.stockAlerts = { critical, watch };
@@ -10143,7 +10182,7 @@ function renderStockAlerts(){
       <div style="background:#dc2626;color:#fff;padding:9px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:800"
         onclick="var b=this.nextElementSibling;b.style.display=b.style.display==='none'?'block':'none';this.querySelector('.sap-arr').textContent=b.style.display==='none'?'▶':'▼'">
         🔴 Top-200 SKUs — ${critical.length} need action now
-        <span style="font-size:11px;font-weight:400;opacity:.9">${oosCount} OOS · ${critical.length-oosCount} under 5 days · all spiking</span>
+        <span style="font-size:11px;font-weight:400;opacity:.9">${oosCount} out of stock · ${critical.filter(x=>x.reason==='LOW').length} under 5 days · ${critical.filter(x=>x.reason==='SPIKE').length} spiking</span>
         <span class="sap-arr" style="margin-left:auto;font-size:12px">▼</span>
         <button onclick="event.stopPropagation();this.closest('#stockAlertPanel').style.display='none'"
           style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:2px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">✕</button>
