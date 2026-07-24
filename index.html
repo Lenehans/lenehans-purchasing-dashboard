@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.6.1 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.6.2 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.6.1 · built 2026-07-14 · Reorder-point engine</div>
+  <div class="sub">V7.6.2 · built 2026-07-14 · Reorder-point engine</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -8805,8 +8805,11 @@ async function loadFromUrl(){
     setLoadProgress(70, 'Computing rows…');
     document.getElementById('stockAlertPanel').style.display='none';
     setTimeout(()=>setLoadProgress(90,'Applying rules…'),100);
-    setTimeout(()=>{ computeStockAlerts(); },600);
     await processRawRows(parsedRaw,'URL');
+    // Alerts must run AFTER the rows exist. This used to fire on a 600ms timer that
+    // beat processRawRows on a large dataset, so computeStockAlerts found no rows,
+    // returned early, and the Alerts tab stayed permanently blank.
+    computeStockAlerts();
     state.lastLoadedAt = Date.now();   // for the data-age stamp + auto-refresh
   }catch(err){
     let msg=`❌ ${err.message}`;
@@ -8995,6 +8998,7 @@ function bindEvents(){
       if(btn.dataset.tab==='email')      eiOnTabOpen();
       if(btn.dataset.tab==='margincalc'){ ['mcStg','mcVat','mcCost','mcRetail','mcMargin'].forEach(id=>{const el=document.getElementById(id); if(el&&!el._mcWired){el.addEventListener('input',mcCalc); el._mcWired=true;}}); mcCalc(); }
       if(btn.dataset.tab==='barcodes')   bcGenerate();
+      if(btn.dataset.tab==='alerts')     { try{ computeStockAlerts(); }catch(e){} }
       if(btn.dataset.tab==='movein')     renderMoveIn();
       if(btn.dataset.tab==='sales')      renderSalesIntel();
     });
@@ -10072,7 +10076,17 @@ function exportNOOS(){
 
 function computeStockAlerts(){
   const rows = state.computedRows;
-  if(!rows||!rows.length) return;
+  if(!rows||!rows.length){
+    // No data yet — say so rather than leaving the tab blank.
+    const empty=document.getElementById('alertsEmpty');
+    if(empty){
+      empty.style.display='block';
+      empty.innerHTML='<div style="font-size:32px;margin-bottom:8px">⏳</div>'
+        +'<div style="font-size:15px;font-weight:700;color:#64748b">Waiting for data</div>'
+        +'<div style="font-size:13px;margin-top:4px">Alerts appear once the feed has loaded — hit ↻ Refresh if this persists.</div>';
+    }
+    return;
+  }
 
   // Rank by 180D sales for top-200 classification
   const sorted180 = [...rows].sort((a,b)=>
@@ -10113,8 +10127,6 @@ function computeStockAlerts(){
   const rank=x=>x.reason==='OOS'?0:x.reason==='LOW'?1:2;
   critical.sort((a,b)=> rank(a)-rank(b) || a.cover-b.cover || b.ratio-a.ratio);
   watch.sort((a,b)=> rank(a)-rank(b) || a.cover-b.cover || b.ratio-a.ratio);
-  critical.sort((a,b)=>a.cover-b.cover||b.ratio-a.ratio);
-  watch.sort((a,b)=>a.cover-b.cover||b.ratio-a.ratio);
   state.stockAlerts = { critical, watch };
   renderStockAlerts();
 }
