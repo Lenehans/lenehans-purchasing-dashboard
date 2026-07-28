@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.8.0 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.8.1 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1087,8 +1087,9 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.8.0 · built 2026-07-14 · Reorder-point engine · home screen + faster load</div>
+  <div class="sub">V7.8.1 · built 2026-07-14 · Reorder-point engine · home screen + faster load</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
+    <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
   </div>
@@ -1097,7 +1098,7 @@
 <div class="wrap">
 
   <!-- Tab navigation -->
-  <div class="tab-bar">
+  <div class="tab-bar" style="display:none">
     <button class="tab-btn active" data-tab="home">🏠 Home</button>
     <button class="tab-btn" data-tab="buying">📦 Buying</button>
     <button class="tab-btn" data-tab="team">👥 Team</button>
@@ -9051,6 +9052,10 @@ function bindEvents(){
       document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+      // Home uses its own cards for navigation, so the tab bar is redundant there —
+      // hide it on Home, show it everywhere else for quick jumping between pages.
+      const _bar=document.querySelector('.tab-bar');
+      if(_bar) _bar.style.display = (btn.dataset.tab==='home') ? 'none' : 'flex';
       if(btn.dataset.tab==='clearstock') renderClearStock();
       if(btn.dataset.tab==='transfers')  renderTransfers();
       if(btn.dataset.tab==='noos')       renderNOOS();
@@ -9189,6 +9194,8 @@ function setupAutoRefresh(){
     finally{ refreshing=false; paintPill(); }
   }
   const btn=document.getElementById('dataRefreshBtn'); if(btn) btn.onclick=doRefresh;
+  const _homeBtn=document.getElementById('homeBtn');
+  if(_homeBtn) _homeBtn.onclick=()=>{ const h=document.querySelector('.tab-btn[data-tab="home"]'); if(h) h.click(); };
   // Never auto-refresh or auto-reload while an order review panel is open — it would
   // recompute numbers or reload the page out from under someone mid-order.
   const panelOpen = ()=> !!document.getElementById('poReviewOverlay');
