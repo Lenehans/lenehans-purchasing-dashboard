@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.6.3 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.8.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -508,6 +508,8 @@
     /* ── Tabs ───────────────────────────────────────────────────────────── */
     .tab-bar{display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin:16px 0 0 0}
     .tab-btn{padding:10px 24px;font-size:14px;font-weight:700;border:none;background:none;cursor:pointer;color:#64748b;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s}
+    .home-link{text-align:left;padding:9px 12px;font-size:13px;font-weight:600;border:1px solid #e2e8f0;background:#f8fafc;border-radius:8px;cursor:pointer;color:#1e293b;transition:all .12s}
+    .home-link:hover{background:#1e40af;color:#fff;border-color:#1e40af;transform:translateX(2px)}
     .tab-btn.active{color:#1e40af;border-bottom-color:#1e40af}
     .tab-btn:hover:not(.active){color:#1e293b;background:#f8fafc}
     .tab-panel{display:none}.tab-panel.active{display:block}
@@ -1085,7 +1087,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.6.3 · built 2026-07-14 · Reorder-point engine</div>
+  <div class="sub">V7.8.0 · built 2026-07-14 · Reorder-point engine · home screen + faster load</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -1096,7 +1098,8 @@
 
   <!-- Tab navigation -->
   <div class="tab-bar">
-    <button class="tab-btn active" data-tab="buying">📦 Buying</button>
+    <button class="tab-btn active" data-tab="home">🏠 Home</button>
+    <button class="tab-btn" data-tab="buying">📦 Buying</button>
     <button class="tab-btn" data-tab="team">👥 Team</button>
     <button class="tab-btn" data-tab="alerts" id="alertsTabBtn">⚡ Alerts</button>
     <button class="tab-btn" data-tab="clearstock">🏷️ Clear Stock</button>
@@ -1115,7 +1118,63 @@
   </div>
 
   <!-- TAB 1: Buying -->
-  <div class="tab-panel active" id="tab-buying">
+  <div class="tab-panel active" id="tab-home">
+    <div style="padding:22px 0;max-width:1100px;margin:0 auto">
+      <h1 style="margin:0 0 4px;font-size:24px">Lenehans Dashboard</h1>
+      <p style="color:#64748b;margin:0 0 22px;font-size:14px">Pick an area to get started. Everything's on one page — switching is instant, no reloading.</p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px">
+
+        <!-- 1. Purchasing -->
+        <div style="border:1px solid #e2e8f0;border-radius:14px;padding:18px;background:#fff">
+          <div style="font-size:15px;font-weight:800;color:#1e3a8a;margin-bottom:2px">📦 Purchasing</div>
+          <div style="font-size:12px;color:#94a3b8;margin-bottom:14px">Buying, stock alerts &amp; replenishment</div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <button class="home-link" data-goto="buying">📦 Buying &amp; Orders</button>
+            <button class="home-link" data-goto="alerts">⚡ Stock Alerts</button>
+            <button class="home-link" data-goto="team">👥 Team &amp; Schedule</button>
+            <button class="home-link" data-goto="clearstock">🏷️ Clear Stock</button>
+            <button class="home-link" data-goto="noos">⭐ Never OOS</button>
+            <button class="home-link" data-goto="transfers">🔄 Transfers</button>
+          </div>
+        </div>
+
+        <!-- 2. Sales Analysis -->
+        <div style="border:1px solid #e2e8f0;border-radius:14px;padding:18px;background:#fff">
+          <div style="font-size:15px;font-weight:800;color:#166534;margin-bottom:2px">📊 Sales Analysis</div>
+          <div style="font-size:12px;color:#94a3b8;margin-bottom:14px">Performance by product, brand, supplier &amp; bay</div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <button class="home-link" data-goto="sales">📊 Sales Intelligence</button>
+          </div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:12px;line-height:1.5">Top sellers, brands, suppliers, margins, slow movers, trending &amp; profit-per-bay — all inside the Sales tab.</div>
+        </div>
+
+        <!-- 3. Email Intelligence -->
+        <div style="border:1px solid #e2e8f0;border-radius:14px;padding:18px;background:#fff">
+          <div style="font-size:15px;font-weight:800;color:#7c3aed;margin-bottom:2px">📧 Email Intelligence</div>
+          <div style="font-size:12px;color:#94a3b8;margin-bottom:14px">Campaign planning &amp; seasonal opportunities</div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <button class="home-link" data-goto="email">📧 Email Intelligence</button>
+          </div>
+        </div>
+
+        <!-- 4. Tools -->
+        <div style="border:1px solid #e2e8f0;border-radius:14px;padding:18px;background:#fff">
+          <div style="font-size:15px;font-weight:800;color:#b45309;margin-bottom:2px">🧰 Tools</div>
+          <div style="font-size:12px;color:#94a3b8;margin-bottom:14px">Calculators &amp; utilities</div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <button class="home-link" data-goto="margincalc">🧮 Margin Calculator</button>
+            <button class="home-link" data-goto="barcodes">🏷️ Barcode Generator</button>
+            <button class="home-link" data-goto="movein">🏠 Move-In</button>
+          </div>
+        </div>
+
+      </div>
+      <div style="margin-top:20px;font-size:12px;color:#94a3b8">Tip: the full tab bar is always along the top if you prefer to jump straight there.</div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-buying">
 
   <!-- Full-screen loading overlay — shown while auto-loading -->
   <div id="buyingLoadOverlay" style="position:fixed;inset:0;background:#f8fafc;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
@@ -8626,24 +8685,18 @@ function setLoadingState(loading){
 // ─── GOVERNANCE LOAD ─────────────────────────────────────────────────────────
 async function loadGovernanceFeeds(){
   const msgs=[];
-  try{
-    const csRaw=await fetchCSV(CS_URL,'CS Shared');
-    state.csLines=parseCSFeed(csRaw);
-    msgs.push(`CS Shared: ${state.csLines.length} active lines`);
-  }catch(e){
-    msgs.push(`CS Shared unavailable (${e.message})`);
-    state.csLines=[];
-  }
-  try{
-    const poRaw=await fetchCSV(PO_URL,'PO Status');
-    state.poStatusMap=parsePOFeed(poRaw);
-    msgs.push(`PO Status: ${Object.keys(state.poStatusMap).length} suppliers`);
-  }catch(e){
-    msgs.push(`PO Status unavailable (${e.message})`);
-    state.poStatusMap={};
-  }
-  // Do-not-order list — load in the BACKGROUND so a slow or unreachable tab can
-  // never delay the main load. Re-apply exclusions once it arrives.
+  // CS + PO feeds are needed BEFORE compute (they build the governed-supplier set that
+  // pre-filters 54k→14k rows). Fetch them in PARALLEL rather than one after the other.
+  const [csR, poR] = await Promise.allSettled([
+    fetchCSV(CS_URL,'CS Shared'),
+    fetchCSV(PO_URL,'PO Status')
+  ]);
+  if(csR.status==='fulfilled'){ state.csLines=parseCSFeed(csR.value); msgs.push(`CS Shared: ${state.csLines.length} active lines`); }
+  else { state.csLines=[]; msgs.push('CS Shared unavailable'); }
+  if(poR.status==='fulfilled'){ state.poStatusMap=parsePOFeed(poR.value); msgs.push(`PO Status: ${Object.keys(state.poStatusMap).length} suppliers`); }
+  else { state.poStatusMap={}; msgs.push('PO Status unavailable'); }
+
+  // Do-not-order list — BACKGROUND (never delays the main load). Re-applies on arrival.
   if(!EXCLUDE_URL.includes('EXCLUDE_GID_HERE')){
     fetchCSV(EXCLUDE_URL,'Do-Not-Order')
       .then(exRaw=>{
@@ -8666,23 +8719,24 @@ async function loadGovernanceFeeds(){
       .then(raw=>{ const sc=parseScheduleFeed(raw); if(sc.length){ state.buyerSchedule=sc; _cadenceCache={}; if(state.rawRows&&state.rawRows.length&&typeof recompute==='function') recompute(); if(typeof renderTeam==='function'){ try{renderTeam();}catch(e){} } } })
       .catch(()=>{});
   }
-  // Monthly sales history — load if URL is configured
+  // Monthly sales history — BACKGROUND. Only affects Seasonal-mode detail + the Email
+  // tab, so it must not hold up the Buying screen. Recomputes when it lands.
   state.monthlyLoaded = false;
   const monthlyUrlEl = document.getElementById('monthlyUrl');
   const monthlyUrl = (monthlyUrlEl && monthlyUrlEl.value.trim()) || MONTHLY_URL;
   if(monthlyUrl){
-    try{
-      const mRaw = await fetchCSV(normalizeGoogleCsvUrl(monthlyUrl), 'Monthly Sales');
-      state.monthlyData = parseMonthlyFeed(mRaw);
-      state.monthlyLoaded = true;
-      msgs.push(`Monthly history: ${Object.keys(state.monthlyData).length} SKUs`);
-    }catch(e){
-      msgs.push(`Monthly history unavailable (${e.message})`);
-      state.monthlyData = {};
-    }
+    fetchCSV(normalizeGoogleCsvUrl(monthlyUrl), 'Monthly Sales')
+      .then(mRaw=>{
+        state.monthlyData = parseMonthlyFeed(mRaw);
+        state.monthlyLoaded = true;
+        console.log('[Monthly history]', Object.keys(state.monthlyData).length, 'SKUs');
+        if(state.rawRows && state.rawRows.length && typeof recompute==='function') recompute();
+      })
+      .catch(e=>{ state.monthlyData = {}; console.warn('[Monthly history] unavailable:', e.message); });
   } else {
-    msgs.push('Monthly history: no URL — using profile estimates for Seasonal mode');
+    state.monthlyData = state.monthlyData || {};
   }
+
   state.governedSuppliers=buildGovernedSet(getChannelCSLines(), getChannelPOMap());
   state._govLow = null; // invalidate lowercase cache
   const govMsg = state.governedSuppliers.size > 0
@@ -8790,12 +8844,15 @@ async function loadFromUrl(){
     setLoadMeta('',false);
   }
 
-  setLoadProgress(5, 'Loading governance feeds…');
+  setLoadProgress(5, 'Fetching data…');
   setLoadingState(true);
   try{
-    await loadGovernanceFeeds();
-    setLoadProgress(35, 'Fetching QueryData…');
+    // SPEED: fetch the main QueryData AND the governance feeds in PARALLEL, instead of
+    // waiting for every governance feed to finish before even starting QueryData. The
+    // Buying tab only needs QueryData, so we compute + show it the moment it's ready and
+    // let the slower feeds (monthly history, etc.) fold in afterwards via recompute().
     const started=performance.now();
+    const governancePromise = loadGovernanceFeeds();   // runs in background, not awaited here
     const res=await fetchWithTimeout(url,20000);
     if(!res.ok) throw new Error(`HTTP ${res.status} — check the sheet is shared publicly`);
     const ct=(res.headers.get('content-type')||'').toLowerCase();
@@ -8807,13 +8864,14 @@ async function loadFromUrl(){
     setLoadMeta(`QueryData fetched in ${secs}s.`,false);
     setLoadProgress(70, 'Computing rows…');
     document.getElementById('stockAlertPanel').style.display='none';
-    setTimeout(()=>setLoadProgress(90,'Applying rules…'),100);
-    await processRawRows(parsedRaw,'URL');
-    // Alerts must run AFTER the rows exist. This used to fire on a 600ms timer that
-    // beat processRawRows on a large dataset, so computeStockAlerts found no rows,
-    // returned early, and the Alerts tab stayed permanently blank.
+    // Wait for the governed set (CS+PO) so processRawRows can pre-filter 54k→~14k rows.
+    // These fetched in parallel with QueryData, so this usually resolves immediately.
+    await governancePromise;
+    await processRawRows(parsedRaw,'URL');   // Buying tab is usable after this
     computeStockAlerts();
     state.lastLoadedAt = Date.now();   // for the data-age stamp + auto-refresh
+    // Background feeds (do-not-order, schedule, monthly history) recompute themselves
+    // as they land — no final recompute needed here.
   }catch(err){
     let msg=`❌ ${err.message}`;
     if(err.name==='AbortError') msg='❌ Load timed out after 20 seconds — the sheet may be too large or unavailable.';
@@ -9004,6 +9062,14 @@ function bindEvents(){
       if(btn.dataset.tab==='alerts')     { try{ computeStockAlerts(); }catch(e){} }
       if(btn.dataset.tab==='movein')     renderMoveIn();
       if(btn.dataset.tab==='sales')      renderSalesIntel();
+    });
+  });
+  // Home landing cards → jump to the matching tab by clicking its real tab button
+  // (so every tab's render hook above still fires exactly as normal).
+  document.querySelectorAll('.home-link').forEach(link=>{
+    link.addEventListener('click',()=>{
+      const target=document.querySelector('.tab-btn[data-tab="'+link.dataset.goto+'"]');
+      if(target) target.click();
     });
   });
   // ── Clear Stock filter buttons ─────────────────────────────────────────────
