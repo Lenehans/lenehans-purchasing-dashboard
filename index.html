@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.6.2 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.6.3 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1085,7 +1085,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.6.2 · built 2026-07-14 · Reorder-point engine</div>
+  <div class="sub">V7.6.3 · built 2026-07-14 · Reorder-point engine</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -3076,11 +3076,14 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       .catch(function(){ alert(brief); });
   };
 
-  // Buying data reload hook
+  // Buying data reload hook — refresh the Email tab if it's open.
+  // (Previously called eiRenderInStock/eiRenderSuggestions, which no longer exist —
+  // that threw a ReferenceError every 3s while the tab was open. eiRender() is the
+  // real render function.)
   setInterval(function(){
     var rows=getRows();
     if(rows.length && G('tab-email') && G('tab-email').classList.contains('active')){
-      eiRenderInStock(curMonth()); eiRenderSuggestions(curMonth());
+      try{ eiRender(); }catch(e){ console.error('EI refresh:', e); }
     }
   }, 3000);
 
