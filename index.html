@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.8.4 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.9.1 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1090,7 +1090,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.8.4 · built 2026-07-14 · Reorder-point engine · home screen + faster load</div>
+  <div class="sub">V7.9.1 · built 2026-07-14 · Reorder-point engine · home screen + faster load</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -1128,15 +1128,15 @@
       <p style="color:#64748b;margin:0 0 14px;font-size:14px">Pick an area to get started. Everything's on one page — switching is instant, no reloading.</p>
 
       <div id="homeLoadBanner" style="margin-bottom:18px;padding:16px 18px;border-radius:10px;background:#fef9c3;border:1.5px solid #fde047;color:#854d0e;font-size:13px;font-weight:600">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;width:100%">
           <span class="home-spin" style="flex:0 0 auto;display:inline-block;width:14px;height:14px;border:2px solid #ca8a04;border-top-color:transparent;border-radius:50%;animation:homespin .8s linear infinite"></span>
           <span id="homeLoadLabel" style="flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Loading Linnworks data…</span>
           <span id="homeLoadPct" style="flex:0 0 auto;font-weight:800;font-variant-numeric:tabular-nums;min-width:44px;text-align:right">0%</span>
         </div>
-        <div style="height:8px;background:#fde68a;border-radius:4px;overflow:hidden">
+        <div style="display:block;width:100%;height:8px;background:#fde68a;border-radius:4px;overflow:hidden">
           <div id="homeLoadBar" style="height:100%;width:0%;background:linear-gradient(90deg,#ca8a04,#f59e0b);border-radius:4px;transition:width .4s ease"></div>
         </div>
-        <div style="font-size:11px;font-weight:500;margin-top:10px;opacity:.85">The menu opens automatically when it's ready — usually 20-40 seconds on first open.</div>
+        <div style="display:block;width:100%;font-size:11px;font-weight:500;margin-top:10px;opacity:.85">The menu opens automatically when it's ready — usually 20-40 seconds on first open.</div>
       </div>
 
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px">
@@ -4133,6 +4133,20 @@ let _miFilter='all', _miStockFilter='all', _miCompare=false, _miBundleMode=false
 // ─── SALES INTELLIGENCE TAB ──────────────────────────────────────────────────
 const _SALES_PIN='2323'; // ← change to set management PIN
 let _siView='sellers', _siChatOpen=false, _siChatMsgs=[], _siSort={col:'rev30',dir:-1}, _siRange='30d', _siSearch='';
+// Debounced search: re-render after typing pauses (250ms) so every keystroke doesn't
+// rebuild the whole tab, and restore focus + cursor position so typing stays smooth.
+let _siSearchTimer=null;
+function _siSearchDebounced(val){
+  _siSearch=val;
+  if(_siSearchTimer) clearTimeout(_siSearchTimer);
+  _siSearchTimer=setTimeout(()=>{
+    const box=document.getElementById('siSearchBox');
+    const pos=box?box.selectionStart:null;
+    renderSalesIntel();
+    const nb=document.getElementById('siSearchBox');
+    if(nb){ nb.focus(); if(pos!=null){ try{ nb.setSelectionRange(pos,pos); }catch(e){} } }
+  }, 250);
+}
 let _siBrandDrill=null;   // when set, the Brands view drills into this brand's SKUs
 let _siSupDrill=null;     // Suppliers view: {sup} = supplier level, then {sup,brand} = SKUs
 let _siSupBrand=null;     // brand-within-supplier drill
@@ -4688,9 +4702,42 @@ function renderSalesIntel(){
   const viewLabels=['Top Sellers','Brands','Suppliers','Space/Bay','Margins','Slow Movers','Trending','Price Impact'];
 
   // ── Apply search filter ────────────────────────────────────────────────────
+  // Search must find ANY supplier or SKU — including lines with no sales in the current
+  // range (which are otherwise filtered out of the Sales tab). So when searching, we
+  // widen the base to ALL computed rows, match code + name + SKU + title, and flag when
+  // a match exists but simply had no sales in the selected window.
+  let searchNoSales=false;
   if(_siSearch){
-    const sq=_siSearch.toLowerCase();
-    viewRows=viewRows.filter(r=>(r.SKU||'').toLowerCase().includes(sq)||(r.ItemTitle||'').toLowerCase().includes(sq)||(r.SupplierName||'').toLowerCase().includes(sq));
+    const sq=_siSearch.trim().toLowerCase();
+    const match=r=>((r.SKU||'').toLowerCase().includes(sq)
+      || (r.ItemTitle||'').toLowerCase().includes(sq)
+      || (r.SupplierName||'').toLowerCase().includes(sq));
+    // widen: search the full computed set, not just rows with sales in-range
+    const all=(state.computedRows||[]);
+    const wideMatches=all.filter(match);
+    // keep the same de-dup shape as `active` (one row per SKU)
+    const seen=new Set(); const widened=[];
+    for(const r of wideMatches){ const k=r.SKU; if(!seen.has(k)){ seen.add(k); widened.push(r); } }
+    // map into the view shape used by whichever view is active (only the SKU-level
+    // views need the enriched fields; brands/suppliers/space handle their own grouping)
+    if(_siView==='brands'||_siView==='suppliers'||_siView==='space'){
+      viewRows=viewRows.filter(r=>{
+        // group rows carry brand/sup/bay labels — match on those or their member SKUs
+        const label=(r.brand||r.sup||r.bay||'').toLowerCase();
+        return label.includes(sq) || (r._supList||'').toLowerCase().includes(sq);
+      });
+    } else {
+      viewRows=widened.map((r,i)=>{
+        const _rev30v=rev30(r), _qty30v=qty30(r);
+        const _avgPriceNet=_qty30v>0?(revNet30(r)/_qty30v):0;
+        const _realCost=r.RealCost||0, _cost=_realCost>0?_realCost:(r.SupplierCostPrice||0);
+        return {...r,_rank:i+1,_rev30:_rev30v,_qty30:_qty30v,_avgPriceNet,
+          _cost,_costIsReal:_realCost>0,
+          _margin:_cost>0&&_avgPriceNet>0?(_avgPriceNet-_cost)/_avgPriceNet*100:null,
+          _revShare:0,_trend:'—'};
+      });
+      searchNoSales = viewRows.length>0 && viewRows.every(r=>r._qty30===0);
+    }
   }
 
   // ── Supplier revenue summary (sellers view only) ──────────────────────────
@@ -4723,10 +4770,11 @@ function renderSalesIntel(){
       <div style="font-size:12px;color:#64748b">${chLabel} · ${rows.length.toLocaleString()} SKUs · ${rangeLabel[_siRange]}</div>
     </div>
     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-      <input id="siSearchBox" value="${esc(_siSearch)}" placeholder="Search SKU / product / supplier…"
-        oninput="_siSearch=this.value;renderSalesIntel()"
-        style="padding:6px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;width:220px;outline:none"
+      <input id="siSearchBox" value="${esc(_siSearch)}" placeholder="Search SKU / product / supplier code…"
+        oninput="_siSearchDebounced(this.value)"
+        style="padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;width:260px;outline:none"
         onfocus="this.style.borderColor='#185fa5'" onblur="this.style.borderColor='#e2e8f0'">
+      ${_siSearch?`<button onclick="_siSearch='';renderSalesIntel();setTimeout(()=>document.getElementById('siSearchBox')?.focus(),0)" title="Clear search" style="padding:5px 10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;cursor:pointer;font-weight:700;color:#64748b">✕</button>`:''}
       <span style="font-size:11px;color:#64748b;font-weight:700">RANGE:</span>
       ${['7d','30d','90d','180d','365d'].map(r=>`<button class="si-view-btn ${_siRange===r?'active':''}" style="padding:5px 12px" onclick="_siRange='${r}';renderSalesIntel()">${{'7d':'7 days','30d':'30 days','90d':'90 days','180d':'6 months','365d':'12 months'}[r]}</button>`).join('')}
     </div>
@@ -4746,8 +4794,18 @@ function renderSalesIntel(){
   <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:8px">${title} <span style="font-size:11px;color:#64748b;font-weight:400">— ${subtitle}</span></div>`;
 
   if(!viewRows.length){
-    html+=`<div style="text-align:center;padding:32px;color:#94a3b8;font-size:13px">No data for this view — try switching channel or loading fresh data</div>`;
+    if(_siSearch){
+      html+=`<div style="text-align:center;padding:32px;color:#64748b;font-size:13px">
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px">No match for "${esc(_siSearch)}"</div>
+        <div>Nothing found by SKU, product name, or supplier code${_siView!=='sellers'?` in the ${viewLabels[views.indexOf(_siView)]} view — try <b>Top Sellers</b>`:''}.</div>
+      </div>`;
+    } else {
+      html+=`<div style="text-align:center;padding:32px;color:#94a3b8;font-size:13px">No data for this view — try switching channel or loading fresh data</div>`;
+    }
   } else {
+    if(searchNoSales){
+      html+=`<div style="margin-bottom:10px;padding:10px 14px;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;font-size:12px;font-weight:600">ℹ️ Found ${viewRows.length} matching SKU${viewRows.length!==1?'s':''} for "${esc(_siSearch)}", but ${viewRows.length!==1?'they have':'it has'} no sales in ${rangeLabel[_siRange].toLowerCase()} on this channel. Try a longer range or the other channel.</div>`;
+    }
     html+=supplierSummaryHtml;
     html+=`<div class="si-table-wrap"><table class="si-table"><thead><tr>`;
     colDefs.forEach(c=>{
