@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.9.1 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.10.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1090,7 +1090,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.9.1 · built 2026-07-14 · Reorder-point engine · home screen + faster load</div>
+  <div class="sub">V7.10.0 · built 2026-07-15 · Quick Order + cheaper-elsewhere flag</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -3151,13 +3151,21 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       .catch(function(){ alert(brief); });
   };
 
-  // Buying data reload hook — refresh the Email tab if it's open.
-  // (Previously called eiRenderInStock/eiRenderSuggestions, which no longer exist —
-  // that threw a ReferenceError every 3s while the tab was open. eiRender() is the
-  // real render function.)
+  // Buying data reload hook — refresh the Email tab ONLY when the underlying data
+  // actually changes (a real feed reload), not on a blind timer. The old version
+  // re-rendered every 3s, which collapsed any email a user had expanded ("what it
+  // sold" would open then close on its own). Now: re-render only if the row count
+  // changed AND nothing is currently expanded.
+  var _eiLastRowCount = -1;
   setInterval(function(){
     var rows=getRows();
-    if(rows.length && G('tab-email') && G('tab-email').classList.contains('active')){
+    if(!rows.length) return;
+    if(!(G('tab-email') && G('tab-email').classList.contains('active'))) return;
+    // don't rebuild while the user has an email expanded
+    var anyOpen = document.querySelector('[id^="eiProd_"][data-open="1"]');
+    if(anyOpen) { _eiLastRowCount = rows.length; return; }
+    if(rows.length !== _eiLastRowCount){
+      _eiLastRowCount = rows.length;
       try{ eiRender(); }catch(e){ console.error('EI refresh:', e); }
     }
   }, 3000);
@@ -3175,6 +3183,13 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   <button onclick="exportPO()">📄 Export PO</button>
   <button onclick="openWhyBuy()" style="background:#1e40af">🔍 Why Buy?</button>
   <button onclick="openWhyBuyCritical()" style="background:#b91c1c" title="Why Buy — only Out-of-Stock &amp; Critical lines">🔴 Why Buy — Critical</button>
+  <button onclick="openQuickOrder(parseInt(document.getElementById('quickCap')?.value)||15)" style="background:#047857" title="Fewest SKUs, biggest impact — ranked by lost-sales risk, value &amp; urgency">⚡ Quick Order</button>
+  <select id="quickCap" title="Max SKUs in the quick order" style="padding:5px 8px;border-radius:6px;border:1px solid #cbd5e1;font-size:12px;font-weight:700">
+    <option value="10">Top 10</option>
+    <option value="15" selected>Top 15</option>
+    <option value="20">Top 20</option>
+    <option value="30">Top 30</option>
+  </select>
   <button onclick="exportTransferPickingNote()" style="background:#d97706" title="Capel mode = Arklow→Capel transfers. Arklow mode = Capel→Arklow transfers.">⇄ Transfer Note</button>
   <button class="spb-back" onclick="document.getElementById('backBtn').click()">← Back to suppliers</button>
 </div>
@@ -5640,6 +5655,8 @@ function normalizeRow(r){
     OnOrderQty_CS_PO: n('OO_CS'),
     Revenue_Online_Total_365d: n('Rev_On365'),        // 12-mo online revenue (inc-VAT)
     Revenue_Shop_CapelStreet_365d: n('Rev_ShCS365'),  // 12-mo Capel till revenue (inc-VAT)
+    AltSupplier: String(r.AltSupplier||'').trim(),   // cheapest alternative supplier (name)
+    AltCost: n('AltCost'),                            // its known purchase price
     Aisle: String(r.Aisle||'').trim(),   // Capel aisle (clean A1-x bins only)
     Bay: String(r.Bay||'').trim(),       // Capel bay within aisle (1.2m module)
     BinClean: String(r.BinClean||'').trim(),
@@ -8175,6 +8192,84 @@ function exportPO(){
   showPOReview(rows, true);
 }
 
+// AI refine for Quick Order. IMPORTANT: this only ever HIDES rows the engine already
+// produced — it cannot add or invent lines. It sends the current list + the user's
+// instruction to the AI, which returns the SKUs to KEEP; everything else is hidden.
+// So a wrong answer just shows too many/few of YOUR real lines, never a fabricated buy.
+async function qoRefineAI(){
+  const instruction=(document.getElementById('qoRefine')?.value||'').trim();
+  const msg=document.getElementById('qoRefineMsg');
+  const ctx=window._poReviewCtx;
+  if(!ctx||!ctx.rows||!ctx.rows.length){ return; }
+  if(!instruction){ if(msg){msg.style.display='block';msg.textContent='Type an instruction first, e.g. "only OOS" or "nothing under €50/mo".';} return; }
+  if(msg){ msg.style.display='block'; msg.innerHTML='<span style="animation:spin 1s linear infinite;display:inline-block">⏳</span> Applying…'; }
+
+  // Compact line list the AI can reason over
+  const lines=ctx.rows.map(r=>{
+    const cov=r.stock<=0?'OOS':Math.round(r.daysOfCover||r.coverDays||0)+'d';
+    const rev=Math.round((r.Revenue_Online_Total_30d||0));
+    return `${r.SKU}|${(r.ItemTitle||'').substring(0,30)}|${cov}|stk:${Math.round(r.stock||0)}|rev:€${rev}/mo|buy:${r.buy}`;
+  }).join('\n');
+  const prompt=`You are refining a purchase order. Here are the candidate lines (SKU|name|cover|stock|monthly revenue|buy qty):\n${lines}\n\nInstruction: "${instruction}"\n\nReturn ONLY a comma-separated list of the SKUs to KEEP (that match the instruction). No other text. If none match, return NONE.`;
+
+  try{
+    const proxyUrl=PO_UPDATER_URL+'?action=ai_brief&prompt='+encodeURIComponent(prompt);
+    const data=await new Promise((resolve,reject)=>{
+      const xhr=new XMLHttpRequest(); xhr.open('GET',proxyUrl,true); xhr.timeout=25000;
+      xhr.onload=()=>{ try{ resolve(JSON.parse(xhr.responseText)); }catch(e){ reject(new Error('Bad response')); } };
+      xhr.onerror=()=>reject(new Error('Network error')); xhr.ontimeout=()=>reject(new Error('Timed out'));
+      xhr.send();
+    });
+    if(data.error) throw new Error(data.error);
+    const reply=String(data.text||data.result||data.response||'').trim();
+    if(/^none/i.test(reply)){ if(msg) msg.textContent='No lines matched that instruction — nothing hidden.'; return; }
+    const keep=new Set(reply.split(/[,\s]+/).map(s=>s.trim().toUpperCase()).filter(Boolean));
+    // Hide non-matching rows in the table; keep them in _poReviewCtx so "clear" can restore
+    let shown=0, hidden=0;
+    document.querySelectorAll('#poReviewTable tbody tr').forEach(tr=>{
+      const inp=tr.querySelector('.po-rev-qty'); if(!inp) return;
+      const sku=String(inp.dataset.sku||'').toUpperCase();
+      if(keep.has(sku)){ tr.style.display=''; shown++; } else { tr.style.display='none'; hidden++; }
+    });
+    if(msg) msg.innerHTML=`Showing <b>${shown}</b> line${shown!==1?'s':''} matching "${esc(instruction)}" · ${hidden} hidden. <a href="#" onclick="document.querySelectorAll('#poReviewTable tbody tr').forEach(t=>t.style.display='');document.getElementById('qoRefineMsg').style.display='none';return false;" style="color:#047857;font-weight:700">show all</a>`;
+  }catch(e){
+    if(msg) msg.textContent='Refine failed: '+e.message+'. Your lines are unchanged.';
+  }
+}
+
+// ── Quick Order — "min SKUs, max impact" ─────────────────────────────────────
+// Ranks a supplier's urgent lines by a BLEND of: lost-sales risk (how fast it sells ×
+// how short it is), line value (revenue/margin), and raw urgency (OOS→critical→low).
+// All numbers come from the engine that already computes buy quantities — nothing new
+// is invented, so the ranking is trustworthy.
+function quickOrderScore(r){
+  const daily = (r.QtySold_Online_Total_30d||0)/30;      // velocity
+  const stock = r.stock ?? (r.NetStock_Arklow||0);
+  const cover = daily>0 ? stock/daily : (stock>0?999:0);
+  // 1) Lost-sales risk: fast sellers with little/no cover score highest
+  const coverGap = Math.max(0, 14 - cover);              // how far below a 2-week buffer
+  const lostSalesRisk = daily * coverGap;                // units/day we can't fulfil
+  // 2) Line value: 30-day revenue (ex-VAT) as the money weight
+  const value = (revNet30 ? revNet30(r) : (r.Revenue_Online_Total_30d||0)/1.23) || 0;
+  // 3) Urgency tier
+  const urgency = stock<=0 ? 3 : (r.coverStatus==='Critical'?2 : r.coverStatus==='Low'?1 : 0);
+  // Blend — normalised-ish so no single term dominates
+  return (lostSalesRisk*4) + (value*0.03) + (urgency*15);
+}
+
+function openQuickOrder(maxSkus){
+  if(!state.activeSupplier){ alert('Select a supplier first — Quick Order works on one supplier\'s order.'); return; }
+  const cap = maxSkus || 15;
+  let rows = getFilteredRows().filter(r=>countsInOrderValue(r)
+    && (r.stock<=0 || r.coverStatus==='Critical' || r.coverStatus==='Low' || r.coverStatus==='Out of Stock'));
+  if(!rows.length){ alert('No critical or low-stock lines for this supplier right now.'); return; }
+  rows = rows.map(r=>({...r, _qScore:quickOrderScore(r)}))
+             .sort((a,b)=>b._qScore-a._qScore)
+             .slice(0, cap);
+  window._poReviewCtx = {rows, supplier:state.activeSupplier, quick:true};
+  showPOReview(rows, false);
+}
+
 function openWhyBuy(){
   if(!state.activeSupplier){ alert('Select a supplier first — Why Buy works on one supplier\'s order.'); return; }
   const rows=getFilteredRows().filter(countsInOrderValue);
@@ -8203,6 +8298,17 @@ function openWhyBuyCritical(){
 
 function buildWhyText(r){
   const rows=[];
+
+  // ── Cheaper elsewhere? Flag if another supplier stocks this cheaper than the one
+  // we're ordering from. Only shows when the alternative is a DIFFERENT supplier and
+  // meaningfully cheaper (>2%), so it doesn't nag over rounding differences.
+  const curCost = r.SupplierCostPrice||0;
+  const altCost = r.AltCost||0;
+  const altSup  = r.AltSupplier||'';
+  if(altCost>0 && curCost>0 && altSup && altSup!==r.SupplierName && altCost < curCost*0.98){
+    const saving = ((curCost-altCost)/curCost*100).toFixed(0);
+    rows.push(`<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:5px 8px;margin-bottom:4px;color:#991b1b;font-weight:700;font-size:11px">💰 Cheaper elsewhere: €${altCost.toFixed(2)} at ${esc(altSup.split(' - ')[0])} (you're paying €${curCost.toFixed(2)} — ${saving}% more)</div>`);
+  }
 
   // ── Signal 1: Stock ───────────────────────────────────────────────────────
   const stockCol = r.stock<=0 ? '#dc2626' : r.stock<5 ? '#d97706' : '#16a34a';
@@ -8429,6 +8535,16 @@ function showPOReview(rows, autoExport){
         <input class="po-review-search" type="text" placeholder="Search SKU / item…" oninput="filterPOReview(this.value)">
       </div>
     </div>
+    ${(window._poReviewCtx&&window._poReviewCtx.quick)?`
+    <div style="padding:10px 16px;background:#ecfdf5;border-bottom:1px solid #a7f3d0;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-weight:800;color:#047857;font-size:13px">⚡ Quick Order</span>
+      <span style="font-size:12px;color:#065f46">Top ${rows.length} highest-impact urgent lines (lost-sales risk × value × urgency).</span>
+      <input id="qoRefine" type="text" placeholder='Refine, e.g. "only OOS" or "drop anything under €50/mo"'
+        style="flex:1;min-width:220px;padding:6px 10px;border:1.5px solid #6ee7b7;border-radius:7px;font-size:12px"
+        onkeydown="if(event.key==='Enter')qoRefineAI()">
+      <button onclick="qoRefineAI()" style="background:#047857;font-size:12px;padding:6px 12px">✦ Refine with AI</button>
+    </div>
+    <div id="qoRefineMsg" style="display:none;padding:8px 16px;font-size:12px;background:#f0fdf4;border-bottom:1px solid #dcfce7;color:#166534"></div>`:''}
     <div class="po-review-body">
       <table class="po-review-table" id="poReviewTable">
         <thead><tr>
