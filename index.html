@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.10.1 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.10.2 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1090,7 +1090,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.10.1 · built 2026-07-15 · Smart Order + cheaper-elsewhere flag</div>
+  <div class="sub">V7.10.2 · built 2026-07-15 · Smart Order + cheaper-elsewhere flag</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -8249,8 +8249,8 @@ function quickOrderScore(r){
   // 1) Lost-sales risk: fast sellers with little/no cover score highest
   const coverGap = Math.max(0, 14 - cover);              // how far below a 2-week buffer
   const lostSalesRisk = daily * coverGap;                // units/day we can't fulfil
-  // 2) Line value: 30-day revenue (ex-VAT) as the money weight
-  const value = (revNet30 ? revNet30(r) : (r.Revenue_Online_Total_30d||0)/1.23) || 0;
+  // 2) Line value: 30-day revenue ex-VAT as the money weight (raw field, no scoped helper)
+  const value = (r.Revenue_Online_Total_30d||0) / (typeof VAT_RATE!=='undefined'?VAT_RATE:1.23);
   // 3) Urgency tier
   const urgency = stock<=0 ? 3 : (r.coverStatus==='Critical'?2 : r.coverStatus==='Low'?1 : 0);
   // Blend — normalised-ish so no single term dominates
