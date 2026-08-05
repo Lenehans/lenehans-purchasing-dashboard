@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.10.0 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.10.1 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1090,7 +1090,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.10.0 · built 2026-07-15 · Quick Order + cheaper-elsewhere flag</div>
+  <div class="sub">V7.10.1 · built 2026-07-15 · Smart Order + cheaper-elsewhere flag</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -3183,7 +3183,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   <button onclick="exportPO()">📄 Export PO</button>
   <button onclick="openWhyBuy()" style="background:#1e40af">🔍 Why Buy?</button>
   <button onclick="openWhyBuyCritical()" style="background:#b91c1c" title="Why Buy — only Out-of-Stock &amp; Critical lines">🔴 Why Buy — Critical</button>
-  <button onclick="openQuickOrder(parseInt(document.getElementById('quickCap')?.value)||15)" style="background:#047857" title="Fewest SKUs, biggest impact — ranked by lost-sales risk, value &amp; urgency">⚡ Quick Order</button>
+  <button onclick="openImpactOrder(parseInt(document.getElementById('quickCap')?.value)||15)" style="background:#047857" title="Fewest SKUs, biggest impact — ranked by lost-sales risk, value &amp; urgency">⚡ Smart Order</button>
   <select id="quickCap" title="Max SKUs in the quick order" style="padding:5px 8px;border-radius:6px;border:1px solid #cbd5e1;font-size:12px;font-weight:700">
     <option value="10">Top 10</option>
     <option value="15" selected>Top 15</option>
@@ -8257,7 +8257,7 @@ function quickOrderScore(r){
   return (lostSalesRisk*4) + (value*0.03) + (urgency*15);
 }
 
-function openQuickOrder(maxSkus){
+function openImpactOrder(maxSkus){
   if(!state.activeSupplier){ alert('Select a supplier first — Quick Order works on one supplier\'s order.'); return; }
   const cap = maxSkus || 15;
   let rows = getFilteredRows().filter(r=>countsInOrderValue(r)
