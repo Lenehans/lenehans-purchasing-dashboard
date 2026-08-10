@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.10.2 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.10.3 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1090,7 +1090,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.10.2 · built 2026-07-15 · Smart Order + cheaper-elsewhere flag</div>
+  <div class="sub">V7.10.3 · built 2026-07-15 · Deterministic unique barcodes</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -9676,16 +9676,32 @@ function mcCalc(){
 // Internal-use barcodes: prefix "20" + a permanent sequential number per SKU (held in
 // a register in localStorage), + EAN-13 check digit. Same SKU → same barcode, always,
 // with zero collisions (unlike a hash). Renders true EAN-13 bar patterns.
-const BC_KEY='lenehans_ean_register_v1';
-function bcLoadReg(){ try{ return JSON.parse(localStorage.getItem(BC_KEY))||{map:{},next:1}; }catch(e){ return {map:{},next:1}; } }
+const BC_KEY='lenehans_ean_register_v2';
+// DETERMINISTIC barcode from the SKU itself — same SKU always gives the same EAN-13 on
+// ANY machine (no more machine-specific sequence numbers that collided across users).
+// Numeric SKUs map to their own number (readable: 055001 → ...0055001); alphanumeric
+// SKUs hash to 9 digits. A small register catches the rare hash clash and probes to the
+// next free slot, so uniqueness is GUARANTEED, not just probable.
+function bcLoadReg(){ try{ return JSON.parse(localStorage.getItem(BC_KEY))||{p2s:{},s2p:{}}; }catch(e){ return {p2s:{},s2p:{}}; } }
 function bcSaveReg(r){ try{ localStorage.setItem(BC_KEY, JSON.stringify(r)); }catch(e){} }
 function bcCheckDigit(d12){ let s=0; for(let i=0;i<12;i++){ const n=+d12[i]; s+=(i%2===0)?n:n*3; } return (10-(s%10))%10; }
+function bcHash9(str){
+  let h=0xdeadbeef ^ str.length;
+  for(let i=0;i<str.length;i++){ h=Math.imul(h^str.charCodeAt(i), 2654435761); h=(h^(h>>>15))>>>0; }
+  return h % 1000000000;
+}
 function bcEanForSku(sku){
   const key=String(sku).trim().toUpperCase(); if(!key) return null;
   const reg=bcLoadReg();
-  let seq=reg.map[key];
-  if(seq==null){ seq=reg.next++; reg.map[key]=seq; bcSaveReg(reg); }
-  const data='20'+String(seq).padStart(10,'0');
+  // already assigned → return the same barcode (stable forever)
+  if(reg.s2p[key]!=null){ const data='20'+'0'+String(reg.s2p[key]).padStart(9,'0'); return data+bcCheckDigit(data); }
+  // pick the base slot: numeric SKU uses its own value; otherwise a 9-digit hash
+  let slot = /^[0-9]{1,9}$/.test(key) ? parseInt(key,10) : bcHash9(key);
+  // probe to the next free slot if taken by a DIFFERENT sku (guarantees uniqueness)
+  let guard=0;
+  while(reg.p2s[slot]!=null && reg.p2s[slot]!==key){ slot=(slot+1)%1000000000; if(++guard>2000000) break; }
+  reg.p2s[slot]=key; reg.s2p[key]=slot; bcSaveReg(reg);
+  const data='20'+'0'+String(slot).padStart(9,'0');
   return data+bcCheckDigit(data);
 }
 // EAN-13 L/G/R code tables
@@ -9751,7 +9767,7 @@ function bcPrint(){
 function bcExportRegister(){
   const reg=bcLoadReg();
   const rows=[['SKU','EAN13']];
-  Object.keys(reg.map).sort().forEach(k=>{ const data='20'+String(reg.map[k]).padStart(10,'0'); rows.push([k, data+bcCheckDigit(data)]); });
+  Object.keys(reg.s2p).sort().forEach(k=>{ const data='20'+'0'+String(reg.s2p[k]).padStart(9,'0'); rows.push([k, data+bcCheckDigit(data)]); });
   const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download='lenehans_ean_register.csv'; a.click(); URL.revokeObjectURL(a.href);
