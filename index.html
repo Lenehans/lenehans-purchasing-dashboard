@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.10.4 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.10.5 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1090,7 +1090,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.10.4 · built 2026-07-15 · Deterministic unique barcodes</div>
+  <div class="sub">V7.10.5 · built 2026-07-15 · Sales card: clearer stock vs units-sold</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -4350,10 +4350,15 @@ function renderSalesIntel(){
       {k:'title',   label:'Product', fmt:r=>(r.ItemTitle||'').substring(0,38),wide:true},
       {k:'sup',     label:'Supplier',fmt:r=>(r.SupplierName||'').split(' - ')[0].substring(0,12)},
       {k:'abcClass',label:'ABC',     fmt:r=>{const c={'A':'#16a34a','B':'#d97706','C':'#64748b'}[r.abcClass]||'#94a3b8';return `<span style="color:${c};font-weight:700">${r.abcClass||'?'}</span>`;}},
-      {k:'_rev30',  label:hasRev?'Revenue inc-VAT':'Units', num:true, fmt:r=>hasRev?`<b>${fmtE(r._rev30)}</b>`:Math.round(r._qty30).toString(), sort:'_rev30'},
+      {k:'_rev30',  label:hasRev?'Revenue inc-VAT':'Units sold', num:true, fmt:r=>hasRev?`<b>${fmtE(r._rev30)}</b>`:Math.round(r._qty30).toString(), sort:'_rev30'},
       ...(hasRev?[
         {k:'_revShare',label:'Share%',  num:true,fmt:r=>`<span style="color:#64748b;font-size:10px">${r._revShare.toFixed(1)}%</span>`},
-        {k:'_qty30',   label:'Units',   num:true,fmt:r=>Math.round(r._qty30)},
+        {k:'_qty30',   label:'Units sold',   num:true,fmt:r=>Math.round(r._qty30)},
+        {k:'stock',    label:'In stock', num:true,fmt:r=>{
+          const st=Math.round(r.stock||r.NetStock_Arklow||0);
+          const c=st<=0?'#dc2626':st<5?'#d97706':'#16a34a';
+          return `<span style="color:${c};font-weight:700">${st}</span>`;
+        }},
         {k:'_avgPriceNet',label:'Avg sell ex-VAT',num:true,fmt:r=>r._avgPriceNet>0?fmtE(r._avgPriceNet):'-'},
         {k:'_cost',    label:'Cost',    num:true,fmt:r=>{
           if(!(r._cost>0)) return '-';
