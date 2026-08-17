@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.11.1 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.11.2 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1090,7 +1090,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.11.1 · built 2026-07-15 · Seasonal floor: off-season no longer suppresses live demand</div>
+  <div class="sub">V7.11.2 · built 2026-07-15 · Seasonal floor now universal (monthly + profile branches)</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -6663,6 +6663,14 @@ function computeRow(row){
     const seasonalFloorCategories = ['WEED_CONTROL','GARDEN_TOOLS','WATERING','BBQ',
       'SLUG_CONTROL','BIRD_CONTROL','LAWN_SEED','FERTILISER','MOSS_CONTROL','PATIO_CLEANING'];
     if(seasonalFloorCategories.includes(cls.categoryId) && base30dDaily > 0)
+      adjustedDaily = Math.max(adjustedDaily, base30dDaily);
+    // UNIVERSAL FLOOR: regardless of category, last year's month must NEVER order a
+    // PROVEN CURRENT SELLER below what it's actually selling now. If it sold ≥5 units in
+    // the last 30 days, floor to the live rate — last August being quiet (often because
+    // it was out of stock then) can't override 31 units selling this August. This is the
+    // same principle as the profile-branch floor; it was previously limited to a
+    // hardcoded category list, which missed pest control, cleaning, etc.
+    if(base30dDaily > 0 && (row.QtySold_Online_Total_30d||0) >= 5)
       adjustedDaily = Math.max(adjustedDaily, base30dDaily);
     seasonalDataUsed   = monthlyResult;
     seasonalMultiplier = base30dDaily > 0 ? Math.max(1, adjustedDaily / base30dDaily) : 1;
