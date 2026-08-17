@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.11.2 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.12.2 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -561,6 +561,7 @@
     .cs-sku-table tr.slow td{background:#fefce8}
     .cs-badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase}
     .cs-badge.dead{background:#fee2e2;color:#dc2626}
+    .cs-badge.clearance{background:#1e293b;color:#fff}
     .cs-badge.stale{background:#ffedd5;color:#d97706}
     .cs-badge.slow{background:#fef9c3;color:#ca8a04}
     .cs-disc{font-size:11px;font-weight:700}
@@ -1090,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.11.2 · built 2026-07-15 · Seasonal floor now universal (monthly + profile branches)</div>
+  <div class="sub">V7.12.2 · built 2026-07-15 · Clearance: 12mo no-sale + 6mo age floor (needs Code.gs sync)</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -1511,6 +1512,8 @@
   <div class="tab-panel" id="tab-clearstock">
     <div style="margin-top:14px">
       <div id="csStockSummary" class="cs-summary-bar">
+        <div class="cs-summary-stat"><div class="val" id="csClearCount" style="color:#0f172a">—</div><div class="lbl">⚫ No sale 12mo · in stock 6mo+</div></div>
+        <div class="cs-summary-stat"><div class="val" id="csClearValue" style="color:#0f172a">—</div><div class="lbl">Capital tied up (12mo dead)</div></div>
         <div class="cs-summary-stat"><div class="val red" id="csDeadCount">—</div><div class="lbl">Dead SKUs (0 sales 180D)</div></div>
         <div class="cs-divider"></div>
         <div class="cs-summary-stat"><div class="val amber" id="csStaleCount">—</div><div class="lbl">Stale SKUs (0 sales 90D)</div></div>
@@ -1526,6 +1529,7 @@
       <div class="cs-filter-bar">
         <span style="font-size:12px;font-weight:700;color:#64748b">Show:</span>
         <button class="cs-filter-btn active" data-csfilter="all">All slow movers</button>
+        <button class="cs-filter-btn" data-csfilter="clearance" style="border-color:#0f172a;color:#0f172a">⚫ Clearance (12mo no sale)</button>
         <button class="cs-filter-btn" data-csfilter="dead">🔴 Dead only</button>
         <button class="cs-filter-btn" data-csfilter="stale">🟠 Stale only</button>
         <button class="cs-filter-btn" data-csfilter="slow">🟡 Slow only</button>
@@ -3456,8 +3460,24 @@ function classifySlowMover(r){
   const q30 = isCapel ? (r.QtySold_Shop_CapelStreet_30d||0)  : (r.QtySold_Online_Total_30d||0);
   const q90 = isCapel ? (r.QtySold_Shop_CapelStreet_90d||0)  : (r.QtySold_Online_Total_90d||0);
   const q180= isCapel ? (r.QtySold_Shop_CapelStreet_180d||0) : (r.QtySold_Online_Total_180d||0);
+  // 12-month sales across ALL channels (till + both online locations) — a SKU that has
+  // not sold ANYWHERE in a year is the strongest clearance candidate for raising capital.
+  const q365 = (r.QtySold_Shop_CapelStreet_365d||0)
+             + (r.QtySold_Online_CapelStreet_365d||0)
+             + (r.QtySold_Online_Arklow_365d||0);
+  const q330 = r.QtySold_Total_330d||0;   // fallback 12-mo total if 365 splits missing
+  const yearSales = q365>0 ? q365 : q330;
   const stock= isCapel ? (r.NetStock_CapelStreet||0) : (r.stock||r.NetStock_Arklow||0);
   if(stock<=0) return null;
+  // Clearance = nothing sold in 12 months — BUT only if the line has been in stock long
+  // enough to have had a fair chance to sell. A SKU created in the last 6 months (183d)
+  // shows zero 12-month sales simply because it's new, not because it's dead. Age unknown
+  // (null) is treated as "old enough" so we don't lose genuinely-dead stock that predates
+  // reliable CreationDate — those still surface, and the ⚠ age caveat covers them.
+  const CLEARANCE_MIN_AGE_DAYS = 183;
+  const oldEnough = (r.AgeDays==null) || (r.AgeDays >= CLEARANCE_MIN_AGE_DAYS);
+  if(yearSales===0 && oldEnough) return 'clearance';   // 12mo dead + ≥6mo in stock
+  if(yearSales===0) return 'dead';   // zero 12mo sales but too new for clearance → treat as dead tier
   if(q180===0) return 'dead';
   if(q90===0)  return 'stale';
   if(q30===0)  return 'slow';
@@ -3594,11 +3614,15 @@ function renderClearStock(){
 
   // Update summary counts (always from all, not filtered)
   const allSlow=allRows.map(r=>({r,cls:classifySlowMover(r)})).filter(x=>x.cls);
+  const clearAll=allSlow.filter(x=>x.cls==='clearance');
   const deadAll=allSlow.filter(x=>x.cls==='dead');
   const staleAll=allSlow.filter(x=>x.cls==='stale');
   const slowAll=allSlow.filter(x=>x.cls==='slow');
   const totalVal=allSlow.reduce((s,x)=>s+((x.r.stock||0)*(x.r._bestKnownCost||0)),0);
+  const clearVal=clearAll.reduce((s,x)=>s+((x.r.stock||0)*(x.r._bestKnownCost||0)),0);
   const missingCost=allSlow.filter(x=>!(x.r._bestKnownCost>0)).length;
+  const _cc=document.getElementById('csClearCount'); if(_cc) _cc.textContent=fmtInt(clearAll.length);
+  const _cv=document.getElementById('csClearValue'); if(_cv) _cv.textContent=clearVal>0?`€${fmtInt(clearVal)}`:'N/A';
   document.getElementById('csDeadCount').textContent=fmtInt(deadAll.length);
   document.getElementById('csStaleCount').textContent=fmtInt(staleAll.length);
   document.getElementById('csSlowCount').textContent=fmtInt(slowAll.length);
@@ -3680,7 +3704,7 @@ function renderClearStock(){
             return `<tr class="${r._slowClass}">
               <td style="font-family:monospace;font-size:11px;font-weight:700;color:#1e40af">${esc(r.SKU)}</td>
               <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.ItemTitle)}">${esc(r.ItemTitle)}</td>
-              <td><span class="cs-badge ${r._slowClass}">${r._slowClass==='dead'?'🔴 Dead 180D':r._slowClass==='stale'?'🟠 Stale 90D':'🟡 Slow 30D'}</span></td>
+              <td><span class="cs-badge ${r._slowClass}">${r._slowClass==='clearance'?'⚫ No sale 12mo':r._slowClass==='dead'?'🔴 Dead 180D':r._slowClass==='stale'?'🟠 Stale 90D':'🟡 Slow 30D'}</span></td>
               <td class="r">${fmtInt(r.stock||0)}</td>
               <td class="r">${costDisplay}</td>
               <td class="r">${val>0?'€'+fmtInt(val):'—'}</td>
@@ -5660,6 +5684,7 @@ function normalizeRow(r){
     OnOrderQty_CS_PO: n('OO_CS'),
     Revenue_Online_Total_365d: n('Rev_On365'),        // 12-mo online revenue (inc-VAT)
     Revenue_Shop_CapelStreet_365d: n('Rev_ShCS365'),  // 12-mo Capel till revenue (inc-VAT)
+    AgeDays: (r.AgeDays===''||r.AgeDays==null) ? null : n('AgeDays'),   // days since StockItem.CreationDate
     AltSupplier: String(r.AltSupplier||'').trim(),   // cheapest alternative supplier (name)
     AltCost: n('AltCost'),                            // its known purchase price
     Aisle: String(r.Aisle||'').trim(),   // Capel aisle (clean A1-x bins only)
