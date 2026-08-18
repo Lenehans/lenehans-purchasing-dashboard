@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.12.2 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.12.3 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.12.2 · built 2026-07-15 · Clearance: 12mo no-sale + 6mo age floor (needs Code.gs sync)</div>
+  <div class="sub">V7.12.3 · built 2026-07-15 · Clear Stock list: dedup, 365d sales, age, total</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -1548,9 +1548,10 @@
               <th onclick="sortCSList('SupplierName')">Supplier</th>
               <th onclick="sortCSList('_slowClass')">Status</th>
               <th onclick="sortCSList('stock')" style="text-align:right">Stock</th>
+              <th onclick="sortCSList('AgeDays')" style="text-align:right">Age</th>
               <th onclick="sortCSList('_bestKnownCost')" style="text-align:right">Cost</th>
               <th onclick="sortCSList('_stockValue')" style="text-align:right">Stock Value</th>
-              <th onclick="sortCSList('QSold_On180')" style="text-align:right">180D Sales</th>
+              <th onclick="sortCSList('_year365')" style="text-align:right">365D Sales</th>
             </tr></thead>
             <tbody id="csListTbody"></tbody>
           </table>
@@ -3554,16 +3555,23 @@ function renderCSList(){
   const allRows = state.computedRows;
   if(!allRows.length) return;
 
-  const slowRows = allRows.filter(r=>{
+  // Dedup by SKU — the feed has one row per supplier, so a multi-supplier item would
+  // otherwise appear several times. Keep the first classified row per SKU.
+  const seen = new Set();
+  const slowRows = [];
+  for(const r of allRows){
     const cls = classifySlowMover(r);
-    if(!cls) return false;
-    if(filter!=='all'&&filter!==cls) return false;
+    if(!cls) continue;
+    if(filter!=='all' && filter!==cls) continue;
+    if(seen.has(r.SKU)) continue;      // already counted this SKU
+    seen.add(r.SKU);
     r._slowClass = cls;
     r._stockValue = (r.stock||0)*(r._bestKnownCost||0);
-    return true;
-  });
+    r._year365 = (r.QtySold_Shop_CapelStreet_365d||0)+(r.QtySold_Online_CapelStreet_365d||0)+(r.QtySold_Online_Arklow_365d||0);
+    slowRows.push(r);
+  }
 
-  const orderMap = {dead:0, stale:1, slow:2};
+  const orderMap = {clearance:0, dead:1, stale:2, slow:3};
   slowRows.sort((a,b)=>{
     let av = a[csListSort.col], bv = b[csListSort.col];
     if(csListSort.col==='_slowClass'){ av=orderMap[av]||0; bv=orderMap[bv]||0; }
@@ -3573,21 +3581,31 @@ function renderCSList(){
 
   const tbody = document.getElementById('csListTbody');
   if(!tbody) return;
+  let totalVal=0, totalStock=0;
   tbody.innerHTML = slowRows.map(r=>{
     const val = (r.stock||0)*(r._bestKnownCost||0);
+    totalVal += val; totalStock += (r.stock||0);
     const badgeCls = r._slowClass;
-    const badgeTxt = r._slowClass==='dead'?'🔴 Dead':r._slowClass==='stale'?'🟠 Stale':'🟡 Slow';
+    const badgeTxt = r._slowClass==='clearance'?'⚫ 12mo no sale':r._slowClass==='dead'?'🔴 Dead':r._slowClass==='stale'?'🟠 Stale':'🟡 Slow';
+    const ageTxt = (r.AgeDays!=null) ? `${Math.round(r.AgeDays/30)}mo` : '—';
     return `<tr class="${r._slowClass}">
       <td style="font-family:monospace;font-size:11px;font-weight:700;color:#1e40af">${esc(r.SKU)}</td>
       <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.ItemTitle)}">${esc(r.ItemTitle)}</td>
       <td style="font-size:11px">${esc(r.SupplierName||'')}</td>
       <td><span class="cs-badge ${badgeCls}">${badgeTxt}</span></td>
       <td style="text-align:right">${fmtInt(r.stock||0)}</td>
+      <td style="text-align:right;font-size:11px;color:#64748b">${ageTxt}</td>
       <td style="text-align:right">${r._bestKnownCost>0?'€'+fmt1(r._bestKnownCost):'—'}</td>
       <td style="text-align:right;font-weight:700">${val>0?'€'+fmtInt(val):'—'}</td>
-      <td style="text-align:right">${fmtInt(r.QSold_On180||0)}</td>
+      <td style="text-align:right">${fmtInt(r._year365||0)}</td>
     </tr>`;
-  }).join('');
+  }).join('') + `<tr style="background:#1e293b;color:#fff;font-weight:800">
+      <td colspan="4" style="padding:10px 8px">TOTAL — ${fmtInt(slowRows.length)} SKUs</td>
+      <td style="text-align:right">${fmtInt(totalStock)}</td>
+      <td></td><td></td>
+      <td style="text-align:right;font-size:15px">€${fmtInt(totalVal)}</td>
+      <td></td>
+    </tr>`;
 }
 
 function renderClearStock(){
