@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.13.0 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.13.1 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.13.0 · built 2026-07-15 · Clearance→Capel transfer cross-reference</div>
+  <div class="sub">V7.13.1 · built 2026-07-15 · Transfer: Arklow buffer kept + AK 12mo column</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -3586,12 +3586,18 @@ function renderClearanceTransfers(){
     seen.add(r.SKU);
     const cost = r._bestKnownCost||0;
     const csStock = r.NetStock_CapelStreet||0;
-    // Suggested transfer: move enough to cover ~6 months of Capel demand, capped at Arklow stock
+    // Suggested transfer: cover ~6 months of Capel demand, BUT never empty Arklow — it
+    // still lists the item online, so keep a small buffer there for the odd online order.
+    // Only the surplus ABOVE the retention buffer is transferable.
+    const ARKLOW_KEEP = (akStock >= 3) ? 2 : (akStock===2 ? 1 : 0); // keep 2 if plenty, 1 if only 2, 0 if last unit
+    const transferable = Math.max(0, akStock - ARKLOW_KEEP);
     const csDaily = csTotal/365;
     const cover180 = Math.ceil(csDaily*180);
-    const suggestQty = Math.max(1, Math.min(akStock, Math.max(cover180 - csStock, 1)));
+    const csNeed = Math.max(cover180 - csStock, 1);
+    const suggestQty = Math.min(transferable, csNeed);
+    if(suggestQty<=0) continue;   // nothing left to move after keeping Arklow's buffer
     cands.push({sku:r.SKU, title:r.ItemTitle, supplier:r.SupplierName,
-      akStock, csStock, csTill, csOnline, csTotal, cost, suggestQty,
+      akStock, akKeep:ARKLOW_KEEP, akYear, csStock, csTill, csOnline, csTotal, cost, suggestQty,
       xferValue: suggestQty*cost, deadValue: akStock*cost});
   }
   // Rank by transferable value (what we save by not clearing + not re-buying)
@@ -3608,12 +3614,14 @@ function renderClearanceTransfers(){
   }
   const rowsHtml=cands.map(c=>`<tr>
     <td style="font-family:monospace;font-size:11px;font-weight:700;color:#1e40af">${esc(c.sku)}</td>
-    <td style="max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(c.title)}">${esc(c.title)}</td>
+    <td style="max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(c.title)}">${esc(c.title)}</td>
     <td style="font-size:11px">${esc(c.supplier||'')}</td>
     <td style="text-align:right">${fmtInt(c.akStock)}</td>
+    <td style="text-align:right;color:#dc2626;font-weight:700">${fmtInt(c.akYear)}</td>
     <td style="text-align:right">${fmtInt(c.csStock)}</td>
-    <td style="text-align:right" title="Capel till ${fmtInt(c.csTill)} + Capel online ${fmtInt(c.csOnline)}">${fmtInt(c.csTotal)}</td>
+    <td style="text-align:right;color:#047857;font-weight:700" title="Capel till ${fmtInt(c.csTill)} + Capel online ${fmtInt(c.csOnline)}">${fmtInt(c.csTotal)}</td>
     <td style="text-align:right;font-weight:800;color:#047857">${fmtInt(c.suggestQty)}</td>
+    <td style="text-align:right;color:#64748b" title="Kept at Arklow for online cover">${fmtInt(c.akKeep)}</td>
     <td style="text-align:right">${c.cost>0?'€'+fmt1(c.cost):'—'}</td>
     <td style="text-align:right;font-weight:700">${c.xferValue>0?'€'+fmtInt(c.xferValue):'—'}</td>
   </tr>`).join('');
@@ -3632,17 +3640,19 @@ function renderClearanceTransfers(){
       <thead><tr>
         <th>SKU</th><th>Item</th><th>Supplier</th>
         <th style="text-align:right">Arklow stock</th>
+        <th style="text-align:right" title="Arklow 12-month sales — zero, which is why it's clearance">Arklow 12mo</th>
         <th style="text-align:right">Capel stock</th>
         <th style="text-align:right" title="Capel sales in 12 months (till + online)">Capel 12mo sales</th>
         <th style="text-align:right">Transfer qty</th>
+        <th style="text-align:right" title="Units kept at Arklow for online cover">Keep AK</th>
         <th style="text-align:right">Cost</th>
         <th style="text-align:right">Transfer value</th>
       </tr></thead>
       <tbody>${rowsHtml}
         <tr style="background:#1e293b;color:#fff;font-weight:800">
-          <td colspan="6" style="padding:10px 8px">TOTAL — ${fmtInt(totSkus)} SKUs to transfer</td>
+          <td colspan="7" style="padding:10px 8px">TOTAL — ${fmtInt(totSkus)} SKUs to transfer</td>
           <td style="text-align:right">${fmtInt(totUnits)}</td>
-          <td></td>
+          <td></td><td></td>
           <td style="text-align:right;font-size:15px">€${fmtInt(totValue)}</td>
         </tr>
       </tbody>
