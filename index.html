@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.12.3 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.13.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.12.3 · built 2026-07-15 · Clear Stock list: dedup, 365d sales, age, total</div>
+  <div class="sub">V7.13.0 · built 2026-07-15 · Clearance→Capel transfer cross-reference</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -1535,10 +1535,12 @@
         <button class="cs-filter-btn" data-csfilter="slow">🟡 Slow only</button>
         <span style="margin-left:12px;border-left:2px solid #e2e8f0;padding-left:12px">
           <button id="csViewToggle" onclick="toggleCSView()" style="padding:6px 14px;border-radius:20px;border:2px solid #1e40af;background:#fff;color:#1e40af;font-size:12px;font-weight:700;cursor:pointer">📋 List view</button>
+          <button id="csXferBtn" onclick="renderClearanceTransfers()" title="Arklow clearance stock that Capel Street actually sells — transfer instead of clearing" style="padding:6px 14px;border-radius:20px;border:2px solid #047857;background:#047857;color:#fff;font-size:12px;font-weight:700;cursor:pointer;margin-left:6px">⇄ Transfer to Capel?</button>
         </span>
         <button id="csExportBtn" class="secondary" style="margin-left:auto;font-size:12px">Export slow movers CSV</button>
       </div>
       <div id="csThemeContainer"><div class="cs-no-data">Load data to see slow mover analysis.</div></div>
+      <div id="csXferView" style="display:none"></div>
       <div id="csListView">
         <div style="overflow:auto;max-height:70vh">
           <table id="csListTable">
@@ -3548,6 +3550,103 @@ function sortCSList(col){
   if(csListSort.col===col) csListSort.dir*=-1;
   else { csListSort.col=col; csListSort.dir=1; }
   renderCSList();
+}
+
+function renderClearanceTransfers(){
+  const container=document.getElementById('csXferView');
+  const themeC=document.getElementById('csThemeContainer');
+  const listC=document.getElementById('csListView');
+  if(!container) return;
+  // toggle this view on, others off
+  const showing = container.style.display!=='none';
+  if(showing){ container.style.display='none'; if(themeC) themeC.style.display=''; return; }
+  container.style.display='block';
+  if(themeC) themeC.style.display='none';
+  if(listC) listC.classList.remove('active');
+
+  const rows = state.computedRows||[];
+  // Cross-reference: SKUs on the ARKLOW clearance list (dead at Arklow, 6mo+ old, stock>0)
+  // where CAPEL STREET has actually SOLD the item — so transferring beats clearing it AND
+  // beats re-buying it for Capel. We look at Capel till + Capel online sales.
+  const seen=new Set(); const cands=[];
+  for(const r of rows){
+    if(seen.has(r.SKU)) continue;
+    const akStock = r.stock ?? r.NetStock_Arklow ?? 0;
+    if(akStock<=0) continue;
+    // Arklow-side clearance test (mirror classifySlowMover clearance rule on Arklow only)
+    const akYear = (r.QtySold_Online_Arklow_365d||0);
+    const oldEnough = (r.AgeDays==null) || (r.AgeDays>=183);
+    const akDeadAndOld = akYear===0 && oldEnough;
+    if(!akDeadAndOld) continue;
+    // Capel demand — any recent Capel sales (till or Capel online)
+    const csTill = (r.QtySold_Shop_CapelStreet_365d||0);
+    const csOnline = (r.QtySold_Online_CapelStreet_365d||0);
+    const csTotal = csTill + csOnline;
+    if(csTotal<=0) continue;   // Capel doesn't sell it → not a transfer candidate
+    seen.add(r.SKU);
+    const cost = r._bestKnownCost||0;
+    const csStock = r.NetStock_CapelStreet||0;
+    // Suggested transfer: move enough to cover ~6 months of Capel demand, capped at Arklow stock
+    const csDaily = csTotal/365;
+    const cover180 = Math.ceil(csDaily*180);
+    const suggestQty = Math.max(1, Math.min(akStock, Math.max(cover180 - csStock, 1)));
+    cands.push({sku:r.SKU, title:r.ItemTitle, supplier:r.SupplierName,
+      akStock, csStock, csTill, csOnline, csTotal, cost, suggestQty,
+      xferValue: suggestQty*cost, deadValue: akStock*cost});
+  }
+  // Rank by transferable value (what we save by not clearing + not re-buying)
+  cands.sort((a,b)=>b.xferValue-a.xferValue);
+
+  const totSkus=cands.length;
+  const totUnits=cands.reduce((s,c)=>s+c.suggestQty,0);
+  const totValue=cands.reduce((s,c)=>s+c.xferValue,0);
+  const totDead=cands.reduce((s,c)=>s+c.deadValue,0);
+
+  if(!cands.length){
+    container.innerHTML=`<div class="cs-no-data" style="padding:30px;text-align:center">No Arklow clearance SKUs are currently selling at Capel Street.<br><span style="font-size:12px;color:#94a3b8">(Needs the stock-age + 365d Capel data synced.)</span></div>`;
+    return;
+  }
+  const rowsHtml=cands.map(c=>`<tr>
+    <td style="font-family:monospace;font-size:11px;font-weight:700;color:#1e40af">${esc(c.sku)}</td>
+    <td style="max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(c.title)}">${esc(c.title)}</td>
+    <td style="font-size:11px">${esc(c.supplier||'')}</td>
+    <td style="text-align:right">${fmtInt(c.akStock)}</td>
+    <td style="text-align:right">${fmtInt(c.csStock)}</td>
+    <td style="text-align:right" title="Capel till ${fmtInt(c.csTill)} + Capel online ${fmtInt(c.csOnline)}">${fmtInt(c.csTotal)}</td>
+    <td style="text-align:right;font-weight:800;color:#047857">${fmtInt(c.suggestQty)}</td>
+    <td style="text-align:right">${c.cost>0?'€'+fmt1(c.cost):'—'}</td>
+    <td style="text-align:right;font-weight:700">${c.xferValue>0?'€'+fmtInt(c.xferValue):'—'}</td>
+  </tr>`).join('');
+  container.innerHTML=`
+    <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:14px 16px;margin-bottom:14px">
+      <div style="font-weight:800;color:#047857;font-size:15px;margin-bottom:4px">⇄ Transfer instead of clear — Arklow dead stock that Capel Street sells</div>
+      <div style="font-size:12px;color:#065f46">These SKUs haven't sold at Arklow in 12 months but <b>do sell at Capel Street</b>. Transferring them cuts Capel purchasing <i>and</i> frees Arklow capital — better than clearing them cheap.</div>
+      <div style="display:flex;gap:24px;margin-top:12px;flex-wrap:wrap">
+        <div><div style="font-size:22px;font-weight:800;color:#047857">${fmtInt(totSkus)}</div><div style="font-size:11px;color:#065f46">SKUs to transfer</div></div>
+        <div><div style="font-size:22px;font-weight:800;color:#047857">${fmtInt(totUnits)}</div><div style="font-size:11px;color:#065f46">units suggested</div></div>
+        <div><div style="font-size:22px;font-weight:800;color:#047857">€${fmtInt(totValue)}</div><div style="font-size:11px;color:#065f46">stock value moved (Capel saves buying)</div></div>
+        <div><div style="font-size:22px;font-weight:800;color:#0f172a">€${fmtInt(totDead)}</div><div style="font-size:11px;color:#475569">total Arklow dead stock on these lines</div></div>
+      </div>
+    </div>
+    <div style="overflow:auto;max-height:65vh"><table id="csListTable">
+      <thead><tr>
+        <th>SKU</th><th>Item</th><th>Supplier</th>
+        <th style="text-align:right">Arklow stock</th>
+        <th style="text-align:right">Capel stock</th>
+        <th style="text-align:right" title="Capel sales in 12 months (till + online)">Capel 12mo sales</th>
+        <th style="text-align:right">Transfer qty</th>
+        <th style="text-align:right">Cost</th>
+        <th style="text-align:right">Transfer value</th>
+      </tr></thead>
+      <tbody>${rowsHtml}
+        <tr style="background:#1e293b;color:#fff;font-weight:800">
+          <td colspan="6" style="padding:10px 8px">TOTAL — ${fmtInt(totSkus)} SKUs to transfer</td>
+          <td style="text-align:right">${fmtInt(totUnits)}</td>
+          <td></td>
+          <td style="text-align:right;font-size:15px">€${fmtInt(totValue)}</td>
+        </tr>
+      </tbody>
+    </table></div>`;
 }
 
 function renderCSList(){
