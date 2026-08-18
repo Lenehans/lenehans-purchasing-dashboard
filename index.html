@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.15.1 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.15.2 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.15.1 · built 2026-07-15 · Transfer export + printable bin-sorted picking list</div>
+  <div class="sub">V7.15.2 · built 2026-07-15 · Fix weather-chip tab switch</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -1119,7 +1119,7 @@
     <div id="weatherChip" style="display:none;margin-left:auto;align-self:center;
       padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;
       background:#f0fdf4;color:#15803d;border:1.5px solid #86efac;cursor:pointer"
-      onclick="switchTab('alerts')" title="Click to open Alerts tab"></div>
+      onclick="document.querySelector('.tab-btn[data-tab=\'alerts\']')?.click()" title="Click to open Alerts tab"></div>
   </div>
 
   <!-- TAB 1: Buying -->
