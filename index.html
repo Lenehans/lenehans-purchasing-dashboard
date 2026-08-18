@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.14.2 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.14.3 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.14.2 · built 2026-07-15 · Clear Stock opens on top-100 quick wins</div>
+  <div class="sub">V7.14.3 · built 2026-07-15 · Transfer quick-wins: looser filter + funnel diagnostic</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -3570,30 +3570,34 @@ function renderClearanceTransfers(){
   // where CAPEL STREET has actually SOLD the item — so transferring beats clearing it AND
   // beats re-buying it for Capel. We look at Capel till + Capel online sales.
   const seen=new Set(); const cands=[];
+  let _dbg={akStockPos:0,akDeadOld:0,csSells:0,fastMover:0};
   for(const r of rows){
     if(seen.has(r.SKU)) continue;
     const akStock = r.stock ?? r.NetStock_Arklow ?? 0;
     if(akStock<=0) continue;
+    _dbg.akStockPos++;
     // Arklow-side clearance test (mirror classifySlowMover clearance rule on Arklow only)
     const akYear = (r.QtySold_Online_Arklow_365d||0);
     const oldEnough = (r.AgeDays==null) || (r.AgeDays>=183);
     const akDeadAndOld = akYear===0 && oldEnough;
     if(!akDeadAndOld) continue;
+    _dbg.akDeadOld++;
     // Capel demand — any recent Capel sales (till or Capel online)
     const csTill = (r.QtySold_Shop_CapelStreet_365d||0);
     const csOnline = (r.QtySold_Online_CapelStreet_365d||0);
     const csTotal = csTill + csOnline;
     if(csTotal<=0) continue;   // Capel doesn't sell it → not a transfer candidate
-    // Quick-wins (80/20) mode: only genuine FAST movers at Capel — sells often enough that
-    // transferring clears real ongoing Capel purchasing. Require ≥12 Capel units in 12mo
-    // (≈1+/month) AND sold in at least 2 of the recent windows (not a one-off spike).
+    _dbg.csSells++;
+    // Quick-wins (80/20) mode: only genuine fast movers at Capel — sells enough that
+    // transferring clears real ongoing Capel purchasing. Keep it simple and robust:
+    // ≥6 Capel units in 12 months (≈once every 2 months) AND some sale in the last 180
+    // days (still current, not a lapsed line). This is deliberately not too strict —
+    // the top-100 CAP already keeps it to the highest-value lines.
     if(quickWins){
-      const csRecent = (r.QtySold_Shop_CapelStreet_90d||0)+(r.QtySold_Online_CapelStreet_90d||0);
-      const windows = [(r.QtySold_Shop_CapelStreet_30d||0)+(r.QtySold_Online_CapelStreet_30d||0),
-                       (r.QtySold_Shop_CapelStreet_90d||0)+(r.QtySold_Online_CapelStreet_90d||0),
-                       (r.QtySold_Shop_CapelStreet_180d||0)+(r.QtySold_Online_CapelStreet_180d||0)].filter(x=>x>0).length;
-      if(csTotal < 12 || csRecent <= 0 || windows < 2) continue;   // not a steady fast mover
+      const csRecent180 = (r.QtySold_Shop_CapelStreet_180d||0)+(r.QtySold_Online_CapelStreet_180d||0);
+      if(csTotal < 6 || csRecent180 <= 0) continue;
     }
+    _dbg.fastMover++;
     seen.add(r.SKU);
     const cost = r._bestKnownCost||0;
     const csStock = r.NetStock_CapelStreet||0;
@@ -3614,6 +3618,8 @@ function renderClearanceTransfers(){
   }
   // Rank by transferable value (what we save by not clearing + not re-buying)
   cands.sort((a,b)=>b.xferValue-a.xferValue);
+  console.log('[Transfer funnel]', 'AK stock>0:',_dbg.akStockPos, '→ dead+old@AK:',_dbg.akDeadOld,
+    '→ Capel sells:',_dbg.csSells, '→ fast mover:',_dbg.fastMover, '| quickWins mode:',quickWins);
   const fullCount = cands.length;
   if(quickWins) cands.length = Math.min(cands.length, 100);   // 80/20: top 100 only
 
@@ -3629,7 +3635,8 @@ function renderClearanceTransfers(){
       <div style="font-size:15px;font-weight:700;margin-bottom:8px">${quickWins?'No fast-mover transfer quick wins found':'No Arklow clearance SKUs are currently selling at Capel Street'}</div>
       ${needsSync
         ? `<div style="color:#b45309;font-size:13px">⚠ The stock-age and 12-month Capel sales columns aren't in the data yet.<br>Run <b>fetchLinnworksData</b> in the Apps Script (adds AgeDays + 365d Capel), then reload.</div>`
-        : `<div style="color:#94a3b8;font-size:13px">${quickWins?'Try "Show all candidates" for the wider list.':'Nothing matches right now.'}</div>`}
+        : `<div style="color:#94a3b8;font-size:13px">${quickWins?'Try "Show all candidates" for the wider list.':'Nothing matches right now.'}</div>
+           <div style="color:#cbd5e1;font-size:11px;margin-top:8px">Funnel: ${_dbg.akStockPos} in stock @AK → ${_dbg.akDeadOld} dead+6mo@AK → ${_dbg.csSells} of those sell @Capel → ${_dbg.fastMover} fast movers</div>`}
     </div>`;
     return;
   }
