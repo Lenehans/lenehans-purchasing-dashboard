@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.13.2 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.14.1 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.13.2 · built 2026-07-15 · Transfer: keep last Arklow unit for online cover</div>
+  <div class="sub">V7.14.1 · built 2026-07-15 · Transfers tab hidden from menu (code retained)</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -1108,7 +1108,7 @@
     <button class="tab-btn" data-tab="team">👥 Team</button>
     <button class="tab-btn" data-tab="alerts" id="alertsTabBtn">⚡ Alerts</button>
     <button class="tab-btn" data-tab="clearstock">🏷️ Clear Stock</button>
-    <button class="tab-btn" data-tab="transfers">🔄 Transfers</button>
+    <button class="tab-btn" data-tab="transfers" style="display:none">🔄 Transfers</button>
     <button class="tab-btn" data-tab="noos">⭐ Never OOS</button>
     <button class="tab-btn" data-tab="movein">🏠 Move-In</button>
     <button class="tab-btn" data-tab="sales">📊 Sales</button>
@@ -1152,7 +1152,6 @@
             <button class="home-link" data-goto="team">👥 Team &amp; Schedule</button>
             <button class="home-link" data-goto="clearstock">🏷️ Clear Stock</button>
             <button class="home-link" data-goto="noos">⭐ Never OOS</button>
-            <button class="home-link" data-goto="transfers">🔄 Transfers</button>
           </div>
         </div>
 
@@ -3558,11 +3557,13 @@ function renderClearanceTransfers(){
   const listC=document.getElementById('csListView');
   if(!container) return;
   // toggle this view on, others off
+  const forceShow = window._xferForceShow; window._xferForceShow=false;
   const showing = container.style.display!=='none';
-  if(showing){ container.style.display='none'; if(themeC) themeC.style.display=''; return; }
+  if(showing && !forceShow){ container.style.display='none'; if(themeC) themeC.style.display=''; return; }
   container.style.display='block';
   if(themeC) themeC.style.display='none';
   if(listC) listC.classList.remove('active');
+  const quickWins = window._xferQuickWins || false;   // 80/20 mode toggle
 
   const rows = state.computedRows||[];
   // Cross-reference: SKUs on the ARKLOW clearance list (dead at Arklow, 6mo+ old, stock>0)
@@ -3583,6 +3584,16 @@ function renderClearanceTransfers(){
     const csOnline = (r.QtySold_Online_CapelStreet_365d||0);
     const csTotal = csTill + csOnline;
     if(csTotal<=0) continue;   // Capel doesn't sell it → not a transfer candidate
+    // Quick-wins (80/20) mode: only genuine FAST movers at Capel — sells often enough that
+    // transferring clears real ongoing Capel purchasing. Require ≥12 Capel units in 12mo
+    // (≈1+/month) AND sold in at least 2 of the recent windows (not a one-off spike).
+    if(quickWins){
+      const csRecent = (r.QtySold_Shop_CapelStreet_90d||0)+(r.QtySold_Online_CapelStreet_90d||0);
+      const windows = [(r.QtySold_Shop_CapelStreet_30d||0)+(r.QtySold_Online_CapelStreet_30d||0),
+                       (r.QtySold_Shop_CapelStreet_90d||0)+(r.QtySold_Online_CapelStreet_90d||0),
+                       (r.QtySold_Shop_CapelStreet_180d||0)+(r.QtySold_Online_CapelStreet_180d||0)].filter(x=>x>0).length;
+      if(csTotal < 12 || csRecent <= 0 || windows < 2) continue;   // not a steady fast mover
+    }
     seen.add(r.SKU);
     const cost = r._bestKnownCost||0;
     const csStock = r.NetStock_CapelStreet||0;
@@ -3603,6 +3614,8 @@ function renderClearanceTransfers(){
   }
   // Rank by transferable value (what we save by not clearing + not re-buying)
   cands.sort((a,b)=>b.xferValue-a.xferValue);
+  const fullCount = cands.length;
+  if(quickWins) cands.length = Math.min(cands.length, 100);   // 80/20: top 100 only
 
   const totSkus=cands.length;
   const totUnits=cands.reduce((s,c)=>s+c.suggestQty,0);
@@ -3628,8 +3641,13 @@ function renderClearanceTransfers(){
   </tr>`).join('');
   container.innerHTML=`
     <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:14px 16px;margin-bottom:14px">
-      <div style="font-weight:800;color:#047857;font-size:15px;margin-bottom:4px">⇄ Transfer instead of clear — Arklow dead stock that Capel Street sells</div>
-      <div style="font-size:12px;color:#065f46">These SKUs haven't sold at Arklow in 12 months but <b>do sell at Capel Street</b>. Transferring them cuts Capel purchasing <i>and</i> frees Arklow capital — better than clearing them cheap.</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap">
+        <span style="font-weight:800;color:#047857;font-size:15px">⇄ Transfer instead of clear${quickWins?' — ⚡ Quick wins (top 100)':''}</span>
+        <button onclick="window._xferQuickWins=${quickWins?'false':'true'};window._xferForceShow=true;renderClearanceTransfers()" style="margin-left:auto;padding:6px 12px;border-radius:8px;border:2px solid #047857;background:${quickWins?'#fff':'#047857'};color:${quickWins?'#047857':'#fff'};font-size:12px;font-weight:700;cursor:pointer">${quickWins?'Show all candidates':'⚡ Show top 100 quick wins'}</button>
+      </div>
+      <div style="font-size:12px;color:#065f46">${quickWins
+        ? `The <b>100 highest-value</b> transfers where Capel is a proven <b>fast mover</b> (sells 12+ a year, steadily) but Arklow hasn't sold in 12 months. Start at the top — biggest cash impact first. ${fullCount>100?`(${fmtInt(fullCount-100)} more below the cut-off.)`:''}`
+        : `These SKUs haven't sold at Arklow in 12 months but <b>do sell at Capel Street</b>. Transferring them cuts Capel purchasing <i>and</i> frees Arklow capital — better than clearing them cheap.`}</div>
       <div style="display:flex;gap:24px;margin-top:12px;flex-wrap:wrap">
         <div><div style="font-size:22px;font-weight:800;color:#047857">${fmtInt(totSkus)}</div><div style="font-size:11px;color:#065f46">SKUs to transfer</div></div>
         <div><div style="font-size:22px;font-weight:800;color:#047857">${fmtInt(totUnits)}</div><div style="font-size:11px;color:#065f46">units suggested</div></div>
