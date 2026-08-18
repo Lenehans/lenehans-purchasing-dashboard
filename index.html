@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.14.1 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.14.2 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.14.1 · built 2026-07-15 · Transfers tab hidden from menu (code retained)</div>
+  <div class="sub">V7.14.2 · built 2026-07-15 · Clear Stock opens on top-100 quick wins</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -3623,7 +3623,14 @@ function renderClearanceTransfers(){
   const totDead=cands.reduce((s,c)=>s+c.deadValue,0);
 
   if(!cands.length){
-    container.innerHTML=`<div class="cs-no-data" style="padding:30px;text-align:center">No Arklow clearance SKUs are currently selling at Capel Street.<br><span style="font-size:12px;color:#94a3b8">(Needs the stock-age + 365d Capel data synced.)</span></div>`;
+    const needsSync = state.computedRows.every(r=>r.AgeDays==null) ||
+                      state.computedRows.every(r=>(r.QtySold_Shop_CapelStreet_365d||0)+(r.QtySold_Online_CapelStreet_365d||0)===0);
+    container.innerHTML=`<div class="cs-no-data" style="padding:30px;text-align:center">
+      <div style="font-size:15px;font-weight:700;margin-bottom:8px">${quickWins?'No fast-mover transfer quick wins found':'No Arklow clearance SKUs are currently selling at Capel Street'}</div>
+      ${needsSync
+        ? `<div style="color:#b45309;font-size:13px">⚠ The stock-age and 12-month Capel sales columns aren't in the data yet.<br>Run <b>fetchLinnworksData</b> in the Apps Script (adds AgeDays + 365d Capel), then reload.</div>`
+        : `<div style="color:#94a3b8;font-size:13px">${quickWins?'Try "Show all candidates" for the wider list.':'Nothing matches right now.'}</div>`}
+    </div>`;
     return;
   }
   const rowsHtml=cands.map(c=>`<tr>
@@ -3739,6 +3746,18 @@ function renderCSList(){
 function renderClearStock(){
   const container=document.getElementById('csThemeContainer');
   if(!container) return;
+
+  // DEFAULT VIEW: open straight into the top-100 transfer quick-wins — the action list
+  // the team actually works from. The other views (category, list, dead/stale/slow) are
+  // still one click away via their buttons. Only auto-open once per tab entry so a user
+  // who switches to another Clear Stock view isn't yanked back.
+  if(!window._csDefaulted && state.computedRows && state.computedRows.length){
+    window._csDefaulted = true;
+    window._xferQuickWins = true;
+    window._xferForceShow = true;
+    setTimeout(()=>{ try{ renderClearanceTransfers(); }catch(e){} }, 0);
+  }
+
   const filter=document.querySelector('.cs-filter-btn.active')?.dataset.csfilter||'all';
 
   // Classify all rows
