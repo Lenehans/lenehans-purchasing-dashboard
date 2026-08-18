@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.13.1 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.13.2 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.13.1 · built 2026-07-15 · Transfer: Arklow buffer kept + AK 12mo column</div>
+  <div class="sub">V7.13.2 · built 2026-07-15 · Transfer: keep last Arklow unit for online cover</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -3588,8 +3588,9 @@ function renderClearanceTransfers(){
     const csStock = r.NetStock_CapelStreet||0;
     // Suggested transfer: cover ~6 months of Capel demand, BUT never empty Arklow — it
     // still lists the item online, so keep a small buffer there for the odd online order.
-    // Only the surplus ABOVE the retention buffer is transferable.
-    const ARKLOW_KEEP = (akStock >= 3) ? 2 : (akStock===2 ? 1 : 0); // keep 2 if plenty, 1 if only 2, 0 if last unit
+    // Only the surplus ABOVE the retention buffer is transferable. Crucially, a single
+    // unit is KEPT (transfer nothing) — a lone unit is online cover, not worth moving.
+    const ARKLOW_KEEP = (akStock >= 3) ? 2 : (akStock >= 1 ? 1 : 0); // keep 2 if 3+, keep 1 if 1-2, else 0
     const transferable = Math.max(0, akStock - ARKLOW_KEEP);
     const csDaily = csTotal/365;
     const cover180 = Math.ceil(csDaily*180);
