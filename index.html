@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.15.0 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.15.1 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.15.0 · built 2026-07-15 · Transfer export: Linnworks import format with pick bins</div>
+  <div class="sub">V7.15.1 · built 2026-07-15 · Transfer export + printable bin-sorted picking list</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -3580,6 +3580,66 @@ function exportTransferForLinnworks(){
   const fname = `linnworks_transfer_${cands.length}skus_${totalQty}units_${stamp}.csv`;
   const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click(); URL.revokeObjectURL(a.href);
+
+  // Also generate a printable PICKING LIST — sorted by Arklow bin so the picker walks the
+  // warehouse in order. Opens in a new tab ready to print or save as PDF.
+  buildPickingList(cands, stamp, totalQty);
+}
+
+// Bin-sorted printable picking list: SKU · Name · Bin · Qty to pick, with a tick column.
+function buildPickingList(cands, stamp, totalQty){
+  const binKey = c => {
+    // natural-ish sort: split bin into letter + numbers so A2 < A10 and aisles group
+    const b = String(c.binAK||'zzz').toUpperCase();
+    const m = b.match(/^([A-Z]*)(\d*)/);
+    return [m?m[1]:b, m&&m[2]?parseInt(m[2],10):0, b];
+  };
+  const sorted = [...cands].sort((a,b)=>{
+    const ka=binKey(a), kb=binKey(b);
+    return ka[0].localeCompare(kb[0]) || ka[1]-kb[1] || ka[2].localeCompare(kb[2]);
+  });
+  const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const rows = sorted.map((c,i)=>`<tr>
+    <td class="tick">☐</td>
+    <td class="num">${i+1}</td>
+    <td class="bin">${esc(c.binAK||'—')}</td>
+    <td class="sku">${esc(c.sku)}</td>
+    <td class="name">${esc(c.title||'')}</td>
+    <td class="qty">${c.suggestQty}</td>
+  </tr>`).join('');
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Picking List — Arklow → Capel ${stamp}</title>
+  <style>
+    @media print{ .noprint{display:none} @page{margin:12mm} }
+    body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#111;margin:24px}
+    h1{font-size:18px;margin:0 0 2px} .sub{color:#555;font-size:12px;margin:0 0 14px}
+    table{border-collapse:collapse;width:100%;font-size:12px}
+    th,td{border:1px solid #ccc;padding:6px 8px;text-align:left}
+    th{background:#1e293b;color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.03em}
+    td.tick{font-size:16px;text-align:center;width:28px}
+    td.num{text-align:right;color:#888;width:34px}
+    td.bin{font-weight:700;white-space:nowrap;width:70px}
+    td.sku{font-family:monospace;font-weight:700;color:#1e40af;white-space:nowrap}
+    td.qty{text-align:right;font-weight:800;font-size:14px;width:70px}
+    tr:nth-child(even){background:#f7f9fc}
+    .btn{padding:8px 16px;background:#1e40af;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px}
+  </style></head><body>
+    <button class="btn noprint" onclick="window.print()" style="float:right">🖨 Print / Save PDF</button>
+    <h1>Picking List — Arklow → Capel Street</h1>
+    <p class="sub">${stamp} · ${sorted.length} SKUs · ${totalQty} units to pick · sorted by bin location</p>
+    <table><thead><tr>
+      <th>✓</th><th>#</th><th>Bin</th><th>SKU</th><th>Name</th><th>Qty to pick</th>
+    </tr></thead><tbody>${rows}</tbody></table>
+    <p class="sub" style="margin-top:14px">Picked by: ________________________  Date: ____________  Checked into Capel: ________________________</p>
+  </body></html>`;
+  const w = window.open('', '_blank');
+  if(w){ w.document.write(html); w.document.close(); }
+  else {
+    // popup blocked — fall back to a CSV download of the picking list
+    const q=s=>{ s=String(s==null?'':s); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
+    const pl=['Bin,SKU,Name,Qty to pick'].concat(sorted.map(c=>[q(c.binAK||''),q(c.sku),q(c.title||''),c.suggestQty].join(','))).join('\n');
+    const b=new Blob([pl],{type:'text/csv;charset=utf-8;'});
+    const a2=document.createElement('a'); a2.href=URL.createObjectURL(b); a2.download=`picking_list_${stamp}.csv`; a2.click(); URL.revokeObjectURL(a2.href);
+  }
 }
 
 function renderClearanceTransfers(){
