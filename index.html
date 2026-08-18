@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.14.3 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.15.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.14.3 · built 2026-07-15 · Transfer quick-wins: looser filter + funnel diagnostic</div>
+  <div class="sub">V7.15.0 · built 2026-07-15 · Transfer export: Linnworks import format with pick bins</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -3551,6 +3551,37 @@ function sortCSList(col){
   renderCSList();
 }
 
+// Export the transfer list as a Linnworks-importable stock transfer CSV. Linnworks maps
+// columns by selection on import, so we output clean, standard-named columns: SKU, the
+// from/to locations, the quantity to move, plus the Arklow pick bin + title for the
+// physical pick. Locations use the exact Linnworks names — adjust LOC_* if yours differ.
+const XFER_LOC_FROM = 'Arklow';        // Linnworks location name for the warehouse
+const XFER_LOC_TO   = 'Capel Street';  // Linnworks location name for the shop
+function exportTransferForLinnworks(){
+  const cands = window._xferCands || [];
+  if(!cands.length){ alert('No transfer lines to export. Open the transfer view first.'); return; }
+  const q=s=>{ s=String(s==null?'':s); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; };
+  // Header row — names chosen to match Linnworks stock-transfer import mapping.
+  const cols = ['SKU','From Location','To Location','Quantity','Bin','Item Title'];
+  const lines = [cols.join(',')];
+  let totalQty=0;
+  cands.forEach(c=>{
+    totalQty += c.suggestQty;
+    lines.push([
+      q(c.sku),
+      q(XFER_LOC_FROM),
+      q(XFER_LOC_TO),
+      c.suggestQty,
+      q(c.binAK||''),
+      q(c.title||'')
+    ].join(','));
+  });
+  const stamp = new Date().toISOString().slice(0,10);
+  const fname = `linnworks_transfer_${cands.length}skus_${totalQty}units_${stamp}.csv`;
+  const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click(); URL.revokeObjectURL(a.href);
+}
+
 function renderClearanceTransfers(){
   const container=document.getElementById('csXferView');
   const themeC=document.getElementById('csThemeContainer');
@@ -3613,7 +3644,7 @@ function renderClearanceTransfers(){
     const suggestQty = Math.min(transferable, csNeed);
     if(suggestQty<=0) continue;   // nothing left to move after keeping Arklow's buffer
     cands.push({sku:r.SKU, title:r.ItemTitle, supplier:r.SupplierName,
-      akStock, akKeep:ARKLOW_KEEP, akYear, csStock, csTill, csOnline, csTotal, cost, suggestQty,
+      binAK: r.BinRack_AK||r.BinClean||'', akStock, akKeep:ARKLOW_KEEP, akYear, csStock, csTill, csOnline, csTotal, cost, suggestQty,
       xferValue: suggestQty*cost, deadValue: akStock*cost});
   }
   // Rank by transferable value (what we save by not clearing + not re-buying)
@@ -3622,6 +3653,7 @@ function renderClearanceTransfers(){
     '→ Capel sells:',_dbg.csSells, '→ fast mover:',_dbg.fastMover, '| quickWins mode:',quickWins);
   const fullCount = cands.length;
   if(quickWins) cands.length = Math.min(cands.length, 100);   // 80/20: top 100 only
+  window._xferCands = cands;   // expose for the Linnworks transfer export
 
   const totSkus=cands.length;
   const totUnits=cands.reduce((s,c)=>s+c.suggestQty,0);
@@ -3658,6 +3690,7 @@ function renderClearanceTransfers(){
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap">
         <span style="font-weight:800;color:#047857;font-size:15px">⇄ Transfer instead of clear${quickWins?' — ⚡ Quick wins (top 100)':''}</span>
         <button onclick="window._xferQuickWins=${quickWins?'false':'true'};window._xferForceShow=true;renderClearanceTransfers()" style="margin-left:auto;padding:6px 12px;border-radius:8px;border:2px solid #047857;background:${quickWins?'#fff':'#047857'};color:${quickWins?'#047857':'#fff'};font-size:12px;font-weight:700;cursor:pointer">${quickWins?'Show all candidates':'⚡ Show top 100 quick wins'}</button>
+        <button onclick="exportTransferForLinnworks()" title="Download a CSV ready to import as a stock transfer in Linnworks (SKU, from/to location, quantity, pick bin)" style="padding:6px 12px;border-radius:8px;border:2px solid #1e40af;background:#1e40af;color:#fff;font-size:12px;font-weight:700;cursor:pointer">⤓ Export for Linnworks</button>
       </div>
       <div style="font-size:12px;color:#065f46">${quickWins
         ? `The <b>100 highest-value</b> transfers where Capel is a proven <b>fast mover</b> (sells 12+ a year, steadily) but Arklow hasn't sold in 12 months. Start at the top — biggest cash impact first. ${fullCount>100?`(${fmtInt(fullCount-100)} more below the cut-off.)`:''}`
