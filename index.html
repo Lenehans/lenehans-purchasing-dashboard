@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.17.2 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.18.1 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.17.2 · built 2026-07-15 · Team: overdue persists until done/checked</div>
+  <div class="sub">V7.18.1 · built 2026-07-15 · Team: Done/Checked show whole-cycle (completed overdue no longer vanishes)</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -8636,6 +8636,19 @@ function buildWhyText(r){
   }
 
   // ── Signal 1: Stock ───────────────────────────────────────────────────────
+  // EAN / manufacturer barcode — click to copy, for quick lookup on supplier websites.
+  const ean = String(r.Barcode||'').trim();
+  if(ean){
+    rows.push(`<div class="wbs-row">
+      <span class="wbs-icon">🔖</span>
+      <span class="wbs-lbl">EAN</span>
+      <span class="wbs-val">
+        <span style="font-family:monospace;font-weight:700;font-size:14px">${esc(ean)}</span>
+        <button onclick="navigator.clipboard.writeText('${esc(ean)}');this.textContent='✓ copied';setTimeout(()=>this.textContent='📋 copy',1200)"
+          style="margin-left:8px;padding:2px 8px;font-size:11px;font-weight:700;border:1px solid #cbd5e1;background:#fff;border-radius:5px;cursor:pointer;color:#475569">📋 copy</button>
+      </span>
+    </div>`);
+  }
   const stockCol = r.stock<=0 ? '#dc2626' : r.stock<5 ? '#d97706' : '#16a34a';
   const stockLbl = r.stock<=0 ? 'OUT OF STOCK' :
     (r.daysOfCover>=9999 ? 'no active demand' : `${fmtInt(r.daysOfCover)} days cover`);
@@ -10248,20 +10261,23 @@ function renderTeam(){
   // Sort buyers: those with outstanding work today first
   const buyerRows = Object.entries(buyerMap).map(([name,b])=>{
     const supKeys=[...new Set(b.today.map(r=>r.supplier+'||'+r.channel))];
-    // Overdue = was due earlier THIS WEEK, still not done or checked this month. These
-    // would otherwise be invisible (shouldFireToday only knows about today). Exclude any
-    // that are also due today (they belong in Do today, not Overdue).
     const earlierKeys=[...new Set(b.earlier.map(r=>r.supplier+'||'+r.channel))]
       .filter(k=>!supKeys.includes(k));
     const overdueKeys=earlierKeys.filter(k=>{const[s,c]=k.split('||');return !isDoneKey(s,c)&&!isCheckedKey(s,c);});
     const outstanding=supKeys.filter(k=>{const[s,c]=k.split('||');return !isDoneKey(s,c)&&!isCheckedKey(s,c);});
-    const doneCount=supKeys.filter(k=>{const[s,c]=k.split('||');return isDoneKey(s,c);}).length;
-    const checkedCount=supKeys.filter(k=>{const[s,c]=k.split('||');return !isDoneKey(s,c)&&isCheckedKey(s,c);}).length;
-    return {name, supKeys, overdueKeys, outstanding, doneCount, checkedCount, stat:stats.find(x=>x.name===name)};
+    // Done/Checked draw from the WHOLE cycle (b.all), not just today — so a supplier
+    // completed when it was overdue, or ordered early, still shows its ✓ instead of
+    // vanishing. (Bug: STAX done while overdue dropped out of Overdue but never appeared
+    // in Done, because Done only looked at today's list.)
+    const allCycleKeys=[...new Set(b.all.map(r=>r.supplier+'||'+r.channel))];
+    const doneKeys   =allCycleKeys.filter(k=>{const[s,c]=k.split('||');return isDoneKey(s,c);});
+    const checkedKeys=allCycleKeys.filter(k=>{const[s,c]=k.split('||');return !isDoneKey(s,c)&&isCheckedKey(s,c);});
+    const doneCount=doneKeys.length, checkedCount=checkedKeys.length;
+    return {name, supKeys, overdueKeys, outstanding, doneKeys, checkedKeys, doneCount, checkedCount, stat:stats.find(x=>x.name===name)};
   }).sort((a,b)=> (b.overdueKeys.length+b.outstanding.length) - (a.overdueKeys.length+a.outstanding.length) || a.name.localeCompare(b.name));
 
   let html = '';
-  const hasWork = b => b.supKeys.length>0 || b.overdueKeys.length>0;
+  const hasWork = b => b.supKeys.length>0 || b.overdueKeys.length>0 || b.doneKeys.length>0 || b.checkedKeys.length>0;
   const anyWork = buyerRows.some(hasWork);
   if(!anyWork){
     html += `<div style="text-align:center;padding:36px;color:#16a34a;font-size:15px;font-weight:600;background:#f0fdf4;border-radius:12px">✓ No supplier orders are due today</div>`;
@@ -10294,8 +10310,8 @@ function renderTeam(){
     html += buyerRows.filter(hasWork).map(b=>{
       const colour = BUYER_COLOURS[b.name]||'#1e3a5f';
       const doTodayKeys = b.supKeys.filter(k=>{const[s,c]=k.split('||');return !isDoneKey(s,c)&&!isCheckedKey(s,c);});
-      const doneKeys    = b.supKeys.filter(k=>{const[s,c]=k.split('||');return isDoneKey(s,c);});
-      const checkedKeys = b.supKeys.filter(k=>{const[s,c]=k.split('||');return !isDoneKey(s,c)&&isCheckedKey(s,c);});
+      const doneKeys    = b.doneKeys;      // whole-cycle done (not just today)
+      const checkedKeys = b.checkedKeys;   // whole-cycle checked
       const overdueKeys = b.overdueKeys;
       const allDone = doTodayKeys.length===0 && overdueKeys.length===0;
       const headline = allDone
