@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.16.2 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.16.3 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.16.2 · built 2026-07-15 · Team: Checked (blue) distinct from Done (green)</div>
+  <div class="sub">V7.16.3 · built 2026-07-15 · Team: today count now month-aware (fixes done/month mismatch)</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -10162,25 +10162,28 @@ function renderTeam(){
   })();
 
   const stats = Object.entries(buyerMap).map(([name, b])=>{
-    // Today done
+    // Today done — must be done THIS MONTH (a stale prior-month DONE is not "done today").
+    // Checked-this-month also counts as handled so the buyer isn't shown as behind.
     const todayKeys = [...new Set(b.today.map(r=>r.supplier+'||'+r.channel))];
     let doneToday = 0;
     for(const k of todayKeys){
       const [sup,ch]=k.split('||');
       const chKey=ch.toLowerCase().includes('capel')?'capel street':'arklow';
       const po=poMap[sup+'||'+chKey];
-      if(po && po.isDone){ teamDoneSet.add(k); doneToday++; }
+      const doneNow    = po && po.isDone    && po.month===monthNow;
+      const checkedNow = po && po.isChecked && po.month===monthNow;
+      if(doneNow) teamDoneSet.add(k);       // only genuine DONE goes in the done-set
+      if(doneNow||checkedNow) doneToday++;  // both count as handled for the today tally
     }
-    doneToday = todayKeys.filter(k=>teamDoneSet.has(k)).length;
 
-    // Month done
+    // Month done — done OR checked this month counts as handled
     const allKeys = [...new Set(b.all.map(r=>r.supplier+'||'+r.channel))];
     let doneMonth = 0;
     for(const k of allKeys){
       const [sup,ch]=k.split('||');
       const chKey=ch.toLowerCase().includes('capel')?'capel street':'arklow';
       const po=poMap[sup+'||'+chKey];
-      if(po && po.isDone && po.month===monthNow) doneMonth++;
+      if(po && (po.isDone||po.isChecked) && po.month===monthNow) doneMonth++;
     }
 
     const monthPct = allKeys.length ? Math.round(doneMonth/allKeys.length*100) : 0;
