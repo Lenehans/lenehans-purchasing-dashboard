@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.16.3 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.17.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.16.3 · built 2026-07-15 · Team: today count now month-aware (fixes done/month mismatch)</div>
+  <div class="sub">V7.17.0 · built 2026-07-15 · Team: 3-bucket layout (Do today · Done · Checked)</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -10248,34 +10248,53 @@ function renderTeam(){
   if(!anyWork){
     html += `<div style="text-align:center;padding:36px;color:#16a34a;font-size:15px;font-weight:600;background:#f0fdf4;border-radius:12px">✓ No supplier orders are due today</div>`;
   } else {
+    // Chip builder (used inside each bucket)
+    const chip = (k)=>{
+      const [sup,ch]=k.split('||');
+      const done=isDoneKey(sup,ch);
+      const checked=!done && isCheckedKey(sup,ch);
+      const isCapel=ch.toLowerCase().includes('capel');
+      const border = done?'#bbf7d0':checked?'#bfdbfe':'#fed7aa';
+      const bg     = done?'#f0fdf4':checked?'#eff6ff':'#fff7ed';
+      const fg     = done?'#166534':checked?'#1e40af':'#9a3412';
+      const icon   = done?'✓':checked?'✓':'○';
+      const tip    = done?'Ordered (Done)':checked?'Checked — reviewed, no PO raised':'Due today — click to order';
+      return `<button onclick="goToSupplier('${esc(sup)}','${isCapel?'capel':'arklow'}')" title="${tip} — ${esc(ch)}"
+        style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:8px;border:1.5px solid ${border};background:${bg};cursor:pointer;font-size:12px;font-weight:600;color:${fg}">
+        ${icon} ${esc(sup)} <span style="font-size:10px;opacity:.7">${isCapel?'Capel':'Arklow'}</span></button>`;
+    };
+    // One bucket column: heading with count + its chips (or a muted 'none')
+    const bucket = (label, emoji, accent, keys)=>{
+      const chips = keys.length ? keys.map(chip).join('') : `<span style="font-size:11px;color:#cbd5e1">—</span>`;
+      return `<div style="flex:1;min-width:180px">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:${accent};margin-bottom:6px">
+          ${emoji} ${label} <span style="background:${accent};color:#fff;border-radius:10px;padding:0 7px;font-size:11px;margin-left:2px">${keys.length}</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${chips}</div>
+      </div>`;
+    };
+
     html += buyerRows.filter(b=>b.supKeys.length>0).map(b=>{
       const colour = BUYER_COLOURS[b.name]||'#1e3a5f';
-      const allDone = b.outstanding.length===0;
-      const chips = b.supKeys.map(k=>{
-        const [sup,ch]=k.split('||');
-        const done=isDoneKey(sup,ch);
-        const checked=!done && isCheckedKey(sup,ch);
-        const isCapel=ch.toLowerCase().includes('capel');
-        // Three states: green ✓ = ordered (Done), blue ✓ = reviewed no PO (Checked),
-        // orange ○ = still to order.
-        const border = done?'#bbf7d0':checked?'#bfdbfe':'#fed7aa';
-        const bg     = done?'#f0fdf4':checked?'#eff6ff':'#fff7ed';
-        const fg     = done?'#166534':checked?'#1e40af':'#9a3412';
-        const icon   = done?'✓':checked?'✓':'○';
-        const tip    = done?'Ordered (Done)':checked?'Checked — reviewed, no PO raised':'Click to order';
-        return `<button onclick="goToSupplier('${esc(sup)}','${isCapel?'capel':'arklow'}')"
-          title="${tip} — ${esc(ch)}"
-          style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:8px;border:1.5px solid ${border};background:${bg};cursor:pointer;font-size:12px;font-weight:600;color:${fg}">
-          ${icon} ${esc(sup)}${checked?' <span style="font-size:9px;background:#dbeafe;color:#1e40af;padding:1px 5px;border-radius:4px;font-weight:700">CHECKED</span>':''} <span style="font-size:10px;opacity:.7">${isCapel?'Capel':'Arklow'}</span></button>`;
-      }).join('');
+      // Split this buyer's today keys into the three buckets
+      const doTodayKeys = b.supKeys.filter(k=>{const[s,c]=k.split('||');return !isDoneKey(s,c)&&!isCheckedKey(s,c);});
+      const doneKeys    = b.supKeys.filter(k=>{const[s,c]=k.split('||');return isDoneKey(s,c);});
+      const checkedKeys = b.supKeys.filter(k=>{const[s,c]=k.split('||');return !isDoneKey(s,c)&&isCheckedKey(s,c);});
+      const allDone = doTodayKeys.length===0;
+      const headline = allDone
+        ? `<span style="font-size:12px;font-weight:700;color:#16a34a">✓ all handled today</span>`
+        : `<span style="font-size:12px;font-weight:700;color:#c2410c">${doTodayKeys.length} to do today</span>`;
       return `<div style="border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;margin-bottom:12px;background:#fff;border-left:4px solid ${colour}">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
           <span style="font-weight:800;color:${colour};font-size:15px">👤 ${esc(b.name)}</span>
-          <span style="font-size:12px;font-weight:700;color:${allDone?'#16a34a':'#c2410c'}">
-            ${allDone?'✓ all done today':`${b.outstanding.length} still to order`}</span>
-          <span style="margin-left:auto;font-size:11px;color:#94a3b8">${b.doneCount}/${b.supKeys.length} today${b.stat?` · ${b.stat.monthPct}% this month`:''}</span>
+          ${headline}
+          <span style="margin-left:auto;font-size:11px;color:#94a3b8">${b.stat?`${b.stat.monthPct}% this month`:''}</span>
         </div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px">${chips}</div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap">
+          ${bucket('Do today','⚡','#c2410c',doTodayKeys)}
+          ${bucket('Done','✓','#16a34a',doneKeys)}
+          ${bucket('Checked','◐','#1e40af',checkedKeys)}
+        </div>
       </div>`;
     }).join('');
   }
