@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.15.2 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.16.2 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.15.2 · built 2026-07-15 · Fix weather-chip tab switch</div>
+  <div class="sub">V7.16.2 · built 2026-07-15 · Team: Checked (blue) distinct from Done (green)</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -2815,9 +2815,22 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
     var el = G('eiArchiveList'); if (!el) return;
     if (!eiReady) { el.innerHTML = '<div class="ei-empty">Sync Klaviyo to see archive</div>'; return; }
     var theme = (G('eiArchiveTheme')||{}).value||'';
+    // Default: show only the CURRENT month's campaigns — that's what's useful day-to-day.
+    // "Show all" reveals the full 12-month history.
+    var showAll = !!window._eiArchiveShowAll;
+    var nowM = new Date().getMonth();
     var camps = eiCamps.filter(function(c){ return !theme || c.theme===theme; })
-      .filter(function(c){ return c.status !== 'Draft'; });
+      .filter(function(c){ return c.status !== 'Draft'; })
+      .filter(function(c){ return showAll || new Date(c.sent_at).getMonth()===nowM; });
     camps.sort(function(a,b){return new Date(b.sent_at)-new Date(a.sent_at);});
+
+    var toggleBtn = '<div style="margin-bottom:8px">'
+      + '<button onclick="window._eiArchiveShowAll=' + (showAll?'false':'true') + ';window.eiRenderArchive()" '
+      + 'style="padding:5px 12px;border-radius:7px;border:1.5px solid #1e40af;background:' + (showAll?'#1e40af':'#fff') + ';color:' + (showAll?'#fff':'#1e40af') + ';font-size:12px;font-weight:700;cursor:pointer">'
+      + (showAll ? '📅 Showing all 12 months — show current month only' : '🗓 Showing ' + MS[nowM] + ' only — show all 12 months')
+      + '</button></div>';
+
+    if (!camps.length) { el.innerHTML = toggleBtn + '<div class="ei-empty">No campaigns' + (showAll?'':' in ' + MS[nowM]) + '.</div>'; return; }
 
     // Group by month-year
     var groups = {};
@@ -2828,7 +2841,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       groups[k].push(c);
     });
 
-    var html = '<table class="ei-tbl"><thead><tr><th>Date</th><th>Campaign</th><th>Category</th><th class="r">Open%</th><th class="r">Click%</th><th>Status</th></tr></thead><tbody>';
+    var html = toggleBtn + '<table class="ei-tbl"><thead><tr><th>Date</th><th>Campaign</th><th>Category</th><th class="r">Open%</th><th class="r">Click%</th><th>Status</th></tr></thead><tbody>';
     Object.keys(groups).forEach(function(grp) {
       html += '<tr><td colspan="6" style="background:#f1f5f9;font-size:11px;font-weight:800;color:#475569;padding:5px 10px;text-transform:uppercase;letter-spacing:.05em">'+grp+'</td></tr>';
       groups[grp].forEach(function(c) {
@@ -4043,6 +4056,7 @@ loadFallbackOverrides();
 
 // PO done statuses → green
 const PO_DONE_STATUSES = ['done','complete','ordered','sent'];
+const PO_CHECKED_STATUSES = ['checked','reviewed','seen'];
 
 // ─── CATEGORY & SEASONAL RULES ───────────────────────────────────────────────
 const CATEGORY_RULES = [
@@ -6162,6 +6176,7 @@ function parsePOFeed(rows){
   if(!supplierCol) return map;
 
   function isDoneStatus(s){ return PO_DONE_STATUSES.some(d=>(s||'').toLowerCase().includes(d)); }
+  function isCheckedStatus(s){ return PO_CHECKED_STATUSES.some(d=>(s||'').toLowerCase().includes(d)); }
 
   // Flexible column finder — tries multiple possible suffixes for a given channel
   function findCol(prefix, channel, type){
@@ -6218,7 +6233,7 @@ function parsePOFeed(rows){
           if(m) dateAK = m[1];
         }
         history[supplier].arklow.push({
-          raw:statusAK, isDone:isDoneStatus(statusAK),
+          raw:statusAK, isDone:isDoneStatus(statusAK), isChecked:isCheckedStatus(statusAK),
           date:dateAK, person:personAK, month:monthLabel, channel:'arklow', monthIdx:idx
         });
       }
@@ -6230,7 +6245,7 @@ function parsePOFeed(rows){
           if(m) dateCS = m[1];
         }
         history[supplier].capelstreet.push({
-          raw:statusCS, isDone:isDoneStatus(statusCS),
+          raw:statusCS, isDone:isDoneStatus(statusCS), isChecked:isCheckedStatus(statusCS),
           date:dateCS, person:personCS, month:monthLabel, channel:'capel street', monthIdx:idx
         });
       }
@@ -10196,15 +10211,33 @@ function renderTeam(){
   const isDoneKey = (sup,ch)=>{
     const chKey = ch.toLowerCase().includes('capel')?'capel street':'arklow';
     const po = poMap2[sup+'||'+chKey];
-    return (po && po.isDone) || teamDoneSet.has(sup+'||'+ch);
+    // "Done" must mean done THIS MONTH — a supplier marked DONE last month but not
+    // re-ordered this cycle is NOT done, it's overdue. (This was the bug: a June "DONE"
+    // showed as ✓ done in August, contradicting the overdue flag on the Buying screen.)
+    const _nm = v=>String(v||'').replace(/\./g,'').trim().toLowerCase();
+    const nowMonthStr = new Date().toLocaleDateString('en-IE',{month:'short',year:'numeric'});
+    const doneThisMonth = !!(po && po.isDone && _nm(po.month)===_nm(nowMonthStr));
+    return doneThisMonth || teamDoneSet.has(sup+'||'+ch);
+  };
+  const isCheckedKey = (sup,ch)=>{
+    const chKey = ch.toLowerCase().includes('capel')?'capel street':'arklow';
+    const po = poMap2[sup+'||'+chKey];
+    const _nm = v=>String(v||'').replace(/\./g,'').trim().toLowerCase();
+    const nowMonthStr = new Date().toLocaleDateString('en-IE',{month:'short',year:'numeric'});
+    // Checked = buyer reviewed it this month but hasn't raised a PO (distinct from Done).
+    return !!(po && po.isChecked && !po.isDone && _nm(po.month)===_nm(nowMonthStr));
   };
 
   // Sort buyers: those with outstanding work today first
   const buyerRows = Object.entries(buyerMap).map(([name,b])=>{
     const supKeys=[...new Set(b.today.map(r=>r.supplier+'||'+r.channel))];
-    const outstanding=supKeys.filter(k=>{const[s,c]=k.split('||');return !isDoneKey(s,c);});
-    const doneCount=supKeys.length-outstanding.length;
-    return {name, supKeys, outstanding, doneCount, stat:stats.find(x=>x.name===name)};
+    // Outstanding = neither ordered (Done) NOR reviewed (Checked). A checked line is
+    // handled for the buyer, so it doesn't count as "still to order" — but it keeps its
+    // blue chip so you can see it was reviewed, not ordered.
+    const outstanding=supKeys.filter(k=>{const[s,c]=k.split('||');return !isDoneKey(s,c)&&!isCheckedKey(s,c);});
+    const doneCount=supKeys.filter(k=>{const[s,c]=k.split('||');return isDoneKey(s,c);}).length;
+    const checkedCount=supKeys.filter(k=>{const[s,c]=k.split('||');return !isDoneKey(s,c)&&isCheckedKey(s,c);}).length;
+    return {name, supKeys, outstanding, doneCount, checkedCount, stat:stats.find(x=>x.name===name)};
   }).sort((a,b)=> b.outstanding.length - a.outstanding.length || a.name.localeCompare(b.name));
 
   let html = '';
@@ -10218,11 +10251,19 @@ function renderTeam(){
       const chips = b.supKeys.map(k=>{
         const [sup,ch]=k.split('||');
         const done=isDoneKey(sup,ch);
+        const checked=!done && isCheckedKey(sup,ch);
         const isCapel=ch.toLowerCase().includes('capel');
+        // Three states: green ✓ = ordered (Done), blue ✓ = reviewed no PO (Checked),
+        // orange ○ = still to order.
+        const border = done?'#bbf7d0':checked?'#bfdbfe':'#fed7aa';
+        const bg     = done?'#f0fdf4':checked?'#eff6ff':'#fff7ed';
+        const fg     = done?'#166534':checked?'#1e40af':'#9a3412';
+        const icon   = done?'✓':checked?'✓':'○';
+        const tip    = done?'Ordered (Done)':checked?'Checked — reviewed, no PO raised':'Click to order';
         return `<button onclick="goToSupplier('${esc(sup)}','${isCapel?'capel':'arklow'}')"
-          title="${done?'Done':'Click to order'} — ${esc(ch)}"
-          style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:8px;border:1.5px solid ${done?'#bbf7d0':'#fed7aa'};background:${done?'#f0fdf4':'#fff7ed'};cursor:pointer;font-size:12px;font-weight:600;color:${done?'#166534':'#9a3412'}">
-          ${done?'✓':'○'} ${esc(sup)} <span style="font-size:10px;opacity:.7">${isCapel?'Capel':'Arklow'}</span></button>`;
+          title="${tip} — ${esc(ch)}"
+          style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:8px;border:1.5px solid ${border};background:${bg};cursor:pointer;font-size:12px;font-weight:600;color:${fg}">
+          ${icon} ${esc(sup)}${checked?' <span style="font-size:9px;background:#dbeafe;color:#1e40af;padding:1px 5px;border-radius:4px;font-weight:700">CHECKED</span>':''} <span style="font-size:10px;opacity:.7">${isCapel?'Capel':'Arklow'}</span></button>`;
       }).join('');
       return `<div style="border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;margin-bottom:12px;background:#fff;border-left:4px solid ${colour}">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
