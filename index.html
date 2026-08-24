@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.18.2 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.21.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.18.2 · built 2026-07-15 · Team: removed idle-buyers footnote</div>
+  <div class="sub">V7.21.0 · built 2026-07-15 · Home: menu first, actionable seasonal brief</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
@@ -1187,6 +1187,20 @@
 
       </div>
       <div style="margin-top:20px;font-size:12px;color:#94a3b8">Tip: the full tab bar is always along the top if you prefer to jump straight there.</div>
+
+      <div style="margin-top:22px;margin-bottom:18px;border:1px solid #e2e8f0;border-radius:14px;padding:16px 18px;background:#fff">
+        <div style="font-size:15px;font-weight:800;color:#1e293b;margin-bottom:2px">🔎 Ask: "Where are we for…?"</div>
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:12px">Type a product type — e.g. floor paint, slug pellets, de-icer — for a stock &amp; demand picture and what to order.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="catIntelBox" type="text" placeholder="floor paint" onkeydown="if(event.key==='Enter')runCategoryIntel()"
+            style="flex:1;min-width:220px;padding:9px 13px;border:1.5px solid #cbd5e1;border-radius:9px;font-size:14px;outline:none"
+            onfocus="this.style.borderColor='#1e40af'" onblur="this.style.borderColor='#cbd5e1'">
+          <button onclick="runCategoryIntel()" style="padding:9px 18px;background:#1e40af;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer">Analyse</button>
+        </div>
+        <div id="catIntelResult" style="margin-top:14px"></div>
+      </div>
+
+      <div id="seasonalBrief" style="margin-bottom:18px"></div>
     </div>
   </div>
 
@@ -6383,6 +6397,184 @@ function mergeCSIntoRows(rows, csLines){
   return [...rows, ...synthetics];
 }
 
+// Open a seasonal card's low-stock SKUs as an orderable PO-review list.
+function orderSeasonalLows(prof, label){
+  const skus=(window._seasonalLowSkus&&window._seasonalLowSkus[prof])||[];
+  if(!skus.length){ alert('No low-stock lines to order for this range.'); return; }
+  const skuSet=new Set(skus);
+  const seen=new Set();
+  const rows=(state.computedRows||[]).filter(r=>{
+    if(!skuSet.has(r.SKU)||seen.has(r.SKU)) return false;
+    seen.add(r.SKU); return true;
+  });
+  if(!rows.length){ alert('Could not resolve those SKUs.'); return; }
+  // switch to Buying tab so the panel has context, then open the review
+  const bt=document.querySelector('.tab-btn[data-tab="buying"]'); if(bt) bt.click();
+  window._poReviewCtx={rows, seasonal:label};
+  setTimeout(()=>{ try{ showPOReview(rows, false); }catch(e){ console.error(e); } }, 60);
+}
+
+// ─── CATEGORY INTELLIGENCE — "Where are we for X?" ─────────────────────────────
+// Type a product type → find matching SKUs, analyse the stock+demand picture per channel,
+// and give a concrete verdict + supplier link. All facts come from the data (never the
+// AI): what's in stock where, what's selling, where the gap is, and who to order from.
+function runCategoryIntel(){
+  const q=(document.getElementById('catIntelBox')?.value||'').trim().toLowerCase();
+  const out=document.getElementById('catIntelResult');
+  if(!out) return;
+  if(!q){ out.innerHTML='<span style="color:#94a3b8;font-size:13px">Type a product type first.</span>'; return; }
+  const rows=state.computedRows||[];
+  if(!rows.length){ out.innerHTML='<span style="color:#94a3b8;font-size:13px">Data still loading…</span>'; return; }
+
+  // Match SKUs by title containing the query words (all words must appear)
+  const words=q.split(/\s+/).filter(Boolean);
+  const seen=new Set(); const matches=[];
+  for(const r of rows){
+    if(seen.has(r.SKU)) continue;
+    const t=(r.ItemTitle||'').toLowerCase();
+    if(words.every(w=>t.includes(w))){ seen.add(r.SKU); matches.push(r); }
+  }
+  if(!matches.length){
+    out.innerHTML=`<div style="color:#991b1b;font-size:13px">No products found matching "${esc(q)}". Try a broader term (e.g. "paint" not "floor paint gloss").</div>`;
+    return;
+  }
+
+  // Aggregate the picture
+  let akStock=0, csStock=0, akYr=0, csYr=0, csOnlineYr=0, skuCount=matches.length;
+  const oosSelling=[];    // out at Arklow but selling somewhere → order candidates
+  const suppliers={};
+  for(const r of matches){
+    const aStock=r.NetStock_Arklow||0, cStock=r.NetStock_CapelStreet||0;
+    akStock+=aStock; csStock+=cStock;
+    const akOnline=r.QtySold_Online_Arklow_365d||0;
+    const csTill=r.QtySold_Shop_CapelStreet_365d||0;
+    const csOnline=r.QtySold_Online_CapelStreet_365d||0;
+    akYr+=akOnline; csYr+=csTill+csOnline; csOnlineYr+=csOnline;
+    const sup=r.SupplierName||'';
+    if(sup){ suppliers[sup]=(suppliers[sup]||0)+akOnline+csTill+csOnline; }
+    // Order candidate: Arklow out or thin, but there's proven demand (online or Capel)
+    if(aStock<=1 && (akOnline>0 || csOnline>0)){
+      oosSelling.push({sku:r.SKU, title:r.ItemTitle, supplier:sup, aStock, cStock,
+        akOnline, csOnline, csTill, buy:r.buy||0});
+    }
+  }
+  // Top supplier for this category (by units sold)
+  const topSup=Object.entries(suppliers).sort((a,b)=>b[1]-a[1])[0];
+  const topSupName=topSup?topSup[0]:'';
+
+  // Build the verdict
+  const fmtSup = s => esc((s||'').split(' - ')[0]);
+  let verdict='';
+  if(oosSelling.length){
+    oosSelling.sort((a,b)=>(b.akOnline+b.csOnline)-(a.akOnline+a.csOnline));
+    const lines=oosSelling.slice(0,6).map(o=>{
+      const why = o.aStock<=0 ? 'Arklow OUT' : `Arklow only ${o.aStock}`;
+      const dem = o.csOnline>0 ? `Capel online sells ${o.csOnline}/yr` : `${o.akOnline}/yr online`;
+      return `<div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid #f1f5f9">
+        <button onclick="goToSupplier('${esc(o.supplier)}','arklow')" style="font-family:monospace;font-size:11px;font-weight:700;color:#1e40af;background:none;border:none;cursor:pointer;padding:0">${esc(o.sku)}</button>
+        <span style="flex:1;font-size:12px">${esc((o.title||'').substring(0,44))}</span>
+        <span style="font-size:11px;color:#991b1b;font-weight:700">${why}</span>
+        <span style="font-size:11px;color:#64748b">${dem}</span>
+        ${o.buy>0?`<span style="font-size:11px;color:#047857;font-weight:800">buy ${o.buy}</span>`:''}
+      </div>`;
+    }).join('');
+    verdict=`<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px 14px;margin-top:10px">
+      <div style="font-weight:800;color:#9a3412;font-size:13px;margin-bottom:6px">⚠ ${oosSelling.length} line${oosSelling.length!==1?'s':''} to order — out at Arklow but selling</div>
+      ${lines}
+      ${topSupName?`<div style="margin-top:10px;font-size:12px">👉 Main supplier: <button onclick="goToSupplier('${esc(topSupName)}','arklow')" style="font-weight:800;color:#1e40af;background:none;border:none;cursor:pointer;padding:0;font-size:12px">${fmtSup(topSupName)} →</button></div>`:''}
+    </div>`;
+  } else {
+    verdict=`<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 14px;margin-top:10px;font-size:13px;color:#166534;font-weight:600">✓ Stock looks fine across this range — nothing out-and-selling right now.</div>`;
+  }
+
+  out.innerHTML=`
+    <div style="border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;background:#f8fafc">
+      <div style="font-size:14px;font-weight:800;color:#1e293b;margin-bottom:8px">"${esc(q)}" — ${skuCount} product${skuCount!==1?'s':''}</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;font-size:12px;color:#475569">
+        <div><b style="color:#1e293b;font-size:14px">${fmtInt(akStock)}</b> in stock Arklow</div>
+        <div><b style="color:#1e293b;font-size:14px">${fmtInt(csStock)}</b> in stock Capel</div>
+        <div><b style="color:#1e293b;font-size:14px">${fmtInt(akYr)}</b> sold online (12mo)</div>
+        <div><b style="color:#1e293b;font-size:14px">${fmtInt(csYr)}</b> sold Capel (12mo)</div>
+        ${topSupName?`<div>Main supplier: <b style="color:#1e293b">${fmtSup(topSupName)}</b></div>`:''}
+      </div>
+    </div>
+    ${verdict}`;
+}
+
+// "What to get ahead of, right now." Looks at each seasonal profile's monthly ramp,
+// finds the ones climbing over the next ~2 months, and — for each — surfaces the buyer's
+// own products: how many SKUs, what they sold in the last 12 months, and how many are
+// currently low/out of stock heading into season (the ones to order NOW).
+function renderSeasonalBrief(){
+  const el=document.getElementById('seasonalBrief');
+  if(!el) return;
+  const rows=state.computedRows||[];
+  if(!rows.length){ el.innerHTML=''; return; }
+
+  const now=new Date();
+  const thisM=now.getMonth();
+  const nextM=(thisM+1)%12, next2M=(thisM+2)%12;
+  const MNAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  const ramping=[];
+  for(const prof in SEASONAL_PROFILES){
+    if(prof==='NONE') continue;
+    const def=SEASONAL_PROFILES[prof], m=def.monthly, cur=m[thisM], nx=m[nextM], nx2=m[next2M];
+    const peak=Math.max(nx,nx2);
+    if(peak>=cur*1.25 && peak>=1.3){
+      ramping.push({prof, cur, nx, nx2, peak, peakMonth: nx2>nx?next2M:nextM});
+    }
+  }
+  ramping.sort((a,b)=>b.peak-a.peak);
+  if(!ramping.length){ el.innerHTML=''; return; }
+
+  window._seasonalLowSkus = window._seasonalLowSkus || {};
+  const cards=ramping.slice(0,4).map(r=>{
+    const cat=CATEGORY_RULES.find(c=>c.seasonalProfile===r.prof);
+    const label=cat?cat.label:r.prof;
+    const seen=new Set(); let skuCount=0, lowCount=0, lastYearUnits=0, lowValue=0;
+    const lowExamples=[]; const lowSkus=[];
+    for(const row of rows){
+      if(seen.has(row.SKU)) continue;
+      const cls=classifySkuName(row.ItemTitle);
+      if(cls.seasonalProfile!==r.prof) continue;
+      seen.add(row.SKU); skuCount++;
+      const yr=(row.QtySold_Shop_CapelStreet_365d||0)+(row.QtySold_Online_CapelStreet_365d||0)+(row.QtySold_Online_Arklow_365d||0);
+      lastYearUnits+=yr;
+      const stock=row.stock||row.NetStock_Arklow||0;
+      if(yr>0 && stock < Math.max(3, yr/12)){
+        lowCount++; lowValue+=stock*(row._bestKnownCost||0);
+        lowSkus.push(row.SKU);
+        if(lowExamples.length<4) lowExamples.push({t:row.ItemTitle,stock,yr});
+      }
+    }
+    if(!skuCount) return '';
+    window._seasonalLowSkus[r.prof]=lowSkus;
+    const peakName=MNAMES[r.peakMonth];
+    const emoji = /CHRISTMAS/.test(r.prof)?'🎄':/ICE|HEAT|FIRE|RODENT/.test(r.prof)?'❄️':/BBQ|WATERING|INSECT/.test(r.prof)?'☀️':/LAWN|GARDEN|WEED|SLUG|BIRD|FEED|MOSS/.test(r.prof)?'🌱':'📈';
+    return `<div style="border:1px solid #e2e8f0;border-left:4px solid #b45309;border-radius:12px;padding:14px 16px;background:#fff">
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+        <span style="font-size:15px;font-weight:800;color:#b45309">${emoji} ${esc(label)}</span>
+        <span style="font-size:12px;color:#92400e;font-weight:600">ramping now → peaks ${peakName}</span>
+        <span style="margin-left:auto;font-size:11px;color:#94a3b8">${skuCount} SKUs · ${fmtInt(lastYearUnits)} sold last 12mo</span>
+      </div>
+      ${lowCount>0
+        ? `<div style="font-size:13px;color:#991b1b;font-weight:700;margin-bottom:6px">⚠ ${lowCount} line${lowCount!==1?'s':''} low heading into season${lowValue>0?` · only €${fmtInt(lowValue)} on hand`:''}</div>`
+          + `<div style="font-size:12px;color:#475569;line-height:1.5;margin-bottom:10px">${lowExamples.map(e=>`${esc((e.t||'').substring(0,42))} <span style="color:#94a3b8">(${e.stock} in stock, ${e.yr}/yr)</span>`).join(' · ')}${lowCount>4?` <span style="color:#94a3b8">+${lowCount-4} more</span>`:''}</div>`
+          + `<button onclick="orderSeasonalLows('${r.prof}','${esc(label)}')" style="padding:7px 14px;background:#b45309;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">📋 See &amp; order all ${lowCount} →</button>`
+        : `<div style="font-size:12px;color:#16a34a;font-weight:600">✓ Stock looks healthy for this range</div>`}
+    </div>`;
+  }).filter(Boolean);
+
+  if(!cards.length){ el.innerHTML=''; return; }
+  el.innerHTML=`
+    <div style="border:1px solid #fde68a;border-radius:14px;padding:16px 18px;background:linear-gradient(180deg,#fffbeb,#fff)">
+      <div style="font-size:16px;font-weight:800;color:#92400e;margin-bottom:2px">📅 Seasonal buying brief — ${MNAMES[thisM]} ${now.getDate()}</div>
+      <div style="font-size:12px;color:#a16207;margin-bottom:14px">Ranges climbing into season over the next 8 weeks. Order these ahead — right thing, right time.</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px">${cards.join('')}</div>
+    </div>`;
+}
+
 // ─── CLASSIFICATION ──────────────────────────────────────────────────────────
 function normalizeSkuName(name){ return String(name||'').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9\s\-]/g,' ').replace(/\s+/g,' ').trim(); }
 function scoreRuleMatch(name, rule){ let score=0; for(const kw of rule.keywords){ if(name.includes(kw)) score+=kw.split(' ').length*10; } return score; }
@@ -9632,6 +9824,7 @@ function bindEvents(){
   const homeReadyPoll=setInterval(()=>{
     if(state.computedRows && state.computedRows.length){
       homeSetLinks(true);
+      try{ renderSeasonalBrief(); }catch(e){ console.error('seasonal brief:',e); }
       clearInterval(homeReadyPoll);
     }
   }, 500);
