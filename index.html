@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.21.0 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.23.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,8 +1091,9 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.21.0 · built 2026-07-15 · Home: menu first, actionable seasonal brief</div>
+  <div class="sub">V7.23.0 · built 2026-09-08 · Usage logging: who uses what</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
+    <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
     <span id="dataAgeText" style="padding:4px 11px;border-radius:20px;background:#334155;color:#fff;white-space:nowrap">Loading…</span>
     <button id="dataRefreshBtn" title="Reload all feeds now" style="background:#1e40af;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">↻ Refresh</button>
@@ -3585,6 +3586,7 @@ function sortCSList(col){
 const XFER_LOC_FROM = 'Arklow';        // Linnworks location name for the warehouse
 const XFER_LOC_TO   = 'Capel Street';  // Linnworks location name for the shop
 function exportTransferForLinnworks(){
+  try{ logUsage('transfer_export', (window._xferCands||[]).length+' skus'); }catch(e){}
   const cands = window._xferCands || [];
   if(!cands.length){ alert('No transfer lines to export. Open the transfer view first.'); return; }
   const q=s=>{ s=String(s==null?'':s); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; };
@@ -6399,6 +6401,7 @@ function mergeCSIntoRows(rows, csLines){
 
 // Open a seasonal card's low-stock SKUs as an orderable PO-review list.
 function orderSeasonalLows(prof, label){
+  try{ logUsage('seasonal_order', label); }catch(e){}
   const skus=(window._seasonalLowSkus&&window._seasonalLowSkus[prof])||[];
   if(!skus.length){ alert('No low-stock lines to order for this range.'); return; }
   const skuSet=new Set(skus);
@@ -6420,6 +6423,7 @@ function orderSeasonalLows(prof, label){
 // AI): what's in stock where, what's selling, where the gap is, and who to order from.
 function runCategoryIntel(){
   const q=(document.getElementById('catIntelBox')?.value||'').trim().toLowerCase();
+  try{ if(q) logUsage('where_are_we', q); }catch(e){}
   const out=document.getElementById('catIntelResult');
   if(!out) return;
   if(!q){ out.innerHTML='<span style="color:#94a3b8;font-size:13px">Type a product type first.</span>'; return; }
@@ -6578,7 +6582,18 @@ function renderSeasonalBrief(){
 // ─── CLASSIFICATION ──────────────────────────────────────────────────────────
 function normalizeSkuName(name){ return String(name||'').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9\s\-]/g,' ').replace(/\s+/g,' ').trim(); }
 function scoreRuleMatch(name, rule){ let score=0; for(const kw of rule.keywords){ if(name.includes(kw)) score+=kw.split(' ').length*10; } return score; }
+// Memoised: a title's category never changes between recomputes, but classifySkuName
+// scores 42 rules per row on EVERY pass (48k rows). Caching by title cuts each recompute
+// pass substantially. Cache is keyed on the exact input string.
+const _clsCache=new Map();
 function classifySkuName(name){
+  const key=String(name||'');
+  const hit=_clsCache.get(key); if(hit) return hit;
+  const res=_classifySkuNameUncached(key);
+  _clsCache.set(key,res);
+  return res;
+}
+function _classifySkuNameUncached(name){
   const normalized=normalizeSkuName(name); let best=null;
   for(const rule of CATEGORY_RULES){
     const score=scoreRuleMatch(normalized,rule);
@@ -7647,6 +7662,8 @@ function getFilteredRows(){
 async function recompute(){
   const rows = state.governedRows;
   if(!rows || !rows.length){ state.computedRows=[]; render(); return; }
+  const _t0=performance.now();
+  // (timing logged at end of this function — see '[recompute] done')
 
   // ── Chunked computeRow — yields to browser every 1500 rows ──────────────
   // Prevents UI freeze on large datasets; updates progress bar between chunks
@@ -7713,6 +7730,7 @@ async function recompute(){
       }
     }
   } catch(e) {}
+  console.log('[recompute] done — '+fmtInt(rows.length)+' rows in '+((performance.now()-_t0)/1000).toFixed(1)+'s');
 }
 
 // ─── ORDER PREVIEW ───────────────────────────────────────────────────────────
@@ -8775,6 +8793,7 @@ function quickOrderScore(r){
 }
 
 function openImpactOrder(maxSkus){
+  try{ logUsage('smart_order', state.activeSupplier); }catch(e){}
   if(!state.activeSupplier){ alert('Select a supplier first — Quick Order works on one supplier\'s order.'); return; }
   const cap = maxSkus || 15;
   let rows = getFilteredRows().filter(r=>countsInOrderValue(r)
@@ -9004,6 +9023,7 @@ function updateReviewSummary(modal){
 }
 
 function showPOReview(rows, autoExport){
+  try{ logUsage('po_review', (state.activeSupplier||'')+' '+(rows?rows.length:0)+' lines'); }catch(e){}
   // Remove any existing overlay
   document.querySelector('.po-review-overlay')?.remove();
 
@@ -9411,6 +9431,27 @@ function setLoadingState(loading){
 }
 
 // ─── GOVERNANCE LOAD ─────────────────────────────────────────────────────────
+// ── Coalesced recompute ─────────────────────────────────────────────────────
+// Background feeds (do-not-order, schedule, monthly history) used to EACH fire a full
+// 48k-row recompute on arrival — up to 3 redundant passes on top of the initial one.
+// Now they call scheduleRecompute(): it waits a short window so feeds landing close
+// together share ONE pass. Also coalesces if a recompute is already in flight.
+let _recomputeTimer=null, _recomputePending=false;
+function scheduleRecompute(reason){
+  if(!(state.rawRows && state.rawRows.length)) return;
+  _recomputePending=true;
+  if(_recomputeTimer) clearTimeout(_recomputeTimer);
+  _recomputeTimer=setTimeout(async()=>{
+    _recomputeTimer=null;
+    if(!_recomputePending) return;
+    _recomputePending=false;
+    console.log('[recompute] coalesced pass' + (reason?' ('+reason+')':''));
+    try{ await recompute(); }catch(e){ console.error('recompute:',e); }
+    // if more feeds landed during the pass, run once more (never loses an update)
+    if(_recomputePending) scheduleRecompute('late feed');
+  }, 400);
+}
+
 async function loadGovernanceFeeds(){
   const msgs=[];
   // CS + PO feeds are needed BEFORE compute (they build the governed-supplier set that
@@ -9434,7 +9475,7 @@ async function loadGovernanceFeeds(){
         if(!state.excludedSkus.size && exRaw && exRaw.length){
           console.warn('[Do-Not-Order] feed loaded but 0 SKUs parsed — the tab has no column named SKU / Linnworks_SKU. Header was:', exRaw[0]);
         }
-        if(state.rawRows && state.rawRows.length && typeof recompute==='function') recompute();
+        scheduleRecompute('do-not-order');
       })
       .catch(e=>{
         console.error('[Do-Not-Order] LOAD FAILED:', e.message, '— the tab (gid 1233612353) may be missing, renamed, or the sheet not shared for CSV export.');
@@ -9444,7 +9485,7 @@ async function loadGovernanceFeeds(){
   // Buyer schedule — background load; replaces the baked cadence list once it arrives.
   if(!SCHEDULE_URL.includes('SCHEDULE_GID_HERE')){
     fetchCSV(SCHEDULE_URL,'BuyerSchedule')
-      .then(raw=>{ const sc=parseScheduleFeed(raw); if(sc.length){ state.buyerSchedule=sc; _cadenceCache={}; if(state.rawRows&&state.rawRows.length&&typeof recompute==='function') recompute(); if(typeof renderTeam==='function'){ try{renderTeam();}catch(e){} } } })
+      .then(raw=>{ const sc=parseScheduleFeed(raw); if(sc.length){ state.buyerSchedule=sc; _cadenceCache={}; scheduleRecompute('schedule'); if(typeof renderTeam==='function'){ try{renderTeam();}catch(e){} } } })
       .catch(()=>{});
   }
   // Monthly sales history — BACKGROUND. Only affects Seasonal-mode detail + the Email
@@ -9458,7 +9499,7 @@ async function loadGovernanceFeeds(){
         state.monthlyData = parseMonthlyFeed(mRaw);
         state.monthlyLoaded = true;
         console.log('[Monthly history]', Object.keys(state.monthlyData).length, 'SKUs');
-        if(state.rawRows && state.rawRows.length && typeof recompute==='function') recompute();
+        scheduleRecompute('monthly history');
       })
       .catch(e=>{ state.monthlyData = {}; console.warn('[Monthly history] unavailable:', e.message); });
   } else {
@@ -9669,11 +9710,17 @@ function bindEvents(){
     searchEl.addEventListener('input',()=>{ clearTimeout(_searchTimer); _searchTimer=setTimeout(doSearch,300); });
     searchEl.addEventListener('change',doSearch);
   }
-  // All other controls need a full recompute (demand/cover/lead params change computed values)
+  // All other controls need a full recompute (demand/cover/lead params change computed values).
+  // DEBOUNCED: leadDays / baseCoverDays are number inputs, and 'input' fires on EVERY
+  // keystroke — typing "14" used to trigger two full 48k-row recomputes. Now we wait
+  // 500ms after typing stops (or fire immediately on 'change' / blur) so one edit = one pass.
+  let _ctrlTimer=null;
+  const _debouncedRecompute=()=>{ if(!state.rawRows.length) return; clearTimeout(_ctrlTimer); _ctrlTimer=setTimeout(()=>recompute(),500); };
+  const _immediateRecompute=()=>{ if(!state.rawRows.length) return; clearTimeout(_ctrlTimer); recompute(); };
   ['demandMode','leadDays','baseCoverDays','showFilter','excludeHealthyFilter'].forEach(id=>{
     const el=byId(id);if(!el) return;
-    el.addEventListener('input',()=>state.rawRows.length&&recompute());
-    el.addEventListener('change',()=>state.rawRows.length&&recompute());
+    el.addEventListener('input',_debouncedRecompute);
+    el.addEventListener('change',_immediateRecompute);
   });
   const backBtn=byId('backBtn');if(backBtn) backBtn.addEventListener('click',()=>{state.activeSupplier='';render();});
   const buyRiskBtn=byId('buyRiskModeBtn');if(buyRiskBtn) buyRiskBtn.addEventListener('click',applyBuyRiskMode);
@@ -9779,6 +9826,7 @@ function bindEvents(){
       document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+      try{ logUsage('tab', btn.dataset.tab); }catch(e){}
       // Home uses its own cards for navigation, so the tab bar is redundant there —
       // hide it on Home, show it everywhere else for quick jumping between pages.
       const _bar=document.querySelector('.tab-bar');
@@ -9929,10 +9977,25 @@ async function checkForNewVersion(userIdle){
 function setupAutoRefresh(){
   const STALE_MS = 10*60*1000;   // data considered stale after 10 minutes
   const IDLE_MS  = 5*60*1000;    // "idle" = no interaction for 5 minutes
+  const SYNC_HOUR = 7;           // the Apps Script daily sync runs ~7:17am Dublin
+  const SYNC_MIN  = 20;          // give it a few mins past 7:17 to finish writing
   let lastInteraction = Date.now();
   ['mousedown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{lastInteraction=Date.now();},{passive:true}));
   const ageMs = ()=> state.lastLoadedAt ? (Date.now()-state.lastLoadedAt) : Infinity;
   const isIdle = ()=> (Date.now()-lastInteraction) > IDLE_MS;
+
+  // Has today's daily sync run SINCE this data was loaded? If the dashboard was left open
+  // overnight (or from before 7:17am), the sheet now holds fresh stock the browser hasn't
+  // pulled. This catches exactly the "showing 11 when Linnworks says 3" case.
+  function syncRanSinceLoad(){
+    if(!state.lastLoadedAt) return false;
+    const now=new Date();
+    // today's sync completion moment
+    const syncToday=new Date(now); syncToday.setHours(SYNC_HOUR, SYNC_MIN, 0, 0);
+    // only relevant once we're past today's sync time
+    if(now < syncToday) return false;
+    return state.lastLoadedAt < syncToday.getTime();   // loaded before today's sync → stale
+  }
   function fmtAge(ms){
     if(!isFinite(ms)) return '—';
     const m=Math.floor(ms/60000);
@@ -9958,19 +10021,29 @@ function setupAutoRefresh(){
   const btn=document.getElementById('dataRefreshBtn'); if(btn) btn.onclick=doRefresh;
   const _homeBtn=document.getElementById('homeBtn');
   if(_homeBtn) _homeBtn.onclick=()=>{ const h=document.querySelector('.tab-btn[data-tab="home"]'); if(h) h.click(); };
+  // Usage logging: show the badge, ask who they are on first visit
+  try{
+    const u=usageUser(); const ub=document.getElementById('userBadge');
+    if(ub) ub.textContent='👤 '+(u||'—');
+    if(!u) setTimeout(()=>showUserPicker(false), 800); else logUsage('login');
+  }catch(e){}
   // Never auto-refresh or auto-reload while an order review panel is open — it would
   // recompute numbers or reload the page out from under someone mid-order.
   const panelOpen = ()=> !!document.getElementById('poReviewOverlay');
   // Returning to the tab → refresh stale data + check for a newer build
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='visible' && !panelOpen()){
-      if(ageMs()>STALE_MS) doRefresh();
+      // Force a refresh if today's daily sync has run since we loaded (fresh stock waiting),
+      // OR if data is simply stale by age.
+      if(syncRanSinceLoad() || ageMs()>STALE_MS) doRefresh();
       checkForNewVersion(false);
     }
   });
-  // Periodic — only when hidden or idle, and never over an open order panel.
+  // Periodic — refresh when: today's sync ran since load (any time, even active — stale
+  // stock matters), or data is stale AND the user is idle/hidden. Never over an order panel.
   setInterval(()=>{
     if(panelOpen()) return;
+    if(syncRanSinceLoad()){ doRefresh(); return; }   // fresh morning data waiting → pull it
     const idle = document.hidden || isIdle();
     if(ageMs()>STALE_MS && idle) doRefresh();
   }, 5*60*1000);
@@ -10350,6 +10423,51 @@ function updateTeamDateUI(){
   if(sub) sub.textContent = isToday ? 'Today' : teamDate > today ? 'Future' : 'Past';
   if(btn) btn.style.display = isToday ? 'none' : 'inline-block';
 }
+
+// ── USAGE LOGGING (lightweight) ─────────────────────────────────────────────
+// Who uses what. Deliberately small: only meaningful events (tab opens, orders, exports,
+// searches), deduped per session so repeated tab-hopping doesn't spam, and BATCHED —
+// events queue up and post to the proxy every 30s (a few requests per session, not one
+// per click). Lands in a UsageLog tab via the Apps Script proxy.
+const USAGE_USERS = ['David','Elaine','Paul','Liane','Ashling','Mark'];
+function usageUser(){ try{ return localStorage.getItem('lenehans_user')||''; }catch(e){ return ''; } }
+function setUsageUser(name){
+  try{ localStorage.setItem('lenehans_user',name); }catch(e){}
+  const b=document.getElementById('userBadge'); if(b) b.textContent='👤 '+name;
+  const p=document.getElementById('userPicker'); if(p) p.remove();
+  logUsage('login');
+}
+function showUserPicker(force){
+  if(!force && usageUser()) return;
+  if(document.getElementById('userPicker')) return;
+  const d=document.createElement('div'); d.id='userPicker';
+  d.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:99999;display:flex;align-items:center;justify-content:center';
+  d.innerHTML=`<div style="background:#fff;border-radius:14px;padding:26px 28px;max-width:420px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <div style="font-size:18px;font-weight:800;margin-bottom:4px">Who's using the dashboard?</div>
+    <div style="font-size:12px;color:#64748b;margin-bottom:16px">One click — remembered on this computer. Helps us see which features the team actually uses.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${USAGE_USERS.map(u=>`<button onclick="setUsageUser('${u}')" style="padding:12px;border:1.5px solid #cbd5e1;border-radius:9px;background:#f8fafc;font-weight:700;font-size:14px;cursor:pointer">${u}</button>`).join('')}
+    </div>
+  </div>`;
+  document.body.appendChild(d);
+}
+let _usageQueue=[]; const _usageSeen=new Set();
+function logUsage(event, detail){
+  const user=usageUser(); if(!user) return;
+  // dedupe: the same event+detail once per session (tab opens especially)
+  const key=event+'|'+(detail||'');
+  if(_usageSeen.has(key)) return; _usageSeen.add(key);
+  _usageQueue.push({t:new Date().toISOString(), user, event, detail:String(detail||'').substring(0,80)});
+}
+function flushUsage(){
+  if(!_usageQueue.length || !PO_UPDATER_URL) return;
+  const batch=_usageQueue.splice(0,_usageQueue.length);
+  const url=PO_UPDATER_URL+'?action=usage&rows='+encodeURIComponent(JSON.stringify(batch));
+  fetch(url).catch(()=>{ _usageQueue.unshift(...batch); }); // put back on failure, retry next flush
+}
+setInterval(flushUsage, 30*1000);
+window.addEventListener('beforeunload', ()=>{ if(_usageQueue.length&&PO_UPDATER_URL&&navigator.sendBeacon){
+  const batch=_usageQueue.splice(0); navigator.sendBeacon(PO_UPDATER_URL+'?action=usage&rows='+encodeURIComponent(JSON.stringify(batch))); }});
 
 const BUYER_COLOURS = {
   David:'#1e3a5f', Elaine:'#7c3aed', Paul:'#0369a1',
