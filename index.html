@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.23.1 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.23.3 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.23.1 · built 2026-09-08 · Usage logging: who uses what</div>
+  <div class="sub">V7.23.3 · built 2026-09-08 · Buying card: Checked state (no longer shows as pending)</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -6211,12 +6211,24 @@ function parsePOFeed(rows){
   const ALL_MONTHS    = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const FULL_MONTHS   = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const monthPrefixes = [];
+  // Tolerant month detection. The sheet uses inconsistent spellings ("July", "Aug",
+  // "Sept") — "Sept" matched neither the 3-letter "Sep" nor the full "September", so
+  // September was invisible and every September order showed as un-ordered. Now any
+  // header whose FIRST WORD begins with the month's 3-letter stem counts (Sep/Sept/
+  // September all → September). We record the exact prefix the sheet actually used so
+  // column lookups still match precisely.
   ALL_MONTHS.forEach((abbr, i)=>{
-    const full = FULL_MONTHS[i];
-    const hasAbbr = hdrs.some(h=>h.toLowerCase().startsWith(abbr.toLowerCase()+' '));
-    const hasFull = hdrs.some(h=>h.toLowerCase().startsWith(full.toLowerCase()+' '));
-    if(hasAbbr) monthPrefixes.push({ prefix:abbr, idx:i });
-    else if(hasFull) monthPrefixes.push({ prefix:full, idx:i });
+    const stem = abbr.toLowerCase();
+    let usedPrefix = null;
+    for(const h of hdrs){
+      const firstWord = String(h||'').trim().split(/\s+/)[0] || '';
+      const fw = firstWord.toLowerCase();
+      // must start with the stem AND be a month-ish word (not e.g. "Marketing" for Mar)
+      if(fw.startsWith(stem) && (fw===stem || FULL_MONTHS[i].toLowerCase().startsWith(fw) || fw===stem+'t')){
+        usedPrefix = firstWord; break;
+      }
+    }
+    if(usedPrefix) monthPrefixes.push({ prefix:usedPrefix, idx:i });
   });
 
   const history = {};
@@ -8127,6 +8139,10 @@ function renderActionNow(rows){
       overdue = !!(poSt?.isDone && !(_nm(poSt.month)===_nm(nowMonthStr)));
     }
     const doneAndCurrent = !!(poSt?.isDone && !overdue);
+    // Checked THIS month = reviewed, no PO needed. Treat as current/handled (not pending,
+    // not due) — the same meaning as the blue Checked bucket on the Team tab. Previously
+    // a CHECKED supplier fell through to "🔴 PO pending", which contradicted the sheet.
+    const checkedNow = !!(poSt && !poSt.isDone && poSt.isChecked && _nm(poSt.month)===_nm(nowMonthStr));
     const cadenceTag = cadence ? ` · ${esc(cadence)}` : '';
     let poLine='';
     if(poSt?.isDone){
@@ -8136,6 +8152,10 @@ function renderActionNow(rows){
       poLine = doneAndCurrent
         ? `<div class="wl-tile-po">✅ Ordered${lastTxt?` ${lastTxt}`:''}${who}${dueTxt}${cadenceTag}</div>`
         : `<div class="wl-tile-po stale">🔔 Order due${lastTxt?` — last ${lastTxt}`:''}${nextDue?` · was due ${ddmm(nextDue)}`:''}${who}${cadenceTag}</div>`;
+    } else if(checkedNow){
+      const who = poSt.person ? ` · <strong>${esc(poSt.person)}</strong>` : '';
+      const lastTxt = poSt.date ? esc(poSt.date) : '';
+      poLine=`<div class="wl-tile-po" style="background:#eff6ff;border-color:#bfdbfe;color:#1e40af">◐ Checked${lastTxt?` ${lastTxt}`:''}${who} — reviewed, no PO needed${cadenceTag}</div>`;
     } else if(poSt?.month){
       poLine=`<div class="wl-tile-po pending">🔴 PO pending${cadenceTag}</div>`;
     } else {
@@ -8153,7 +8173,7 @@ function renderActionNow(rows){
       ${aItemHtml}
       ${poLine}
       <div class="wl-tile-actions" onclick="event.stopPropagation()">
-        <button class="wl-tile-btn${doneAndCurrent?' green':''}" onclick="if(window.openQuickOrder)openQuickOrder('${safeName}')">${doneAndCurrent?'✓ View order':'⚡ Order Now'}</button>
+        <button class="wl-tile-btn${(doneAndCurrent||checkedNow)?' green':''}" onclick="if(window.openQuickOrder)openQuickOrder('${safeName}')">${doneAndCurrent?'✓ View order':checkedNow?'◐ Checked — view':'⚡ Order Now'}</button>
       </div>
     </div>`;
   }
