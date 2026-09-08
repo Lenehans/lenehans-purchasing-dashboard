@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.23.3 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.23.4 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.23.3 · built 2026-09-08 · Buying card: Checked state (no longer shows as pending)</div>
+  <div class="sub">V7.23.4 · built 2026-09-08 · Fix: current-month check no longer locale-dependent (Sept bug)</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -4071,6 +4071,14 @@ function getSupplierFallback(supplierName){
 loadFallbackOverrides();
 
 // PO done statuses → green
+// Current month label, built from the SAME fixed list the PO-sheet parser uses
+// ("Sep 2026"), so "is this the current month?" can never drift. Previously this used
+// the browser's en-IE locale, which spells September as "Sept" — so "Sep 2026" !==
+// "Sept 2026" and EVERY done/checked-this-month check silently failed all September
+// (Team buckets, Buying card, overdue logic). Never compare locale strings for logic.
+const _MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function currentMonthLabel(){ const d=new Date(); return _MONTH_ABBR[d.getMonth()]+' '+d.getFullYear(); }
+
 const PO_DONE_STATUSES = ['done','complete','ordered','sent'];
 const PO_CHECKED_STATUSES = ['checked','reviewed','seen'];
 
@@ -7785,7 +7793,7 @@ function renderOrderPreview(rows, chPoMap){
   const po=chPoMap[state.activeSupplier];
   const poEl=document.getElementById('opPOStatus');
   if(po){
-    const nowMonthStr2 = new Date().toLocaleDateString('en-IE',{month:'short',year:'numeric'});
+    const nowMonthStr2 = currentMonthLabel();
     const doneThisMonth2 = po.isDone && po.month && po.month===nowMonthStr2;
     const cls = doneThisMonth2 ? 'po-done' : (po.isDone ? 'po-done-old' : 'po-pending');
     const personPart=po.person?' · '+esc(po.person):'';
@@ -8036,7 +8044,7 @@ function renderActionNow(rows){
       const prevDone = po.history.filter(h=>h.date).slice(0,3);
       if(prevDone.length>0){
         html+=`<div style="margin-top:3px;font-size:10px;color:#64748b;line-height:1.6">`;
-        const nowMonth = new Date().toLocaleDateString('en-IE',{month:'short',year:'numeric'});
+        const nowMonth = currentMonthLabel();
         prevDone.forEach(h=>{
           const isCurrentMonth = (h.month||'') === nowMonth;
           const histColour = isCurrentMonth ? '#15803d' : '#d97706';
@@ -8121,7 +8129,7 @@ function renderActionNow(rows){
     // last-order date can't be read.
     const poSt=_chPoMap[s.name];
     const _nm = v=>String(v||'').replace(/\./g,'').trim().toLowerCase();
-    const nowMonthStr = new Date().toLocaleDateString('en-IE',{month:'short',year:'numeric'});
+    const nowMonthStr = currentMonthLabel();
     let cadence=null, overdue=false, nextDue=null;
     try{
       cadence = getCadenceForSupplier(s.name);
@@ -8432,7 +8440,7 @@ function render(){
           const personPart=po.person?' · '+esc(po.person):'';
           const datePart=po.date?' · '+esc(po.date):'';
           // Only show green if done date is in current month
-          const nowMonthStr = new Date().toLocaleDateString('en-IE',{month:'short',year:'numeric'});
+          const nowMonthStr = currentMonthLabel();
           const doneThisMonth = po.isDone && po.month && po.month===nowMonthStr;
           const chipCls = doneThisMonth ? 'po-done' : (po.isDone ? 'po-done-old' : 'po-pending');
           // Build history lines for previous done months
@@ -10576,7 +10584,7 @@ function renderTeam(){
     // re-ordered this cycle is NOT done, it's overdue. (This was the bug: a June "DONE"
     // showed as ✓ done in August, contradicting the overdue flag on the Buying screen.)
     const _nm = v=>String(v||'').replace(/\./g,'').trim().toLowerCase();
-    const nowMonthStr = new Date().toLocaleDateString('en-IE',{month:'short',year:'numeric'});
+    const nowMonthStr = currentMonthLabel();
     const doneThisMonth = !!(po && po.isDone && _nm(po.month)===_nm(nowMonthStr));
     return doneThisMonth || teamDoneSet.has(sup+'||'+ch);
   };
@@ -10584,7 +10592,7 @@ function renderTeam(){
     const chKey = ch.toLowerCase().includes('capel')?'capel street':'arklow';
     const po = poMap2[sup+'||'+chKey];
     const _nm = v=>String(v||'').replace(/\./g,'').trim().toLowerCase();
-    const nowMonthStr = new Date().toLocaleDateString('en-IE',{month:'short',year:'numeric'});
+    const nowMonthStr = currentMonthLabel();
     // Checked = buyer reviewed it this month but hasn't raised a PO (distinct from Done).
     return !!(po && po.isChecked && !po.isDone && _nm(po.month)===_nm(nowMonthStr));
   };
