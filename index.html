@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.23.0 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.23.1 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.23.0 · built 2026-09-08 · Usage logging: who uses what</div>
+  <div class="sub">V7.23.1 · built 2026-09-08 · Usage logging: who uses what</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -10442,11 +10442,11 @@ function showUserPicker(force){
   if(document.getElementById('userPicker')) return;
   const d=document.createElement('div'); d.id='userPicker';
   d.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:99999;display:flex;align-items:center;justify-content:center';
-  d.innerHTML=`<div style="background:#fff;border-radius:14px;padding:26px 28px;max-width:420px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.3)">
-    <div style="font-size:18px;font-weight:800;margin-bottom:4px">Who's using the dashboard?</div>
+  d.innerHTML=`<div style="background:#fff;border-radius:14px;padding:26px 28px;max-width:420px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.3);opacity:1;color:#1e293b">
+    <div style="font-size:20px;font-weight:800;margin-bottom:4px;color:#0f172a">Who's using the dashboard?</div>
     <div style="font-size:12px;color:#64748b;margin-bottom:16px">One click — remembered on this computer. Helps us see which features the team actually uses.</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      ${USAGE_USERS.map(u=>`<button onclick="setUsageUser('${u}')" style="padding:12px;border:1.5px solid #cbd5e1;border-radius:9px;background:#f8fafc;font-weight:700;font-size:14px;cursor:pointer">${u}</button>`).join('')}
+      ${USAGE_USERS.map(u=>`<button onclick="setUsageUser('${u}')" style="padding:16px 12px;border:2px solid #1e40af;border-radius:10px;background:#fff;color:#1e293b;font-weight:800;font-size:17px;cursor:pointer;opacity:1;transition:all .12s" onmouseover="this.style.background='#1e40af';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#1e293b'">${u}</button>`).join('')}
     </div>
   </div>`;
   document.body.appendChild(d);
