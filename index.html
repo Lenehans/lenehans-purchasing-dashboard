@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.23.4 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.23.5 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.23.4 · built 2026-09-08 · Fix: current-month check no longer locale-dependent (Sept bug)</div>
+  <div class="sub">V7.23.5 · built 2026-09-09 · Users: added Luana and Emma-Jane</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -10457,7 +10457,11 @@ function updateTeamDateUI(){
 // searches), deduped per session so repeated tab-hopping doesn't spam, and BATCHED —
 // events queue up and post to the proxy every 30s (a few requests per session, not one
 // per click). Lands in a UsageLog tab via the Apps Script proxy.
-const USAGE_USERS = ['David','Elaine','Paul','Liane','Ashling','Mark'];
+// Everyone who uses the dashboard (for the who-are-you picker + usage log). This is
+// deliberately WIDER than BUYER_COLOURS/the Team worklist: Luana and Emma-Jane use the
+// dashboard (email intelligence etc.) but don't place orders, so they're here but not
+// on the Team tab.
+const USAGE_USERS = ['David','Elaine','Paul','Liane','Ashling','Mark','Luana','Emma-Jane'];
 function usageUser(){ try{ return localStorage.getItem('lenehans_user')||''; }catch(e){ return ''; } }
 function setUsageUser(name){
   try{ localStorage.setItem('lenehans_user',name); }catch(e){}
