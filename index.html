@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.23.5 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.24.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.23.5 · built 2026-09-09 · Users: added Luana and Emma-Jane</div>
+  <div class="sub">V7.24.0 · built 2026-09-11 · Arklow Gap PO: urgent order for live sellers Arklow can’t ship</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -1189,7 +1189,18 @@
       </div>
       <div style="margin-top:20px;font-size:12px;color:#94a3b8">Tip: the full tab bar is always along the top if you prefer to jump straight there.</div>
 
-      <div style="margin-top:22px;margin-bottom:18px;border:1px solid #e2e8f0;border-radius:14px;padding:16px 18px;background:#fff">
+      <div style="margin-top:22px;margin-bottom:18px;border:2px solid #dc2626;border-radius:14px;padding:16px 18px;background:#fff">
+        <div style="font-size:15px;font-weight:800;color:#991b1b;margin-bottom:2px">🚨 Urgent PO — what's selling that Arklow can't ship?</div>
+        <div style="font-size:12px;color:#64748b;margin-bottom:12px">Type a supplier. Finds products <b>sold in the last 7 days</b> that Arklow is <b>out of</b> (so Capel Street is shipping them instead) and builds the order — all rules applied. No thinking required.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="gapSupplierBox" type="text" placeholder="e.g. Donal Lynch or LYN001" onkeydown="if(event.key==='Enter')openArklowGapPO(this.value)"
+            style="flex:1;min-width:220px;padding:9px 13px;border:1.5px solid #fca5a5;border-radius:9px;font-size:14px;outline:none"
+            onfocus="this.style.borderColor='#dc2626'" onblur="this.style.borderColor='#fca5a5'">
+          <button onclick="openArklowGapPO(document.getElementById('gapSupplierBox').value)" style="padding:9px 18px;background:#dc2626;color:#fff;border:none;border-radius:9px;font-weight:800;font-size:14px;cursor:pointer">🚨 Build order now</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:18px;border:1px solid #e2e8f0;border-radius:14px;padding:16px 18px;background:#fff">
         <div style="font-size:15px;font-weight:800;color:#1e293b;margin-bottom:2px">🔎 Ask: "Where are we for…?"</div>
         <div style="font-size:12px;color:#94a3b8;margin-bottom:12px">Type a product type — e.g. floor paint, slug pellets, de-icer — for a stock &amp; demand picture and what to order.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -3218,6 +3229,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
   <button onclick="openWhyBuy()" style="background:#1e40af">🔍 Why Buy?</button>
   <button onclick="openWhyBuyCritical()" style="background:#b91c1c" title="Why Buy — only Out-of-Stock &amp; Critical lines">🔴 Why Buy — Critical</button>
   <button onclick="openImpactOrder(parseInt(document.getElementById('quickCap')?.value)||15)" style="background:#047857" title="Fewest SKUs, biggest impact — ranked by lost-sales risk, value &amp; urgency">⚡ Smart Order</button>
+  <button onclick="openArklowGapPO(state.activeSupplier)" style="background:#dc2626" title="Selling in the last 7 days but Arklow can't ship it — build the urgent order now">🚨 Arklow Gap PO</button>
   <select id="quickCap" title="Max SKUs in the quick order" style="padding:5px 8px;border-radius:6px;border:1px solid #cbd5e1;font-size:12px;font-weight:700">
     <option value="10">Top 10</option>
     <option value="15" selected>Top 15</option>
@@ -6525,6 +6537,58 @@ function runCategoryIntel(){
     ${verdict}`;
 }
 
+// ── ARKLOW GAP PO — "give me an order NOW" ───────────────────────────────────
+// Management ask: products that are SELLING RIGHT NOW but Arklow can't ship, so Capel
+// Street is filling online orders instead (wrong location, shop stock drained, slower).
+// For a supplier: find SKUs with sales in the last 7 days (online, plus Capel till) where
+// Arklow is out or under a few days' cover → build a PO immediately. Quantities come from
+// the existing rules engine (governance, do-not-order, pack sizes all respected); where the
+// engine has no buy figure it falls back to ~14 days of the live 7-day rate, rounded to
+// pack size. Ranked by 7-day velocity so the fastest movers are at the top.
+function openArklowGapPO(supplierName){
+  const q=String(supplierName||'').trim().toLowerCase();
+  if(!q){ alert('Enter a supplier name or code first, e.g. LYN001 or Donal Lynch.'); return; }
+  const rows=state.computedRows||[];
+  if(!rows.length){ alert('Data is still loading — try again in a moment.'); return; }
+  const supRows=rows.filter(r=>String(r.SupplierName||'').toLowerCase().includes(q));
+  if(!supRows.length){ alert('No supplier matching "'+supplierName+'". Try the code (e.g. LYN001) or part of the name.'); return; }
+  const supName=supRows[0].SupplierName;
+  try{ logUsage('arklow_gap_po', supName); }catch(e){}
+
+  const GAP_COVER_DAYS=3;   // Arklow under this many days' cover counts as "can't ship"
+  const seen=new Set(); const picks=[];
+  for(const r of supRows){
+    if(seen.has(r.SKU)) continue;
+    if(r.isDiscontinued) continue;
+    if(typeof isExcludedSku==='function' && isExcludedSku(r.SKU, r.SupplierName)) continue;
+    const on7=r.QtySold_Online_Total_7d||0, till7=r.QtySold_Shop_CapelStreet_7d||0;
+    const sold7=on7+till7;
+    if(sold7<=0) continue;                          // not selling right now → not urgent
+    const akStock=r.NetStock_Arklow||0;
+    const daily7=sold7/7;
+    const akCover=daily7>0 ? akStock/daily7 : 999;
+    if(akStock>0 && akCover>=GAP_COVER_DAYS) continue;   // Arklow can cover it → fine
+    seen.add(r.SKU);
+    const pack=Math.max(1, r.SupplierPackSize||1);
+    let qty=r.buy>0 ? r.buy : Math.ceil((daily7*14 - Math.max(0,akStock))/pack)*pack;
+    qty=Math.max(pack, qty);
+    const capelOnline30=r.QtySold_Online_CapelStreet_30d||0;
+    picks.push({...r, buy:qty, _gapSold7:sold7, _gapCover:akCover, _gapCapelOn30:capelOnline30,
+      _gapWhy: (akStock<=0?'Arklow OUT':('Arklow '+Math.round(akCover)+'d cover'))
+             + ' · sold '+sold7+' in 7d'
+             + (capelOnline30>0?(' · Capel shipping online ('+capelOnline30+'/30d)'):'')});
+  }
+  if(!picks.length){
+    alert(supName+": nothing selling in the last 7 days that Arklow can't cover. No urgent gap right now.");
+    return;
+  }
+  picks.sort((a,b)=>b._gapSold7-a._gapSold7);
+  state.activeSupplier=supName;
+  const bt=document.querySelector('.tab-btn[data-tab="buying"]'); if(bt) bt.click();
+  window._poReviewCtx={rows:picks, supplier:supName, gap:true};
+  setTimeout(()=>{ try{ showPOReview(picks, false); }catch(e){ console.error(e); alert('Could not open PO panel: '+e.message); } }, 80);
+}
+
 // "What to get ahead of, right now." Looks at each seasonal profile's monthly ramp,
 // finds the ones climbing over the next ~2 months, and — for each — surfaces the buyer's
 // own products: how many SKUs, what they sold in the last 12 months, and how many are
@@ -9113,6 +9177,14 @@ function showPOReview(rows, autoExport){
         <input class="po-review-search" type="text" placeholder="Search SKU / item…" oninput="filterPOReview(this.value)">
       </div>
     </div>
+    ${(window._poReviewCtx&&window._poReviewCtx.gap)?`
+    <div style="padding:10px 16px;background:#fef2f2;border-bottom:1px solid #fecaca">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-weight:800;color:#991b1b;font-size:13px">🚨 Arklow Gap PO — ${esc(window._poReviewCtx.supplier||'')}</span>
+        <span style="font-size:12px;color:#7f1d1d">${rows.length} line${rows.length!==1?'s':''} selling in the last 7 days that Arklow can't ship. Fastest movers first. Quantities from the rules engine; export straight to PO.</span>
+      </div>
+      <div style="font-size:11px;color:#991b1b;margin-top:6px;line-height:1.6">${rows.slice(0,8).map(r=>`<b>${esc(r.SKU)}</b> ${esc((r.ItemTitle||'').substring(0,34))} — ${esc(r._gapWhy||'')}`).join('<br>')}${rows.length>8?`<br><span style="color:#b91c1c">…and ${rows.length-8} more below</span>`:''}</div>
+    </div>`:''}
     ${(window._poReviewCtx&&window._poReviewCtx.quick)?`
     <div style="padding:10px 16px;background:#ecfdf5;border-bottom:1px solid #a7f3d0;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <span style="font-weight:800;color:#047857;font-size:13px">⚡ Quick Order</span>
