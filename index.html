@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.24.0 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.26.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.24.0 · built 2026-09-11 · Arklow Gap PO: urgent order for live sellers Arklow can’t ship</div>
+  <div class="sub">V7.26.0 · built 2026-09-15 · Why Buy: full-order scope, CS padlock, Arklow-gap flags inline</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -1797,6 +1797,24 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       <!-- Two-column layout — equal split -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
 
+        <!-- CAMPAIGN CHECKER — paste a draft email's product list, get a verdict -->
+        <div style="grid-column:1 / -1;border:2px solid #7c3aed;border-radius:14px;padding:16px 18px;background:#faf5ff;margin-bottom:4px">
+          <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px">
+            <div style="font-size:15px;font-weight:800;color:#5b21b6">✉️ Check a draft campaign</div>
+            <div style="font-size:12px;color:#6b21a8">Paste the product list (any format — URL, SKU, prices) and get stock, cover, margin at the promo price, season fit, and how these products did in past emails.</div>
+          </div>
+          <textarea id="ccPaste" rows="5" placeholder="Paste lines like:
+https://www.lenehans.ie/...html	1080286	€9.99	5.99	SAVE	40%
+(one product per line — it finds the SKU and the promo price automatically)"
+            style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #c4b5fd;border-radius:9px;font-size:12px;font-family:monospace;resize:vertical;margin-top:8px"></textarea>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
+            <button onclick="runCampaignCheck()" style="padding:8px 16px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-weight:800;font-size:13px;cursor:pointer">✉️ Check this campaign</button>
+            <button onclick="document.getElementById('ccPaste').value='';document.getElementById('ccResult').innerHTML=''" style="padding:8px 12px;background:#fff;border:1px solid #c4b5fd;border-radius:8px;font-size:12px;cursor:pointer;color:#5b21b6">Clear</button>
+            <span style="font-size:11px;color:#7c3aed">Tip: check each draft separately, then compare the verdicts.</span>
+          </div>
+          <div id="ccResult" style="margin-top:12px"></div>
+        </div>
+
         <!-- LEFT: What ran last year -->
         <div>
           <div class="ei-sh" id="eiColAHead">Last May — what you sent</div>
@@ -2327,6 +2345,8 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
             (cp.campaigns || []).forEach(function(c){ if (c.id) eiCampProd[c.id] = c; });
             eiCampProdState = 'cached';
           }
+          // expose for the Campaign Checker (global scope) — read-only mirror
+          window._eiCampProd = eiCampProd; window._eiCampProdState = eiCampProdState;
           _eiAttrStart = false; // recompute coverage start against fresh feed
           // Re-render the parts that depend on real attribution
           eiRenderLastYear(curMonth());
@@ -6537,6 +6557,147 @@ function runCategoryIntel(){
     ${verdict}`;
 }
 
+// ── CAMPAIGN CHECKER — paste a draft email, get a data-backed verdict ────────
+// For each pasted product line: find the SKU (any token that matches a known SKU),
+// find the promo price (the lowest € figure on the line), then score it on:
+//   · STOCK  — Arklow + Capel, and cover days (promoting an OOS line wastes the email)
+//   · MARGIN — promo price ex-VAT vs cost → is this sold below cost? (deliberate or not)
+//   · SEASON — the SKU's seasonal profile multiplier for THIS month (in/out of season)
+//   · HISTORY — every past campaign that sold this SKU (from Klaviyo attribution)
+// Then a headline verdict for the whole email. All facts from data, nothing invented.
+const VAT_RATE_CC = 1.23;
+function runCampaignCheck(){
+  const raw=(document.getElementById('ccPaste')?.value||'').trim();
+  const out=document.getElementById('ccResult'); if(!out) return;
+  if(!raw){ out.innerHTML='<div class="ei-empty">Paste the product list first.</div>'; return; }
+  const rows=state.computedRows||[];
+  if(!rows.length){ out.innerHTML='<div class="ei-empty">Dashboard data still loading — try again in a moment.</div>'; return; }
+  try{ logUsage('campaign_check', raw.split('\n').length+' lines'); }catch(e){}
+
+  // index rows by normalised SKU (dedupe multi-supplier: keep first)
+  const bySku=new Map();
+  for(const r of rows){ const k=String(r.SKU||'').trim().toUpperCase(); if(k&&!bySku.has(k)) bySku.set(k,r); }
+
+  // past campaigns that sold each SKU (from attribution cache)
+  const histBySku=new Map();
+  const _cp=window._eiCampProd||{};
+  if(_cp){
+    for(const id in _cp){
+      const c=_cp[id]; if(!c||!Array.isArray(c.products)) continue;
+      for(const p of c.products){
+        const k=String(p.sku||'').trim().toUpperCase(); if(!k) continue;
+        if(!histBySku.has(k)) histBySku.set(k,[]);
+        histBySku.get(k).push({name:c.name||id, date:c.sentDate||'', qty:p.qty||0, rev:p.rev||0});
+      }
+    }
+  }
+
+  const thisM=new Date().getMonth();
+  const lines=raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  const items=[]; const unmatched=[];
+  for(const line of lines){
+    const toks=line.split(/[\t]+|\s{2,}/).map(t=>t.trim()).filter(Boolean);
+    // SKU = first token that matches a known SKU (strip spaces; try each)
+    let row=null, skuTok='';
+    for(const t of toks){
+      const cand=t.replace(/\s+/g,'').toUpperCase();
+      if(bySku.has(cand)){ row=bySku.get(cand); skuTok=cand; break; }
+    }
+    if(!row){ // fallback: any whitespace-split token
+      for(const t of line.split(/\s+/)){ const cand=t.replace(/[^A-Za-z0-9_\-\.]/g,'').toUpperCase(); if(cand&&bySku.has(cand)){ row=bySku.get(cand); skuTok=cand; break; } }
+    }
+    if(!row){ unmatched.push(line.substring(0,70)); continue; }
+    // prices: all € / decimal numbers on the line; promo = lowest, rrp = highest
+    const nums=(line.match(/€?\s*\d+[\.,]\d{2}/g)||[]).map(x=>parseFloat(x.replace(/[€\s,]/g,'')||'0')).filter(n=>n>0);
+    const promo=nums.length?Math.min(...nums):0, rrp=nums.length?Math.max(...nums):0;
+
+    const cost=(row.RealCost>0?row.RealCost:row.SupplierCostPrice)||0;
+    const promoNet=promo>0?promo/VAT_RATE_CC:0;
+    const marginPct=(promoNet>0&&cost>0)?((promoNet-cost)/promoNet*100):null;
+    const belowCost=(promoNet>0&&cost>0&&promoNet<cost);
+    const ak=row.NetStock_Arklow||0, cs=row.NetStock_CapelStreet||0, stock=ak+cs;
+    const cover=row.daysOfCover!=null?row.daysOfCover:null;
+    const sold30=(row.QtySold_Online_Total_30d||0)+(row.QtySold_Shop_CapelStreet_30d||0);
+    // season
+    let seasonMult=1, seasonProf='NONE';
+    try{ const cls=classifySkuName(row.ItemTitle); seasonProf=cls.seasonalProfile||'NONE';
+      const prof=SEASONAL_PROFILES[seasonProf]; if(prof&&prof.monthly) seasonMult=prof.monthly[thisM]||1; }catch(e){}
+    const hist=histBySku.get(skuTok)||[];
+    const histQty=hist.reduce((a,h)=>a+h.qty,0), histRev=hist.reduce((a,h)=>a+h.rev,0);
+    items.push({row, sku:skuTok, title:row.ItemTitle||'', promo, rrp, cost, marginPct, belowCost,
+      ak, cs, stock, cover, sold30, seasonMult, seasonProf, hist, histQty, histRev});
+  }
+
+  if(!items.length){
+    out.innerHTML=`<div class="ei-empty">No SKUs recognised. ${unmatched.length?'Unmatched: '+esc(unmatched.slice(0,3).join(' | ')):''}</div>`; return;
+  }
+
+  // ── headline stats
+  const n=items.length;
+  const oos=items.filter(i=>i.stock<=0).length;
+  const thin=items.filter(i=>i.stock>0 && i.cover!=null && i.cover<7).length;
+  const below=items.filter(i=>i.belowCost).length;
+  const outSeason=items.filter(i=>i.seasonProf!=='NONE' && i.seasonMult<0.8).length;
+  const inSeason=items.filter(i=>i.seasonProf!=='NONE' && i.seasonMult>=1.2).length;
+  const proven=items.filter(i=>i.histQty>0).length;
+  const avgDisc=items.filter(i=>i.rrp>0&&i.promo>0).map(i=>(1-i.promo/i.rrp)*100);
+  const avgDiscPct=avgDisc.length?avgDisc.reduce((a,b)=>a+b,0)/avgDisc.length:0;
+
+  // score 0-100: season + stock + history, penalise OOS/below-cost
+  let score=50;
+  score += inSeason/n*30; score -= outSeason/n*30;
+  score -= oos/n*40; score -= thin/n*10;
+  score += proven/n*15; score -= below/n*10;
+  score=Math.max(0,Math.min(100,Math.round(score)));
+  const verdictCol=score>=70?'#16a34a':score>=45?'#d97706':'#dc2626';
+  const verdictTxt=score>=70?'Strong — send it':score>=45?'OK — fix the flagged lines first':'Weak — rethink this one';
+
+  const flag=(cond,txt,col)=>cond?`<span style="background:${col};color:#fff;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:4px">${txt}</span>`:'';
+  const rowsHtml=items.map(i=>{
+    const stockCol=i.stock<=0?'#dc2626':(i.cover!=null&&i.cover<7)?'#d97706':'#16a34a';
+    const seasonTxt=i.seasonProf==='NONE'?'<span style="color:#94a3b8">—</span>':
+      (i.seasonMult>=1.2?`<span style="color:#16a34a;font-weight:700">In season ${i.seasonMult.toFixed(1)}×</span>`:
+       i.seasonMult<0.8?`<span style="color:#dc2626;font-weight:700">Out of season ${i.seasonMult.toFixed(1)}×</span>`:
+       `<span style="color:#64748b">Neutral ${i.seasonMult.toFixed(1)}×</span>`);
+    const mTxt=i.marginPct==null?'<span style="color:#94a3b8">no cost</span>':
+      `<span style="color:${i.belowCost?'#dc2626':i.marginPct<20?'#d97706':'#16a34a'};font-weight:700">${i.marginPct.toFixed(0)}%</span>`;
+    const histTxt=i.hist.length?`<span title="${esc(i.hist.map(h=>(h.date||'').substring(0,10)+' '+h.name+' ('+h.qty+')').join('\n'))}" style="color:#5b21b6;font-weight:700;cursor:help">${i.hist.length} email${i.hist.length!==1?'s':''} · ${fmtInt(i.histQty)} sold</span>`:'<span style="color:#94a3b8">never featured</span>';
+    return `<tr>
+      <td style="font-family:monospace;font-size:11px;font-weight:700;color:#1e40af">${esc(i.sku)}</td>
+      <td style="max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(i.title)}">${esc(i.title)}</td>
+      <td style="text-align:right">${i.rrp>0?'€'+i.rrp.toFixed(2):'—'}${i.promo>0&&i.promo<i.rrp?` → <b>€${i.promo.toFixed(2)}</b>`:''}</td>
+      <td style="text-align:right;color:${stockCol};font-weight:700">${fmtInt(i.stock)}${i.stock>0?` <span style="font-size:10px;color:#94a3b8">(AK ${fmtInt(i.ak)} · CS ${fmtInt(i.cs)})</span>`:''}${flag(i.stock<=0,'OOS','#dc2626')}</td>
+      <td style="text-align:right">${i.cover!=null&&i.cover<999?fmtInt(i.cover)+'d':'—'}</td>
+      <td style="text-align:right">${fmtInt(i.sold30)}</td>
+      <td style="text-align:right">${mTxt}${flag(i.belowCost,'BELOW COST','#dc2626')}</td>
+      <td>${seasonTxt}</td>
+      <td>${histTxt}</td>
+    </tr>`;
+  }).join('');
+
+  const issues=[];
+  if(oos) issues.push(`<b style="color:#dc2626">${oos} out of stock</b> — remove or restock before sending; promoting an OOS line burns the click`);
+  if(thin) issues.push(`<b style="color:#d97706">${thin} thin</b> (under 7 days cover) — likely to sell out mid-campaign`);
+  if(below) issues.push(`<b style="color:#dc2626">${below} priced below cost</b> — fine for deliberate clearance, but confirm each is intended`);
+  if(outSeason) issues.push(`<b style="color:#dc2626">${outSeason} out of season</b> this month — fighting the calendar; frame as clearance, not demand`);
+  if(inSeason) issues.push(`<b style="color:#16a34a">${inSeason} in season</b> right now — these are your hooks, lead with them`);
+  if(proven) issues.push(`<b style="color:#5b21b6">${proven} proven in past emails</b> — hover the history column to see which campaigns and how many sold`);
+
+  out.innerHTML=`
+    <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-radius:10px;background:#fff;border:1px solid #e9d5ff;margin-bottom:10px">
+      <div><div style="font-size:30px;font-weight:900;color:${verdictCol};line-height:1">${score}</div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">score /100</div></div>
+      <div style="font-size:15px;font-weight:800;color:${verdictCol}">${verdictTxt}</div>
+      <div style="margin-left:auto;font-size:12px;color:#475569">${n} products · avg discount ${avgDiscPct.toFixed(0)}%${unmatched.length?` · <span style="color:#d97706">${unmatched.length} line${unmatched.length!==1?'s':''} not matched</span>`:''}</div>
+    </div>
+    ${issues.length?`<ul style="margin:0 0 10px;padding-left:18px;font-size:12px;color:#334155;line-height:1.7">${issues.map(x=>`<li>${x}</li>`).join('')}</ul>`:''}
+    <div style="overflow:auto;max-height:52vh"><table class="ei-tbl" style="font-size:12px">
+      <thead><tr><th>SKU</th><th>Product</th><th style="text-align:right">Price</th><th style="text-align:right">Stock</th><th style="text-align:right">Cover</th><th style="text-align:right">30d sold</th><th style="text-align:right">Margin @ promo</th><th>Season</th><th>Past emails</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table></div>
+    ${unmatched.length?`<div style="font-size:11px;color:#94a3b8;margin-top:8px">Not matched to a SKU: ${esc(unmatched.slice(0,4).join(' · '))}${unmatched.length>4?' …':''}</div>`:''}
+    ${(window._eiCampProdState!=='cached')?`<div style="font-size:11px;color:#b45309;margin-top:6px">⚠ Past-email history not loaded — hit <b>Sync Klaviyo</b> to include which campaigns sold these before.</div>`:''}`;
+}
+
 // ── ARKLOW GAP PO — "give me an order NOW" ───────────────────────────────────
 // Management ask: products that are SELLING RIGHT NOW but Arklow can't ship, so Capel
 // Street is filling online orders instead (wrong location, shop stock drained, slower).
@@ -6563,26 +6724,40 @@ function openArklowGapPO(supplierName){
     if(typeof isExcludedSku==='function' && isExcludedSku(r.SKU, r.SupplierName)) continue;
     const on7=r.QtySold_Online_Total_7d||0, till7=r.QtySold_Shop_CapelStreet_7d||0;
     const sold7=on7+till7;
-    if(sold7<=0) continue;                          // not selling right now → not urgent
+    const sold30=(r.QtySold_Online_Total_30d||0)+(r.QtySold_Shop_CapelStreet_30d||0);
+    const engineBuy=r.buy||0;   // the rules engine's own demand-based buy (includes seasonal)
+    // TWO TIERS. Tier 1 = selling NOW (7d). Tier 2 = not this week, but sold in the last
+    // 30d OR the engine's seasonal demand says it's due (e.g. dehumidifier bags in
+    // September that haven't sold yet but will). A 7-day-only gate missed exactly the
+    // "it's time of year for it" case.
+    const tier = sold7>0 ? 1 : ((sold30>0 || engineBuy>0) ? 2 : 0);
+    if(tier===0) continue;                          // no demand signal at all → not urgent
     const akStock=r.NetStock_Arklow||0;
-    const daily7=sold7/7;
-    const akCover=daily7>0 ? akStock/daily7 : 999;
-    if(akStock>0 && akCover>=GAP_COVER_DAYS) continue;   // Arklow can cover it → fine
+    const daily = sold7>0 ? sold7/7 : (sold30>0 ? sold30/30 : 0);
+    const akCover = daily>0 ? akStock/daily : (akStock>0 ? 999 : 0);
+    // tier 1: Arklow out or under GAP_COVER_DAYS. tier 2: Arklow must be actually OUT
+    // (thin-but-present on a slow line isn't urgent).
+    if(tier===1 && akStock>0 && akCover>=GAP_COVER_DAYS) continue;
+    if(tier===2 && akStock>0) continue;
     seen.add(r.SKU);
     const pack=Math.max(1, r.SupplierPackSize||1);
-    let qty=r.buy>0 ? r.buy : Math.ceil((daily7*14 - Math.max(0,akStock))/pack)*pack;
+    let qty = engineBuy>0 ? engineBuy
+            : Math.ceil(((daily>0?daily:0.5)*14 - Math.max(0,akStock))/pack)*pack;
     qty=Math.max(pack, qty);
     const capelOnline30=r.QtySold_Online_CapelStreet_30d||0;
-    picks.push({...r, buy:qty, _gapSold7:sold7, _gapCover:akCover, _gapCapelOn30:capelOnline30,
-      _gapWhy: (akStock<=0?'Arklow OUT':('Arklow '+Math.round(akCover)+'d cover'))
-             + ' · sold '+sold7+' in 7d'
+    const demandTxt = sold7>0 ? ('sold '+sold7+' in 7d')
+                    : sold30>0 ? ('sold '+sold30+' in 30d')
+                    : ('seasonal demand — engine says buy '+engineBuy);
+    picks.push({...r, buy:qty, _gapTier:tier, _gapSold7:sold7, _gapSold30:sold30, _gapCover:akCover, _gapCapelOn30:capelOnline30,
+      _gapWhy: (tier===1?'🔥 ':'📅 ') + (akStock<=0?'Arklow OUT':('Arklow '+Math.round(akCover)+'d cover'))
+             + ' · ' + demandTxt
              + (capelOnline30>0?(' · Capel shipping online ('+capelOnline30+'/30d)'):'')});
   }
   if(!picks.length){
     alert(supName+": nothing selling in the last 7 days that Arklow can't cover. No urgent gap right now.");
     return;
   }
-  picks.sort((a,b)=>b._gapSold7-a._gapSold7);
+  picks.sort((a,b)=> (a._gapTier-b._gapTier) || (b._gapSold7-a._gapSold7) || (b._gapSold30-a._gapSold30) || (b.buy-a.buy));
   state.activeSupplier=supName;
   const bt=document.querySelector('.tab-btn[data-tab="buying"]'); if(bt) bt.click();
   window._poReviewCtx={rows:picks, supplier:supName, gap:true};
@@ -8888,7 +9063,7 @@ function openImpactOrder(maxSkus){
   try{ logUsage('smart_order', state.activeSupplier); }catch(e){}
   if(!state.activeSupplier){ alert('Select a supplier first — Quick Order works on one supplier\'s order.'); return; }
   const cap = maxSkus || 15;
-  let rows = getFilteredRows().filter(r=>countsInOrderValue(r)
+  let rows = getSupplierOrderRows().filter(r=>true
     && (r.stock<=0 || r.coverStatus==='Critical' || r.coverStatus==='Low' || r.coverStatus==='Out of Stock'));
   if(!rows.length){ alert('No critical or low-stock lines for this supplier right now.'); return; }
   rows = rows.map(r=>({...r, _qScore:quickOrderScore(r)}))
@@ -8898,10 +9073,25 @@ function openImpactOrder(maxSkus){
   showPOReview(rows, false);
 }
 
+// All order lines for the active supplier — the SAME scope the supplier card's headline
+// value uses (every countsInOrderValue row), NOT the on-screen filtered view. Why Buy and
+// PO export must explain the whole order; previously they went through getFilteredRows(),
+// so "Excl. healthy"/"Buy>0" toggles silently dropped lines (e.g. CS floor top-ups with
+// healthy cover) and the panel total (€3.4k) disagreed with the card (€3.7k).
+function getSupplierOrderRows(){
+  if(!state.activeSupplier) return [];
+  const seen=new Set();
+  return (state.computedRows||[]).filter(r=>{
+    if(r.SupplierName!==state.activeSupplier) return false;
+    if(!countsInOrderValue(r)) return false;
+    return true;
+  });
+}
+
 function openWhyBuy(){
   if(!state.activeSupplier){ alert('Select a supplier first — Why Buy works on one supplier\'s order.'); return; }
-  const rows=getFilteredRows().filter(countsInOrderValue);
-  if(!rows.length){alert('No buy lines in current view.');return;}
+  const rows=getSupplierOrderRows();
+  if(!rows.length){alert('No buy lines for this supplier.');return;}
   rows.sort((a,b)=>{
     const pa=a.stock<=0?0:a.coverStatus==='Critical'?1:a.coverStatus==='Low'?2:3;
     const pb=b.stock<=0?0:b.coverStatus==='Critical'?1:b.coverStatus==='Low'?2:3;
@@ -8914,7 +9104,7 @@ function openWhyBuy(){
 // same edit persistence. Useful for a fast "just the fires" review.
 function openWhyBuyCritical(){
   if(!state.activeSupplier){ alert('Select a supplier first — Why Buy works on one supplier\'s order.'); return; }
-  const rows=getFilteredRows().filter(r=>countsInOrderValue(r) && (r.stock<=0 || r.coverStatus==='Critical' || r.coverStatus==='Out of Stock'));
+  const rows=getSupplierOrderRows().filter(r=>(r.stock<=0 || r.coverStatus==='Critical' || r.coverStatus==='Out of Stock'));
   if(!rows.length){alert('No critical or out-of-stock buy lines in current view.');return;}
   rows.sort((a,b)=>{
     const pa=a.stock<=0?0:a.coverStatus==='Critical'?1:2;
@@ -9136,8 +9326,23 @@ function showPOReview(rows, autoExport){
     const ooDate = state.channel==='capel' ? r.OnOrderDate_CS : r.OnOrderDate_AK;
     const _ooP = ooDate ? ooDate.split('-') : null;   // [YYYY, MM, DD]
     const ooDateShort = (_ooP && _ooP.length===3) ? `${_ooP[2]}/${_ooP[1]}/${_ooP[0].slice(2)}` : '';
-    tBody+=`<tr>
-      <td><span class="po-rev-sku">${esc(r.SKU)}</span></td>
+    // 🔒 CS-required lines carry the same padlock as the main table (can't be omitted)
+    const csLock = r._csRequired ? `<span class="chip cs-req" title="CS-required — minimum floor ${fmtInt(r._csQtyFloor||0)}. Cannot be omitted from PO export.${r._csReason?' '+esc(r._csReason):''}" style="margin-left:4px;font-size:10px">🔒 CS ${fmtInt(r._csQtyFloor||0)}</span>` : '';
+    // 🚨 Arklow Gap merged INTO Why Buy: flag lines that are selling (7d) or due to sell
+    // (30d / seasonal) but Arklow can't ship — same rule as the Gap PO, shown inline in RED.
+    let gapFlag='';
+    if(state.channel!=='capel'){
+      const g7=(r.QtySold_Online_Total_7d||0)+(r.QtySold_Shop_CapelStreet_7d||0);
+      const g30=(r.QtySold_Online_Total_30d||0)+(r.QtySold_Shop_CapelStreet_30d||0);
+      const gAK=r.NetStock_Arklow||0;
+      const gDaily=g7>0?g7/7:(g30>0?g30/30:0);
+      const gCover=gDaily>0?gAK/gDaily:(gAK>0?999:0);
+      if(g7>0 && (gAK<=0 || gCover<3)) gapFlag=`<span title="Selling now (${g7} in 7d) and Arklow ${gAK<=0?'is OUT':'has '+Math.round(gCover)+'d cover'} — Capel is shipping this" style="margin-left:4px;font-size:10px;font-weight:800;color:#fff;background:#dc2626;border-radius:4px;padding:1px 6px">🔥 GAP</span>`;
+      else if(g7===0 && gAK<=0 && (g30>0 || (r.buy||0)>0)) gapFlag=`<span title="Due to sell (${g30>0?g30+' in 30d':'seasonal demand'}) and Arklow is OUT" style="margin-left:4px;font-size:10px;font-weight:800;color:#991b1b;background:#fee2e2;border:1px solid #fca5a5;border-radius:4px;padding:1px 6px">📅 GAP</span>`;
+    }
+    const gapRowStyle = gapFlag.includes('🔥') ? ' style="background:#fff5f5"' : '';
+    tBody+=`<tr${gapRowStyle}>
+      <td><span class="po-rev-sku">${esc(r.SKU)}</span>${csLock}${gapFlag}</td>
       <td style="max-width:210px;font-size:11.5px">${esc(r.ItemTitle||r.title||'')}</td>
       <td class="r"><span style="font-weight:700;color:${r.stock<=0?'#dc2626':r.stock<10?'#d97706':'#166534'}">${fmtInt(r.stock)}</span></td>
       <td class="r">${onOrder>0?`<span style="font-weight:700;color:#1e40af" title="On order (inbound)${ooDateShort?' — placed '+ooDateShort:''} — factor this in before ordering more">📦 ${fmtInt(onOrder)}${ooDateShort?`<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px">placed ${ooDateShort}</div>`:''}</span>`:'<span style="color:#cbd5e1">—</span>'}</td>
@@ -9181,7 +9386,7 @@ function showPOReview(rows, autoExport){
     <div style="padding:10px 16px;background:#fef2f2;border-bottom:1px solid #fecaca">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <span style="font-weight:800;color:#991b1b;font-size:13px">🚨 Arklow Gap PO — ${esc(window._poReviewCtx.supplier||'')}</span>
-        <span style="font-size:12px;color:#7f1d1d">${rows.length} line${rows.length!==1?'s':''} selling in the last 7 days that Arklow can't ship. Fastest movers first. Quantities from the rules engine; export straight to PO.</span>
+        <span style="font-size:12px;color:#7f1d1d">${rows.length} line${rows.length!==1?'s':''} Arklow can't ship. <b>🔥 ${rows.filter(r=>r._gapTier===1).length} selling now</b> (last 7 days) · <b>📅 ${rows.filter(r=>r._gapTier===2).length} due to sell</b> (sold in 30d or seasonal demand, Arklow out). Quantities from the rules engine; export straight to PO.</span>
       </div>
       <div style="font-size:11px;color:#991b1b;margin-top:6px;line-height:1.6">${rows.slice(0,8).map(r=>`<b>${esc(r.SKU)}</b> ${esc((r.ItemTitle||'').substring(0,34))} — ${esc(r._gapWhy||'')}`).join('<br>')}${rows.length>8?`<br><span style="color:#b91c1c">…and ${rows.length-8} more below</span>`:''}</div>
     </div>`:''}
