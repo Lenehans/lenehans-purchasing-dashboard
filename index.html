@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.26.0 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.28.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.26.0 · built 2026-09-15 · Why Buy: full-order scope, CS padlock, Arklow-gap flags inline</div>
+  <div class="sub">V7.28.0 · built 2026-09-28 · Be Emergency Ready stock check (gov.ie checklist)</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -1115,6 +1115,7 @@
     <button class="tab-btn" data-tab="sales">📊 Sales</button>
     <button class="tab-btn" data-tab="email">📧 Email Intelligence</button>
     <button class="tab-btn" data-tab="margincalc">🧮 Margin Calc</button>
+    <button class="tab-btn" data-tab="pricereview">💶 Price Review</button>
     <button class="tab-btn" data-tab="barcodes">🏷️ Barcodes</button>
     <button class="tab-btn" data-tab="deliveries" style="display:none">🚚 Deliveries</button>
     <div id="weatherChip" style="display:none;margin-left:auto;align-self:center;
@@ -1182,6 +1183,7 @@
           <div style="display:flex;flex-direction:column;gap:7px">
             <button class="home-link" data-goto="margincalc">🧮 Margin Calculator</button>
             <button class="home-link" data-goto="barcodes">🏷️ Barcode Generator</button>
+            <button class="home-link" data-goto="pricereview">💶 Price Review</button>
             <button class="home-link" data-goto="movein">🏠 Move-In</button>
           </div>
         </div>
@@ -1208,6 +1210,7 @@
             style="flex:1;min-width:220px;padding:9px 13px;border:1.5px solid #cbd5e1;border-radius:9px;font-size:14px;outline:none"
             onfocus="this.style.borderColor='#1e40af'" onblur="this.style.borderColor='#cbd5e1'">
           <button onclick="runCategoryIntel()" style="padding:9px 18px;background:#1e40af;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer">Analyse</button>
+          <button onclick="runEmergencyReady()" title="Gov.ie 'Be Emergency Ready' household checklist — stock check across every category at once" style="padding:9px 14px;background:#b91c1c;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer">🛟 Emergency Ready check</button>
         </div>
         <div id="catIntelResult" style="margin-top:14px"></div>
       </div>
@@ -1910,6 +1913,29 @@ https://www.lenehans.ie/...html	1080286	€9.99	5.99	SAVE	40%
       </div>
     </div>
   </div><!-- /tab-margincalc -->
+
+  <div class="tab-panel" id="tab-pricereview">
+    <div style="max-width:1200px;margin:0 auto;padding:14px 0">
+      <h2 style="margin:0 0 4px;font-size:20px">💶 Price Review — price-point increases</h2>
+      <p style="color:#64748b;font-size:13px;margin:0 0 14px">Applies your rules to every SKU's <b>list price</b> (inc-VAT), counts what changes, and costs the margin effect using the last 12 months' sales. Volumes assumed unchanged — see the sensitivity line.</p>
+
+      <div style="border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;background:#f8fafc;margin-bottom:14px">
+        <div style="font-weight:800;font-size:13px;margin-bottom:8px">Rules</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;font-size:12px">
+          <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="prRule49" checked> <b>x.49 → x.99</b> (1.49→1.99, 2.49→2.99, 3.49→3.99 …) under €10</label>
+          <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="prRule899" checked> <b>8.99 → 9.99</b></label>
+          <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="prRulePlus1" checked> <b>+€1.00</b> on prices from <input id="prPlusFrom" type="number" step="0.01" value="10.99" style="width:70px"> to <input id="prPlusTo" type="number" step="0.01" value="39.99" style="width:70px"></label>
+          <label style="display:flex;align-items:center;gap:8px">Protected (never change): <input id="prProtected" type="text" value="0.99, 1.99, 2.99, 3.99, 4.99, 5.99, 6.99, 7.99, 9.99" style="flex:1;min-width:200px"></label>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button onclick="runPriceReview()" style="padding:8px 16px;background:#1e40af;color:#fff;border:none;border-radius:8px;font-weight:800;font-size:13px;cursor:pointer">▶ Run analysis</button>
+          <button onclick="exportPriceReview()" id="prExportBtn" style="padding:8px 14px;background:#fff;border:1.5px solid #1e40af;color:#1e40af;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;display:none">⤓ Export price changes (CSV)</button>
+          <span style="font-size:11px;color:#94a3b8">Only SKUs with a list price in Linnworks are analysed. Margin = (price ÷ 1.23) − cost.</span>
+        </div>
+      </div>
+      <div id="prResult"><div class="cs-no-data">Run the analysis to see how many SKUs change and the margin effect.</div></div>
+    </div>
+  </div>
 
   <div class="tab-panel" id="tab-barcodes">
     <div style="padding:16px 0;max-width:1000px">
@@ -6019,6 +6045,7 @@ function normalizeRow(r){
     OnOrderQty_CS_PO: n('OO_CS'),
     Revenue_Online_Total_365d: n('Rev_On365'),        // 12-mo online revenue (inc-VAT)
     Revenue_Shop_CapelStreet_365d: n('Rev_ShCS365'),  // 12-mo Capel till revenue (inc-VAT)
+    RetailPrice: n('RetailPrice'),   // list price inc-VAT (from StockItem.RetailPrice)
     AgeDays: (r.AgeDays===''||r.AgeDays==null) ? null : n('AgeDays'),   // days since StockItem.CreationDate
     AltSupplier: String(r.AltSupplier||'').trim(),   // cheapest alternative supplier (name)
     AltCost: n('AltCost'),                            // its known purchase price
@@ -6555,6 +6582,169 @@ function runCategoryIntel(){
       </div>
     </div>
     ${verdict}`;
+}
+
+// ── BE EMERGENCY READY — gov.ie household checklist vs our stock ─────────────
+// Maps each item on the Office of Emergency Planning checklist (gov.ie/BeEmergencyReady)
+// to the SKUs we stock, and shows per category: what we have, what's out, what's selling,
+// and where the range GAPS are. Storm season demand driver — the state is telling every
+// household to buy these. One click; reuses the Where-are-we-for engine per category.
+const EMERGENCY_READY = [
+  {cat:'Torches & lanterns',   why:'"Keep a torch or lamp with spare batteries"',       rx:/\b(torch|head ?torch|headlamp|lantern|flashlight|emergency (light|lamp|bulb)|camping (light|lamp))\b/i, not:/\b(blow ?torch|torch lily|welding)\b/i},
+  {cat:'Batteries',            why:'"…with spare batteries" / radio spare batteries',   rx:/\b(batteries|battery pack|\bAA\b|\bAAA\b|alkaline|duracell|energizer|varta|panasonic)\b/i, not:/\b(battery (powered|operated)|rechargeable (drill|tool)|car battery)\b/i},
+  {cat:'Wind-up / solar radio',why:'"Battery, wind-up or solar radio"',               rx:/\b(radio)\b/i, not:/\b(radiator|radio ?controlled)\b/i},
+  {cat:'Power banks',          why:'"Power banks ready for recharging phones"',        rx:/\b(power ?bank|portable charger|phone charger)\b/i},
+  {cat:'Warmth & thermal',     why:'"Blankets, sleeping bags, emergency thermal blankets"', rx:/\b(foil blanket|thermal blanket|emergency blanket|space blanket|sleeping bag|hot water bottle|hand warmer|fleece blanket|blanket)\b/i, not:/\b(weed|frost|snow) blanket\b/i},
+  {cat:'Matches, lighters, candles', why:'"Keep matches or a lighter in a safe place"', rx:/\b(matches|lighter|firelighter|candle|tea ?light|night ?light)\b/i, not:/\b(gas lighter refill|lighter fluid)\b/i},
+  {cat:'First aid',            why:'"Have a first aid kit ready"',                     rx:/\b(first aid|plasters?|bandage|antiseptic)\b/i},
+  {cat:'Water storage',        why:'"2–3 litres of drinking water per person per day"', rx:/\b(water (container|carrier|can|jerry)|jerry ?can|water bottle|drinking water)\b/i, not:/\b(water butt|hot water|water (feature|pump|filter cartridge))\b/i},
+  {cat:'Waterproof storage',   why:'"Documents in a resealable waterproof bag"',        rx:/\b(dry ?bag|waterproof (bag|box|case|pouch)|zip ?lock|resealable|document (wallet|bag)|storage box)\b/i},
+  {cat:'Storm & flood',        why:'Storms and flooding are the named risks',           rx:/\b(sandbag|flood (barrier|bag|gate)|tarpaulin|tarp|duct tape|gaffer|rope|bungee|ratchet strap)\b/i},
+  {cat:'Off-grid heating & cooking', why:'Alternative heat when the power is out',     rx:/\b(camping stove|gas stove|butane|gas cartridge|portable (gas )?heater|paraffin|calor|camping gas)\b/i, not:/\b(electric|oil.filled|fan heater)\b/i},
+];
+function runEmergencyReady(){
+  const out=document.getElementById('catIntelResult'); if(!out) return;
+  const rows=state.computedRows||[];
+  if(!rows.length){ out.innerHTML='<span style="color:#94a3b8;font-size:13px">Data still loading…</span>'; return; }
+  try{ logUsage('emergency_ready'); }catch(e){}
+  const cards=[]; let stocked=0, thin=0, gaps=0;
+  for(const c of EMERGENCY_READY){
+    const seen=new Set(); const m=[];
+    for(const r of rows){
+      if(seen.has(r.SKU)) continue;
+      const t=String(r.ItemTitle||'');
+      if(!c.rx.test(t)) continue;
+      if(c.not && c.not.test(t)) continue;
+      if(r.isDiscontinued) continue;
+      seen.add(r.SKU); m.push(r);
+    }
+    const ak=m.reduce((a,r)=>a+(r.NetStock_Arklow||0),0), cs=m.reduce((a,r)=>a+(r.NetStock_CapelStreet||0),0);
+    const oos=m.filter(r=>((r.NetStock_Arklow||0)+(r.NetStock_CapelStreet||0))<=0).length;
+    const sold30=m.reduce((a,r)=>a+(r.QtySold_Online_Total_30d||0)+(r.QtySold_Shop_CapelStreet_30d||0),0);
+    const selling=m.filter(r=>((r.QtySold_Online_Total_30d||0)+(r.QtySold_Shop_CapelStreet_30d||0))>0);
+    const oosSelling=m.filter(r=>((r.NetStock_Arklow||0)+(r.NetStock_CapelStreet||0))<=0 && ((r.QtySold_Online_Total_30d||0)+(r.QtySold_Shop_CapelStreet_30d||0)+(r.QtySold_Online_Arklow_365d||0))>0);
+    let status, col, bg;
+    if(!m.length){ status='❌ RANGE GAP — we stock nothing here'; col='#991b1b'; bg='#fef2f2'; gaps++; }
+    else if(oos>=m.length*0.5 || (selling.length && oosSelling.length>=selling.length*0.5)){ status=`⚠️ THIN — ${oos} of ${m.length} out of stock`; col='#b45309'; bg='#fffbeb'; thin++; }
+    else { status=`✅ STOCKED — ${m.length} SKUs, ${fmtInt(ak+cs)} units`; col='#166534'; bg='#f0fdf4'; stocked++; }
+    const top=m.slice().sort((a,b)=>((b.QtySold_Online_Total_30d||0)+(b.QtySold_Shop_CapelStreet_30d||0))-((a.QtySold_Online_Total_30d||0)+(a.QtySold_Shop_CapelStreet_30d||0))).slice(0,3);
+    const kw=c.cat.toLowerCase().split(/[ &\/,]+/)[0];
+    cards.push(`<div style="border:1px solid #e2e8f0;border-left:4px solid ${col};border-radius:10px;padding:12px 14px;background:${bg}">
+      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap"><span style="font-weight:800;color:#0f172a;font-size:14px">${esc(c.cat)}</span><span style="font-size:11px;color:#64748b;font-style:italic">${esc(c.why)}</span></div>
+      <div style="font-weight:700;color:${col};font-size:12px;margin:6px 0">${status}</div>
+      ${m.length?`<div style="font-size:11px;color:#475569">AK <b>${fmtInt(ak)}</b> · CS <b>${fmtInt(cs)}</b> · sold 30d <b>${fmtInt(sold30)}</b> · ${oos} OOS${oosSelling.length?` · <b style="color:#dc2626">${oosSelling.length} OOS but selling</b>`:''}</div>
+      <div style="font-size:11px;color:#334155;margin-top:6px;line-height:1.5">${top.map(r=>`${esc((r.ItemTitle||'').substring(0,40))} <span style="color:#94a3b8">(${fmtInt((r.NetStock_Arklow||0)+(r.NetStock_CapelStreet||0))} stk)</span>`).join(' · ')}</div>
+      <button onclick="document.getElementById('catIntelBox').value='${esc(kw)}';runCategoryIntel()" style="margin-top:8px;padding:5px 10px;font-size:11px;background:#fff;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;color:#1e40af;font-weight:700">See lines →</button>`
+      :`<div style="font-size:11px;color:#7f1d1d">No matching products in the catalogue. Worth sourcing before storm season — the state is telling households to buy this.</div>`}
+    </div>`);
+  }
+  out.innerHTML=`
+    <div style="border:1px solid #fecaca;border-radius:10px;padding:12px 14px;background:#fff;margin-bottom:12px">
+      <div style="font-size:14px;font-weight:800;color:#991b1b">🛟 Be Emergency Ready — gov.ie household checklist vs our stock</div>
+      <div style="font-size:12px;color:#475569;margin-top:2px">The Office of Emergency Planning is telling every household to build a kit. <b>${stocked} categories stocked · ${thin} thin · ${gaps} range gaps.</b> Storm season starts October — restock the thin ones and source the gaps.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px">${cards.join('')}</div>`;
+}
+
+// ── PRICE REVIEW — price-point increases + margin effect ─────────────────────
+// Rules (all on the inc-VAT list price, RetailPrice):
+//   R49  : x.49 → x.99 for prices under €10 (1.49→1.99, 2.49→2.99 …)
+//   R899 : 8.99 → 9.99
+//   PLUS1: +€1.00 on any price within [from, to] (default 10.99–39.99)
+//   Protected price points are never changed (default: the .99 anchors under €10 the
+//   business treats as sensitive, e.g. 2.99 / 3.99 / 4.99).
+// Effect = Δ(ex-VAT price) × last-12-month units (all channels), volume held constant.
+const PR_VAT=1.23;
+function priceReviewNewPrice(p, cfg){
+  const r2=x=>Math.round(x*100)/100;
+  const cents=Math.round(p*100)%100;
+  const whole=Math.floor(p);
+  if(cfg.protected.has(r2(p))) return {np:p, rule:'protected'};
+  if(cfg.r899 && r2(p)===8.99) return {np:9.99, rule:'8.99→9.99'};
+  if(cfg.r49 && cents===49 && p<10) return {np:r2(whole+0.99), rule:'x.49→x.99'};
+  if(cfg.plus1 && p>=cfg.plusFrom-1e-9 && p<=cfg.plusTo+1e-9) return {np:r2(p+1), rule:'+€1 (10.99–39.99)'};
+  return {np:p, rule:'unchanged'};
+}
+function readPriceReviewCfg(){
+  const g=id=>document.getElementById(id);
+  const prot=new Set(String(g('prProtected')?.value||'').split(/[,\s]+/).map(x=>parseFloat(x)).filter(x=>!isNaN(x)).map(x=>Math.round(x*100)/100));
+  return { r49:!!g('prRule49')?.checked, r899:!!g('prRule899')?.checked, plus1:!!g('prRulePlus1')?.checked,
+           plusFrom:parseFloat(g('prPlusFrom')?.value)||10.99, plusTo:parseFloat(g('prPlusTo')?.value)||39.99, protected:prot };
+}
+function runPriceReview(){
+  const out=document.getElementById('prResult'); if(!out) return;
+  const rows=state.computedRows||[];
+  if(!rows.length){ out.innerHTML='<div class="cs-no-data">Data still loading.</div>'; return; }
+  try{ logUsage('price_review'); }catch(e){}
+  const cfg=readPriceReviewCfg();
+  const seen=new Set(); const changes=[]; let noPrice=0, analysed=0;
+  const byRule={};
+  let curGP=0, newGP=0, curRev=0, newRev=0, unitsAll=0, curGPall=0, newGPall=0, curRevAll=0, newRevAll=0;
+  for(const r of rows){
+    if(seen.has(r.SKU)) continue; seen.add(r.SKU);
+    const p=r.RetailPrice||0;
+    if(!(p>0)){ noPrice++; continue; }
+    analysed++;
+    const cost=(r.RealCost>0?r.RealCost:r.SupplierCostPrice)||0;
+    const units=(r.QtySold_Shop_CapelStreet_365d||0)+(r.QtySold_Online_CapelStreet_365d||0)+(r.QtySold_Online_Arklow_365d||0);
+    const {np,rule}=priceReviewNewPrice(p,cfg);
+    const curNet=p/PR_VAT, newNet=np/PR_VAT;
+    // whole-catalogue baseline (for GP% before/after)
+    unitsAll+=units; curRevAll+=curNet*units; newRevAll+=newNet*units; curGPall+=(curNet-cost)*units; newGPall+=(newNet-cost)*units;
+    if(np===p) continue;
+    const dNet=newNet-curNet;
+    const uplift=dNet*units;
+    if(!byRule[rule]) byRule[rule]={skus:0,withSales:0,units:0,uplift:0,revUplift:0};
+    const b=byRule[rule]; b.skus++; if(units>0) b.withSales++; b.units+=units; b.uplift+=uplift; b.revUplift+=(np-p)*units;
+    curGP+=(curNet-cost)*units; newGP+=(newNet-cost)*units; curRev+=curNet*units; newRev+=newNet*units;
+    changes.push({sku:r.SKU,title:r.ItemTitle||'',supplier:r.SupplierName||'',p,np,rule,cost,units,uplift,
+      curM:curNet>0?(curNet-cost)/curNet*100:null, newM:newNet>0?(newNet-cost)/newNet*100:null});
+  }
+  window._prChanges=changes;
+  const totSkus=changes.length, totUplift=changes.reduce((a,c)=>a+c.uplift,0), totRevUplift=changes.reduce((a,c)=>a+(c.np-c.p)*c.units,0);
+  const withSales=changes.filter(c=>c.units>0).length;
+  const gpBefore=curRevAll>0?curGPall/curRevAll*100:0, gpAfter=newRevAll>0?newGPall/newRevAll*100:0;
+  const changedGpBefore=curRev>0?curGP/curRev*100:0, changedGpAfter=newRev>0?newGP/newRev*100:0;
+  const ruleOrder=['x.49→x.99','8.99→9.99','+€1 (10.99–39.99)'];
+  const ruleRows=ruleOrder.filter(k=>byRule[k]).map(k=>{const b=byRule[k];return `<tr><td><b>${esc(k)}</b></td><td class="r">${fmtInt(b.skus)}</td><td class="r">${fmtInt(b.withSales)}</td><td class="r">${fmtInt(b.units)}</td><td class="r" style="font-weight:800;color:#166534">€${fmtInt(b.uplift)}</td><td class="r">€${fmtInt(b.revUplift)}</td></tr>`;}).join('');
+  changes.sort((a,b)=>b.uplift-a.uplift);
+  const top=changes.slice(0,40).map(c=>`<tr>
+    <td style="font-family:monospace;font-size:11px;font-weight:700;color:#1e40af">${esc(c.sku)}</td>
+    <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(c.title)}">${esc(c.title)}</td>
+    <td style="font-size:11px">${esc((c.supplier||'').split(' - ')[0])}</td>
+    <td class="r">€${c.p.toFixed(2)} → <b>€${c.np.toFixed(2)}</b></td>
+    <td style="font-size:11px">${esc(c.rule)}</td>
+    <td class="r">${fmtInt(c.units)}</td>
+    <td class="r">${c.curM!=null?c.curM.toFixed(0)+'%':'—'} → <b>${c.newM!=null?c.newM.toFixed(0)+'%':'—'}</b></td>
+    <td class="r" style="font-weight:800;color:#166534">€${fmtInt(c.uplift)}</td>
+  </tr>`).join('');
+  const btn=document.getElementById('prExportBtn'); if(btn) btn.style.display=totSkus?'inline-block':'none';
+  const sens=[0,-3,-5,-10].map(v=>{ const u=totUplift*(1+v/100)+ (v<0? (v/100)*curGP : 0); return `<span style="margin-right:14px">${v===0?'no volume loss':v+'% volume'}: <b style="color:${u>=0?'#166534':'#dc2626'}">€${fmtInt(u)}</b></span>`; }).join('');
+  out.innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:14px">
+      <div class="cs-summary-stat"><div class="val" style="color:#1e40af">${fmtInt(totSkus)}</div><div class="lbl">SKUs change price<br><span style="font-size:10px;color:#94a3b8">of ${fmtInt(analysed)} with a list price · ${fmtInt(withSales)} sold in last 12mo</span></div></div>
+      <div class="cs-summary-stat"><div class="val" style="color:#166534">€${fmtInt(totUplift)}</div><div class="lbl">Extra gross profit / year<br><span style="font-size:10px;color:#94a3b8">ex-VAT, at last-12-month volumes</span></div></div>
+      <div class="cs-summary-stat"><div class="val">€${fmtInt(totRevUplift)}</div><div class="lbl">Extra revenue / year (inc-VAT)</div></div>
+      <div class="cs-summary-stat"><div class="val">${changedGpBefore.toFixed(1)}% → <span style="color:#166534">${changedGpAfter.toFixed(1)}%</span></div><div class="lbl">GP% on the changed SKUs</div></div>
+      <div class="cs-summary-stat"><div class="val">${gpBefore.toFixed(1)}% → <span style="color:#166534">${gpAfter.toFixed(1)}%</span></div><div class="lbl">GP% whole catalogue (priced SKUs)</div></div>
+    </div>
+    <div style="font-size:12px;color:#475569;margin-bottom:12px;padding:10px 12px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px">
+      <b>Sensitivity</b> — profit uplift if the increase costs some volume on the changed lines: ${sens}
+      <span style="color:#94a3b8">(assumes lost units would have earned today's margin)</span>
+    </div>
+    <div style="font-weight:800;font-size:13px;margin:6px 0">By rule</div>
+    <table class="ei-tbl" style="font-size:12px;margin-bottom:16px"><thead><tr><th>Rule</th><th class="r">SKUs</th><th class="r">…with sales</th><th class="r">Units / yr</th><th class="r">GP uplift / yr</th><th class="r">Revenue uplift / yr</th></tr></thead><tbody>${ruleRows||'<tr><td colspan=6 style="color:#94a3b8">No rules matched</td></tr>'}</tbody></table>
+    <div style="font-weight:800;font-size:13px;margin:6px 0">Top 40 by profit impact <span style="font-weight:400;color:#94a3b8;font-size:11px">(export for the full list of ${fmtInt(totSkus)})</span></div>
+    <div style="overflow:auto;max-height:50vh"><table class="ei-tbl" style="font-size:12px"><thead><tr><th>SKU</th><th>Product</th><th>Supplier</th><th class="r">Price</th><th>Rule</th><th class="r">Units/yr</th><th class="r">Margin</th><th class="r">GP uplift</th></tr></thead><tbody>${top}</tbody></table></div>
+    ${noPrice?`<div style="font-size:11px;color:#94a3b8;margin-top:8px">${fmtInt(noPrice)} SKUs have no list price in Linnworks and were skipped.</div>`:''}`;
+}
+function exportPriceReview(){
+  const ch=window._prChanges||[]; if(!ch.length){ alert('Run the analysis first.'); return; }
+  const q=s=>{ s=String(s==null?'':s); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
+  const lines=['SKU,Product,Supplier,Current Price,New Price,Rule,Cost,Units 12mo,Current GP%,New GP%,GP Uplift/yr'];
+  ch.forEach(c=>lines.push([q(c.sku),q(c.title),q(c.supplier),c.p.toFixed(2),c.np.toFixed(2),q(c.rule),c.cost.toFixed(2),c.units,c.curM!=null?c.curM.toFixed(1):'',c.newM!=null?c.newM.toFixed(1):'',c.uplift.toFixed(2)].join(',')));
+  const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='price_review_'+new Date().toISOString().slice(0,10)+'.csv'; a.click(); URL.revokeObjectURL(a.href);
 }
 
 // ── CAMPAIGN CHECKER — paste a draft email, get a data-backed verdict ────────
