@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.28.0 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.29.0 · REORDER-POINT ENGINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.28.0 · built 2026-09-28 · Be Emergency Ready stock check (gov.ie checklist)</div>
+  <div class="sub">V7.29.0 · built 2026-09-30 · Supplier price list → order (EAN matching)</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -1200,6 +1200,21 @@
             onfocus="this.style.borderColor='#dc2626'" onblur="this.style.borderColor='#fca5a5'">
           <button onclick="openArklowGapPO(document.getElementById('gapSupplierBox').value)" style="padding:9px 18px;background:#dc2626;color:#fff;border:none;border-radius:9px;font-weight:800;font-size:14px;cursor:pointer">🚨 Build order now</button>
         </div>
+      </div>
+
+      <div style="margin-bottom:18px;border:2px solid #0f766e;border-radius:14px;padding:16px 18px;background:#fff">
+        <div style="font-size:15px;font-weight:800;color:#115e59;margin-bottom:2px">📋 Supplier price list → order</div>
+        <div style="font-size:12px;color:#64748b;margin-bottom:10px">Paste a supplier's product list (any layout — codes, sizes, pack, EAN barcodes). It matches each line to <b>our stock by EAN</b>, shows stock &amp; sales, and suggests an order rounded to the supplier's pack size. Lines we don't stock are flagged as range gaps.</div>
+        <textarea id="slPaste" rows="5" placeholder="Paste the list here — e.g.
+Fine Sea Salt drum	SSFCTDP63	350g	6	238	34	7	5011289 002499	05011289 002512"
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #99f6e4;border-radius:9px;font-size:12px;font-family:monospace;resize:vertical"></textarea>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
+          <button onclick="runSupplierList()" style="padding:8px 16px;background:#0f766e;color:#fff;border:none;border-radius:8px;font-weight:800;font-size:13px;cursor:pointer">▶ Match &amp; suggest order</button>
+          <button id="slPoBtn" onclick="openSupplierListPO()" style="display:none;padding:8px 14px;background:#1e40af;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">📦 Open as PO</button>
+          <button onclick="document.getElementById('slPaste').value='';document.getElementById('slResult').innerHTML='';document.getElementById('slPoBtn').style.display='none'" style="padding:8px 12px;background:#fff;border:1px solid #cbd5e1;border-radius:8px;font-size:12px;cursor:pointer">Clear</button>
+          <label style="font-size:12px;color:#475569;margin-left:6px">Cover target <input id="slCoverDays" type="number" value="30" min="7" max="120" style="width:52px"> days</label>
+        </div>
+        <div id="slResult" style="margin-top:12px"></div>
       </div>
 
       <div style="margin-bottom:18px;border:1px solid #e2e8f0;border-radius:14px;padding:16px 18px;background:#fff">
@@ -1751,6 +1766,11 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       <div id="teamLeaderboard" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px"></div>
       <!-- Buyer order detail (hidden until card clicked) -->
       <div id="teamOrderList" style="display:none"></div>
+    </div>
+    <div style="margin-top:22px;border-top:1px dashed #e2e8f0;padding-top:14px">
+      <button onclick="renderUsageStats()" style="padding:7px 14px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">📈 Dashboard usage stats</button>
+      <span style="font-size:11px;color:#94a3b8;margin-left:8px">Who's using what — from the UsageLog (last 30 days)</span>
+      <div id="usageStats" style="margin-top:12px"></div>
     </div>
   </div><!-- /tab-team -->
 
@@ -6584,6 +6604,79 @@ function runCategoryIntel(){
     ${verdict}`;
 }
 
+// ── USAGE STATS — who's using what (reads the UsageLog tab) ───────────────────
+// The UsageLog tab was created by the proxy so we don't know its gid; Google's gviz
+// endpoint fetches a tab BY NAME, which sidesteps that. Same sheet as the PO feeds.
+const USAGE_SHEET_ID='1RatBuXuxKn2mpznYga2pupmbTnv2m_H46BLZIxN3pKo';
+const USAGE_LOG_URL=`https://docs.google.com/spreadsheets/d/${USAGE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=UsageLog`;
+const USAGE_EVENT_LABELS={login:'Opened dashboard',tab:'Tab opened',po_review:'Why Buy / PO review',smart_order:'Smart Order',arklow_gap_po:'Arklow Gap PO',transfer_export:'Transfer export',where_are_we:'"Where are we for"',seasonal_order:'Seasonal brief → order',campaign_check:'Campaign Checker',price_review:'Price Review',emergency_ready:'Emergency Ready check'};
+async function renderUsageStats(){
+  const el=document.getElementById('usageStats'); if(!el) return;
+  el.innerHTML='<div style="color:#94a3b8;font-size:12px">Loading UsageLog…</div>';
+  let rows;
+  try{ rows=await fetchCSV(USAGE_LOG_URL,'UsageLog'); }
+  catch(e){ el.innerHTML='<div style="color:#dc2626;font-size:12px">Could not read the UsageLog tab: '+esc(e.message)+'. Check the tab exists in the PO Status sheet and the sheet is shared for CSV export.</div>'; return; }
+  if(!rows||rows.length<2){ el.innerHTML='<div class="ei-empty">UsageLog is empty — no events logged yet.</div>'; return; }
+  const h=rows[0].map(x=>String(x||'').trim().toLowerCase());
+  const iT=h.indexOf('time'), iU=h.indexOf('user'), iE=h.indexOf('event'), iD=h.indexOf('detail');
+  if(iT<0||iU<0||iE<0){ el.innerHTML='<div style="color:#dc2626;font-size:12px">UsageLog columns not recognised (need Time, User, Event, Detail).</div>'; return; }
+  const now=Date.now(), DAY=86400000, cutoff=now-30*DAY, cutoff7=now-7*DAY;
+  const ev=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i]; const t=new Date(r[iT]); if(isNaN(t)) continue;
+    if(t.getTime()<cutoff) continue;
+    ev.push({t, user:String(r[iU]||'').trim(), event:String(r[iE]||'').trim(), detail:String(r[iD]||'').trim()});
+  }
+  if(!ev.length){ el.innerHTML='<div class="ei-empty">No usage events in the last 30 days.</div>'; return; }
+  // per user
+  const byUser={};
+  for(const e of ev){
+    const u=byUser[e.user]||(byUser[e.user]={events:0,days:new Set(),last:0,tabs:{},features:{}});
+    u.events++; u.days.add(e.t.toISOString().slice(0,10)); if(e.t.getTime()>u.last) u.last=e.t.getTime();
+    if(e.event==='tab') u.tabs[e.detail]=(u.tabs[e.detail]||0)+1;
+    else if(e.event!=='login') u.features[e.event]=(u.features[e.event]||0)+1;
+  }
+  // per tab / feature (all users)
+  const tabs={}, feats={}, searches={};
+  for(const e of ev){
+    if(e.event==='tab') tabs[e.detail]=(tabs[e.detail]||0)+1;
+    else if(e.event==='where_are_we'){ feats[e.event]=(feats[e.event]||0)+1; searches[e.detail]=(searches[e.detail]||0)+1; }
+    else if(e.event!=='login') feats[e.event]=(feats[e.event]||0)+1;
+  }
+  // daily active users, last 14 days
+  const daily=[]; for(let d=13;d>=0;d--){ const day=new Date(now-d*DAY).toISOString().slice(0,10); const us=new Set(ev.filter(e=>e.t.toISOString().slice(0,10)===day).map(e=>e.user)); daily.push({day,n:us.size}); }
+  const maxDaily=Math.max(1,...daily.map(x=>x.n));
+  const activeUsers=Object.keys(byUser).length;
+  const active7=new Set(ev.filter(e=>e.t.getTime()>=cutoff7).map(e=>e.user)).size;
+  const ago=ms=>{ const d=Math.floor((now-ms)/DAY); return d===0?'today':d===1?'yesterday':d+' days ago'; };
+  const userRows=Object.entries(byUser).sort((a,b)=>b[1].events-a[1].events).map(([name,u])=>{
+    const topTabs=Object.entries(u.tabs).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([t,n])=>`${esc(t)} <span style="color:#94a3b8">${n}</span>`).join(' · ');
+    const topFeats=Object.entries(u.features).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([f,n])=>`${esc(USAGE_EVENT_LABELS[f]||f)} <span style="color:#94a3b8">${n}</span>`).join(' · ');
+    return `<tr><td><b>${esc(name)}</b></td><td class="r">${u.days.size}</td><td class="r">${u.events}</td><td>${ago(u.last)}</td><td style="font-size:11px">${topTabs||'—'}</td><td style="font-size:11px">${topFeats||'<span style="color:#94a3b8">tabs only</span>'}</td></tr>`;
+  }).join('');
+  const tabRows=Object.entries(tabs).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`<tr><td>${esc(t)}</td><td class="r">${n}</td><td class="r">${new Set(ev.filter(e=>e.event==='tab'&&e.detail===t).map(e=>e.user)).size}</td></tr>`).join('');
+  const featRows=Object.entries(USAGE_EVENT_LABELS).filter(([k])=>k!=='login'&&k!=='tab').map(([k,label])=>{const n=feats[k]||0;const users=new Set(ev.filter(e=>e.event===k).map(e=>e.user)).size;return `<tr><td>${esc(label)}</td><td class="r" style="${n?'':'color:#dc2626;font-weight:700'}">${n||'0 — unused'}</td><td class="r">${users}</td></tr>`;}).join('');
+  const searchRows=Object.entries(searches).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([q,n])=>`<span style="display:inline-block;background:#f1f5f9;border-radius:6px;padding:2px 8px;font-size:11px;margin:2px">${esc(q)} <span style="color:#94a3b8">×${n}</span></span>`).join('');
+  const unusedCount=Object.keys(USAGE_EVENT_LABELS).filter(k=>k!=='login'&&k!=='tab'&&!feats[k]).length;
+  el.innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px">
+      <div class="cs-summary-stat"><div class="val">${activeUsers}</div><div class="lbl">Users active (30d)</div></div>
+      <div class="cs-summary-stat"><div class="val">${active7}</div><div class="lbl">Active this week</div></div>
+      <div class="cs-summary-stat"><div class="val">${fmtInt(ev.length)}</div><div class="lbl">Events (30d)</div></div>
+      <div class="cs-summary-stat"><div class="val" style="${unusedCount?'color:#dc2626':''}">${unusedCount}</div><div class="lbl">Features nobody has used</div></div>
+    </div>
+    <div style="font-weight:800;font-size:12px;margin:8px 0 4px">Daily active users — last 14 days</div>
+    <div style="display:flex;align-items:flex-end;gap:3px;height:56px;margin-bottom:12px">${daily.map(d=>`<div title="${d.day}: ${d.n} user${d.n!==1?'s':''}" style="flex:1;background:${d.n?'#1e40af':'#e2e8f0'};height:${Math.max(4,d.n/maxDaily*100)}%;border-radius:3px 3px 0 0"></div>`).join('')}</div>
+    <div style="font-weight:800;font-size:12px;margin:8px 0 4px">By person</div>
+    <table class="ei-tbl" style="font-size:12px;margin-bottom:14px"><thead><tr><th>User</th><th class="r">Days active</th><th class="r">Events</th><th>Last seen</th><th>Top tabs</th><th>Top features</th></tr></thead><tbody>${userRows}</tbody></table>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div><div style="font-weight:800;font-size:12px;margin:0 0 4px">Tabs opened</div><table class="ei-tbl" style="font-size:12px"><thead><tr><th>Tab</th><th class="r">Opens</th><th class="r">Users</th></tr></thead><tbody>${tabRows}</tbody></table></div>
+      <div><div style="font-weight:800;font-size:12px;margin:0 0 4px">Feature adoption</div><table class="ei-tbl" style="font-size:12px"><thead><tr><th>Feature</th><th class="r">Uses</th><th class="r">Users</th></tr></thead><tbody>${featRows}</tbody></table></div>
+    </div>
+    ${searchRows?`<div style="font-weight:800;font-size:12px;margin:12px 0 4px">What people asked "Where are we for…"</div><div>${searchRows}</div>`:''}
+    <div style="font-size:11px;color:#94a3b8;margin-top:10px">Counts are deduped per session (a tab opened five times in one sitting logs once), so these are "sessions that used it", not raw clicks.</div>`;
+}
+
 // ── BE EMERGENCY READY — gov.ie household checklist vs our stock ─────────────
 // Maps each item on the Office of Emergency Planning checklist (gov.ie/BeEmergencyReady)
 // to the SKUs we stock, and shows per category: what we have, what's out, what's selling,
@@ -6644,6 +6737,109 @@ function runEmergencyReady(){
       <div style="font-size:12px;color:#475569;margin-top:2px">The Office of Emergency Planning is telling every household to build a kit. <b>${stocked} categories stocked · ${thin} thin · ${gaps} range gaps.</b> Storm season starts October — restock the thin ones and source the gaps.</div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px">${cards.join('')}</div>`;
+}
+
+// ── SUPPLIER LIST → ORDER ────────────────────────────────────────────────────
+// Paste any supplier product list. Per line we extract: EAN(s) (13-digit, spaces tolerated;
+// outer-case 14-digit codes reduced to 13), a supplier code, a unit size, and the pack
+// size (the small integer right after the unit size). Lines are matched to OUR rows by
+// EAN (supplier-agnostic — works whoever we buy the brand from), falling back to SKU =
+// supplier code. Suggested qty = what the engine says (r.buy) or, if none, enough to
+// reach the cover target from current sales — rounded UP to the supplier pack multiple.
+function _normEan(x){ const d=String(x||'').replace(/\D/g,''); return d.replace(/^0+/,''); }
+function parseSupplierList(text){
+  const items=[];
+  for(const raw of text.split('\n')){
+    const line=raw.trim(); if(!line) continue;
+    // EANs: runs of digits with optional internal spaces, 12–14 digits total
+    const eans=[]; const re=/\b(\d[\d ]{10,16}\d)\b/g; let m;
+    while((m=re.exec(line))){ const d=m[1].replace(/\s/g,''); if(d.length>=12&&d.length<=14) eans.push(_normEan(d)); }
+    if(!eans.length) continue;                   // headers / section titles have no EAN
+    const toks=line.split(/\t+|\s{2,}/).map(t=>t.trim()).filter(Boolean);
+    const code=(toks.find(t=>/^[A-Z][A-Z0-9]{4,}$/.test(t))||'');
+    const name=toks[0] && !/^[A-Z0-9]{5,}$/.test(toks[0]) ? toks[0] : (toks[1]||'');
+    let size='', pack=1;
+    const si=toks.findIndex(t=>/^\d+(\.\d+)?\s*(x\s*\d+)?\s*(g|kg|ml|l)$/i.test(t));
+    if(si>=0){ size=toks[si]; const nxt=toks[si+1]; if(nxt&&/^\d{1,3}$/.test(nxt)) pack=parseInt(nxt,10)||1; }
+    items.push({name,code,size,pack,eans,raw:line});
+  }
+  return items;
+}
+function runSupplierList(){
+  const out=document.getElementById('slResult'); if(!out) return;
+  const text=(document.getElementById('slPaste')?.value||'').trim();
+  if(!text){ out.innerHTML='<span style="color:#94a3b8;font-size:13px">Paste a supplier list first.</span>'; return; }
+  const rows=state.computedRows||[];
+  if(!rows.length){ out.innerHTML='<span style="color:#94a3b8;font-size:13px">Data still loading…</span>'; return; }
+  const items=parseSupplierList(text);
+  if(!items.length){ out.innerHTML='<div style="color:#991b1b;font-size:13px">No product lines found — I look for lines containing a 13-digit EAN barcode.</div>'; return; }
+  try{ logUsage('supplier_list', items.length+' lines'); }catch(e){}
+  const coverTarget=parseInt(document.getElementById('slCoverDays')?.value,10)||30;
+  // index our rows by EAN and by SKU (dedupe multi-supplier: keep first)
+  const byEan=new Map(), bySku=new Map();
+  for(const r of rows){
+    const e=_normEan(r.Barcode); if(e&&!byEan.has(e)) byEan.set(e,r);
+    const k=String(r.SKU||'').trim().toUpperCase(); if(k&&!bySku.has(k)) bySku.set(k,r);
+  }
+  const matched=[], gaps=[];
+  for(const it of items){
+    let r=null, how='';
+    for(const e of it.eans){ if(byEan.has(e)){ r=byEan.get(e); how='EAN'; break; } }
+    if(!r && it.code && bySku.has(it.code.toUpperCase())){ r=bySku.get(it.code.toUpperCase()); how='code'; }
+    if(!r){ gaps.push(it); continue; }
+    const ak=r.NetStock_Arklow||0, cs=r.NetStock_CapelStreet||0, stock=ak+cs;
+    const s30=(r.QtySold_Online_Total_30d||0)+(r.QtySold_Shop_CapelStreet_30d||0);
+    const s365=(r.QtySold_Shop_CapelStreet_365d||0)+(r.QtySold_Online_CapelStreet_365d||0)+(r.QtySold_Online_Arklow_365d||0);
+    const daily=s30>0?s30/30:(s365>0?s365/365:0);
+    const cover=daily>0?stock/daily:(stock>0?999:0);
+    const onOrder=(r.OO_AK||0)+(r.OO_CS||0);
+    // qty: engine's buy if present, else top up to cover target from live rate
+    let need=r.buy>0?r.buy:Math.max(0,Math.ceil(daily*coverTarget-stock-onOrder));
+    const pack=Math.max(1,it.pack||r.SupplierPackSize||1);
+    const qty=need>0?Math.ceil(need/pack)*pack:0;
+    const cost=(r.RealCost>0?r.RealCost:r.SupplierCostPrice)||0;
+    matched.push({it,r,how,ak,cs,stock,s30,s365,cover,onOrder,pack,need,qty,cost,value:qty*cost});
+  }
+  matched.sort((a,b)=>b.qty-a.qty||b.s30-a.s30);
+  window._slMatched=matched;
+  const toOrder=matched.filter(m=>m.qty>0);
+  const totVal=toOrder.reduce((a,m)=>a+m.value,0), totUnits=toOrder.reduce((a,m)=>a+m.qty,0);
+  const btn=document.getElementById('slPoBtn'); if(btn) btn.style.display=toOrder.length?'inline-block':'none';
+  const covTxt=c=>c>=999?'—':(c<=0?'<b style="color:#dc2626">OOS</b>':(c<7?`<b style="color:#d97706">${Math.round(c)}d</b>`:`${Math.round(c)}d`));
+  const mRows=matched.map(m=>`<tr${m.qty>0?' style="background:#f0fdfa"':''}>
+    <td style="font-family:monospace;font-size:11px;font-weight:700;color:#1e40af">${esc(m.r.SKU)}</td>
+    <td style="max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(m.r.ItemTitle)}">${esc(m.r.ItemTitle)}</td>
+    <td style="font-size:11px;color:#64748b">${esc(m.it.code)} ${esc(m.it.size)} <span title="matched by ${m.how}">·${m.how}</span></td>
+    <td class="r">${fmtInt(m.stock)} <span style="font-size:10px;color:#94a3b8">(${fmtInt(m.ak)}/${fmtInt(m.cs)})</span>${m.onOrder?`<br><span style="font-size:10px;color:#2563eb">+${fmtInt(m.onOrder)} on order</span>`:''}</td>
+    <td class="r">${fmtInt(m.s30)} / ${fmtInt(m.s365)}</td>
+    <td class="r">${covTxt(m.cover)}</td>
+    <td class="r" style="font-size:11px;color:#64748b">×${m.pack}</td>
+    <td class="r" style="font-weight:800;color:${m.qty>0?'#0f766e':'#94a3b8'}">${m.qty>0?fmtInt(m.qty):'—'}</td>
+    <td class="r">${m.qty>0?'€'+fmtInt(m.value):'—'}</td>
+  </tr>`).join('');
+  const gRows=gaps.map(g=>`<tr><td style="font-size:11px;color:#64748b">${esc(g.code)}</td><td>${esc(g.name)} <span style="color:#94a3b8">${esc(g.size)}</span></td><td style="font-family:monospace;font-size:11px">${g.eans.join(', ')}</td><td class="r" style="font-size:11px;color:#64748b">×${g.pack}</td></tr>`).join('');
+  out.innerHTML=`
+    <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;padding:10px 14px;background:#f0fdfa;border:1px solid #99f6e4;border-radius:10px;margin-bottom:10px;font-size:12px;color:#134e4a">
+      <span><b style="font-size:16px">${items.length}</b> lines on the list</span>
+      <span><b style="font-size:16px;color:#0f766e">${matched.length}</b> we stock</span>
+      <span><b style="font-size:16px;color:#dc2626">${gaps.length}</b> we don't</span>
+      <span style="margin-left:auto"><b style="font-size:16px;color:#0f766e">${toOrder.length}</b> lines to order · <b>${fmtInt(totUnits)}</b> units · <b>€${fmtInt(totVal)}</b> at cost</span>
+    </div>
+    ${matched.length?`<div style="font-weight:800;font-size:12px;margin:6px 0 4px">Matched to our stock</div>
+    <div style="overflow:auto;max-height:46vh"><table class="ei-tbl" style="font-size:12px"><thead><tr><th>Our SKU</th><th>Product</th><th>Supplier code</th><th class="r">Stock (AK/CS)</th><th class="r">Sold 30d / 12mo</th><th class="r">Cover</th><th class="r">Pack</th><th class="r">Order</th><th class="r">Value</th></tr></thead><tbody>${mRows}</tbody></table></div>`:''}
+    ${gaps.length?`<div style="font-weight:800;font-size:12px;margin:12px 0 4px;color:#991b1b">Not in our catalogue — ${gaps.length} line${gaps.length!==1?'s':''} (range gaps / new lines to consider)</div>
+    <table class="ei-tbl" style="font-size:12px"><thead><tr><th>Code</th><th>Product</th><th>EAN</th><th class="r">Pack</th></tr></thead><tbody>${gRows}</tbody></table>`:''}
+    <div style="font-size:11px;color:#94a3b8;margin-top:8px">Order qty = engine buy where it exists, else enough to reach ${coverTarget} days' cover from current sales (minus on-order), rounded up to the supplier pack. Edit any qty in the PO panel before exporting.</div>`;
+}
+function openSupplierListPO(){
+  const m=(window._slMatched||[]).filter(x=>x.qty>0);
+  if(!m.length){ alert('Nothing to order from this list.'); return; }
+  const rows=m.map(x=>({...x.r, buy:x.qty, SupplierPackSize:x.pack}));
+  const sup=rows[0].SupplierName||'Supplier list';
+  state.activeSupplier=sup;
+  const bt=document.querySelector('.tab-btn[data-tab="buying"]'); if(bt) bt.click();
+  window._poReviewCtx={rows, supplier:sup, list:true};
+  setTimeout(()=>{ try{ showPOReview(rows,false); }catch(e){ console.error(e); alert('Could not open PO panel: '+e.message); } },80);
 }
 
 // ── PRICE REVIEW — price-point increases + margin effect ─────────────────────
