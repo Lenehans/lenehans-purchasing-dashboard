@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.29.0 · REORDER-POINT ENGINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.30.0 · CORRECTNESS PASS</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1091,7 +1091,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.29.0 · built 2026-09-30 · Supplier price list → order (EAN matching)</div>
+  <div class="sub">V7.30.0 · built 2026-10-22 · Correctness pass — seasonal build-ahead, default supplier, pack/MOQ rounding</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -1258,7 +1258,8 @@ Fine Sea Salt drum	SSFCTDP63	350g	6	238	34	7	5011289 002499	05011289 002512"
       <button id="autoLoadBtn" class="secondary">Auto-load all feeds</button>
       <button id="testUrlBtn" class="secondary">Test URL</button>
       <button onclick="(function(){var s=prompt('Supplier name to audit (e.g. WILSONS):');if(!s)return;openSupplierAudit(s.trim());})()">📋 Supplier Audit</button>
-      <button onclick="(function(){var sku=prompt('Enter SKU to diagnose (e.g. 802518):');if(!sku)return;var ch=state.channel;var rows=(state.computedRows||[]).filter(function(x){return String(x.SKU||'').trim()===sku.trim();});if(!rows.length){alert('SKU ['+sku+'] not found in computed rows.\n\nMake sure data is loaded and check channel.');return;}var msg='🔍 SKU: '+sku+' | Channel: '+ch+'\nFound in '+rows.length+' supplier row'+(rows.length>1?'s (multi-supplier!)':'')+'\n\n';rows.forEach(function(r,i){var rank=(state.skuRankMap&&state.skuRankMap.get(sku.trim()))||'?';var inTop500=rank<=500;msg+='━━━ Supplier '+(i+1)+': '+(r.SupplierName||'?')+' ━━━\n';msg+='Stock → CS:'+( r.NetStock_CapelStreet||0)+' AK:'+(r.NetStock_Arklow||0)+'\n';msg+='CS demand 30d: '+(r.QtySold_Shop_CapelStreet_30d||0)+' units\n';msg+='CS revenue 30d: €'+(r.Revenue_Shop_CapelStreet_30d||0).toFixed(2)+'\n';msg+='AK demand 30d: '+(r.QtySold_Online_Arklow_30d||0)+' units (online only)\n';msg+='AK demand 180d: '+(r.QtySold_Online_Arklow_180d||0)+' units\n';msg+='CS demand 90d/180d: '+(r.QtySold_Shop_CapelStreet_90d||0)+' / '+(r.QtySold_Shop_CapelStreet_180d||0)+' units\n';msg+='📅 12-mo total (330d): '+(r.QtySold_Total_330d||0)+' units'+(r.isLapsedSeller?' 💤 LAPSED SELLER — sold last year, OOS, BUY 0':'')+'\n';msg+='📊 365d by channel → CS till: '+(r.QtySold_Shop_CapelStreet_365d||0)+' · CS online: '+(r.QtySold_Online_CapelStreet_365d||0)+' · AK online: '+(r.QtySold_Online_Arklow_365d||0)+'\n';var _ak180=(r.QtySold_Online_Arklow_180d||0)/180,_ak30=(r.QtySold_Online_Arklow_30d||0)/30;msg+='Seasonal (AK): '+(_ak180>0?(_ak30/_ak180).toFixed(1)+'× its 180d avg'+((_ak30/_ak180)>=1.5?' 📈 in season':''):'n/a')+'\n';msg+='⚠️ AK till/counter sales are NOT in demand (online only)\n';msg+='Adj daily: '+((r.adjustedDaily||0).toFixed(2))+' | Days cover: '+Math.round(r.daysOfCover||0)+'\n';msg+='⏱ Lead '+(r.leadTimeDays||0)+'d + safety '+(r.safetyDays||0)+'d → reorder at '+(r.reorderPointDays||0)+'d cover | top up to '+(r.targetDays||0)+'d\n';msg+='🔁 Cadence '+(r.cadence||'—')+' → review '+(r.reviewDays||0)+'d · location ×'+(r.locationFactor||1)+' · variability ×'+(r.variabilityFactor||1)+'\n';msg+='Status: '+(r.coverStatus||'?')+' | ABC: '+(r.abcClass||'?')+'\n';msg+='BUY: '+(r.buy||0)+' units\n';msg+='Rank: '+rank+(inTop500?' ✅ in QO':' ❌ not in Quick Order')+'\n';msg+='Governance: '+(!!(state.governedSuppliers&&state.governedSuppliers.has(r.SupplierName))?'✅ pass':'❌ FAIL — hidden!')+'\n\n';});showDiag(msg);})()">🔍 Diagnose SKU</button>
+      <button onclick="(function(){var sku=prompt('Enter SKU to diagnose (e.g. 802518):');if(!sku)return;var ch=state.channel;var rows=(state.computedRows||[]).filter(function(x){return String(x.SKU||'').trim()===sku.trim();});if(!rows.length){alert('SKU ['+sku+'] not found in computed rows.\n\nMake sure data is loaded and check channel.');return;}var msg='🔍 SKU: '+sku+' | Channel: '+ch+'\nFound in '+rows.length+' supplier row'+(rows.length>1?'s (multi-supplier!)':'')+'\n\n';rows.forEach(function(r,i){var rank=(state.skuRankMap&&state.skuRankMap.get(sku.trim()))||'?';var inTop500=rank<=500;msg+='━━━ Supplier '+(i+1)+': '+(r.SupplierName||'?')+' ━━━\n';msg+='Stock → CS:'+( r.NetStock_CapelStreet||0)+' AK:'+(r.NetStock_Arklow||0)+'\n';msg+='Stock basis AK → Available:'+(r.AvailableQty_Arklow||0)+' · OnOrderQty:'+(r.OnOrderQty_Arklow||0)+' · PO inbound:'+(r.OnOrderQty_AK_PO||0)+' · NetStock:'+(r.NetStock_Arklow||0)+'\n';msg+='Pack '+(r.packSize||1)+' · MOQ '+(r.moq||0)+' · buy before rounding '+(r.buyUnrounded!=null?r.buyUnrounded:'?')+' · demand base '+(r.engineBaseSrc||'30D')+'\n';msg+='Default supplier: '+(r._defaultSupplier||'not known')+(r._notDefaultSupplier?' (buy moved there)':'')+'\n';msg+='CS demand 30d: '+(r.QtySold_Shop_CapelStreet_30d||0)+' units\n';msg+='CS revenue 30d: €'+(r.Revenue_Shop_CapelStreet_30d||0).toFixed(2)+'\n';msg+='AK demand 30d: '+(r.QtySold_Online_Arklow_30d||0)+' units (online only)\n';msg+='AK demand 180d: '+(r.QtySold_Online_Arklow_180d||0)+' units\n';msg+='CS demand 90d/180d: '+(r.QtySold_Shop_CapelStreet_90d||0)+' / '+(r.QtySold_Shop_CapelStreet_180d||0)+' units\n';msg+='📅 12-mo total (330d): '+(r.QtySold_Total_330d||0)+' units'+(r.isLapsedSeller?' 💤 LAPSED SELLER — sold last year, OOS, BUY 0':'')+'\n';msg+='📊 365d by channel → CS till: '+(r.QtySold_Shop_CapelStreet_365d||0)+' · CS online: '+(r.QtySold_Online_CapelStreet_365d||0)+' · AK online: '+(r.QtySold_Online_Arklow_365d||0)+'\n';var _ak180=(r.QtySold_Online_Arklow_180d||0)/180,_ak30=(r.QtySold_Online_Arklow_30d||0)/30;msg+='Seasonal (AK): '+(_ak180>0?(_ak30/_ak180).toFixed(1)+'× its 180d avg'+((_ak30/_ak180)>=1.5?' 📈 in season':''):'n/a')+'\n';msg+='⚠️ AK till/counter sales are NOT in demand (online only)\n';msg+='Adj daily: '+((r.adjustedDaily||0).toFixed(2))+' | Days cover: '+Math.round(r.daysOfCover||0)+'\n';msg+='⏱ Lead '+(r.leadTimeDays||0)+'d + safety '+(r.safetyDays||0)+'d → reorder at '+(r.reorderPointDays||0)+'d cover | top up to '+(r.targetDays||0)+'d\n';msg+='🔁 Cadence '+(r.cadence||'—')+' → review '+(r.reviewDays||0)+'d · location ×'+(r.locationFactor||1)+' · variability ×'+(r.variabilityFactor||1)+'\n';msg+='Status: '+(r.coverStatus||'?')+' | ABC: '+(r.abcClass||'?')+'\n';msg+='BUY: '+(r.buy||0)+' units\n';msg+='Rank: '+rank+(inTop500?' ✅ in QO':' ❌ not in Quick Order')+'\n';msg+='Governance: '+(!!(state.governedSuppliers&&state.governedSuppliers.has(r.SupplierName))?'✅ pass':'❌ FAIL — hidden!')+'\n\n';});showDiag(msg);})()">🔍 Diagnose SKU</button>
+      <button class="secondary" onclick="stockBasisCheck()" title="Checks what NetStock contains across the catalogue — needed before inbound POs are netted into the buy">🧪 Stock basis check</button>
       <label>or CSV file
         <input id="csvFile" type="file" accept=".csv,text/csv">
       </label>
@@ -1394,7 +1395,7 @@ Fine Sea Salt drum	SSFCTDP63	350g	6	238	34	7	5011289 002499	05011289 002512"
     <div id="briefStatsBar" class="brief-statsbar">
       <div class="brief-stat-item">
         <div class="brief-stat-val red" id="briefRevAtRisk">—</div>
-        <div class="brief-stat-lbl">Revenue at risk</div>
+        <div class="brief-stat-lbl" title="Daily revenue × days each line will be empty before a PO placed today arrives (supplier lead time)">Sales lost before restock</div>
       </div>
       <div class="brief-stat-item">
         <div class="brief-stat-val" id="briefSuppCount">—</div>
@@ -1784,7 +1785,7 @@ ORDER BY CASE p.Status WHEN 'PENDING' THEN 1 WHEN 'PLACED' THEN 2 WHEN 'PARTIAL'
       <div id="alertsEmpty" style="display:none;text-align:center;padding:48px 0;color:#94a3b8">
         <div style="font-size:32px;margin-bottom:8px">✅</div>
         <div style="font-size:15px;font-weight:700;color:#64748b">No alerts right now</div>
-        <div style="font-size:13px;margin-top:4px">No demand spikes with under 5 days stock · load data to refresh</div>
+        <div style="font-size:13px;margin-top:4px">Nothing out of stock or running out inside its supplier's lead time · load data to refresh</div>
       </div>
     </div>
   </div><!-- /tab-alerts -->
@@ -4123,6 +4124,14 @@ const PO_URL        = 'https://docs.google.com/spreadsheets/d/1RatBuXuxKn2mpznYg
 // Do-not-order / supplier-discontinued list. New tab in the PO Status sheet.
 // Replace EXCLUDE_GID_HERE with the real gid once the "DoNotOrder" tab exists.
 const EXCLUDE_URL   = 'https://docs.google.com/spreadsheets/d/1RatBuXuxKn2mpznYga2pupmbTnv2m_H46BLZIxN3pKo/export?format=csv&gid=1233612353';
+// Linnworks DEFAULT supplier per SKU (V7.30). New tab "DefaultSupplier" (columns:
+// SKU, Supplier) written by a separate Query Data entry — see the SQL in the release
+// notes. Replace DEFSUPP_GID_HERE with the tab's gid once it exists; until then the
+// dashboard flags multi-supplier SKUs instead of moving their buys.
+const DEFAULT_SUPP_URL = 'https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=DEFSUPP_GID_HERE';
+// Optional sync stamp (V7.30): a tab whose first cell holds the time the 07:17 Linnworks
+// sync last finished. Replace SYNCSTAMP_GID_HERE once Code.gs writes it.
+const SYNC_STAMP_URL   = 'https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=SYNCSTAMP_GID_HERE';
 // Buyer schedule (cadence/order-days per supplier) — human-maintained tab
 const SCHEDULE_URL  = 'https://docs.google.com/spreadsheets/d/1RatBuXuxKn2mpznYga2pupmbTnv2m_H46BLZIxN3pKo/export?format=csv&gid=15121436';
 // Monthly sales history — SKU × month columns (2024_01 … 2025_02)
@@ -5266,7 +5275,7 @@ function renderSalesIntel(){
   // ── AI Chat panel ──────────────────────────────────────────────────────────
   const chatBodyCls=_siChatOpen?'open':'';
   let msgsHtml=_siChatMsgs.length
-    ? _siChatMsgs.map(m=>`<div class="si-msg ${m.role}">${m.role==='ai'?m.text.replace(/\n/g,'<br>'):esc(m.text)}</div>`).join('')
+    ? _siChatMsgs.map(m=>`<div class="si-msg ${m.role}">${m.role==='ai'?esc(m.text).replace(/\n/g,'<br>'):esc(m.text)}</div>`).join('')
     : `<div class="si-msg ai">Hi! Ask me anything about your sales data — e.g. "What are my top 10 CS sellers?" or "Which products have the best margins?"</div>`;
 
   html+=`<div class="si-chat">
@@ -5312,8 +5321,9 @@ async function siAsk(preset){
   const rev30=r=>isCS?(r.Revenue_Shop_CapelStreet_30d||0):(r.Revenue_Online_Total_30d||0);
   const qty30=r=>isCS?(r.QtySold_Shop_CapelStreet_30d||0):(r.QtySold_Online_Total_30d||0);
 
+  // V7.30 — trimmed to the top 40 so the whole request fits in a GET URL
   const top100=rows.filter(r=>rev30(r)>0)
-    .sort((a,b)=>rev30(b)-rev30(a)).slice(0,100)
+    .sort((a,b)=>rev30(b)-rev30(a)).slice(0,40)
     .map(r=>`${r.SKU}|${(r.ItemTitle||'').substring(0,30)}|${(r.SupplierName||'').split(' - ')[0].substring(0,12)}|${r.abcClass||'?'}|€${Math.round(rev30(r))}/mo|${Math.round(qty30(r))}u|${r.coverStatus||'?'}|cost€${(r.SupplierCostPrice||0).toFixed(2)}`).join('\n');
 
   const totalRev=rows.reduce((t,r)=>t+rev30(r),0);
@@ -5325,7 +5335,7 @@ Today is ${currentMonth}. Channel: ${isCS?'Capel Street Shop':'Arklow Online'}.
 Total revenue this month: €${Math.round(totalRev).toLocaleString()}. OOS items: ${oosCount}.
 IMPORTANT: Revenue figures below are GROSS (inc. 23% VAT). Cost figures are EX-VAT (net).
 If asked about margin or profit, divide revenue by 1.23 first to get net revenue, then calculate margin as (netRevenue - cost) / netRevenue. Never calculate margin using gross revenue directly — it will overstate margin by ~23%.
-Top 100 SKUs (format: SKU|Title|Supplier|ABC|Revenue|Units|Status|Cost):
+Top 40 SKUs by revenue (format: SKU|Title|Supplier|ABC|Revenue|Units|Status|Cost):
 ${top100}
 Answer concisely. Be specific and use actual numbers from the data. If you don't know something, say so.`;
 
@@ -5333,23 +5343,21 @@ Answer concisely. Be specific and use actual numbers from the data. If you don't
   renderSalesIntel();
 
   try {
-    const proxyUrl = state.appsScriptUrl || '';
-    if(!proxyUrl){
-      _siChatMsgs=_siChatMsgs.filter(m=>m.role!=='ai thinking');
-      _siChatMsgs.push({role:'ai',text:'⚠️ Apps Script proxy URL not set. Load data from the Buying tab first.'});
-      renderSalesIntel(); return;
-    }
-    const url = proxyUrl + '?action=sales_chat'
-      + '&prompt=' + encodeURIComponent(q)
-      + '&system=' + encodeURIComponent(systemPrompt);
+    // V7.30 — this read state.appsScriptUrl, which was never set anywhere, so the chat
+    // always replied "proxy URL not set". It now uses the same proxy + action as the
+    // working AI Buying Brief (ai_brief), with the context folded into the prompt.
+    const proxyUrl = PO_UPDATER_URL;
+    const url = proxyUrl + '?action=ai_brief'
+      + '&prompt=' + encodeURIComponent(systemPrompt + '\n\nQUESTION: ' + q);
     const res = await fetch(url);
     const data = await res.json();
-    const reply = data.content?.[0]?.text || data.error || 'No response.';
+    if(data.error) throw new Error(data.error);
+    const reply = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('') || 'No response.';
     _siChatMsgs=_siChatMsgs.filter(m=>m.role!=='ai thinking');
     _siChatMsgs.push({role:'ai',text:reply});
   } catch(e){
     _siChatMsgs=_siChatMsgs.filter(m=>m.role!=='ai thinking');
-    _siChatMsgs.push({role:'ai',text:'Error connecting to AI. Check your Anthropic API key in Code.gs.'});
+    _siChatMsgs.push({role:'ai',text:'Could not reach the AI: '+(e&&e.message?e.message:'network error')+'. The AI Buying Brief uses the same connection — if that works, try a shorter question.'});
   }
   renderSalesIntel();
 }
@@ -5576,7 +5584,7 @@ function _renderMoveInInner(root){
             <span style="font-size:11px;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.ItemTitle||'')}">${esc(short)}</span>
             ${covCell(ak,akCover)}
             ${covCell(cs,csCover)}
-            <button class="mi-noos-btn" onclick="addToNeverOOS('${esc(r.SKU||'')}','${esc((r.ItemTitle||'').replace(/'/g,''))}')" title="Never OOS">★</button>
+            <button class="mi-noos-btn" onclick="addToNeverOOS('${jsArg(r.SKU||'')}','${jsArg((r.ItemTitle||'').replace(/'/g,''))}')" title="Never OOS">★</button>
           </div>`;
         }).join('');
         if(sorted.length>4) cardContent+=showAll
@@ -5621,7 +5629,7 @@ function _renderMoveInInner(root){
           const sup=(r.SupplierName||'').split(' - ')[0].substring(0,10);
           const short=(r.ItemTitle||r.SKU||'').substring(0,32)+(((r.ItemTitle||'').length>32)?'…':'');
           const inBundle=_miBundle&&_miBundle.has(r.SKU);
-          const bundleChk=_miBundleMode?`<input type="checkbox" ${inBundle?'checked':''} onchange="if(this.checked){_miBundle=_miBundle||new Set();_miBundle.add('${esc(r.SKU||'')}');}else{if(_miBundle)_miBundle.delete('${esc(r.SKU||'')}');}renderMoveIn()" style="flex-shrink:0">`:'';
+          const bundleChk=_miBundleMode?`<input type="checkbox" ${inBundle?'checked':''} onchange="if(this.checked){_miBundle=_miBundle||new Set();_miBundle.add('${jsArg(r.SKU||'')}');}else{if(_miBundle)_miBundle.delete('${jsArg(r.SKU||'')}');}renderMoveIn()" style="flex-shrink:0">`:'';
           return `<div class="mi-sku-row">
             ${bundleChk}
             <span style="font-size:9px;font-weight:800;padding:1px 5px;border-radius:4px;flex-shrink:0;color:${col};background:${col}22;min-width:44px;text-align:center">${label}</span>
@@ -5629,8 +5637,8 @@ function _renderMoveInInner(root){
             <span class="mi-sku-name" title="${esc(r.ItemTitle||'')}">${esc(short)}</span>
             <span style="font-size:10px;color:#94a3b8;flex-shrink:0;max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.SupplierName||'')}">${esc(sup)}</span>
             <span class="mi-sku-cover">${coverStr}${priceStr}</span>
-            <button onclick="switchToSupplier('${esc(r.SupplierName||'')}')" title="View in Workbench" style="font-size:10px;padding:1px 5px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:4px;cursor:pointer;flex-shrink:0">→</button>
-            <button class="mi-noos-btn" onclick="addToNeverOOS('${esc(r.SKU||'')}','${esc((r.ItemTitle||'').replace(/'/g,''))}')" title="Never OOS">★</button>
+            <button onclick="switchToSupplier('${jsArg(r.SupplierName||'')}')" title="View in Workbench" style="font-size:10px;padding:1px 5px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:4px;cursor:pointer;flex-shrink:0">→</button>
+            <button class="mi-noos-btn" onclick="addToNeverOOS('${jsArg(r.SKU||'')}','${jsArg((r.ItemTitle||'').replace(/'/g,''))}')" title="Never OOS">★</button>
           </div>`;
         }).join('');
       }
@@ -5797,11 +5805,11 @@ function renderBriefing(){
     const isActionable=(r.buy||0)>0; // no demand signal = no action needed
     if(r.coverStatus==='Out of Stock'){
       if(isActionable){ s.oos++;if(r.abcClass==='A')s.oosA++; }
-      if(r.Revenue_Online_Total_30d>0)s.lostRev+=r.Revenue_Online_Total_30d*3;
+      s.lostRev+=estLostRevenue(r);
       s.minDays=0;
     }else if(r.coverStatus==='Critical'){
       if(isActionable){ s.crit++;if(r.abcClass==='A')s.critA++; }
-      if(r.Revenue_Online_Total_30d>0)s.lostRev+=r.Revenue_Online_Total_30d*1.5;
+      s.lostRev+=estLostRevenue(r);
       const d=r.daysOfCover||0;if(d<s.minDays)s.minDays=d;
     }else if(r.coverStatus==='Low')s.low++;
     else{
@@ -5887,7 +5895,7 @@ function renderBriefing(){
           ${h.buy>0?`<span class="brief-hero-pill">📦 Buy ${fmtInt(h.buy)} units</span>`:''}
         </div>
       </div>
-      <div>${h.lostRev>0?`<div class="brief-hero-rev-val">€${fmtInt(h.lostRev)}</div><div class="brief-hero-rev-lbl">Est. revenue at risk</div>`:''}</div>
+      <div>${h.lostRev>0?`<div class="brief-hero-rev-val">€${fmtInt(h.lostRev)}</div><div class="brief-hero-rev-lbl">Est. sales lost before restock</div>`:''}</div>
     </div>
     ${topSkus.length?`<div class="brief-hero-skus">${skuRows}</div>`:''}
     <div class="brief-hero-footer">
@@ -5907,7 +5915,7 @@ function renderBriefing(){
     return `<div class="brief-rank-card ${colour}" onclick="openWorkbench('${safeName}')">
       <div class="brief-rank-num">#${i+2}</div>
       <div><div class="brief-rank-name">${esc(s.name)}</div><div class="brief-rank-meta">${meta}</div></div>
-      <div>${s.lostRev>0?`<div class="brief-rank-rev ${colour}">€${fmtInt(s.lostRev)}</div><div class="brief-rank-rev-lbl">at risk</div>`:''}</div>
+      <div>${s.lostRev>0?`<div class="brief-rank-rev ${colour}">€${fmtInt(s.lostRev)}</div><div class="brief-rank-rev-lbl">lost before restock</div>`:''}</div>
       <button class="brief-order-btn" style="font-size:11px;padding:8px 14px" onclick="event.stopPropagation();if(window.openQuickOrder)openQuickOrder('${safeName}')">⚡ Order</button>
     </div>`;
   }).join('');
@@ -5926,7 +5934,7 @@ function renderBriefing(){
       return `<div class="brief-rank-card ${colour}" onclick="openWorkbench('${safeName}')">
         <div class="brief-rank-num">#${i+7}</div>
         <div><div class="brief-rank-name">${esc(s.name)}</div><div class="brief-rank-meta">${meta}</div></div>
-        <div>${s.lostRev>0?`<div class="brief-rank-rev ${colour}">€${fmtInt(s.lostRev)}</div><div class="brief-rank-rev-lbl">at risk</div>`:''}</div>
+        <div>${s.lostRev>0?`<div class="brief-rank-rev ${colour}">€${fmtInt(s.lostRev)}</div><div class="brief-rank-rev-lbl">lost before restock</div>`:''}</div>
         <button class="brief-order-btn" style="font-size:11px;padding:8px 14px" onclick="event.stopPropagation();if(window.openQuickOrder)openQuickOrder('${safeName}')">⚡ Order</button>
       </div>`;
     }).join('');
@@ -5937,7 +5945,7 @@ function renderBriefing(){
   const tlWrap=document.getElementById('briefTimelineWrap');
   const goingCrit=(state.computedRows||[]).filter(r=>{
     if(!r.SupplierName||r.coverStatus==='Out of Stock'||r.coverStatus==='Critical') return false;
-    const daysLeft=(r.daysOfCover||0)-14;
+    const daysLeft=(r.daysOfCover||0)-(r.reorderPointDays>0?r.reorderPointDays:14);
     return daysLeft>0&&daysLeft<=7;
   });
   if(goingCrit.length){
@@ -5945,7 +5953,7 @@ function renderBriefing(){
     const tlMap=new Map();
     for(const r of goingCrit){
       const k=r.SupplierName;
-      const day=Math.floor((r.daysOfCover||0)-14);
+      const day=Math.floor((r.daysOfCover||0)-(r.reorderPointDays>0?r.reorderPointDays:14));
       if(!tlMap.has(k)||day<tlMap.get(k).day) tlMap.set(k,{name:k,day});
     }
     const tlList=[...tlMap.values()];
@@ -6068,6 +6076,7 @@ function normalizeRow(r){
     RetailPrice: n('RetailPrice'),   // list price inc-VAT (from StockItem.RetailPrice)
     AgeDays: (r.AgeDays===''||r.AgeDays==null) ? null : n('AgeDays'),   // days since StockItem.CreationDate
     AltSupplier: String(r.AltSupplier||'').trim(),   // cheapest alternative supplier (name)
+    DefaultSupplier: String(r.DefaultSupplier||'').trim(), // Linnworks default supplier (if QueryData carries it)
     AltCost: n('AltCost'),                            // its known purchase price
     Aisle: String(r.Aisle||'').trim(),   // Capel aisle (clean A1-x bins only)
     Bay: String(r.Bay||'').trim(),       // Capel bay within aisle (1.2m module)
@@ -6175,6 +6184,29 @@ function addExcl(map, sku, sup){
   if(!map.has(sku)) map.set(sku,[]);
   const arr=map.get(sku); if(!arr.includes(scope)) arr.push(scope);
 }
+// DefaultSupplier feed → Map(normalised SKU → supplier name). Accepts array or object rows.
+function parseDefaultSupplierFeed(rows){
+  const map=new Map();
+  if(!rows||!rows.length) return map;
+  const norm=k=>String(k||'').replace(/^\ufeff/,'').trim().toLowerCase();
+  const put=(sku,sup)=>{ sku=String(sku||'').trim().replace(/^'+/,''); sup=String(sup||'').trim(); if(sku&&sup) map.set(normSku_(sku),sup); };
+  const first=rows[0];
+  if(Array.isArray(first)){
+    const h=first.map(norm);
+    const iS=h.findIndex(x=>x==='sku'||x==='itemnumber');
+    const iP=h.findIndex(x=>x==='supplier'||x==='suppliername'||x==='defaultsupplier');
+    if(iS<0||iP<0) return map;
+    for(let i=1;i<rows.length;i++){ const r=rows[i]; if(r) put(r[iS],r[iP]); }
+  } else if(typeof first==='object'){
+    const keys={}; Object.keys(first).forEach(k=>{ keys[norm(k)]=k; });
+    const kS=keys['sku']||keys['itemnumber'];
+    const kP=keys['supplier']||keys['suppliername']||keys['defaultsupplier'];
+    if(!kS||!kP) return map;
+    for(const r of rows){ if(r) put(r[kS],r[kP]); }
+  }
+  return map;
+}
+
 // Is this SKU on the do-not-order list for this supplier? ('*' scope = everywhere)
 function isExcludedSku(sku, supplierName){
   if(!state.excludedSkus || !state.excludedSkus.size) return false;
@@ -6215,12 +6247,41 @@ window.dnoCheck = function(testSku){
   }
 };
 
+// V7.30 — What does NetStock contain? Type stockBasisCheck() in the console (or use
+// the 🧪 button on the Load card). It tests every Arklow row against the possible
+// definitions so we can decide, from the data, how inbound POs must be netted.
+window.stockBasisCheck = function(){
+  const rows=(state.computedRows||[]).filter(r=>(r.OnOrderQty_Arklow||0)>0 || (r.OnOrderQty_AK_PO||0)>0);
+  const t={minusOO:0, plusOO:0, equalsAvail:0, other:0, ooMatchesPO:0, rows:rows.length};
+  for(const r of rows){
+    const a=r.AvailableQty_Arklow||0, oo=r.OnOrderQty_Arklow||0, ns=r.NetStock_Arklow||0;
+    if(ns===a-oo) t.minusOO++; else if(ns===a+oo) t.plusOO++; else if(ns===a) t.equalsAvail++; else t.other++;
+    if(oo===(r.OnOrderQty_AK_PO||0)) t.ooMatchesPO++;
+  }
+  const pct=v=>rows.length?Math.round(v/rows.length*100)+'%':'—';
+  const msg='Stock basis check — Arklow rows with something on order: '+rows.length+'\n\n'
+    +'NetStock = Available − OnOrderQty : '+pct(t.minusOO)+'\n'
+    +'NetStock = Available + OnOrderQty : '+pct(t.plusOO)+'\n'
+    +'NetStock = Available              : '+pct(t.equalsAvail)+'\n'
+    +'Other                             : '+pct(t.other)+'\n\n'
+    +'OnOrderQty equals open-PO inbound (OO_AK): '+pct(t.ooMatchesPO)+'\n\n'
+    +'Send this to Claude — it decides how V7.31 nets inbound POs into the buy.';
+  console.log(msg); if(typeof showDiag==='function') showDiag(msg); return t;
+};
+
 // ─── BUYER SCHEDULE FEED PARSING ─────────────────────────────────────────────
 // Tab columns: Buyer, Email, Channel, Supplier, Cadence, OrderDays (extra cols ignored)
 function parseScheduleFeed(rows){
   const out=[];
   if(!rows || !rows.length) return out;
-  const h=rows[0].map(x=>String(x||'').trim().toLowerCase());
+  // V7.30 — parseCSV returns OBJECT rows (header → value). This parser only handled
+  // array rows, so rows[0].map threw and the live BuyerSchedule tab never loaded —
+  // the baked-in list was always used. Convert object rows to arrays first.
+  if(!Array.isArray(rows[0]) && typeof rows[0]==='object'){
+    const keys=Object.keys(rows[0]);
+    rows=[keys].concat(rows.map(o=>keys.map(k=>o[k])));
+  }
+  const h=rows[0].map(x=>String(x||'').replace(/^\ufeff/,'').trim().toLowerCase());
   const ci=n=>h.findIndex(x=>x===n);
   const iSup=ci('supplier'), iCad=ci('cadence');
   if(iSup<0||iCad<0) return out;
@@ -6319,7 +6380,12 @@ function parsePOFeed(rows){
   });
 
   const history = {};
-  const yr = new Date().getFullYear();
+  // V7.30 — the sheet holds one rolling year of month columns. A column for a month
+  // LATER than the current month must be LAST year's (e.g. in January, "Dec" = last
+  // December). Previously every column got the current year and "latest" = highest
+  // month, so in January last December's entries would read as the newest.
+  const _now = new Date(), _curM = _now.getMonth(), _curY = _now.getFullYear();
+  const yrFor = idx => idx > _curM ? _curY-1 : _curY;
 
   for(const r of rows){
     const supplier = String(r[supplierCol]||'').trim();
@@ -6336,7 +6402,9 @@ function parsePOFeed(rows){
 
       const statusAK = akStatusCol ? String(r[akStatusCol]||'').trim() : '';
       const statusCS = csStatusCol ? String(r[csStatusCol]||'').trim() : '';
-      const monthLabel = `${ALL_MONTHS[idx]} ${yr}`;
+      const _y = yrFor(idx);
+      const monthLabel = `${ALL_MONTHS[idx]} ${_y}`;
+      const monthKey = _y*12 + idx;
 
       if(statusAK){
         // Date/person may be embedded in status string or in separate cols
@@ -6349,7 +6417,7 @@ function parsePOFeed(rows){
         }
         history[supplier].arklow.push({
           raw:statusAK, isDone:isDoneStatus(statusAK), isChecked:isCheckedStatus(statusAK),
-          date:dateAK, person:personAK, month:monthLabel, channel:'arklow', monthIdx:idx
+          date:dateAK, person:personAK, month:monthLabel, channel:'arklow', monthIdx:idx, monthKey
         });
       }
       if(statusCS){
@@ -6361,7 +6429,7 @@ function parsePOFeed(rows){
         }
         history[supplier].capelstreet.push({
           raw:statusCS, isDone:isDoneStatus(statusCS), isChecked:isCheckedStatus(statusCS),
-          date:dateCS, person:personCS, month:monthLabel, channel:'capel street', monthIdx:idx
+          date:dateCS, person:personCS, month:monthLabel, channel:'capel street', monthIdx:idx, monthKey
         });
       }
     }
@@ -6369,7 +6437,7 @@ function parsePOFeed(rows){
 
   // Build map — latest entry per channel (highest monthIdx = most recent)
   for(const [supplier, h] of Object.entries(history)){
-    const sortByMonth = arr => arr.slice().sort((a,b)=>b.monthIdx-a.monthIdx);
+    const sortByMonth = arr => arr.slice().sort((a,b)=>b.monthKey-a.monthKey);
 
     const akEntries = sortByMonth(h.arklow);
     const csEntries = sortByMonth(h.capelstreet);
@@ -6574,7 +6642,7 @@ function runCategoryIntel(){
       const why = o.aStock<=0 ? 'Arklow OUT' : `Arklow only ${o.aStock}`;
       const dem = o.csOnline>0 ? `Capel online sells ${o.csOnline}/yr` : `${o.akOnline}/yr online`;
       return `<div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid #f1f5f9">
-        <button onclick="goToSupplier('${esc(o.supplier)}','arklow')" style="font-family:monospace;font-size:11px;font-weight:700;color:#1e40af;background:none;border:none;cursor:pointer;padding:0">${esc(o.sku)}</button>
+        <button onclick="goToSupplier('${jsArg(o.supplier)}','arklow')" style="font-family:monospace;font-size:11px;font-weight:700;color:#1e40af;background:none;border:none;cursor:pointer;padding:0">${esc(o.sku)}</button>
         <span style="flex:1;font-size:12px">${esc((o.title||'').substring(0,44))}</span>
         <span style="font-size:11px;color:#991b1b;font-weight:700">${why}</span>
         <span style="font-size:11px;color:#64748b">${dem}</span>
@@ -6584,7 +6652,7 @@ function runCategoryIntel(){
     verdict=`<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px 14px;margin-top:10px">
       <div style="font-weight:800;color:#9a3412;font-size:13px;margin-bottom:6px">⚠ ${oosSelling.length} line${oosSelling.length!==1?'s':''} to order — out at Arklow but selling</div>
       ${lines}
-      ${topSupName?`<div style="margin-top:10px;font-size:12px">👉 Main supplier: <button onclick="goToSupplier('${esc(topSupName)}','arklow')" style="font-weight:800;color:#1e40af;background:none;border:none;cursor:pointer;padding:0;font-size:12px">${fmtSup(topSupName)} →</button></div>`:''}
+      ${topSupName?`<div style="margin-top:10px;font-size:12px">👉 Main supplier: <button onclick="goToSupplier('${jsArg(topSupName)}','arklow')" style="font-weight:800;color:#1e40af;background:none;border:none;cursor:pointer;padding:0;font-size:12px">${fmtSup(topSupName)} →</button></div>`:''}
     </div>`;
   } else {
     verdict=`<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 14px;margin-top:10px;font-size:13px;color:#166534;font-weight:600">✓ Stock looks fine across this range — nothing out-and-selling right now.</div>`;
@@ -6727,7 +6795,7 @@ function runEmergencyReady(){
       <div style="font-weight:700;color:${col};font-size:12px;margin:6px 0">${status}</div>
       ${m.length?`<div style="font-size:11px;color:#475569">AK <b>${fmtInt(ak)}</b> · CS <b>${fmtInt(cs)}</b> · sold 30d <b>${fmtInt(sold30)}</b> · ${oos} OOS${oosSelling.length?` · <b style="color:#dc2626">${oosSelling.length} OOS but selling</b>`:''}</div>
       <div style="font-size:11px;color:#334155;margin-top:6px;line-height:1.5">${top.map(r=>`${esc((r.ItemTitle||'').substring(0,40))} <span style="color:#94a3b8">(${fmtInt((r.NetStock_Arklow||0)+(r.NetStock_CapelStreet||0))} stk)</span>`).join(' · ')}</div>
-      <button onclick="document.getElementById('catIntelBox').value='${esc(kw)}';runCategoryIntel()" style="margin-top:8px;padding:5px 10px;font-size:11px;background:#fff;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;color:#1e40af;font-weight:700">See lines →</button>`
+      <button onclick="document.getElementById('catIntelBox').value='${jsArg(kw)}';runCategoryIntel()" style="margin-top:8px;padding:5px 10px;font-size:11px;background:#fff;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;color:#1e40af;font-weight:700">See lines →</button>`
       :`<div style="font-size:11px;color:#7f1d1d">No matching products in the catalogue. Worth sourcing before storm season — the state is telling households to buy this.</div>`}
     </div>`);
   }
@@ -6777,7 +6845,9 @@ function runSupplierList(){
   const coverTarget=parseInt(document.getElementById('slCoverDays')?.value,10)||30;
   // index our rows by EAN and by SKU (dedupe multi-supplier: keep first)
   const byEan=new Map(), bySku=new Map();
-  for(const r of rows){
+  // V7.30 — prefer the default supplier's row when a SKU has several
+  const _ordered=rows.slice().sort((a,b)=>(a._notDefaultSupplier?1:0)-(b._notDefaultSupplier?1:0));
+  for(const r of _ordered){
     const e=_normEan(r.Barcode); if(e&&!byEan.has(e)) byEan.set(e,r);
     const k=String(r.SKU||'').trim().toUpperCase(); if(k&&!bySku.has(k)) bySku.set(k,r);
   }
@@ -6792,7 +6862,9 @@ function runSupplierList(){
     const s365=(r.QtySold_Shop_CapelStreet_365d||0)+(r.QtySold_Online_CapelStreet_365d||0)+(r.QtySold_Online_Arklow_365d||0);
     const daily=s30>0?s30/30:(s365>0?s365/365:0);
     const cover=daily>0?stock/daily:(stock>0?999:0);
-    const onOrder=(r.OO_AK||0)+(r.OO_CS||0);
+    // V7.30 — was r.OO_AK / r.OO_CS, which don't exist on the normalised row, so
+    // on-order always read 0 here and the suggested qty ignored open POs.
+    const onOrder=(r.OnOrderQty_AK_PO||0)+(r.OnOrderQty_CS_PO||0);
     // qty: engine's buy if present, else top up to cover target from live rate
     let need=r.buy>0?r.buy:Math.max(0,Math.ceil(daily*coverTarget-stock-onOrder));
     const pack=Math.max(1,it.pack||r.SupplierPackSize||1);
@@ -7107,6 +7179,7 @@ function openArklowGapPO(supplierName){
   for(const r of supRows){
     if(seen.has(r.SKU)) continue;
     if(r.isDiscontinued) continue;
+    if(r._notDefaultSupplier) continue;   // V7.30 — the default supplier orders this SKU
     if(typeof isExcludedSku==='function' && isExcludedSku(r.SKU, r.SupplierName)) continue;
     const on7=r.QtySold_Online_Total_7d||0, till7=r.QtySold_Shop_CapelStreet_7d||0;
     const sold7=on7+till7;
@@ -7210,7 +7283,7 @@ function renderSeasonalBrief(){
       ${lowCount>0
         ? `<div style="font-size:13px;color:#991b1b;font-weight:700;margin-bottom:6px">⚠ ${lowCount} line${lowCount!==1?'s':''} low heading into season${lowValue>0?` · only €${fmtInt(lowValue)} on hand`:''}</div>`
           + `<div style="font-size:12px;color:#475569;line-height:1.5;margin-bottom:10px">${lowExamples.map(e=>`${esc((e.t||'').substring(0,42))} <span style="color:#94a3b8">(${e.stock} in stock, ${e.yr}/yr)</span>`).join(' · ')}${lowCount>4?` <span style="color:#94a3b8">+${lowCount-4} more</span>`:''}</div>`
-          + `<button onclick="orderSeasonalLows('${r.prof}','${esc(label)}')" style="padding:7px 14px;background:#b45309;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">📋 See &amp; order all ${lowCount} →</button>`
+          + `<button onclick="orderSeasonalLows('${r.prof}','${jsArg(label)}')" style="padding:7px 14px;background:#b45309;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">📋 See &amp; order all ${lowCount} →</button>`
         : `<div style="font-size:12px;color:#16a34a;font-weight:600">✓ Stock looks healthy for this range</div>`}
     </div>`;
   }).filter(Boolean);
@@ -7558,9 +7631,21 @@ function buildBuyerReason(res){
     }
   }
   // 90d cover exclusion applied
-  const raw30dCover = res.base30dDaily > 0 ? res.stock / res.base30dDaily : 9999;
+  const _covRate = res.lyEvidence ? Math.max(res.base30dDaily||0, res.adjustedDaily||0) : (res.base30dDaily||0);
+  const raw30dCover = _covRate > 0 ? res.stock / _covRate : 9999;
   if(raw30dCover > 90 && !res.spikeFactored && res.buy === 0 && res.rawBuy > 0){
-    lines.push(`✋ Buy suppressed — stock covers ${fmtInt(raw30dCover)} days on live 30D demand rate (>90d threshold). Seasonal multiplier was inflating the target.`);
+    lines.push(res.lyEvidence
+      ? `✋ Buy suppressed — even at the season-adjusted rate, stock covers ${fmtInt(raw30dCover)} days (>90d threshold).`
+      : `✋ Buy suppressed — stock covers ${fmtInt(raw30dCover)} days on live 30D demand rate (>90d threshold). No last-year sales for this SKU in this season to justify a build-ahead.`);
+  }
+  if(res.lyEvidence && res.buy>0 && (res.base30dDaily||0)>0 && res.stock/(res.base30dDaily) > 90){
+    lines.push(`📅 Seasonal build-ahead: current sales alone would show over 90 days' cover, but this SKU's own last-year sales for ${monthLabel()} justify ordering now.`);
+  }
+  if(res.engineBaseSrc && res.engineBaseSrc!=='30D'){
+    lines.push(`Demand base: ${esc(res.engineBaseSrc)} rate (${fmt1(res.engineBaseDaily)}/day) used instead of the 30D rate.`);
+  }
+  if(res.buy>0 && res.buyUnrounded>0 && res.buy!==res.buyUnrounded){
+    lines.push(`📦 Rounded from ${fmtInt(res.buyUnrounded)} to ${fmtInt(res.buy)} — supplier pack ${fmtInt(res.packSize)}${res.moq>0?', minimum order '+fmtInt(res.moq):''}.`);
   }
   const seasonRule=detectSeasonalRule(res.ItemTitle);
   if(seasonRule&&!res.seasonalDataUsed){
@@ -7681,6 +7766,44 @@ function getTransferFlag(r){
 }
 
 // ─── CORE COMPUTE ────────────────────────────────────────────────────────────
+// ── V7.30 helpers ────────────────────────────────────────────────────────────
+// Round a positive buy up to the supplier minimum order qty, then to a whole
+// multiple of the pack size. Zero stays zero.
+function roundToSupplierPack(qty, row){
+  qty = Math.max(0, Math.ceil(num(qty)));
+  if(qty<=0) return 0;
+  const pack = Math.max(1, Math.round(num(row.SupplierPackSize)||1));
+  const moq  = Math.max(0, Math.round(num(row.SupplierMinOrder)||0));
+  if(moq>0 && qty<moq) qty = moq;
+  if(pack>1) qty = Math.ceil(qty/pack)*pack;
+  return qty;
+}
+// Does this SKU have ANY recorded sales history (any channel, any window, or the
+// monthly history feed)? Used so seasonal tags can't force-buy lines that never sold.
+function hasAnySalesHistory(r){
+  const sums = (r.QtySold_Total_330d||0)
+    + (r.QtySold_Online_Total_180d||0) + (r.QtySold_Shop_CapelStreet_180d||0)
+    + (r.QtySold_Online_CapelStreet_180d||0)
+    + (r.QtySold_Shop_CapelStreet_365d||0) + (r.QtySold_Online_CapelStreet_365d||0)
+    + (r.QtySold_Online_Arklow_365d||0);
+  if(sums>0) return true;
+  const m = state.monthlyData && state.monthlyData[r.SKU];
+  return !!(m && Object.keys(m).some(k=>m[k]>0));
+}
+// Grounded "sales lost before restock": daily revenue × the days the line will be
+// empty if ordered today (lead time minus remaining cover). Replaces the old
+// invented 30-day-revenue × 3 (OOS) / × 1.5 (critical) multipliers.
+function estLostRevenue(r){
+  const dailyRev = (r.Revenue_Online_Total_30d||0)/30;
+  if(dailyRev<=0) return 0;
+  const lead = r.leadTimeDays || 7;
+  const cover = r.stock<=0 ? 0 : Math.max(0, (r.daysOfCover>=9999?lead:r.daysOfCover)||0);
+  return dailyRev * Math.max(0, lead - cover);
+}
+// Safe string for a single-quoted JS argument inside a double-quoted onclick="…".
+// esc() alone left apostrophes raw, so a supplier like "O'Brien" broke the handler.
+function jsArg(s){ return esc(String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'")); }
+
 function computeRow(row){
   const demandMode   = document.getElementById('demandMode').value;
   const fallback90On  = document.getElementById('fallback90Btn')?.dataset.active==='true';
@@ -7795,6 +7918,19 @@ function computeRow(row){
   const base30dQty   = row.QtySold_Online_Total_30d || 0;
   const base30dDaily = base30dQty / 30;
 
+  // V7.30 — the demand the ENGINE actually builds from. Previously this was always
+  // the 30D rate, so the 7D mode and the 90D/180D fallback toggles changed the display
+  // but never the quantity (fallback only ever produced "buy 1").
+  //   · 7D mode           → last-7-day rate (falls back to 30D if the week was empty)
+  //   · 30D rate is zero  → the 90D/180D fallback rate, when that toggle is on
+  //   · otherwise         → 30D rate (unchanged)
+  let engineBaseDaily = base30dDaily, engineBaseSrc = '30D';
+  if(demandMode==='7D'){
+    if(baseDaily>0){ engineBaseDaily = baseDaily; engineBaseSrc = fallbackUsed || '7D'; }
+  } else if(base30dDaily<=0 && fallbackUsed && baseDaily>0){
+    engineBaseDaily = baseDaily; engineBaseSrc = fallbackUsed;
+  }
+
   // Growth adjustment — Arklow Online ONLY.
   // CS has its own trajectory — applying the online growth rate would overcook CS orders.
   const growthAdjRaw = num(document.getElementById('growthAdj')?.value) || 0;
@@ -7802,12 +7938,12 @@ function computeRow(row){
   const growthMult   = growthAdj !== 0 ? 1 + growthAdj / 100 : 1;
 
   // Signal 2 & 3: seasonal (historical data takes priority over profile)
-  let adjustedDaily    = base30dDaily;
+  let adjustedDaily    = engineBaseDaily;
   let seasonalMultiplier = 1;
   let seasonalNote     = cls.seasonalNote;
   let seasonalDataUsed = null;
 
-  const monthlyResult = getSeasonalDemandFromData(row.SKU, base30dDaily);
+  const monthlyResult = getSeasonalDemandFromData(row.SKU, engineBaseDaily);
   // On the Capel channel, don't let all-channel (mostly Arklow) seasonal history
   // drive a buy for a SKU with no Capel history of its own. No Capel history → no
   // Capel seasonal build-ahead (e.g. a ladder that only ever sold in Arklow).
@@ -7819,32 +7955,32 @@ function computeRow(row){
     // historical data dampen below the live 30D rate
     const seasonalFloorCategories = ['WEED_CONTROL','GARDEN_TOOLS','WATERING','BBQ',
       'SLUG_CONTROL','BIRD_CONTROL','LAWN_SEED','FERTILISER','MOSS_CONTROL','PATIO_CLEANING'];
-    if(seasonalFloorCategories.includes(cls.categoryId) && base30dDaily > 0)
-      adjustedDaily = Math.max(adjustedDaily, base30dDaily);
+    if(seasonalFloorCategories.includes(cls.categoryId) && engineBaseDaily > 0)
+      adjustedDaily = Math.max(adjustedDaily, engineBaseDaily);
     // UNIVERSAL FLOOR: regardless of category, last year's month must NEVER order a
     // PROVEN CURRENT SELLER below what it's actually selling now. If it sold ≥5 units in
     // the last 30 days, floor to the live rate — last August being quiet (often because
     // it was out of stock then) can't override 31 units selling this August. This is the
     // same principle as the profile-branch floor; it was previously limited to a
     // hardcoded category list, which missed pest control, cleaning, etc.
-    if(base30dDaily > 0 && (row.QtySold_Online_Total_30d||0) >= 5)
-      adjustedDaily = Math.max(adjustedDaily, base30dDaily);
+    if(engineBaseDaily > 0 && (row.QtySold_Online_Total_30d||0) >= 5)
+      adjustedDaily = Math.max(adjustedDaily, engineBaseDaily);
     seasonalDataUsed   = monthlyResult;
-    seasonalMultiplier = base30dDaily > 0 ? Math.max(1, adjustedDaily / base30dDaily) : 1;
+    seasonalMultiplier = engineBaseDaily > 0 ? Math.max(1, adjustedDaily / engineBaseDaily) : 1;
     const growthNote   = growthMult !== 1 ? ` × ${fmt1(growthMult)} growth adj` : '';
     seasonalNote = `${monthlyResult.yr} data: ${monthlyResult.col1.replace('_','/')}=${monthlyResult.q1}, ${monthlyResult.col2.replace('_','/')}=${monthlyResult.q2}${growthNote}`;
   } else if(cls.seasonalProfile && cls.seasonalProfile !== 'NONE'){
     // No historical data — use profile multiplier, also scaled by growth factor
     seasonalMultiplier = getSeasonalMultiplier(cls.seasonalProfile, true) * growthMult;
-    adjustedDaily      = base30dDaily * seasonalMultiplier;
+    adjustedDaily      = engineBaseDaily * seasonalMultiplier;
     if(seasonalRule) adjustedDaily *= seasonalRule.boost;
     // FLOOR: an off-season profile multiplier (<1) must NEVER drag the buy below what
     // the item is ACTUALLY selling right now. A proven current seller — especially one
     // that's out of stock — needs restocking to at least its live 30D rate, regardless
     // of what the seasonal curve says. Without this, e.g. a "Zero In" insect line
     // selling 31/mo in August but out of stock was ordered at 0.05/day → Buy 1.
-    if(base30dDaily > 0 && (row.QtySold_Online_Total_30d||0) >= 5)
-      adjustedDaily = Math.max(adjustedDaily, base30dDaily);
+    if(engineBaseDaily > 0 && (row.QtySold_Online_Total_30d||0) >= 5)
+      adjustedDaily = Math.max(adjustedDaily, engineBaseDaily);
   }
 
   // Signal 4: 7D spike — always checked; factors into buy when significant
@@ -7998,7 +8134,15 @@ function computeRow(row){
   // FIX 3: Hard 90-day cover exclusion — items with >90d cover on raw 30D rate
   // AND no active 7D spike should be excluded even if seasonal multiplier pushes them in.
   // Prevents slow-movers with Provanto Fungus Fighter (210d cover) being ordered.
-  const raw30dCover = base30dDaily > 0 ? stock / base30dDaily : (stock > 0 ? 9999 : 0);
+  // V7.30 — this rule used to measure cover on the CURRENT 30D rate only, which
+  // killed every seasonal build-ahead (rock salt in October: 2 sold in 30 days → "750
+  // days cover" → buy 0, despite 300 sold last November). Now, when THIS SKU's own
+  // last-year history for this month/next month shows a real season (≥10 units), cover
+  // is measured against the season-adjusted rate. Category-profile guesses alone still
+  // face the strict 30D test, so the original Fungus Fighter protection stands.
+  const lyEvidence  = !!(seasonalDataUsed && ((seasonalDataUsed.q1||0)+(seasonalDataUsed.q2||0)) >= 10);
+  const coverRate   = lyEvidence ? Math.max(base30dDaily, effectiveDaily) : base30dDaily;
+  const raw30dCover = coverRate > 0 ? stock / coverRate : (stock > 0 ? 9999 : 0);
   if(raw30dCover > 90 && !spikeFactored && !row._csRequired){
     buy = 0;
     coverStatus = 'Healthy';
@@ -8027,6 +8171,12 @@ function computeRow(row){
   const _excluded = isExcludedSku(row.SKU, row.SupplierName);
   if(_excluded){ buy = 0; coverStatus = 'Do Not Order'; }
 
+  // V7.30 — round to the supplier's minimum order qty and pack size. These were
+  // parsed but never applied by the main engine (only the Gap PO / supplier-list
+  // tools rounded), so main-order quantities weren't orderable as-is.
+  const buyUnrounded = buy;
+  buy = roundToSupplierPack(buy, row);
+
   const status=stock<=0?'Out of Stock':(effectiveDaily>0?(daysOfCover<reorderPointDays?'Critical':(daysOfCover<reorderPointDays+runLengthDays*0.5?'Low':'OK')):'No demand');
   const capelSignal=(!state.channel||state.channel==='arklow')&&row.QtySold_Online_CapelStreet_30d>0?`Capel Street online sales detected (${fmtInt(row.QtySold_Online_CapelStreet_30d)} units in the last 30 days).`:'';
   const ramp=hasRamp(row);
@@ -8051,6 +8201,8 @@ function computeRow(row){
     weatherMult, weatherActive,                          // weather signal
     baseDaily:base30dDaily, adjustedDaily:effectiveDaily, daysOfCover,coverStatus,coverDays:effectiveCoverDays,leadTimeDays,leadTimeCap,
     target,rawBuy,maxBuy,buy,stock,status,ramp,capelSignal,minOneFallbackApplied,
+    buyUnrounded, packSize:Math.max(1,Math.round(row.SupplierPackSize||1)), moq:Math.max(0,Math.round(row.SupplierMinOrder||0)),
+    engineBaseDaily, engineBaseSrc, lyEvidence,
     _csRequired:row._csRequired||false,
     _csQtyFloor:row._csQtyFloor||0,
     _csReason:row._csReason||'',
@@ -8225,6 +8377,8 @@ function applySeasonalRescue_(rows){
       if(!inSeason(months)) continue;
       const raw=state._rawIdx.get(tagSku);
       if(!raw) continue;
+      // V7.30 — never inject a tagged SKU that has never sold anywhere
+      if(!hasAnySalesHistory(raw)) continue;
       let cr;
       try{ cr=computeRow(raw); }
       catch(e){
@@ -8250,14 +8404,69 @@ function applySeasonalRescue_(rows){
     if(state.channel==='capel' && !hasCapelHistory(r)){ r._seasonalForced=false; r._seasonalBuy=false; continue; }
     const months=state.seasonalTags.get(normSku_(r.SKU));
     const st = inSeason(months);
-    if(st){
+    // V7.30 — a seasonal tag only surfaces / reorders a SKU with real sales history.
+    // Previously every tagged in-season SKU at/below its MOQ got a flat buy of 6, even
+    // dead lines with no sales anywhere, and skipped the discontinued filter.
+    if(st && hasAnySalesHistory(r)){
       r._seasonalForced=true; r._seasonalState=st; r._seasonalMonths=months;
       const stk = capel ? (r.NetStock_CapelStreet||0) : (r.NetStock_Arklow||0);
       if((r.buy||0)<=0 && stk<=Math.max(r.SupplierMinOrder||0,0)){
-        r.buy=Math.max(r.SupplierMinOrder||0, r.SupplierPackSize||0, 6); r._seasonalBuy=true;
+        // Quantity from this SKU's own history: last year's sales for this month/next
+        // month if we have them, otherwise ~2 months at its 12-month average rate.
+        const ly = r.seasonalDataUsed ? Math.max(r.seasonalDataUsed.q1||0, r.seasonalDataUsed.q2||0) : 0;
+        const yr = (r.QtySold_Total_330d||0) || ((r.QtySold_Shop_CapelStreet_365d||0)+(r.QtySold_Online_CapelStreet_365d||0)+(r.QtySold_Online_Arklow_365d||0));
+        const histQty = ly>0 ? ly : Math.ceil(yr/12*2);
+        const q = roundToSupplierPack(Math.max(1, histQty - Math.max(0,stk)), r);
+        if(q>0){
+          r.buy=q; r._seasonalBuy=true; r._seasonalBuyBasis = ly>0 ? ('last year '+ly+' units') : ('12-month avg, '+yr+'/yr');
+          try{ r.reason = buildBuyerReason(r) + ` 📅 Seasonal reorder: ${st==='in'?'in season now':'season starting soon'} — ${fmtInt(q)} units based on ${esc(r._seasonalBuyBasis)}.`; }catch(e){}
+        }
       }
     } else { r._seasonalForced=false; r._seasonalBuy=false; }
   }
+}
+
+// ─── DEFAULT SUPPLIER (V7.30) ────────────────────────────────────────────────
+// A SKU sold by several suppliers used to get a full buy under EVERY supplier, so
+// two buyers could order the same line. Now the Linnworks DEFAULT supplier gets the
+// buy and the others show "ordered via <default>" with buy 0.
+// Source: the DefaultSupplier feed (SKU, Supplier) — or a DefaultSupplier column on
+// QueryData if one is ever added. If the default isn't known (feed not set up yet,
+// or the default supplier isn't in the governed list), nothing is zeroed and every
+// copy is flagged so the buyer can see the overlap.
+function applyDefaultSupplier_(rows){
+  const bySku=new Map();
+  for(const r of rows){ const k=normSku_(r.SKU); let g=bySku.get(k); if(!g){ g=[]; bySku.set(k,g); } g.push(r); }
+  let zeroed=0, unresolved=0;
+  for(const [k,g] of bySku){
+    for(const r of g){
+      r._notDefaultSupplier=false; r._multiNoDefault=false; r._defaultSupplier='';
+      r._otherSuppliers = g.length>1 ? g.filter(x=>x!==r).map(x=>x.SupplierName) : [];
+      r._supplierCount  = g.length;
+    }
+    if(g.length<2) continue;
+    const def = (state.defaultSuppliers && state.defaultSuppliers.get(k))
+             || (g.find(x=>x.DefaultSupplier)||{}).DefaultSupplier || '';
+    const defLow = String(def).trim().toLowerCase();
+    const defRow = defLow ? g.find(x=>String(x.SupplierName||'').trim().toLowerCase()===defLow) : null;
+    if(!defRow || defRow._excluded){
+      g.forEach(r=>{ r._multiNoDefault=true; r._defaultSupplier=def; });
+      unresolved++;
+      continue;
+    }
+    for(const r of g){
+      if(r===defRow) { r._defaultSupplier=defRow.SupplierName; continue; }
+      r._defaultSupplier=defRow.SupplierName;
+      if(r._csRequired) continue;                 // CS-required floors stay where they were set
+      r._notDefaultSupplier=true;
+      if((r.buy||0)>0){
+        r._buyBeforeDefault=r.buy; r.buy=0; r._seasonalBuy=false; zeroed++;
+        try{ r.reason = buildBuyerReason(r) + ` Default supplier is ${esc(defRow.SupplierName)} — the buy is placed there, not here.`; }catch(e){}
+      }
+    }
+  }
+  state._defaultSupplierStats={zeroed, unresolved, loaded: !!(state.defaultSuppliers && state.defaultSuppliers.size)};
+  console.log('[Default supplier] buys moved to default:', zeroed, '· multi-supplier SKUs without a known default:', unresolved);
 }
 
 // ─── FILTER ──────────────────────────────────────────────────────────────────
@@ -8290,17 +8499,9 @@ function getFilteredRows(){
     return true;
   });
 
-  // Multi-supplier SKUs must show under EVERY supplier they're linked to, so you can
-  // place the line on whichever supplier's PO you choose. We no longer collapse to one
-  // "best" supplier — we keep all supplier rows and annotate each with its siblings.
-  const bySku = new Map();
-  filtered.forEach(r => { let g = bySku.get(r.SKU); if(!g){ g=[]; bySku.set(r.SKU,g); } g.push(r); });
-  filtered.forEach(r => {
-    const g = bySku.get(r.SKU);
-    r._supplierCount  = g.length;
-    r._otherSuppliers = g.length>1 ? g.filter(x=>x!==r).map(x=>x.SupplierName) : [];
-  });
-
+  // Multi-supplier SKUs still show under EVERY supplier they're linked to.
+  // _supplierCount / _otherSuppliers are now set once per recompute across ALL rows
+  // (applyDefaultSupplier_), so a sibling hidden by the current filter still counts.
   return filtered;
 }
 
@@ -8355,6 +8556,7 @@ async function recompute(){
   state.computedRows = deduped;
   if(!state._seasonalTagsRequested){ state._seasonalTagsRequested = true; loadSeasonalTags(); }
   applySeasonalRescue_ && (function(){ try{ applySeasonalRescue_(deduped); }catch(e){ console.warn('seasonal rescue skipped:', e); } })();
+  try{ applyDefaultSupplier_(deduped); }catch(e){ console.warn('default-supplier rule skipped:', e); }
   window._eiRows = deduped;
   if(typeof window.eiOnDataReady === 'function') window.eiOnDataReady(deduped);
 
@@ -8437,7 +8639,9 @@ function renderForecast(){
   const allRows=(state.computedRows||[]);
   if(!allRows.length){el.innerHTML='';return;}
 
-  const CRIT_THRESHOLD=14; // days — matches coverStatus 'Critical' boundary
+  // V7.30 — each SKU's OWN reorder point (lead + safety), not a fixed 14 days, so the
+  // forecast agrees with the Critical status the rest of the dashboard shows.
+  const critAt = r => (r.reorderPointDays>0 ? r.reorderPointDays : 14);
   const HORIZON=30;        // days ahead to scan
 
   // SKUs currently OK/Low but will cross into Critical within HORIZON days
@@ -8446,7 +8650,7 @@ function renderForecast(){
     if(r.coverStatus==='Out of Stock'||r.coverStatus==='Critical') return false;
     if((r.Revenue_Online_Total_30d||0)<=0 && (r.QtySold_Online_Total_90d||0)<=0) return false;
     const days=r.daysOfCover||0;
-    const daysUntilCrit=days-CRIT_THRESHOLD;
+    const daysUntilCrit=days-critAt(r);
     return daysUntilCrit>0 && daysUntilCrit<=HORIZON;
   });
 
@@ -8461,7 +8665,7 @@ function renderForecast(){
   const map=new Map();
   for(const r of atHorizon){
     const k=r.SupplierName;
-    const daysLeft=Math.round((r.daysOfCover||0)-CRIT_THRESHOLD);
+    const daysLeft=Math.round((r.daysOfCover||0)-critAt(r));
     if(!map.has(k)) map.set(k,{name:k,count:0,minDays:999,topSku:null,topRev:0});
     const s=map.get(k);
     s.count++;
@@ -8602,11 +8806,11 @@ function renderActionNow(rows){
     const isActionable = (r.buy||0) > 0;
     if(r.coverStatus==='Out of Stock'){
       if(isActionable){ s.oos++; if(r.abcClass==='A') s.oosA++; }
-      if(r.Revenue_Online_Total_30d>0) s.lostRev+=r.Revenue_Online_Total_30d*3;
+      s.lostRev+=estLostRevenue(r);
       s.minDays=0;
     } else if(r.coverStatus==='Critical'){
       if(isActionable){ s.crit++; if(r.abcClass==='A') s.critA++; }
-      if(r.Revenue_Online_Total_30d>0) s.lostRev+=r.Revenue_Online_Total_30d*1.5;
+      s.lostRev+=estLostRevenue(r);
       const d=r.daysOfCover||0;
       if(d<s.minDays) s.minDays=d;
     } else if(r.coverStatus==='Low') s.low++;
@@ -8647,7 +8851,7 @@ function renderActionNow(rows){
   sumEl.innerHTML=(searchActive?`<span style="color:#185fa5;font-weight:700">🔍 Showing ${top200.length} matching SKU${top200.length!==1?'s':''} for "${esc((document.getElementById('searchBox')?.value||'').trim())}"</span> &nbsp;·&nbsp; `:'')+(atRisk.length>0
     ?(()=>{
       const topNames=atRisk.slice(0,3).map(s=>`<strong>${esc(s.name.split(' ')[0])}</strong>`).join(', ')+(atRisk.length>3?` +${atRisk.length-3} more`:'');
-      const lostStr=totalLost>0?` &nbsp;·&nbsp; <span style="color:#dc2626;font-weight:800">€${fmtInt(totalLost)} revenue at risk</span>`:'';
+      const lostStr=totalLost>0?` &nbsp;·&nbsp; <span style="color:#dc2626;font-weight:800">€${fmtInt(totalLost)} est. sales lost before restock</span>`:'';
       return `<span style="color:#dc2626;font-weight:800">🔴 ${atRisk.length} supplier${atRisk.length!==1?'s':''} need orders now</span> · ${topNames}${lostStr}`;
     })()
     :`<span style="color:#16a34a;font-weight:700">✓ ${searchActive?'All matching SKUs':'All top 500 SKUs'} ${searchActive?'are':'are'} healthy</span>`);
@@ -8699,9 +8903,9 @@ function renderActionNow(rows){
         ? `<span style="color:#dc2626">€${fmtInt(Math.round(critOrderVal))}</span> critical · ` : '';
       revHtml=`<div class="wl-tile-rev ${colour}">€${fmtInt(Math.round(orderVal))}</div>
         <div class="wl-tile-rev-lbl">EST. ORDER VALUE</div>
-        ${s.lostRev>0?`<div class="wl-tile-risk">€${fmtInt(s.lostRev)} revenue at risk</div>`:''}`;
+        ${s.lostRev>0?`<div class="wl-tile-risk">€${fmtInt(s.lostRev)} est. lost before restock</div>`:''}`;
     } else if(s.lostRev>0){
-      revHtml=`<div class="wl-tile-rev ${colour}">€${fmtInt(s.lostRev)}</div><div class="wl-tile-rev-lbl">est. revenue at risk</div>`;
+      revHtml=`<div class="wl-tile-rev ${colour}">€${fmtInt(s.lostRev)}</div><div class="wl-tile-rev-lbl">est. lost before restock</div>`;
     } else if(s.buy>0){
       revHtml=`<div class="wl-tile-rev none">Order pending</div><div class="wl-tile-rev-lbl">&nbsp;</div>`;
     } else {
@@ -8946,7 +9150,9 @@ function render(){
       const chips=[];
       if(r._csRequired) chips.push(`<span class="chip cs-req">🔒 CS floor ${fmtInt(r._csQtyFloor)}</span>`);
       chips.push(`<span class="chip ${coverCls||''}">` + esc(r.coverStatus) + `</span>`);
-      if((r._supplierCount||1)>1) chips.push(`<span class="chip" style="background:#e0f2fe;color:#0369a1" title="Also available from: ${(r._otherSuppliers||[]).join(', ')}">+${r._supplierCount-1} supplier${r._supplierCount>2?'s':''}</span>`);
+      if((r._supplierCount||1)>1) chips.push(`<span class="chip" style="background:#e0f2fe;color:#0369a1" title="Also available from: ${esc((r._otherSuppliers||[]).join(', '))}">+${r._supplierCount-1} supplier${r._supplierCount>2?'s':''}</span>`);
+      if(r._notDefaultSupplier) chips.push(`<span class="chip" style="background:#f3e8ff;color:#6b21a8;border-color:#d8b4fe" title="Linnworks default supplier is ${esc(r._defaultSupplier)} — the buy is placed there">🔀 Ordered via ${esc(String(r._defaultSupplier).split(' - ')[0])}</span>`);
+      else if(r._multiNoDefault) chips.push(`<span class="chip" style="background:#fef3c7;color:#92400e;border-color:#fcd34d" title="Multi-supplier SKU — default supplier not known yet. Check it isn't being ordered from another supplier too.">⚠ Check other supplier</span>`);
       if(r.seasonalDataUsed) chips.push(`<span class="chip season" title="${esc(r.seasonalNote)}">📅 ${r.seasonalDataUsed.yr} actuals</span>`);
       else if(seasonalRule) chips.push(`<span class="chip season">${seasonalRule.name}</span>`);
       if(hiddenSeasonal.label!=='Normal') chips.push(`<span class="chip rule">${hiddenSeasonal.label}</span>`);
@@ -9082,7 +9288,7 @@ function render(){
           }
           // Mark done button — only show if not already done this month
           const markDoneBtn = !doneThisMonth && PO_UPDATER_URL
-            ? `<button onclick="event.stopPropagation();markSupplierDone('${esc(s.SupplierName)}')"
+            ? `<button onclick="event.stopPropagation();markSupplierDone('${jsArg(s.SupplierName)}')"
                 style="margin-top:4px;padding:2px 8px;font-size:10px;font-weight:700;background:#f0fdf4;border:1.5px solid #4ade80;color:#15803d;border-radius:5px;cursor:pointer;display:block">
                 ✓ Mark done
               </button>`
@@ -9091,7 +9297,7 @@ function render(){
         })()
         : PO_UPDATER_URL
           ? `<div><span class="chip po-pending">No PO</span>
-              <button onclick="event.stopPropagation();markSupplierDone('${esc(s.SupplierName)}')"
+              <button onclick="event.stopPropagation();markSupplierDone('${jsArg(s.SupplierName)}')"
                 style="margin-top:4px;padding:2px 8px;font-size:10px;font-weight:700;background:#f0fdf4;border:1.5px solid #4ade80;color:#15803d;border-radius:5px;cursor:pointer;display:block">
                 ✓ Mark done
               </button></div>`
@@ -9102,8 +9308,8 @@ function render(){
       const confBar   = `<div class="conf-bar"><div class="conf-track"><div class="conf-fill ${conf.cls}" style="width:${conf.score}%"></div></div><span style="font-size:11px;font-weight:700">${conf.label}</span></div>`;
       const fbOvr = getSupplierFallback(s.SupplierName);
       const fbToggle = `<span class="sup-fb" title="Per-supplier fallback demand override">
-        <button class="${fbOvr==='90D'?'active-90':''}" onclick="event.stopPropagation();setSupplierFallback('${esc(s.SupplierName)}',${fbOvr==='90D'?'null':"'90D'"})">90D</button>
-        <button class="${fbOvr==='180D'?'active-180':''}" onclick="event.stopPropagation();setSupplierFallback('${esc(s.SupplierName)}',${fbOvr==='180D'?'null':"'180D'"})">180D</button>
+        <button class="${fbOvr==='90D'?'active-90':''}" onclick="event.stopPropagation();setSupplierFallback('${jsArg(s.SupplierName)}',${fbOvr==='90D'?'null':"'90D'"})">90D</button>
+        <button class="${fbOvr==='180D'?'active-180':''}" onclick="event.stopPropagation();setSupplierFallback('${jsArg(s.SupplierName)}',${fbOvr==='180D'?'null':"'180D'"})">180D</button>
       </span>`;
       return `<tr>
         <td><div class="stack">
@@ -9523,7 +9729,7 @@ function buildWhyText(r){
       <span class="wbs-lbl">EAN</span>
       <span class="wbs-val">
         <span style="font-family:monospace;font-weight:700;font-size:14px">${esc(ean)}</span>
-        <button onclick="navigator.clipboard.writeText('${esc(ean)}');this.textContent='✓ copied';setTimeout(()=>this.textContent='📋 copy',1200)"
+        <button onclick="navigator.clipboard.writeText('${jsArg(ean)}');this.textContent='✓ copied';setTimeout(()=>this.textContent='📋 copy',1200)"
           style="margin-left:8px;padding:2px 8px;font-size:11px;font-weight:700;border:1px solid #cbd5e1;background:#fff;border-radius:5px;cursor:pointer;color:#475569">📋 copy</button>
       </span>
     </div>`);
@@ -9650,6 +9856,28 @@ function buildWhyText(r){
       <span class="wbs-val" style="color:#dc2626;font-weight:600">${fmtInt(capel30)} online sales not in this channel's stock</span>
     </div>`);
 
+  // ── Default supplier (V7.30) ─────────────────────────────────────────────
+  if(r._notDefaultSupplier)
+    rows.push(`<div class="wbs-row">
+      <span class="wbs-icon">🔀</span>
+      <span class="wbs-lbl">Supplier</span>
+      <span class="wbs-val" style="color:#7c3aed;font-weight:600">Default supplier is ${esc(r._defaultSupplier)} — buy goes there, not here (was ${fmtInt(r._buyBeforeDefault||0)})</span>
+    </div>`);
+  else if(r._multiNoDefault)
+    rows.push(`<div class="wbs-row">
+      <span class="wbs-icon">⚠️</span>
+      <span class="wbs-lbl">Supplier</span>
+      <span class="wbs-val" style="color:#b45309;font-weight:600">Also listed under ${esc((r._otherSuppliers||[]).join(', ')||'another supplier')} — default supplier not known, check you're not ordering twice</span>
+    </div>`);
+
+  // ── Pack / MOQ rounding (V7.30) ──────────────────────────────────────────
+  if(r.buy>0 && r.buyUnrounded>0 && r.buy!==r.buyUnrounded)
+    rows.push(`<div class="wbs-row">
+      <span class="wbs-icon">📦</span>
+      <span class="wbs-lbl">Pack / MOQ</span>
+      <span class="wbs-val">Rounded ${fmtInt(r.buyUnrounded)} → ${fmtInt(r.buy)} (pack ${fmtInt(r.packSize)}${r.moq>0?', min order '+fmtInt(r.moq):''})</span>
+    </div>`);
+
   // ── Result ────────────────────────────────────────────────────────────────
   rows.push(`<div class="wbs-row wbs-result">
     <span class="wbs-icon">🎯</span>
@@ -9743,7 +9971,7 @@ function showPOReview(rows, autoExport){
       <td class="po-rev-why">
         ${buildWhyText(r)}
         <div>
-          <button class="po-ai-explain-btn" onclick="generateSKUExplanation('${esc(r.SKU)}',this)">🤖 Explain this buy</button>
+          <button class="po-ai-explain-btn" onclick="generateSKUExplanation('${jsArg(r.SKU)}',this)">🤖 Explain this buy</button>
           <div class="po-ai-explain-text"></div>
         </div>
       </td>
@@ -10173,6 +10401,16 @@ async function loadGovernanceFeeds(){
         if(!state.excludedSkus) state.excludedSkus=new Map();
       });
   }
+  // Default supplier per SKU — background load (V7.30). Re-runs the rules on arrival.
+  if(!DEFAULT_SUPP_URL.includes('DEFSUPP_GID_HERE')){
+    fetchCSV(DEFAULT_SUPP_URL,'DefaultSupplier')
+      .then(raw=>{
+        state.defaultSuppliers=parseDefaultSupplierFeed(raw);
+        console.log('[Default supplier] loaded', state.defaultSuppliers.size, 'SKUs');
+        scheduleRecompute('default supplier');
+      })
+      .catch(e=>console.warn('[Default supplier] feed unavailable:', e.message));
+  }
   // Buyer schedule — background load; replaces the baked cadence list once it arrives.
   if(!SCHEDULE_URL.includes('SCHEDULE_GID_HERE')){
     fetchCSV(SCHEDULE_URL,'BuyerSchedule')
@@ -10330,6 +10568,7 @@ async function loadFromUrl(){
     await processRawRows(parsedRaw,'URL');   // Buying tab is usable after this
     computeStockAlerts();
     state.lastLoadedAt = Date.now();   // for the data-age stamp + auto-refresh
+    fetchSyncStamp();                  // V7.30 — real sync time, if the stamp tab exists
     // Background feeds (do-not-order, schedule, monthly history) recompute themselves
     // as they land — no final recompute needed here.
   }catch(err){
@@ -10664,6 +10903,25 @@ async function checkForNewVersion(userIdle){
   }catch(e){}
 }
 
+// V7.30 — read the time the Linnworks sync last finished from the SyncStamp tab.
+// Accepts any first cell that parses as a date (ISO or dd/mm/yyyy hh:mm[:ss]).
+async function fetchSyncStamp(){
+  if(SYNC_STAMP_URL.includes('SYNCSTAMP_GID_HERE')) return;
+  try{
+    const res=await fetchWithTimeout(SYNC_STAMP_URL,10000);
+    if(!res.ok) return;
+    const txt=(await res.text()).replace(/^\ufeff/,'');
+    const cells=txt.split(/[\r\n,]+/).map(x=>x.replace(/"/g,'').trim()).filter(Boolean);
+    for(const c of cells){
+      let d=null;
+      const m=c.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?/);
+      if(m) d=new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5],+(m[6]||0));
+      else if(/^\d{4}-\d{2}-\d{2}/.test(c)) d=new Date(c);
+      if(d && !isNaN(d)){ state.syncStampAt=d; if(window._paintDataPill) window._paintDataPill(); return; }
+    }
+  }catch(e){ console.warn('[Sync stamp] unavailable:', e.message); }
+}
+
 // ── Data freshness: visible age stamp + auto-refresh (so open tabs don't go stale) ─
 function setupAutoRefresh(){
   const STALE_MS = 10*60*1000;   // data considered stale after 10 minutes
@@ -10697,10 +10955,27 @@ function setupAutoRefresh(){
     const t=document.getElementById('dataAgeText'); if(!t) return;
     const ms=ageMs();
     if(!isFinite(ms)){ t.textContent='Loading…'; t.style.background='#334155'; return; }
-    if(ms>30*60*1000){ t.textContent='⚠ Stale · '+fmtAge(ms); t.style.background='#b91c1c'; }
-    else if(ms>STALE_MS){ t.textContent='Updated '+fmtAge(ms); t.style.background='#d97706'; }
-    else { t.textContent='Updated '+fmtAge(ms); t.style.background='#16a34a'; }
+    // V7.30 — the pill used to say "Updated just now" based on when THIS BROWSER
+    // fetched the sheet, even if the 07:17 Linnworks sync had failed. If a sync stamp
+    // is available we show the real sync time and flag a missed sync; otherwise the
+    // wording is honest: "Fetched", not "Updated".
+    const st=state.syncStampAt;
+    if(st instanceof Date && !isNaN(st)){
+      const syncAge=Date.now()-st.getTime();
+      const hhmm=st.toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'});
+      const dd=st.toDateString()===new Date().toDateString()?'':' '+st.toLocaleDateString('en-IE',{day:'numeric',month:'short'});
+      t.title='Linnworks sync finished '+st.toLocaleString('en-IE')+' · this page fetched it '+fmtAge(ms);
+      if(syncAge>26*3600*1000){ t.textContent='⚠ Sync missed · last '+hhmm+dd; t.style.background='#b91c1c'; }
+      else if(ms>STALE_MS){ t.textContent='Synced '+hhmm+dd+' · fetched '+fmtAge(ms); t.style.background='#d97706'; }
+      else { t.textContent='Synced '+hhmm+dd; t.style.background='#16a34a'; }
+      return;
+    }
+    t.title='When this page last fetched the sheet. The sheet itself is refreshed by the 07:17 Linnworks sync.';
+    if(ms>30*60*1000){ t.textContent='⚠ Fetched '+fmtAge(ms); t.style.background='#b91c1c'; }
+    else if(ms>STALE_MS){ t.textContent='Fetched '+fmtAge(ms); t.style.background='#d97706'; }
+    else { t.textContent='Fetched '+fmtAge(ms); t.style.background='#16a34a'; }
   }
+  window._paintDataPill = paintPill;
   paintPill(); setInterval(paintPill, 30000);
   let refreshing=false;
   async function doRefresh(){
@@ -11299,7 +11574,7 @@ function renderTeam(){
       else if(checked){ border='#bfdbfe';bg='#eff6ff';fg='#1e40af';icon='✓';tip='Checked — reviewed, no PO raised'; }
       else if(overdue){ border='#fecaca';bg='#fef2f2';fg='#b91c1c';icon='⚠';tip='Overdue — was due earlier this week'; }
       else { border='#fed7aa';bg='#fff7ed';fg='#9a3412';icon='○';tip='Due today — click to order'; }
-      return `<button onclick="goToSupplier('${esc(sup)}','${isCapel?'capel':'arklow'}')" title="${tip} — ${esc(ch)}"
+      return `<button onclick="goToSupplier('${jsArg(sup)}','${isCapel?'capel':'arklow'}')" title="${tip} — ${esc(ch)}"
         style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:8px;border:1.5px solid ${border};background:${bg};cursor:pointer;font-size:12px;font-weight:600;color:${fg}">
         ${icon} ${esc(sup)} <span style="font-size:10px;opacity:.7">${isCapel?'Capel':'Arklow'}</span></button>`;
     };
@@ -11360,7 +11635,7 @@ function renderTeam_OLD_LEADERBOARD(){
     const circ  = 2*Math.PI*r;
     const dash  = ((b.monthPct/100)*circ).toFixed(1);
     const gap   = (circ-dash).toFixed(1);
-    return `<div class="lb-card ${rankClass}${allDone?' all-done':''}" onclick="renderBuyerOrders('${esc(b.name)}')">
+    return `<div class="lb-card ${rankClass}${allDone?' all-done':''}" onclick="renderBuyerOrders('${jsArg(b.name)}')">
       ${medal}
       <div class="lb-ring" style="width:${rSize}px;height:${rSize}px">
         <svg width="${rSize}" height="${rSize}" viewBox="0 0 ${rSize} ${rSize}">
@@ -11460,11 +11735,11 @@ function buildOrderCard(s, isDone, buyerName){
       <div class="team-order-meta">${channelChip}&nbsp;·&nbsp;${esc(s.cadence)}${doneDetail?'<span style="color:#15803d;font-weight:600">'+doneDetail+'</span>':''}</div>
     </div>
     <button class="team-order-done-btn ${isDone?'marked':''}"
-      onclick="event.stopPropagation();toggleTeamDone('${esc(s.supplier)}',['${esc(s.channel)}'],'${esc(buyerName||'')}')">
+      onclick="event.stopPropagation();toggleTeamDone('${jsArg(s.supplier)}',['${jsArg(s.channel)}'],'${jsArg(buyerName||'')}')">
       ${isDone?'✓ Done':'Pending'}
     </button>
     <button class="team-order-go"
-      onclick="event.stopPropagation();goToSupplier('${esc(s.supplier)}','${esc(s.channel)}')">Open →</button>
+      onclick="event.stopPropagation();goToSupplier('${jsArg(s.supplier)}','${jsArg(s.channel)}')">Open →</button>
   </div>`;
 }
 
@@ -11883,6 +12158,7 @@ function computeStockAlerts(){
 
   const critical = [], watch = [];
   for(const r of rows){
+    if(r._notDefaultSupplier) continue;   // V7.30 — one alert per SKU (the default supplier's row)
     const sold7   = r.QtySold_Online_Total_7d  || 0;
     const sold30  = r.QtySold_Online_Total_30d  || 0;
     const sold180 = r.QtySold_Online_Total_180d || 0;
@@ -11897,7 +12173,10 @@ function computeStockAlerts(){
     // line that's already OUT OF STOCK sells 0 units, so its spike ratio is 0 and it
     // disqualified itself. A proven seller at zero stock must always be flagged.
     const isOOS      = stock <= 0 && (sold30 > 0 || sold180 > 0);
-    const isLowCover = stock > 0 && daily30 > 0 && cover < 5;
+    // V7.30 — 'low' now means it will run out before a PO placed today can arrive
+    // (this supplier's lead time), not a fixed 5 days for every supplier.
+    const _lead = r.leadTimeDays || 7;
+    const isLowCover = stock > 0 && daily30 > 0 && cover < _lead;
     const isSpiking  = ratio >= 1.5 && sold7 >= 5;
 
     if(isOOS || isLowCover || isSpiking){
@@ -11982,7 +12261,7 @@ function renderStockAlerts(){
       <div style="background:#dc2626;color:#fff;padding:9px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:800"
         onclick="var b=this.nextElementSibling;b.style.display=b.style.display==='none'?'block':'none';this.querySelector('.sap-arr').textContent=b.style.display==='none'?'▶':'▼'">
         🔴 Top-200 SKUs — ${critical.length} need action now
-        <span style="font-size:11px;font-weight:400;opacity:.9">${oosCount} out of stock · ${critical.filter(x=>x.reason==='LOW').length} under 5 days · ${critical.filter(x=>x.reason==='SPIKE').length} spiking</span>
+        <span style="font-size:11px;font-weight:400;opacity:.9">${oosCount} out of stock · ${critical.filter(x=>x.reason==='LOW').length} inside lead time · ${critical.filter(x=>x.reason==='SPIKE').length} spiking</span>
         <span class="sap-arr" style="margin-left:auto;font-size:12px">▼</span>
         <button onclick="event.stopPropagation();this.closest('#stockAlertPanel').style.display='none'"
           style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:2px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">✕</button>
@@ -11999,7 +12278,7 @@ function renderStockAlerts(){
       <div style="background:#d97706;color:#fff;padding:9px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:800"
         onclick="var b=this.nextElementSibling;b.style.display=b.style.display==='none'?'block':'none';this.querySelector('.sap-arr').textContent=b.style.display==='none'?'▶':'▼'">
         ↑ Other spikes — ${watch.length} SKUs (not top 200)
-        <span style="font-size:11px;font-weight:400;opacity:.9">Under 5 days stock · lower volume lines</span>
+        <span style="font-size:11px;font-weight:400;opacity:.9">Out, spiking or inside lead time · lower volume lines</span>
         <span class="sap-arr" style="margin-left:auto;font-size:12px">▶</span>
       </div>
       <div style="display:none">
@@ -12538,16 +12817,15 @@ function _qoRenderBody() {
   if (metricsEl) {
     var totalUnits = _qo.rows.reduce(function(s,r){ return s+(_qo.qtys[r.SKU]||0); }, 0);
     var totalVal   = _qo.rows.reduce(function(s,r){ return s+(_qo.qtys[r.SKU]||0)*(parseFloat(r.SupplierCostPrice)||0); }, 0);
-    var lostRev    = _qo.rows.filter(function(r){ return r.coverStatus==='Out of Stock'; })
-                      .reduce(function(s,r){ return s+(r.Revenue_Online_Total_30d||0)*3; }, 0)
-                    + _qo.rows.filter(function(r){ return r.coverStatus==='Critical'; })
-                      .reduce(function(s,r){ return s+(r.Revenue_Online_Total_30d||0)*1.5; }, 0);
+    // V7.30 — grounded: daily revenue × days empty before a PO placed today lands
+    var lostRev    = _qo.rows.filter(function(r){ return r.coverStatus==='Out of Stock'||r.coverStatus==='Critical'; })
+                      .reduce(function(s,r){ return s+estLostRevenue(r); }, 0);
     var aItems     = critRows.filter(function(r){ return r.abcClass==='A'; }).length;
     var metrics = [
       { val: critRows.length, lbl: 'Critical lines',   cls: critRows.length > 0 ? 'red' : '' },
       { val: aItems > 0 ? aItems + ' A-item' + (aItems!==1?'s':'') : _qo.rows.length + ' SKUs', lbl: aItems > 0 ? 'A-items at risk' : 'Total SKUs', cls: aItems > 0 ? 'red' : '' },
       { val: '€' + Math.round(totalVal).toLocaleString('en-IE'), lbl: 'Est. order value', cls: '' },
-      { val: lostRev > 0 ? '€' + Math.round(lostRev).toLocaleString('en-IE') : '—', lbl: 'Revenue at risk', cls: lostRev > 0 ? 'red' : '' }
+      { val: lostRev > 0 ? '€' + Math.round(lostRev).toLocaleString('en-IE') : '—', lbl: 'Lost before restock', cls: lostRev > 0 ? 'red' : '' }
     ];
     metricsEl.innerHTML = metrics.map(function(m){
       return '<div class="qo-metric-item"><div class="qo-metric-val ' + m.cls + '">' + m.val + '</div><div class="qo-metric-lbl">' + m.lbl + '</div></div>';
