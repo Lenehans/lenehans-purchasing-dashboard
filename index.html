@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.30.0 · CORRECTNESS PASS</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.2 · ONE ORDER SCREEN</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1030,7 +1030,59 @@
     .qo-btn-export:hover{background:#15803d}
     .qo-btn-full{padding:10px 16px;background:#1e3a5f;color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;transition:background .12s}
     .qo-btn-full:hover{background:#162d4a}
+    /* ── V7.31 supplier card ─────────────────────────────────────────── */
+    .sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;padding:10px 0}
+    .sc-card{background:#fff;border:1.5px solid #e2e8f0;border-left:6px solid #94a3b8;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;transition:box-shadow .15s,transform .1s}
+    .sc-card:hover{box-shadow:0 6px 18px rgba(15,23,42,.12);transform:translateY(-1px)}
+    .sc-card.red{border-left-color:#dc2626}.sc-card.amber{border-left-color:#f59e0b}
+    .sc-card.green{border-left-color:#16a34a}.sc-card.blue{border-left-color:#2563eb}
+    .sc-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .sc-name{font-size:15px;font-weight:800;color:#0f172a;line-height:1.25;min-width:0}
+    .sc-code{font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.03em}
+    .sc-status{flex-shrink:0;font-size:11px;font-weight:900;letter-spacing:.04em;padding:3px 9px;border-radius:6px;white-space:nowrap}
+    .sc-status.red{background:#dc2626;color:#fff}.sc-status.amber{background:#f59e0b;color:#fff}
+    .sc-status.green{background:#dcfce7;color:#14532d}.sc-status.blue{background:#dbeafe;color:#1e3a8a}
+    .sc-hist{font-size:12px;color:#64748b;margin-bottom:4px}
+    .sc-problem{font-size:14px;color:#0f172a;line-height:1.4}
+    .sc-problem strong{color:#b91c1c}
+    .sc-lost{font-size:13px;color:#b45309;font-weight:600}
+    .sc-fix{font-size:13px;color:#334155;margin-top:4px;padding-top:8px;border-top:1px solid #f1f5f9}
+    .sc-fix-lbl{color:#64748b}.sc-fix-val{font-size:17px;font-weight:900;color:#0f172a}
+    .sc-note{font-size:11px;color:#94a3b8}
+    .sc-wait{font-size:12px;color:#64748b;margin-top:3px}
+    .sc-actions{display:flex;justify-content:flex-end;margin-top:4px}
+    .sc-btn{padding:8px 18px;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;color:#fff;background:#1e3a8a}
+    .sc-btn.red{background:#dc2626}.sc-btn.red:hover{background:#b91c1c}
+    .sc-btn.amber{background:#d97706}.sc-btn.green{background:#16a34a}.sc-btn.blue{background:#2563eb}
     .wl-tile-actions{display:flex;gap:5px;margin-top:6px}
+    /* ── V7.31.2 order screen ─────────────────────────────────────────── */
+    .os-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
+    .os-sup{font-size:18px;font-weight:900;color:#0f172a;line-height:1.2}
+    .os-ch{font-size:11px;font-weight:700;color:#475569;background:#f1f5f9;border-radius:5px;padding:2px 7px;margin-left:4px;vertical-align:middle}
+    .os-hist{font-size:12px;color:#64748b;margin-top:2px}
+    .os-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 8px}
+    .os-tab{background:#fff;color:#334155;border:1.5px solid #cbd5e1;border-radius:8px;padding:6px 11px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+    .os-tab:hover{background:#f8fafc;border-color:#94a3b8}
+    .os-tab.active{background:#1e3a5f;color:#fff;border-color:#1e3a5f}
+    .os-tab-n{font-size:11px;font-weight:800;background:rgba(148,163,184,.25);border-radius:9px;padding:0 7px}
+    .os-tab.active .os-tab-n{background:rgba(255,255,255,.2)}
+    .os-cap{font-size:11px;padding:1px 3px;border-radius:5px;border:1px solid #cbd5e1;min-height:0}
+    .os-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .os-toolbar .po-review-search{margin-left:0;width:240px}
+    .os-refine{flex:1;min-width:220px;padding:5px 10px;border:1.5px solid #c7d2fe;border-radius:8px;font-size:12px;min-height:0}
+    .os-refine-msg{margin-top:6px;font-size:12px;color:#3730a3;background:#eef2ff;border-radius:6px;padding:6px 10px}
+    .os-title{font-size:12px;font-weight:600;color:#0f172a;line-height:1.35}
+    .os-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
+    .os-tag{font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;white-space:nowrap;background:#f1f5f9;color:#475569}
+    .os-tag.now{background:#fee2e2;color:#991b1b}.os-tag.wait{background:#f1f5f9;color:#475569}
+    .os-tag.gap{background:#dc2626;color:#fff}.os-tag.gapdue{background:#fee2e2;color:#991b1b}
+    .os-tag.cs{background:#ede9fe;color:#5b21b6}.os-tag.season{background:#fef9c3;color:#854d0e}
+    .os-tag.multi{background:#fef3c7;color:#92400e}.os-tag.cheap{background:#fef2f2;color:#991b1b}
+    .os-tag.pack{background:#e0f2fe;color:#075985}
+    .os-table tbody td{vertical-align:middle}
+    .os-table tr.os-oos td{background:#fff7f7}
+    .os-why-btn{padding:3px 9px;font-size:11px;font-weight:700;background:#fff;color:#1e40af;border:1.5px solid #bfdbfe;border-radius:6px;cursor:pointer}
+    .os-why-row td{background:#f8fafc!important;padding:10px 16px 14px!important}
     .wl-tile-btn{flex:1;padding:5px 0;background:#1e40af;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:background .12s}
     .wl-tile-btn:hover{background:#1d4ed8}
     .wl-tile-btn.green{background:#16a34a}.wl-tile-btn.green:hover{background:#15803d}
@@ -1091,7 +1143,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.30.0 · built 2026-10-22 · Correctness pass — seasonal build-ahead, default supplier, pack/MOQ rounding</div>
+  <div class="sub">V7.31.2 · built 2026-10-22 · One order screen — order now, all lines, critical, top impact and Arklow gap as views of the same lines</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -1315,7 +1367,7 @@ Fine Sea Salt drum	SSFCTDP63	350g	6	238	34	7	5011289 002499	05011289 002512"
       <div style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:8px;font-size:12px;font-weight:700;color:#0369a1">
         ⚡ Seasonal · Buy&gt;0 · Excl. healthy
       </div>
-      <button id="whyBuyBtn" class="secondary" title="Review why each SKU is being ordered">🔍 Why Buy?</button>
+      <button id="whyBuyBtn" class="secondary" title="Open the order screen for the selected supplier">📋 Build order</button>
       <button id="poExportBtn" class="secondary">Export PO</button>
       <button id="exportBtn" class="secondary">Export CSV</button>
       <button id="xfrPickBtn" class="secondary" onclick="exportTransferPickingNote()" style="display:none">⇄ Transfer</button>
@@ -3292,17 +3344,7 @@ https://www.lenehans.ie/...html	1080286	€9.99	5.99	SAVE	40%
 <div id="stickyPoBar">
   <div class="spb-supplier" id="spbSupplierName">—</div>
   <div class="spb-info" id="spbInfo"></div>
-  <button onclick="exportPO()">📄 Export PO</button>
-  <button onclick="openWhyBuy()" style="background:#1e40af">🔍 Why Buy?</button>
-  <button onclick="openWhyBuyCritical()" style="background:#b91c1c" title="Why Buy — only Out-of-Stock &amp; Critical lines">🔴 Why Buy — Critical</button>
-  <button onclick="openImpactOrder(parseInt(document.getElementById('quickCap')?.value)||15)" style="background:#047857" title="Fewest SKUs, biggest impact — ranked by lost-sales risk, value &amp; urgency">⚡ Smart Order</button>
-  <button onclick="openArklowGapPO(state.activeSupplier)" style="background:#dc2626" title="Selling in the last 7 days but Arklow can't ship it — build the urgent order now">🚨 Arklow Gap PO</button>
-  <select id="quickCap" title="Max SKUs in the quick order" style="padding:5px 8px;border-radius:6px;border:1px solid #cbd5e1;font-size:12px;font-weight:700">
-    <option value="10">Top 10</option>
-    <option value="15" selected>Top 15</option>
-    <option value="20">Top 20</option>
-    <option value="30">Top 30</option>
-  </select>
+  <button onclick="openOrderScreen(state.activeSupplier,'now')" style="background:#16a34a" title="Open this supplier's order — order-now, all lines, critical, top impact and Arklow-gap views">📋 Build order</button>
   <button onclick="exportTransferPickingNote()" style="background:#d97706" title="Capel mode = Arklow→Capel transfers. Arklow mode = Capel→Arklow transfers.">⇄ Transfer Note</button>
   <button class="spb-back" onclick="document.getElementById('backBtn').click()">← Back to suppliers</button>
 </div>
@@ -7164,63 +7206,20 @@ function runCampaignCheck(){
 // the existing rules engine (governance, do-not-order, pack sizes all respected); where the
 // engine has no buy figure it falls back to ~14 days of the live 7-day rate, rounded to
 // pack size. Ranked by 7-day velocity so the fastest movers are at the top.
+// V7.31.2 — Arklow Gap PO is now the "Arklow gap" view of the order screen.
 function openArklowGapPO(supplierName){
   const q=String(supplierName||'').trim().toLowerCase();
   if(!q){ alert('Enter a supplier name or code first, e.g. LYN001 or Donal Lynch.'); return; }
+  if(state.channel==='capel'){ alert('The Arklow gap check uses Arklow stock — switch the channel to 🏭 Arklow Online first.'); return; }
   const rows=state.computedRows||[];
   if(!rows.length){ alert('Data is still loading — try again in a moment.'); return; }
-  const supRows=rows.filter(r=>String(r.SupplierName||'').toLowerCase().includes(q));
-  if(!supRows.length){ alert('No supplier matching "'+supplierName+'". Try the code (e.g. LYN001) or part of the name.'); return; }
-  const supName=supRows[0].SupplierName;
-  try{ logUsage('arklow_gap_po', supName); }catch(e){}
-
-  const GAP_COVER_DAYS=3;   // Arklow under this many days' cover counts as "can't ship"
-  const seen=new Set(); const picks=[];
-  for(const r of supRows){
-    if(seen.has(r.SKU)) continue;
-    if(r.isDiscontinued) continue;
-    if(r._notDefaultSupplier) continue;   // V7.30 — the default supplier orders this SKU
-    if(typeof isExcludedSku==='function' && isExcludedSku(r.SKU, r.SupplierName)) continue;
-    const on7=r.QtySold_Online_Total_7d||0, till7=r.QtySold_Shop_CapelStreet_7d||0;
-    const sold7=on7+till7;
-    const sold30=(r.QtySold_Online_Total_30d||0)+(r.QtySold_Shop_CapelStreet_30d||0);
-    const engineBuy=r.buy||0;   // the rules engine's own demand-based buy (includes seasonal)
-    // TWO TIERS. Tier 1 = selling NOW (7d). Tier 2 = not this week, but sold in the last
-    // 30d OR the engine's seasonal demand says it's due (e.g. dehumidifier bags in
-    // September that haven't sold yet but will). A 7-day-only gate missed exactly the
-    // "it's time of year for it" case.
-    const tier = sold7>0 ? 1 : ((sold30>0 || engineBuy>0) ? 2 : 0);
-    if(tier===0) continue;                          // no demand signal at all → not urgent
-    const akStock=r.NetStock_Arklow||0;
-    const daily = sold7>0 ? sold7/7 : (sold30>0 ? sold30/30 : 0);
-    const akCover = daily>0 ? akStock/daily : (akStock>0 ? 999 : 0);
-    // tier 1: Arklow out or under GAP_COVER_DAYS. tier 2: Arklow must be actually OUT
-    // (thin-but-present on a slow line isn't urgent).
-    if(tier===1 && akStock>0 && akCover>=GAP_COVER_DAYS) continue;
-    if(tier===2 && akStock>0) continue;
-    seen.add(r.SKU);
-    const pack=Math.max(1, r.SupplierPackSize||1);
-    let qty = engineBuy>0 ? engineBuy
-            : Math.ceil(((daily>0?daily:0.5)*14 - Math.max(0,akStock))/pack)*pack;
-    qty=Math.max(pack, qty);
-    const capelOnline30=r.QtySold_Online_CapelStreet_30d||0;
-    const demandTxt = sold7>0 ? ('sold '+sold7+' in 7d')
-                    : sold30>0 ? ('sold '+sold30+' in 30d')
-                    : ('seasonal demand — engine says buy '+engineBuy);
-    picks.push({...r, buy:qty, _gapTier:tier, _gapSold7:sold7, _gapSold30:sold30, _gapCover:akCover, _gapCapelOn30:capelOnline30,
-      _gapWhy: (tier===1?'🔥 ':'📅 ') + (akStock<=0?'Arklow OUT':('Arklow '+Math.round(akCover)+'d cover'))
-             + ' · ' + demandTxt
-             + (capelOnline30>0?(' · Capel shipping online ('+capelOnline30+'/30d)'):'')});
-  }
-  if(!picks.length){
-    alert(supName+": nothing selling in the last 7 days that Arklow can't cover. No urgent gap right now.");
-    return;
-  }
-  picks.sort((a,b)=> (a._gapTier-b._gapTier) || (b._gapSold7-a._gapSold7) || (b._gapSold30-a._gapSold30) || (b.buy-a.buy));
-  state.activeSupplier=supName;
-  const bt=document.querySelector('.tab-btn[data-tab="buying"]'); if(bt) bt.click();
-  window._poReviewCtx={rows:picks, supplier:supName, gap:true};
-  setTimeout(()=>{ try{ showPOReview(picks, false); }catch(e){ console.error(e); alert('Could not open PO panel: '+e.message); } }, 80);
+  const sups=[...new Set(rows.filter(r=>String(r.SupplierName||'').toLowerCase().includes(q)).map(r=>r.SupplierName))];
+  if(!sups.length){ alert('No supplier matching "'+supplierName+'". Try the code (e.g. LYN001) or part of the name.'); return; }
+  const exact=sups.find(n=>n.toLowerCase()===q) || sups.find(n=>n.toLowerCase().startsWith(q)) || sups[0];
+  try{ logUsage('arklow_gap_po', exact); }catch(e){}
+  const gapN=osCanonicalRows(exact).filter(r=>isArklowGapLine(r)).length;
+  if(!gapN){ alert(exact+": nothing selling or due that Arklow can't cover. No urgent gap right now."); return; }
+  openOrderScreen(exact, 'gap');
 }
 
 // "What to get ahead of, right now." Looks at each seasonal profile's monthly ramp,
@@ -8469,6 +8468,32 @@ function applyDefaultSupplier_(rows){
   console.log('[Default supplier] buys moved to default:', zeroed, '· multi-supplier SKUs without a known default:', unresolved);
 }
 
+// ─── ORDER THIS CYCLE? (V7.31.1) ─────────────────────────────────────────────
+// For every line in an order: if we wait until this supplier's NEXT scheduled order
+// day, will it already have dropped past its reorder point (lead + safety)? If yes it
+// must go on today's order; if no, it can safely wait. Out-of-stock and CS-required
+// lines always go now. Suppliers with no cadence on the schedule aren't split.
+function applyOrderCycle_(rows){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const nextByCadence={};
+  let nowN=0, waitN=0;
+  for(const r of rows){
+    r._orderNow=true; r._nextOrderDay=null; r._daysToNextOrder=null;
+    if(!((r.buy||0)>0)) continue;
+    let cad=null; try{ cad=getCadenceForSupplier(r.SupplierName); }catch(e){}
+    if(!cad) continue;
+    if(!(cad in nextByCadence)) nextByCadence[cad]=nextScheduledOrderDay(cad,today);
+    const next=nextByCadence[cad]; if(!next) continue;
+    const gap=Math.max(0,Math.round((next-today)/86400000));
+    r._nextOrderDay=next; r._daysToNextOrder=gap;
+    if((r.stock||0)<=0 || r._csRequired || r.coverStatus==='Out of Stock'){ nowN++; continue; }
+    const cover = (r.daysOfCover>=9999) ? Infinity : (r.daysOfCover||0);
+    if(cover - gap >= (r.reorderPointDays||0)){ r._orderNow=false; waitN++; } else nowN++;
+  }
+  console.log('[Order cycle] must go now:', nowN, '· can wait for next order day:', waitN);
+}
+function orderDayLabel(d){ return d ? (['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]+' '+d.getDate()+' '+_MONTH_ABBR[d.getMonth()]) : ''; }
+
 // ─── FILTER ──────────────────────────────────────────────────────────────────
 function getFilteredRows(){
   const q=(document.getElementById('searchBox')?.value||'').trim().toLowerCase();
@@ -8557,6 +8582,7 @@ async function recompute(){
   if(!state._seasonalTagsRequested){ state._seasonalTagsRequested = true; loadSeasonalTags(); }
   applySeasonalRescue_ && (function(){ try{ applySeasonalRescue_(deduped); }catch(e){ console.warn('seasonal rescue skipped:', e); } })();
   try{ applyDefaultSupplier_(deduped); }catch(e){ console.warn('default-supplier rule skipped:', e); }
+  try{ applyOrderCycle_(deduped); }catch(e){ console.warn('order-cycle split skipped:', e); }
   window._eiRows = deduped;
   if(typeof window.eiOnDataReady === 'function') window.eiOnDataReady(deduped);
 
@@ -8788,10 +8814,17 @@ function renderActionNow(rows){
   for(const r of (state.computedRows||[])){
     if(!countsInOrderValue(r)) continue;
     const k=r.SupplierName||'(Unknown)';
-    let f=fullOrderBySupplier.get(k); if(!f){ f={value:0,units:0,lines:0}; fullOrderBySupplier.set(k,f); }
+    let f=fullOrderBySupplier.get(k); if(!f){ f={value:0,units:0,lines:0,oos:0,oosA:0,crit:0,critA:0,lost:0,noCost:0,nowValue:0,nowLines:0,waitValue:0,waitLines:0,nextDay:null}; fullOrderBySupplier.set(k,f); }
+    const _lv=(r.buy||0)*(r.SupplierCostPrice||0);
+    if(r._orderNow===false){ f.waitValue+=_lv; f.waitLines++; f.nextDay=r._nextOrderDay; }
+    else { f.nowValue+=_lv; f.nowLines++; }
     f.value += (r.buy||0)*(r.SupplierCostPrice||0);
     f.units += (r.buy||0);
     f.lines += 1;
+    // V7.31 — every number on the card comes from THIS set (the lines in the order)
+    if(!(r.SupplierCostPrice>0)) f.noCost++;
+    if(r.coverStatus==='Out of Stock'){ f.oos++; if(r.abcClass==='A') f.oosA++; f.lost+=estLostRevenue(r); }
+    else if(r.coverStatus==='Critical'){ f.crit++; if(r.abcClass==='A') f.critA++; f.lost+=estLostRevenue(r); }
   }
 
   // Group by supplier
@@ -8885,141 +8918,106 @@ function renderActionNow(rows){
     return html;
   }
 
+  // ── V7.31 supplier card — reads top to bottom as a decision ──────────────
+  //   1. Name + order status in plain words (OVERDUE 31 DAYS / DUE TODAY / ORDERED)
+  //   2. Last ordered, by whom, how often
+  //   3. The problem: lines out of stock (how many are top sellers)
+  //   4. The cost of waiting: sales lost until the order arrives
+  //   5. The fix: order value + line count, and one button
+  // Every count and euro figure comes from the same set — the lines in the order.
+  const CADENCE_WORDS={'3x week':'orders 3 times a week','2x week':'orders twice a week','Weekly':'orders every week','Fortnightly':'orders every 2 weeks','Monthly':'orders every month'};
+  const _today=new Date(); _today.setHours(0,0,0,0);
+  const dayMs=86400000;
+  const shortDate=d=>d?(d.getDate()+' '+_MONTH_ABBR[d.getMonth()]):'';   // "8 Sep" (locale says "Sept")
+  const roundEuro=v=>v>=1000?Math.round(v/100)*100:Math.round(v/10)*10;
+  const displayName=n=>{ const i=String(n).indexOf(' - '); return i>0?String(n).slice(i+3).trim():String(n); };
+  const supplierCode=n=>{ const i=String(n).indexOf(' - '); return i>0?String(n).slice(0,i).trim():''; };
+
+  // V7.31.2 — one status function shared with the order screen
+  function cardStatus(name){ return supplierOrderStatus(name); }
+  const STATUS_RANK={overdue:0,due:1,none:2,ordered:3,checked:4};
+
   function makeCard(s){
-    const colour=s.oos>0?'red':s.crit>0?'amber':s.low>0?'amber':'green';
+    const f = fullOrderBySupplier.get(s.name) || {value:0,lines:0,oos:0,oosA:0,crit:0,critA:0,lost:0,noCost:0};
+    const st = s._status;
+    const tone = st.key==='overdue'?'red' : st.key==='due'?'amber' : st.key==='none'?'red' : st.key==='checked'?'blue' : 'green';
 
-    // Badge top-right
-    const badgeText = s.oos>0 ? `🔴 ${s.oos} OOS` : s.crit>0 ? `🟠 ${s.crit} critical` : s.low>0 ? `🟡 ${s.low} low` : `✓ Healthy`;
+    // Line 2 — history
+    let histLine;
+    if(st.lastDone){
+      const who = st.lastDone.person ? ` by ${esc(st.lastDone.person)}` : '';
+      const when = st.lastDate ? shortDate(st.lastDate) : esc(st.lastDone.month||'');
+      histLine = `Last ordered ${when}${who}`;
+    } else histLine = 'No order recorded on the PO sheet';
+    if(st.cadence) histLine += ` · ${esc(CADENCE_WORDS[st.cadence]||st.cadence)}`;
 
-    // Order value (what the buyer will spend) — this is what matters to the buying team
-    const _fo = fullOrderBySupplier.get(s.name) || {value:0};
-    const orderVal = _fo.value;   // full order value — matches Order Now + full order
-    const critOrderVal = (s.skus||[]).filter(r=>r.coverStatus==='Out of Stock'||r.coverStatus==='Critical')
-      .reduce((t,r)=>t+((r.buy||0)*(r.SupplierCostPrice||0)),0);
-
-    let revHtml;
-    if(orderVal>0){
-      const critPart = critOrderVal>0&&critOrderVal<orderVal
-        ? `<span style="color:#dc2626">€${fmtInt(Math.round(critOrderVal))}</span> critical · ` : '';
-      revHtml=`<div class="wl-tile-rev ${colour}">€${fmtInt(Math.round(orderVal))}</div>
-        <div class="wl-tile-rev-lbl">EST. ORDER VALUE</div>
-        ${s.lostRev>0?`<div class="wl-tile-risk">€${fmtInt(s.lostRev)} est. lost before restock</div>`:''}`;
-    } else if(s.lostRev>0){
-      revHtml=`<div class="wl-tile-rev ${colour}">€${fmtInt(s.lostRev)}</div><div class="wl-tile-rev-lbl">est. lost before restock</div>`;
-    } else if(s.buy>0){
-      revHtml=`<div class="wl-tile-rev none">Order pending</div><div class="wl-tile-rev-lbl">&nbsp;</div>`;
+    // Line 3 — the problem
+    let problem;
+    if(f.oos>0){
+      problem = `<strong>${fmtInt(f.oos)} line${f.oos!==1?'s':''} out of stock</strong>`
+        + (f.oosA>0 ? ` (${fmtInt(f.oosA)} ${f.oosA!==1?'are':'is a'} top seller${f.oosA!==1?'s':''})` : '');
+      if(f.crit>0) problem += `, ${fmtInt(f.crit)} more about to run out`;
+    } else if(f.crit>0){
+      problem = `<strong>${fmtInt(f.crit)} line${f.crit!==1?'s':''} about to run out</strong>`
+        + (f.critA>0 ? ` (${fmtInt(f.critA)} ${f.critA!==1?'are':'is a'} top seller${f.critA!==1?'s':''})` : '');
+    } else if(f.lines>0){
+      problem = `${fmtInt(f.lines)} line${f.lines!==1?'s':''} running low`;
     } else {
-      revHtml=`<div class="wl-tile-rev none">—</div><div class="wl-tile-rev-lbl">&nbsp;</div>`;
+      problem = 'Nothing needs ordering right now';
     }
 
-    // A-item alert — shows only when A-items are in trouble
-    let aItemHtml='';
-    if(s.oosA>0||s.critA>0){
-      const aMsg=s.oosA>0
-        ?`🔥 ${s.oosA} A-item${s.oosA!==1?'s':''} OOS`
-        :`⚠ ${s.critA} A-item${s.critA!==1?'s':''} critical`;
-      aItemHtml=`<div style="display:inline-flex;align-items:center;font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;width:fit-content">${aMsg}</div>`;
+    // Line 4 — cost of waiting
+    const lostLine = f.lost>=10
+      ? `<div class="sc-lost" title="Daily sales of the out-of-stock and critical lines × the days they'll be empty before an order placed today arrives (supplier lead time). Sales value inc-VAT, not profit.">Losing about €${fmtInt(roundEuro(f.lost))} of sales until the order arrives</div>`
+      : '';
+
+    // Line 5 — the fix
+    const costNote = f.noCost>0 ? ` <span class="sc-note" title="These lines have no cost price in Linnworks, so they add nothing to the total">(${fmtInt(f.noCost)} without a cost price)</span>` : '';
+    // V7.31.1 — split into what must go today vs what can wait for the next order day
+    let fixLine='';
+    if(f.lines>0 && f.waitLines>0){
+      const nd=orderDayLabel(f.nextDay);
+      fixLine = `<div class="sc-fix">`
+        + (f.nowLines>0
+            ? `<div><span class="sc-fix-lbl">Order now:</span> <span class="sc-fix-val">€${fmtInt(Math.round(f.nowValue))}</span> · ${fmtInt(f.nowLines)} line${f.nowLines!==1?'s':''}${costNote}</div>`
+            : `<div><span class="sc-fix-lbl">Nothing has to go today</span>${costNote}</div>`)
+        + `<div class="sc-wait" title="These lines will still be above their reorder point on the next scheduled order day">Can wait until ${esc(nd)}: €${fmtInt(Math.round(f.waitValue))} · ${fmtInt(f.waitLines)} line${f.waitLines!==1?'s':''}</div>`
+        + `</div>`;
+    } else if(f.lines>0){
+      fixLine = `<div class="sc-fix"><span class="sc-fix-lbl">Order now:</span> <span class="sc-fix-val">€${fmtInt(Math.round(f.value))}</span> · ${fmtInt(f.lines)} line${f.lines!==1?'s':''}${costNote}</div>`;
     }
 
-    // Overstock badge — cash tied up in slow-moving stock
-    let overstockHtml='';
-    if(s.overstockValue >= 200){
-      overstockHtml=`<div style="display:inline-flex;align-items:center;font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;width:fit-content">💰 €${fmtInt(s.overstockValue)} tied up · ${s.overstockCount} SKU${s.overstockCount!==1?'s':''} 120d+ cover</div>`;
-    }
-    // CS demand gap badge — CS shop/online selling but no AK reorder
-    let csGapHtml='';
-    if(s.csGapSkus > 0){
-      const topTitle=s.csGapTopSku?(s.csGapTopSku.ItemTitle||'').substring(0,28):'';
-      csGapHtml=`<div style="display:inline-flex;align-items:center;font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff;width:fit-content" title="Capel Street selling but AK not reordering or critically low">🏪 ${s.csGapSkus} CS gap${topTitle?' · '+esc(topTitle):''}</div>`;
-    }
-
-    let topSkuHtml='';
-    if(s.topAtRisk){
-      const skuTitle=(s.topAtRisk.ItemTitle||s.topAtRisk.SKU||'').substring(0,42);
-      topSkuHtml=`<div class="wl-tile-topsku ${colour}" title="${esc(s.topAtRisk.ItemTitle||'')}">⚠ ${esc(skuTitle)}${(s.topAtRisk.ItemTitle||'').length>42?'…':''}</div>`;
-    }
-
-    // Countdown pill — days left on worst SKU
-    let countdownHtml='';
-    if(s.oos>0){
-      countdownHtml=`<span class="wl-tile-countdown urgent">🔴 OOS now</span>`;
-    } else if(s.minDays<9999 && s.minDays>0){
-      const cls=s.minDays<=7?'urgent':'warn';
-      countdownHtml=`<span class="wl-tile-countdown ${cls}">⏱ ${Math.round(s.minDays)}d left</span>`;
-    }
-
-    // Stats row
-    const buyPart = s.buy>0 ? `<span class="wl-tile-buy">📦 Buy ${fmtInt(s.buy)}</span>` : '';
-    const statsDivider = (buyPart && countdownHtml) ? '<span style="color:#cbd5e1">·</span>' : '';
-
-    // PO status — cadence-aware. Green while you're still within the cadence window,
-    // and it now shows the NEXT DUE date so green is self-explanatory; it flips amber
-    // once that date passes. Falls back to a this-month check if the cadence or
-    // last-order date can't be read.
-    const poSt=_chPoMap[s.name];
-    const _nm = v=>String(v||'').replace(/\./g,'').trim().toLowerCase();
-    const nowMonthStr = currentMonthLabel();
-    let cadence=null, overdue=false, nextDue=null;
-    try{
-      cadence = getCadenceForSupplier(s.name);
-      if(poSt?.isDone){
-        const lastOrd = parsePODate(poSt.date, poSt.month);
-        if(cadence && lastOrd){
-          nextDue = nextScheduledOrderDay(cadence, lastOrd);
-          const today=new Date(); today.setHours(0,0,0,0);
-          overdue = !!(nextDue && today >= nextDue);
-        } else {
-          overdue = !(_nm(poSt.month)===_nm(nowMonthStr));   // fallback: previous month = due
-        }
-      }
-    }catch(_e){
-      overdue = !!(poSt?.isDone && !(_nm(poSt.month)===_nm(nowMonthStr)));
-    }
-    const doneAndCurrent = !!(poSt?.isDone && !overdue);
-    // Checked THIS month = reviewed, no PO needed. Treat as current/handled (not pending,
-    // not due) — the same meaning as the blue Checked bucket on the Team tab. Previously
-    // a CHECKED supplier fell through to "🔴 PO pending", which contradicted the sheet.
-    const checkedNow = !!(poSt && !poSt.isDone && poSt.isChecked && _nm(poSt.month)===_nm(nowMonthStr));
-    const cadenceTag = cadence ? ` · ${esc(cadence)}` : '';
-    let poLine='';
-    if(poSt?.isDone){
-      const who = poSt.person ? ` · <strong>${esc(poSt.person)}</strong>` : '';
-      const lastTxt = poSt.date ? esc(poSt.date) : (poSt.month ? esc(poSt.month) : '');
-      const dueTxt = nextDue ? ` · next due ${ddmm(nextDue)}` : '';
-      poLine = doneAndCurrent
-        ? `<div class="wl-tile-po">✅ Ordered${lastTxt?` ${lastTxt}`:''}${who}${dueTxt}${cadenceTag}</div>`
-        : `<div class="wl-tile-po stale">🔔 Order due${lastTxt?` — last ${lastTxt}`:''}${nextDue?` · was due ${ddmm(nextDue)}`:''}${who}${cadenceTag}</div>`;
-    } else if(checkedNow){
-      const who = poSt.person ? ` · <strong>${esc(poSt.person)}</strong>` : '';
-      const lastTxt = poSt.date ? esc(poSt.date) : '';
-      poLine=`<div class="wl-tile-po" style="background:#eff6ff;border-color:#bfdbfe;color:#1e40af">◐ Checked${lastTxt?` ${lastTxt}`:''}${who} — reviewed, no PO needed${cadenceTag}</div>`;
-    } else if(poSt?.month){
-      poLine=`<div class="wl-tile-po pending">🔴 PO pending${cadenceTag}</div>`;
-    } else {
-      poLine=`<div class="wl-tile-po none">— No PO on record${cadenceTag}</div>`;
-    }
-
+    const btnLabel = (st.key==='ordered'||st.key==='checked') ? (f.lines>0?'View order':'View lines') : 'Build order';
     const safeName=s.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    const openSupplierJs=`state.activeSupplier='${safeName}';render();const tb=document.getElementById('tableBody');if(tb&&tb.classList.contains('closed')){tb.classList.remove('closed');const tl=document.getElementById('tableToggle');if(tl)tl.textContent='▲ Hide';}setTimeout(()=>document.getElementById('detailTable')?.scrollIntoView({behavior:'smooth'}),80)`;
-    return `<div class="wl-tile ${colour}" data-supplier="${esc(s.name)}" onclick="${openSupplierJs}" style="cursor:pointer">
-      <div class="wl-tile-hdr">
-        <div class="wl-tile-name" title="${esc(s.name)}">${esc(s.name)}</div>
-        <span class="wl-tile-badge ${colour}">${badgeText}</span>
+    const code=supplierCode(s.name);
+    return `<div class="sc-card ${tone}" data-supplier="${esc(s.name)}" style="cursor:pointer" title="${esc(s.name)}">
+      <div class="sc-hdr">
+        <div class="sc-name">${esc(displayName(s.name))}${code?` <span class="sc-code">${esc(code)}</span>`:''}</div>
+        <span class="sc-status ${tone}">${esc(st.label)}</span>
       </div>
-      ${revHtml}
-      ${aItemHtml}
-      ${poLine}
-      <div class="wl-tile-actions" onclick="event.stopPropagation()">
-        <button class="wl-tile-btn${(doneAndCurrent||checkedNow)?' green':''}" onclick="if(window.openQuickOrder)openQuickOrder('${safeName}')">${doneAndCurrent?'✓ View order':checkedNow?'◐ Checked — view':'⚡ Order Now'}</button>
+      <div class="sc-hist">${histLine}</div>
+      <div class="sc-problem">${problem}</div>
+      ${lostLine}
+      ${fixLine}
+      <div class="sc-actions" onclick="event.stopPropagation()">
+        <button class="sc-btn ${tone}" onclick="if(window.openQuickOrder)openQuickOrder('${safeName}')">${btnLabel}</button>
       </div>
     </div>`;
   }
 
-  let html=`<div class="wl-tile-grid">`;
-  for(const s of atRisk) html+=makeCard(s);
-  for(const s of lowOnly) html+=makeCard(s);
+  // status + sort: overdue first, then due today, then no record; within each, most
+  // out-of-stock lines first, then most sales being lost
+  const cardList=[...atRisk, ...lowOnly];
+  cardList.forEach(s=>{ s._status=cardStatus(s.name); });
+  cardList.sort((a,b)=>{
+    const fa=fullOrderBySupplier.get(a.name)||{oos:0,lost:0}, fb=fullOrderBySupplier.get(b.name)||{oos:0,lost:0};
+    return (STATUS_RANK[a._status.key]-STATUS_RANK[b._status.key]) || (fb.oos-fa.oos) || (fb.lost-fa.lost);
+  });
+
+  let html=`<div class="sc-grid">`;
+  for(const s of cardList) html+=makeCard(s);
   html+=`</div>`;
-  if(!atRisk.length&&!lowOnly.length){
+  if(!cardList.length){
     html='<div style="color:#16a34a;font-size:13px;padding:8px;font-weight:600">✓ None of your top 500 SKUs are at risk right now.</div>';
   }
   if(healthy.length>0){
@@ -9027,7 +9025,7 @@ function renderActionNow(rows){
   }
   el.innerHTML=html;
 
-  el.querySelectorAll('.wl-tile').forEach(tile=>{
+  el.querySelectorAll('.sc-card').forEach(tile=>{
     tile.addEventListener('click',()=>{
       if(window.openQuickOrder) openQuickOrder(tile.dataset.supplier);
     });
@@ -9570,20 +9568,13 @@ function applyInitialMode(){
   }
 }
 
+// V7.31.2 — Export PO opens the order screen on all lines and exports that view.
 function exportPO(){
-  // Never build an all-supplier PO — orders are always per supplier.
   if(!state.activeSupplier){
     alert('Select a supplier first.\n\nExporting an order for ALL suppliers is disabled.');
     return;
   }
-  const rows=getFilteredRows().filter(countsInOrderValue);
-  if(!rows.length){alert('No lines to export for current view.');return;}
-  rows.sort((a,b)=>{
-    const pa=a.stock<=0?0:a.coverStatus==='Critical'?1:a.coverStatus==='Low'?2:3;
-    const pb=b.stock<=0?0:b.coverStatus==='Critical'?1:b.coverStatus==='Low'?2:3;
-    return pa!==pb?pa-pb:b.buy-a.buy;
-  });
-  showPOReview(rows, true);
+  openOrderScreen(state.activeSupplier, 'all', {autoExport:true});
 }
 
 // AI refine for Quick Order. IMPORTANT: this only ever HIDES rows the engine already
@@ -9651,19 +9642,7 @@ function quickOrderScore(r){
   return (lostSalesRisk*4) + (value*0.03) + (urgency*15);
 }
 
-function openImpactOrder(maxSkus){
-  try{ logUsage('smart_order', state.activeSupplier); }catch(e){}
-  if(!state.activeSupplier){ alert('Select a supplier first — Quick Order works on one supplier\'s order.'); return; }
-  const cap = maxSkus || 15;
-  let rows = getSupplierOrderRows().filter(r=>true
-    && (r.stock<=0 || r.coverStatus==='Critical' || r.coverStatus==='Low' || r.coverStatus==='Out of Stock'));
-  if(!rows.length){ alert('No critical or low-stock lines for this supplier right now.'); return; }
-  rows = rows.map(r=>({...r, _qScore:quickOrderScore(r)}))
-             .sort((a,b)=>b._qScore-a._qScore)
-             .slice(0, cap);
-  window._poReviewCtx = {rows, supplier:state.activeSupplier, quick:true};
-  showPOReview(rows, false);
-}
+function openImpactOrder(maxSkus){ openOrderScreen(state.activeSupplier, 'impact', {cap:maxSkus||15}); }
 
 // All order lines for the active supplier — the SAME scope the supplier card's headline
 // value uses (every countsInOrderValue row), NOT the on-screen filtered view. Why Buy and
@@ -9680,31 +9659,10 @@ function getSupplierOrderRows(){
   });
 }
 
-function openWhyBuy(){
-  if(!state.activeSupplier){ alert('Select a supplier first — Why Buy works on one supplier\'s order.'); return; }
-  const rows=getSupplierOrderRows();
-  if(!rows.length){alert('No buy lines for this supplier.');return;}
-  rows.sort((a,b)=>{
-    const pa=a.stock<=0?0:a.coverStatus==='Critical'?1:a.coverStatus==='Low'?2:3;
-    const pb=b.stock<=0?0:b.coverStatus==='Critical'?1:b.coverStatus==='Low'?2:3;
-    return pa!==pb?pa-pb:b.buy-a.buy;
-  });
-  showPOReview(rows, false);
-}
-
-// Why Buy limited to the URGENT lines — Out of Stock or Critical cover — same panel,
-// same edit persistence. Useful for a fast "just the fires" review.
-function openWhyBuyCritical(){
-  if(!state.activeSupplier){ alert('Select a supplier first — Why Buy works on one supplier\'s order.'); return; }
-  const rows=getSupplierOrderRows().filter(r=>(r.stock<=0 || r.coverStatus==='Critical' || r.coverStatus==='Out of Stock'));
-  if(!rows.length){alert('No critical or out-of-stock buy lines in current view.');return;}
-  rows.sort((a,b)=>{
-    const pa=a.stock<=0?0:a.coverStatus==='Critical'?1:2;
-    const pb=b.stock<=0?0:b.coverStatus==='Critical'?1:2;
-    return pa!==pb?pa-pb:b.buy-a.buy;
-  });
-  showPOReview(rows, false);
-}
+// V7.31.2 — the old Why Buy / Why Buy Critical / Smart Order panels are now views
+// of the single order screen.
+function openWhyBuy(){ openOrderScreen(state.activeSupplier, 'all'); }
+function openWhyBuyCritical(){ openOrderScreen(state.activeSupplier, 'urgent'); }
 
 function buildWhyText(r){
   const rows=[];
@@ -9869,6 +9827,17 @@ function buildWhyText(r){
       <span class="wbs-lbl">Supplier</span>
       <span class="wbs-val" style="color:#b45309;font-weight:600">Also listed under ${esc((r._otherSuppliers||[]).join(', ')||'another supplier')} — default supplier not known, check you're not ordering twice</span>
     </div>`);
+
+  // ── Order this cycle? (V7.31.1) ──────────────────────────────────────────
+  if(r.buy>0 && r._nextOrderDay){
+    const nd=orderDayLabel(r._nextOrderDay);
+    const coverAtNext = (r.daysOfCover>=9999) ? null : Math.round((r.daysOfCover||0)-(r._daysToNextOrder||0));
+    rows.push(r._orderNow===false
+      ? `<div class="wbs-row"><span class="wbs-icon">⏭️</span><span class="wbs-lbl">Timing</span>
+          <span class="wbs-val" style="color:#475569;font-weight:600">Can wait until ${esc(nd)} — it will still have ~${fmtInt(coverAtNext)} days' cover then, above its ${fmtInt(r.reorderPointDays)}-day reorder point</span></div>`
+      : `<div class="wbs-row"><span class="wbs-icon">⏱️</span><span class="wbs-lbl">Timing</span>
+          <span class="wbs-val" style="color:#b91c1c;font-weight:700">Must go on today's order — ${r.stock<=0?'already out of stock':(r._csRequired?'CS-required line':'by '+esc(nd)+' it would be down to ~'+fmtInt(Math.max(0,coverAtNext))+' days, below its '+fmtInt(r.reorderPointDays)+'-day reorder point')}</span></div>`);
+  }
 
   // ── Pack / MOQ rounding (V7.30) ──────────────────────────────────────────
   if(r.buy>0 && r.buyUnrounded>0 && r.buy!==r.buyUnrounded)
@@ -10127,7 +10096,7 @@ async function generateAIBrief(){
   const modal    = document.querySelector('.po-review-modal');
   const today    = new Date().toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'});
   const monthName= new Date().toLocaleDateString('en-IE',{month:'long'});
-  const supplier = state.activeSupplier || 'All Suppliers';
+  const supplier = (window._os && window._os.supplier) || state.activeSupplier || 'All Suppliers';
   const channel  = (state.channel==='capel') ? 'Capel Street' : 'Arklow';
   const mode     = document.getElementById('demandMode')?.value || 'Auto';
   const growthAdj= document.getElementById('growthAdj')?.value || '0';
@@ -10136,10 +10105,13 @@ async function generateAIBrief(){
   const qtyMap = {};
   if(modal) modal.querySelectorAll('.po-rev-qty').forEach(inp=>{ qtyMap[inp.dataset.sku]=parseInt(inp.value)||0; });
 
-  const rows = getFilteredRows()
-    .filter(r => r.buy > 0 && (!state.omittedSkus.has(r.SKU) || r._csRequired))
-    .map(r => ({...r, buy: qtyMap[r.SKU] !== undefined ? qtyMap[r.SKU] : r.buy}))
-    .filter(r => r.buy > 0);
+  // V7.31.2 — inside the order screen, brief exactly the lines in the current view
+  const rows = (window._os && document.querySelector('.os-modal'))
+    ? osViewRows().map(r=>({...r, buy: osQty(r)})).filter(r=>r.buy>0)
+    : getFilteredRows()
+      .filter(r => r.buy > 0 && (!state.omittedSkus.has(r.SKU) || r._csRequired))
+      .map(r => ({...r, buy: qtyMap[r.SKU] !== undefined ? qtyMap[r.SKU] : r.buy}))
+      .filter(r => r.buy > 0);
 
   if(!rows.length){ content.textContent = 'No order lines found.'; btn.disabled=false; return; }
 
@@ -11177,7 +11149,7 @@ function poMinimise(){
     document.body.appendChild(pill);
   }
   const sup=(window._poReviewCtx&&window._poReviewCtx.supplier)||'order';
-  pill.innerHTML='🔍 Why Buy — <span style="opacity:.85">'+esc(sup)+'</span> · <span style="text-decoration:underline">restore</span>';
+  pill.innerHTML='📋 Order — <span style="opacity:.85">'+esc(sup)+'</span> · <span style="text-decoration:underline">restore</span>';
   pill.style.display='flex';
 }
 function poRestore(){
@@ -11185,6 +11157,9 @@ function poRestore(){
   const pill=document.getElementById('poRestorePill');
   if(pill) pill.style.display='none';
   if(ov){ ov.style.display='flex'; }          // still alive → just show it, edits intact
+  else if(window._poReviewCtx && window._poReviewCtx.orderScreen){   // order screen
+    openOrderScreen(window._poReviewCtx.supplier, (window._os&&window._os.preset)||'now');
+  }
   else if(window._poReviewCtx){               // was closed → rebuild, edits re-seed from _poEdits
     showPOReview(window._poReviewCtx.rows, false);
   }
@@ -11213,6 +11188,339 @@ function poClose(){
   const sup=window._poReviewCtx&&window._poReviewCtx.supplier;
   if(sup && window._poEdits[sup]) delete window._poEdits[sup];
   window._poReviewCtx=null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ORDER SCREEN (V7.31.2) — ONE place to build a supplier's order.
+// Replaces the separate Quick Order drawer, Why Buy, Why Buy — Critical, Smart
+// Order and Arklow Gap PO panels. They all now open this screen on a different
+// VIEW of the SAME lines (the supplier's order lines — the set the card total
+// counts), with ONE store of edited quantities (window._poEdits).
+//   Views: Order now · All lines · Out of stock & critical · Top impact · Arklow gap
+// ═══════════════════════════════════════════════════════════════════════════
+window._os = null;
+
+// Order status for a supplier, in plain words — shared by the cards and this screen.
+function supplierOrderStatus(name){
+  const poMap = getChannelPOMap();
+  const poSt = poMap[name];
+  const _nm=v=>String(v||'').replace(/\./g,'').trim().toLowerCase();
+  const today=new Date(); today.setHours(0,0,0,0);
+  const shortD=d=>d?(d.getDate()+' '+_MONTH_ABBR[d.getMonth()]):'';
+  let cadence=null; try{ cadence=getCadenceForSupplier(name); }catch(e){}
+  const lastDone = poSt ? (poSt.isDone ? poSt : (poSt.history&&poSt.history[0]) || null) : null;
+  const lastDate = lastDone ? parsePODate(lastDone.date, lastDone.month) : null;
+  const nextDue  = (cadence && lastDate) ? nextScheduledOrderDay(cadence, lastDate) : null;
+  const checkedNow = !!(poSt && !poSt.isDone && poSt.isChecked && _nm(poSt.month)===_nm(currentMonthLabel()));
+  let key, label;
+  if(checkedNow){ key='checked'; label='CHECKED'; }
+  else if(!lastDone){ key='none'; label='NO ORDER ON RECORD'; }
+  else if(nextDue){
+    const diff=Math.round((today-nextDue)/86400000);
+    if(diff>0){ key='overdue'; label=`OVERDUE ${diff} DAY${diff!==1?'S':''}`; }
+    else if(diff===0){ key='due'; label='DUE TODAY'; }
+    else { key='ordered'; label=`NEXT ORDER ${shortD(nextDue).toUpperCase()}`; }
+  } else {
+    const thisMonth=_nm(lastDone.month)===_nm(currentMonthLabel());
+    key = thisMonth ? 'ordered' : 'overdue'; label = thisMonth ? 'ORDERED THIS MONTH' : 'NOT ORDERED THIS MONTH';
+  }
+  const CADENCE_WORDS={'3x week':'orders 3 times a week','2x week':'orders twice a week','Weekly':'orders every week','Fortnightly':'orders every 2 weeks','Monthly':'orders every month'};
+  let hist = lastDone
+    ? `Last ordered ${lastDate?shortD(lastDate):esc(lastDone.month||'')}${lastDone.person?' by '+esc(lastDone.person):''}`
+    : 'No order recorded on the PO sheet';
+  if(cadence) hist += ` · ${CADENCE_WORDS[cadence]||esc(cadence)}`;
+  const tone = key==='overdue'||key==='none'?'red' : key==='due'?'amber' : key==='checked'?'blue' : 'green';
+  return {key,label,tone,cadence,lastDone,lastDate,nextDue,checkedNow,hist};
+}
+
+// Arklow gap — selling now (or due to sell) but Arklow can't ship it. Same rule the
+// Home "Urgent PO" box has always used, applied to the supplier's order lines.
+function isArklowGapLine(r){
+  if(state.channel==='capel') return false;
+  const sold7=(r.QtySold_Online_Total_7d||0)+(r.QtySold_Shop_CapelStreet_7d||0);
+  const sold30=(r.QtySold_Online_Total_30d||0)+(r.QtySold_Shop_CapelStreet_30d||0);
+  const ak=r.NetStock_Arklow||0;
+  const daily=sold7>0?sold7/7:(sold30>0?sold30/30:0);
+  const cover=daily>0?ak/daily:(ak>0?999:0);
+  if(sold7>0 && (ak<=0 || cover<3)) return 'now';
+  if(sold7===0 && ak<=0 && (sold30>0 || (r.buy||0)>0)) return 'due';
+  return false;
+}
+
+// The canonical line set: this supplier's order lines (exactly what the card counts).
+function osCanonicalRows(sup){
+  const all=state.computedRows||[];
+  let rows=all.filter(r=>r.SupplierName===sup);
+  if(!rows.length){ const low=String(sup).trim().toLowerCase(); rows=all.filter(r=>String(r.SupplierName||'').trim().toLowerCase()===low); }
+  return rows.filter(countsInOrderValue);
+}
+
+const OS_PRESETS = {
+  now:    {label:'⏱ Order now',                tip:'Lines that would fall below their reorder point before this supplier’s next order day'},
+  all:    {label:'All lines',                   tip:'Every line in this supplier’s order'},
+  urgent: {label:'🔴 Out of stock & critical',  tip:'Out of stock, or already below the reorder point'},
+  impact: {label:'⚡ Top impact',               tip:'Fewest lines, biggest effect — ranked by lost-sales risk, value and urgency'},
+  gap:    {label:'🚨 Arklow gap',              tip:'Selling now (or due to) but Arklow can’t ship it — Capel is covering'}
+};
+
+function osPresetRows(preset){
+  const os=window._os; if(!os) return [];
+  const rows=os.rows;
+  const urgentish=r=>(r.stock<=0||r.coverStatus==='Out of Stock'||r.coverStatus==='Critical');
+  if(preset==='now')    return rows.filter(r=>r._orderNow!==false);
+  if(preset==='urgent') return rows.filter(urgentish);
+  if(preset==='gap')    return rows.filter(r=>isArklowGapLine(r));
+  if(preset==='impact'){
+    return rows.filter(r=>urgentish(r)||r.coverStatus==='Low')
+      .map(r=>({r,s:quickOrderScore(r)})).sort((a,b)=>b.s-a.s).slice(0,os.cap||15).map(x=>x.r);
+  }
+  return rows;
+}
+// Current view = preset, then search text, then any AI-refine filter.
+function osViewRows(){
+  const os=window._os; if(!os) return [];
+  let rows=osPresetRows(os.preset);
+  const q=(os.search||'').trim().toLowerCase();
+  if(q) rows=rows.filter(r=>`${r.SKU} ${r.ItemTitle}`.toLowerCase().includes(q));
+  if(os.keep) rows=rows.filter(r=>os.keep.has(String(r.SKU).toUpperCase()));
+  return rows;
+}
+function osQty(r){
+  const e=window._poEdits[window._os.supplier];
+  return (e && e[r.SKU]!=null) ? e[r.SKU] : (r.buy||0);
+}
+function osUnitCost(r){ return r.SupplierCostPrice||r.UnitCost||0; }
+
+function openOrderScreen(supplier, preset, opts){
+  opts=opts||{};
+  if(!supplier){ alert('Select a supplier first — orders are always built for one supplier.'); return; }
+  try{ logUsage('order_screen', supplier+' · '+(preset||'now')); }catch(e){}
+  const rows=osCanonicalRows(supplier);
+  const sup = rows.length ? rows[0].SupplierName : supplier;
+  // sort: order-now first, then out of stock → critical → low → rest, thinnest cover first
+  const rank=r=>r.coverStatus==='Out of Stock'||r.stock<=0?0:r.coverStatus==='Critical'?1:r.coverStatus==='Low'?2:3;
+  rows.sort((a,b)=>((a._orderNow===false)-(b._orderNow===false)) || rank(a)-rank(b) || (a.daysOfCover||0)-(b.daysOfCover||0));
+  const prevCap = window._os && window._os.supplier===sup ? window._os.cap : 15;
+  window._os={supplier:sup, preset:preset||'now', cap:opts.cap||prevCap||15, search:'', keep:null, rows, expanded:new Set()};
+  window._poEdits[sup]=window._poEdits[sup]||{};
+  window._poReviewCtx={rows, supplier:sup, orderScreen:true};   // minimise / restore plumbing
+  // If the requested view is empty but there's work in the order, explain rather than show a blank list
+  osRender(true);
+  if(opts.autoExport) osExport();
+}
+
+function osRender(rebuild){
+  const os=window._os; if(!os) return;
+  const st=supplierOrderStatus(os.supplier);
+  const counts={}; Object.keys(OS_PRESETS).forEach(k=>{ counts[k]=osPresetRows(k).length; });
+  const showGap = state.channel!=='capel';
+  const view=osViewRows();
+  const waitRows=os.rows.filter(r=>r._orderNow===false);
+  const nextLbl=waitRows.length?orderDayLabel(waitRows[0]._nextOrderDay):'';
+
+  // ── table body ──
+  let body='';
+  if(!view.length){
+    let msg;
+    if(os.preset==='now' && waitRows.length) msg=`✅ Nothing has to go on today's order.<br>All ${waitRows.length} line${waitRows.length!==1?'s':''} can wait until ${esc(nextLbl)}.<br><span style="font-size:12px">Choose <b>All lines</b> to order them early.</span>`;
+    else if(!os.rows.length) msg='✅ Nothing needs ordering from this supplier right now.';
+    else if(os.search) msg='No lines match your search.';
+    else msg='No lines in this view.';
+    body=`<tr><td colspan="10" style="text-align:center;padding:40px 16px;color:#64748b;font-size:14px;line-height:1.7">${msg}</td></tr>`;
+  } else {
+    for(const r of view){
+      const q=osQty(r), c=osUnitCost(r), edited=q!==(r.buy||0);
+      const cc=coverClass(r.coverStatus);
+      const coverLabel=r.stock<=0?'OOS':(r.daysOfCover>=9999?'—':fmtInt(r.daysOfCover)+'d');
+      const onOrder = state.channel==='capel' ? (r.OnOrderQty_CS_PO||0) : (r.OnOrderQty_AK_PO||0);
+      const sold30 = r.QtySold_Online_Total_30d||0;
+      const gap=isArklowGapLine(r);
+      const tags=[];
+      if(r._orderNow===false) tags.push(`<span class="os-tag wait" title="Still above its reorder point on the next order day">⏭ Can wait until ${esc(orderDayLabel(r._nextOrderDay))}</span>`);
+      else if(r._nextOrderDay) tags.push(`<span class="os-tag now" title="Would fall below its reorder point before the next order day">⏱ Order now</span>`);
+      if(gap==='now') tags.push(`<span class="os-tag gap" title="Selling in the last 7 days and Arklow can't ship it">🔥 Arklow gap</span>`);
+      else if(gap==='due') tags.push(`<span class="os-tag gapdue" title="Due to sell and Arklow is out">📅 Arklow out</span>`);
+      if(r._csRequired) tags.push(`<span class="os-tag cs" title="CS-required minimum ${fmtInt(r._csQtyFloor||0)}">🔒 CS ${fmtInt(r._csQtyFloor||0)}</span>`);
+      if(r._seasonalBuy) tags.push(`<span class="os-tag season">📅 Seasonal</span>`);
+      if(r._multiNoDefault) tags.push(`<span class="os-tag multi" title="Also listed under ${esc((r._otherSuppliers||[]).join(', '))} — default supplier not known">⚠ Other supplier too</span>`);
+      if(r.AltCost>0 && c>0 && r.AltSupplier && r.AltSupplier!==r.SupplierName && r.AltCost<c*0.98) tags.push(`<span class="os-tag cheap" title="€${r.AltCost.toFixed(2)} at ${esc(r.AltSupplier)}">💰 Cheaper elsewhere</span>`);
+      if(r.buy>0 && r.buyUnrounded>0 && r.buy!==r.buyUnrounded) tags.push(`<span class="os-tag pack" title="Rounded from ${fmtInt(r.buyUnrounded)}">📦 Pack ${fmtInt(r.packSize)}${r.moq>0?' · min '+fmtInt(r.moq):''}</span>`);
+      const open=os.expanded.has(r.SKU);
+      body+=`<tr class="${r.stock<=0?'os-oos':''}">
+        <td><span class="po-rev-sku">${esc(r.SKU)}</span></td>
+        <td><div class="os-title">${esc(r.ItemTitle||'')}</div><div class="os-tags">${tags.join('')}</div></td>
+        <td class="r"><span style="font-weight:700;color:${r.stock<=0?'#dc2626':r.stock<10?'#d97706':'#166534'}">${fmtInt(r.stock)}</span></td>
+        <td class="r">${onOrder>0?`<span style="font-weight:700;color:#1e40af" title="Already on an open PO">📦 ${fmtInt(onOrder)}</span>`:'<span style="color:#cbd5e1">—</span>'}</td>
+        <td class="r"><span class="po-rev-cover ${cc}">${coverLabel}</span></td>
+        <td class="r">${fmtInt(sold30)}</td>
+        <td class="r"><input class="po-rev-qty${edited?' changed':''}" type="number" min="0" step="1" value="${q}" data-sku="${esc(r.SKU)}" oninput="osEditQty(this)" title="${edited?'Suggested '+fmtInt(r.buy||0):'Suggested quantity'}"></td>
+        <td class="r" style="font-size:11.5px">${c?'€'+c.toFixed(2):'<span style="color:#cbd5e1">no cost</span>'}</td>
+        <td class="r os-line" style="font-weight:800">${q>0&&c>0?'€'+fmtInt(q*c):'—'}</td>
+        <td><button class="os-why-btn" onclick="osToggleWhy('${jsArg(r.SKU)}')">${open?'▾ Hide':'▸ Why'}</button></td>
+      </tr>`;
+      if(open){
+        body+=`<tr class="os-why-row"><td colspan="10"><div class="po-rev-why">${buildWhyText(r)}
+          <div><button class="po-ai-explain-btn" onclick="generateSKUExplanation('${jsArg(r.SKU)}',this)">🤖 Explain this buy</button><div class="po-ai-explain-text"></div></div></div></td></tr>`;
+      }
+    }
+  }
+
+  const tabs=Object.keys(OS_PRESETS).filter(k=>k!=='gap'||showGap).map(k=>{
+    const capSel = k==='impact' ? ` <select onclick="event.stopPropagation()" onchange="window._os.cap=parseInt(this.value)||15;window._os.preset='impact';osRender()" class="os-cap">${[10,15,20,30].map(n=>`<option value="${n}"${n===os.cap?' selected':''}>${n}</option>`).join('')}</select>` : '';
+    return `<button class="os-tab${os.preset===k?' active':''}" title="${esc(OS_PRESETS[k].tip)}" onclick="osSetPreset('${k}')">${OS_PRESETS[k].label} <span class="os-tab-n">${counts[k]}</span>${capSel}</button>`;
+  }).join('');
+
+  const overlay=document.getElementById('poReviewOverlay');
+  if(rebuild || !overlay || !overlay.querySelector('.os-modal')){
+    if(overlay) overlay.remove();
+    const pill=document.getElementById('poRestorePill'); if(pill) pill.style.display='none';
+    document.body.insertAdjacentHTML('beforeend', `<div class="po-review-overlay" id="poReviewOverlay" onclick="if(event.target===this)poMinimise()">
+      <div class="po-review-modal os-modal">
+        <div class="po-review-hdr">
+          <div class="os-head">
+            <div style="min-width:0">
+              <div class="os-sup" id="osSup"></div>
+              <div class="os-hist" id="osHist"></div>
+            </div>
+            <span class="sc-status" id="osStatus"></span>
+          </div>
+          <div class="os-tabs" id="osTabs"></div>
+          <div class="os-toolbar">
+            <input class="po-review-search" id="osSearch" type="text" placeholder="Search SKU / item in this view…" oninput="window._os.search=this.value;osRender()">
+            <input class="os-refine" id="osRefine" type="text" placeholder='Refine with AI, e.g. "only top sellers" or "drop anything under €50/mo"' onkeydown="if(event.key==='Enter')osRefineAI()">
+            <button class="secondary" onclick="osRefineAI()" style="font-size:12px;padding:6px 12px">✦ Refine</button>
+          </div>
+          <div id="osRefineMsg" class="os-refine-msg" style="display:none"></div>
+        </div>
+        <div class="po-review-body">
+          <table class="po-review-table os-table">
+            <thead><tr>
+              <th style="width:100px">SKU</th><th>Item</th>
+              <th class="r" style="width:64px">Stock</th><th class="r" style="width:74px" title="Already on an open PO">On order</th>
+              <th class="r" style="width:66px">Cover</th><th class="r" style="width:64px" title="Units sold in the last 30 days">Sold 30d</th>
+              <th class="r" style="width:76px">Order qty</th><th class="r" style="width:72px">Unit cost</th>
+              <th class="r" style="width:82px">Line total</th><th style="width:70px"></th>
+            </tr></thead>
+            <tbody id="osBody"></tbody>
+          </table>
+        </div>
+        <div class="ai-brief-panel" id="aiBriefPanel">
+          <div class="ai-brief-hdr">
+            <span class="ai-brief-hdr-title">✦ AI Buying Brief</span>
+            <button class="ai-brief-copy" onclick="copyAIBrief()" id="aiBriefCopyBtn" style="display:none">Copy</button>
+            <button class="ai-brief-dismiss" onclick="document.getElementById('aiBriefPanel').classList.remove('open');document.getElementById('aiBriefBtn').disabled=false">✕</button>
+          </div>
+          <div id="aiBriefContent" class="ai-brief-content"></div>
+        </div>
+        <div class="po-review-ftr">
+          <div class="po-rev-total" id="osTotal"></div>
+          <button class="secondary" onclick="poMinimise()">▾ Minimise</button>
+          <button class="secondary" onclick="osClose()">Close</button>
+          <button class="ai-btn" id="aiBriefBtn" onclick="generateAIBrief()">✦ AI Brief</button>
+          <button class="secondary" id="osDoneBtn" onclick="osMarkOrdered()" title="Mark this supplier DONE on the PO Status sheet for this month">✓ Mark ordered</button>
+          <button id="osExportBtn" onclick="osExport()">📄 Export PO</button>
+        </div>
+      </div>
+    </div>`);
+  }
+  const $=id=>document.getElementById(id);
+  const code=String(os.supplier).indexOf(' - ')>0?String(os.supplier).split(' - ')[0]:'';
+  const disp=String(os.supplier).indexOf(' - ')>0?String(os.supplier).slice(String(os.supplier).indexOf(' - ')+3):String(os.supplier);
+  $('osSup').innerHTML=`${esc(disp)} ${code?`<span class="sc-code">${esc(code)}</span>`:''} <span class="os-ch">${state.channel==='capel'?'Capel Street':'Arklow'}</span>`;
+  $('osHist').innerHTML=st.hist;
+  $('osStatus').className='sc-status '+st.tone; $('osStatus').textContent=st.label;
+  $('osTabs').innerHTML=tabs;
+  $('osBody').innerHTML=body;
+  osUpdateTotals();
+}
+
+function osUpdateTotals(){
+  const os=window._os; if(!os) return;
+  const view=osViewRows();
+  let lines=0, units=0, val=0, noCost=0;
+  for(const r of view){ const q=osQty(r); if(q>0){ lines++; units+=q; val+=q*osUnitCost(r); if(!(osUnitCost(r)>0)) noCost++; } }
+  const tEl=document.getElementById('osTotal');
+  if(tEl) tEl.innerHTML=`This view: <span>€${fmtInt(Math.round(val))}</span> · ${fmtInt(lines)} line${lines!==1?'s':''} · ${fmtInt(units)} units${noCost?` <span class="sc-note">(${noCost} without a cost price)</span>`:''}`;
+  const b=document.getElementById('osExportBtn');
+  if(b){ b.textContent=`📄 Export ${fmtInt(lines)} line${lines!==1?'s':''}`; b.disabled=lines===0; }
+}
+
+function osSetPreset(k){ const os=window._os; if(!os) return; os.preset=k; os.keep=null; const m=document.getElementById('osRefineMsg'); if(m) m.style.display='none'; osRender(); }
+function osToggleWhy(sku){ const os=window._os; if(!os) return; os.expanded.has(sku)?os.expanded.delete(sku):os.expanded.add(sku); osRender(); }
+
+function osEditQty(inp){
+  const os=window._os; if(!os) return;
+  const sku=inp.dataset.sku, q=Math.max(0,parseInt(inp.value)||0);
+  window._poEdits[os.supplier][sku]=q;
+  const r=os.rows.find(x=>x.SKU===sku);
+  inp.classList.toggle('changed', !!r && q!==(r.buy||0));
+  const lt=inp.closest('tr')?.querySelector('.os-line');
+  if(lt && r){ const c=osUnitCost(r); lt.textContent=(q>0&&c>0)?'€'+fmtInt(q*c):'—'; }
+  osUpdateTotals();
+}
+
+// Export exactly what's on screen (current view, edited quantities, qty > 0).
+function osExport(){
+  const os=window._os; if(!os) return;
+  if(!os.supplier){ alert('No supplier selected.'); return; }
+  const rows=osViewRows().map(r=>({...r, buy:osQty(r)})).filter(r=>r.buy>0);
+  if(!rows.length){ alert('No lines with a quantity above 0 in this view.'); return; }
+  const mode=document.getElementById('demandMode')?.value||'Seasonal';
+  const cols=['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','_csRequired','_csQtyFloor','coverStatus','stock','target','reason'];
+  const lines=[[...cols,'Tax Rate'].join(',')];
+  for(const r of rows){
+    lines.push([...cols.map(c=>{let v=r[c];if(typeof v==='boolean') v=v?'YES':'NO';v=String(v??'').replace(/<[^>]+>/g,'');if(/[",\n]/.test(v)) v='"'+v.replace(/"/g,'""')+'"';return v;}),'0'].join(','));
+  }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'}));
+  a.download=`PO_${os.supplier.replace(/[^a-z0-9]+/gi,'_')}_${os.preset}_${mode}.csv`;
+  a.click(); URL.revokeObjectURL(a.href);
+  try{ logUsage('order_export', os.supplier+' · '+os.preset+' · '+rows.length+' lines'); }catch(e){}
+  // Exported lines are placed — drop their edits; keep edits for lines not yet exported
+  rows.forEach(r=>{ delete window._poEdits[os.supplier][r.SKU]; });
+  const b=document.getElementById('osDoneBtn');
+  if(b){ b.classList.remove('secondary'); b.style.background='#16a34a'; b.textContent='✓ Mark ordered on PO sheet'; }
+}
+
+function osMarkOrdered(){
+  const os=window._os; if(!os) return;
+  if(!confirm(`Mark ${os.supplier} as DONE for ${currentMonthLabel()} (${state.channel==='capel'?'Capel Street':'Arklow'}) on the PO Status sheet?`)) return;
+  markSupplierDone(os.supplier);
+  const b=document.getElementById('osDoneBtn'); if(b){ b.disabled=true; b.textContent='✓ Marked'; }
+}
+
+function osClose(){
+  const os=window._os;
+  const edits=os && window._poEdits[os.supplier] ? Object.keys(window._poEdits[os.supplier]).length : 0;
+  if(edits && !confirm(`Discard your ${edits} edited quantit${edits!==1?'ies':'y'} for this supplier?\n\nChoose Cancel and use ▾ Minimise to keep them.`)) return;
+  poClose();
+  window._os=null;
+}
+
+// AI refine — can only HIDE lines in the current view, never add or change one.
+async function osRefineAI(){
+  const os=window._os; if(!os) return;
+  const instruction=(document.getElementById('osRefine')?.value||'').trim();
+  const msg=document.getElementById('osRefineMsg');
+  if(!instruction){ msg.style.display='block'; msg.textContent='Type an instruction first, e.g. "only out of stock" or "nothing under €50/mo".'; return; }
+  const view=osPresetRows(os.preset);
+  if(!view.length){ msg.style.display='block'; msg.textContent='No lines in this view to refine.'; return; }
+  msg.style.display='block'; msg.textContent='⏳ Applying…';
+  const lines=view.slice(0,80).map(r=>{
+    const cov=r.stock<=0?'OOS':Math.round(r.daysOfCover||0)+'d';
+    return `${r.SKU}|${(r.ItemTitle||'').substring(0,30)}|${cov}|stk:${Math.round(r.stock||0)}|rev:€${Math.round(r.Revenue_Online_Total_30d||0)}/mo|ABC:${r.abcClass||'?'}|buy:${osQty(r)}`;
+  }).join('\n');
+  const prompt=`You are refining a purchase order. Candidate lines (SKU|name|cover|stock|monthly revenue|ABC class|qty):\n${lines}\n\nInstruction: "${instruction}"\n\nReturn ONLY a comma-separated list of the SKUs to KEEP. No other text. If none match, return NONE.`;
+  try{
+    const res=await fetch(PO_UPDATER_URL+'?action=ai_brief&prompt='+encodeURIComponent(prompt));
+    const data=await res.json();
+    if(data.error) throw new Error(data.error);
+    const reply=((data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('')||'').trim();
+    if(/^none/i.test(reply)){ msg.textContent='No lines matched — nothing hidden.'; return; }
+    os.keep=new Set(reply.split(/[,\s]+/).map(x=>x.trim().toUpperCase()).filter(Boolean));
+    osRender();
+    msg.innerHTML=`Showing lines matching "${esc(instruction)}". <a href="#" onclick="window._os.keep=null;document.getElementById('osRefineMsg').style.display='none';osRender();return false;">Show all</a>`;
+  }catch(e){ msg.textContent='Refine failed: '+e.message+'. Your lines are unchanged.'; }
 }
 
 // ── Margin Calculator ────────────────────────────────────────────────────────
@@ -12725,8 +13033,8 @@ function downloadNoosCsv(rows,label){
   <div class="qo-po-bar" id="qoPoBar" style="display:none"></div>
   <div class="qo-filter-bar">
     <span style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em">Show:</span>
-    <button class="qo-filter-btn active" data-qof="critical" onclick="setQoFilter('critical')">🔴 Critical only</button>
-    <button class="qo-filter-btn" data-qof="all" onclick="setQoFilter('all')">All top-500 SKUs</button>
+    <button class="qo-filter-btn active" data-qof="now" onclick="setQoFilter('now')">⏱ Order now</button>
+    <button class="qo-filter-btn" data-qof="all" onclick="setQoFilter('all')">All lines</button>
   </div>
   <div class="qo-body" id="qoBody"></div>
   <div class="qo-footer">
@@ -12742,12 +13050,14 @@ function downloadNoosCsv(rows,label){
 <script>
 // ── Quick Order Drawer ────────────────────────────────────────────────────────
 var _qo = {
-  supplier: '', filter: 'critical', rows: [], qtys: {}
+  supplier: '', filter: 'now', rows: [], qtys: {}
 };
 
 function openQuickOrder(supplierName) {
+  // V7.31.2 — Build order / Order Now now opens the single order screen
+  if (typeof openOrderScreen === 'function') return openOrderScreen(supplierName, 'now');
   _qo.supplier = supplierName;
-  _qo.filter   = 'critical';
+  _qo.filter   = 'now';
   _qo.qtys     = {};
   _qo.rows     = [];
 
@@ -12763,7 +13073,8 @@ function openQuickOrder(supplierName) {
     matchRows = matchRows.filter(countsInOrderValue);
     _qo.rows = matchRows.sort(function(a,b){
       var rank = function(r){ return r.coverStatus==='Out of Stock'?0:r.coverStatus==='Critical'?1:r.coverStatus==='Low'?2:3; };
-      return rank(a)-rank(b) || (a.daysOfCover||0)-(b.daysOfCover||0);
+      var wait = function(r){ return r._orderNow===false?1:0; };   // V7.31.1 — can-wait lines last
+      return wait(a)-wait(b) || rank(a)-rank(b) || (a.daysOfCover||0)-(b.daysOfCover||0);
     });
     _qo.rows.forEach(function(r){ if(r.buy>0) _qo.qtys[r.SKU]=r.buy; });
   }
@@ -12832,8 +13143,19 @@ function _qoRenderBody() {
     }).join('');
   }
 
+  // V7.31.1 — filter button counts
+  var _nowN = _qo.rows.filter(function(r){ return r._orderNow!==false; }).length;
+  var _waitRows = _qo.rows.filter(function(r){ return r._orderNow===false; });
+  var _nextLbl = _waitRows.length ? orderDayLabel(_waitRows[0]._nextOrderDay) : '';
+  document.querySelectorAll('.qo-filter-btn').forEach(function(b){
+    if (b.dataset.qof==='now') b.textContent = '⏱ Order now (' + _nowN + ')';
+    if (b.dataset.qof==='all') b.textContent = 'All lines (' + _qo.rows.length + ')';
+  });
+
   if (!visible.length) {
-    body.innerHTML = '<div class="qo-empty">✅ No critical lines for this supplier right now.</div>';
+    body.innerHTML = _waitRows.length
+      ? '<div class="qo-empty">✅ Nothing has to go on today\'s order.<br>All ' + _waitRows.length + ' line' + (_waitRows.length!==1?'s':'') + ' can wait until ' + _nextLbl + '.<br><span style="font-size:12px">Switch to <b>All lines</b> to order them early.</span></div>'
+      : '<div class="qo-empty">✅ Nothing needs ordering from this supplier right now.</div>';
     _qoUpdateFooter([]);
     return;
   }
@@ -12841,9 +13163,11 @@ function _qoRenderBody() {
   var html = '', lastBucket = '';
   for (var i = 0; i < visible.length; i++) {
     var r = visible[i];
-    var bucket = r.coverStatus==='Out of Stock' ? 'Out of Stock' : r.coverStatus==='Critical' ? 'Critical' : 'Low Cover';
+    var bucket = r._orderNow===false ? ('Can wait until ' + orderDayLabel(r._nextOrderDay))
+               : r.coverStatus==='Out of Stock' ? 'Out of Stock' : r.coverStatus==='Critical' ? 'Critical' : 'Order now — low cover';
     if (bucket !== lastBucket) {
-      html += '<div class="qo-section-label">' + (bucket==='Out of Stock'?'🔴':bucket==='Critical'?'🟠':'🟡') + ' ' + bucket + '</div>';
+      var icon = r._orderNow===false ? '⏭️' : bucket==='Out of Stock'?'🔴':bucket==='Critical'?'🟠':'🟡';
+      html += '<div class="qo-section-label">' + icon + ' ' + bucket + '</div>';
       lastBucket = bucket;
     }
     var rowCls   = r.coverStatus==='Out of Stock'?'oos':r.coverStatus==='Critical'?'crit':'low';
@@ -12895,10 +13219,8 @@ function _qoRenderBody() {
 }
 
 function _qoGetVisible() {
-  if (_qo.filter === 'critical') {
-    var crit = _qo.rows.filter(function(r){ return r.coverStatus==='Out of Stock'||r.coverStatus==='Critical'; });
-    return crit.length ? crit : _qo.rows.filter(function(r){ return r.coverStatus==='Low'; });
-  }
+  // V7.31.1 — "Order now" = lines that can't wait for this supplier's next order day
+  if (_qo.filter === 'now') return _qo.rows.filter(function(r){ return r._orderNow!==false; });
   return _qo.rows;
 }
 
@@ -12929,9 +13251,7 @@ function _qoQtyChange(input) {
 }
 
 function setQoFilter(f) {
-  _qo.filter = f;
-  _qo.qtys   = {};
-  _qo.rows.forEach(function(r){ if(r.buy>0) _qo.qtys[r.SKU]=r.buy; });
+  _qo.filter = f;   // V7.31.1 — switching view no longer wipes the quantities you've edited
   document.querySelectorAll('.qo-filter-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.qof===f); });
   _qoRenderBody();
 }
