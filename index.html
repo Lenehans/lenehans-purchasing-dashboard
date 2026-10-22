@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.3 · WHY AT A GLANCE</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.4 · CLEAR ORDER LINES</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1081,6 +1081,47 @@
     .os-tag.pack{background:#e0f2fe;color:#075985}
     .os-table tbody td{vertical-align:middle}
     .os-table tr.os-oos td{background:#fff7f7}
+    /* ── V7.31.4 order lines: labelled numbers + the sum behind the quantity ── */
+    .os-modal .po-review-body{background:#f1f5f9;padding:10px 14px 14px}
+    .ol-list{display:flex;flex-direction:column;gap:10px}
+    .ol-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) 140px;grid-template-areas:"what why order" "det det det";gap:6px 22px;align-items:start;background:#fff;border:1px solid #e2e8f0;border-left:5px solid #cbd5e1;border-radius:12px;padding:16px 18px}
+    .ol-row.oos{border-left-color:#dc2626}
+    .ol-what{grid-area:what}.ol-why{grid-area:why}.ol-order{grid-area:order}.ol-details{grid-area:det}
+    .ol-title{font-size:17px;font-weight:800;color:#0f172a;line-height:1.3}
+    .ol-codes{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:6px}
+    .ol-code{display:inline-flex;align-items:center;gap:6px;font-size:14px}
+    .ol-code i{margin-right:2px;font-style:normal;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em}
+    .ol-code b{font-family:ui-monospace,Menlo,monospace;font-weight:700;color:#0f172a;user-select:all}
+    .ol-code b.ol-sku{color:#1e40af}.ol-code b.none{color:#94a3b8;font-family:inherit;font-weight:500}
+    .ol-tiles{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .ot{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px 12px;min-width:84px}
+    .ot-v{font-size:22px;font-weight:800;color:#0f172a;line-height:1.1}
+    .ot-l{font-size:12px;font-weight:600;color:#64748b;margin-top:2px}
+    .ot.bad{background:#fef2f2;border-color:#fecaca}.ot.bad .ot-v{color:#dc2626}
+    .ot.info .ot-v{color:#1d4ed8}.ot.muted .ot-v{color:#94a3b8}.ot.up .ot-v{color:#15803d}
+    .ol-notes{margin-top:10px;font-size:13.5px;color:#92400e;line-height:1.5}
+    .ol-why{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px}
+    .ow-h{font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+    .ow-l{display:grid;grid-template-columns:18px 86px 1fr;gap:8px;align-items:baseline;padding:3px 0;font-size:14px;color:#334155;line-height:1.4}
+    .ow-op{font-weight:800;color:#64748b;text-align:center}
+    .ow-v{font-weight:800;color:#0f172a;font-size:15px;white-space:nowrap}
+    .ow-l.bad .ow-v{color:#dc2626}.ow-l.up .ow-v{color:#7c3aed}
+    .ow-res{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid #cbd5e1;margin-top:6px;padding-top:6px;font-size:14px;font-weight:700;color:#334155}
+    .ow-res b{font-size:20px;color:#0f172a}
+    .ow-edit{margin-top:6px;font-size:13.5px;color:#92400e;background:#fef3c7;border-radius:6px;padding:4px 8px}
+    .ol-more{background:none;border:none;color:#2563eb;font-size:13px;font-weight:700;cursor:pointer;padding:6px 0 0;min-height:0}
+    .ol-more:hover{text-decoration:underline;background:none}
+    .ol-order{text-align:center}
+    .ol-order-lbl{font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+    .ol-qty{width:110px;font-size:28px;font-weight:800;text-align:center;padding:8px 6px;border:2px solid #2563eb;border-radius:10px;color:#0f172a;background:#fff}
+    .ol-qty:focus{outline:none;box-shadow:0 0 0 3px #dbeafe}
+    .ol-qty.changed{border-color:#f59e0b;background:#fffbeb}
+    .ol-cost{font-size:17px;font-weight:800;color:#0f172a;margin-top:8px}
+    .ol-unit{font-size:12px;color:#64748b}.ol-nocost{font-size:12px;color:#b45309;font-weight:600}
+    .ol-details{border-top:1px solid #e2e8f0;padding-top:10px;margin-top:6px}
+    .ol-empty{text-align:center;padding:48px 16px;color:#475569;font-size:16px;line-height:1.7;background:#fff;border-radius:12px}
+    .os-refine-toggle{font-size:12px;padding:6px 12px}
+    @media (max-width:900px){.ol-row{grid-template-columns:minmax(0,1fr) 130px;grid-template-areas:"what order" "why why" "det det"}}
     .os-ean{display:flex;align-items:center;gap:4px;margin-top:3px}
     .os-ean-num{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#334155;letter-spacing:.02em;user-select:all}
     .os-ean.none{font-size:10px;color:#cbd5e1}
@@ -1152,7 +1193,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.3 · built 2026-10-22 · Order screen: one-line “why this quantity” on every row · EAN with copy beside the SKU</div>
+  <div class="sub">V7.31.4 · built 2026-10-22 · Order screen redesigned: labelled numbers and the sum behind every quantity</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -11352,6 +11393,116 @@ function buyWhyLine(r, q){
   return `<div class="os-why">${head}<span class="os-why-facts"> · ${facts.join(' · ')}</span></div>`;
 }
 
+// ── V7.31.4 line card ────────────────────────────────────────────────────────
+// Every row answers three questions in plain words, with labels on every number:
+//   what is it (SKU · EAN) · where do we stand (stock / on order / sales) ·
+//   WHY THIS QUANTITY — shown as the actual sum the engine did:
+//   sales a day × days to cover − stock = order. No bars, no unexplained badges.
+function osRateTxt(d){
+  if(d>=10) return fmtInt(d)+' a day';
+  if(d>0)   return (Math.round(d*100)/100).toFixed(2)+' a day';
+  return '0 a day';
+}
+// Where the daily rate came from, in words, plus any boosts on top.
+function osRateBasis(r){
+  const sd=r.seasonalDataUsed, q30=r.QtySold_Online_Total_30d||0;
+  const parts=[];
+  if(sd){
+    const m1=_MONTH_ABBR[+sd.col1.slice(5)-1], m2=_MONTH_ABBR[+sd.col2.slice(5)-1];
+    const floored = (r.engineBaseDaily||0) > sd.daily*1.01 && q30>=5 && (r.engineBaseDaily||0)>=(r.adjustedDaily||0)/(1+(r.seasonalBoostPct||0))/(r.weatherActive?r.weatherMult:1)*0.99;
+    if(floored) parts.push(`selling ${fmtInt(q30)} in the last 30 days — more than last ${m1} (${fmtInt(sd.q1)})`);
+    else if(sd.bothPresent) parts.push(`last year ${m1}–${m2} sold ${fmtInt(sd.q1+sd.q2)} (${m1} ${fmtInt(sd.q1)} + ${m2} ${fmtInt(sd.q2)})`);
+    else parts.push(`last ${sd.q1>0?m1:m2} ${sd.yr} sold ${fmtInt(sd.q1||sd.q2)}`);
+  } else {
+    const src=r.engineBaseSrc||'30D';
+    if(src==='7D') parts.push(`sold ${fmtInt(r.QtySold_Online_Total_7d||0)} in the last 7 days`);
+    else if(src==='Fallback90') parts.push(`sold ${fmtInt(r.QtySold_Online_Total_90d||0)} in the last 90 days (none in the last 30)`);
+    else if(src==='Fallback180') parts.push(`sold ${fmtInt(r.QtySold_Online_Total_180d||0)} in the last 180 days (none in the last 30)`);
+    else parts.push(`sold ${fmtInt(q30)} in the last 30 days`);
+    if(r.seasonalMultiplier>1.05) parts.push(`+${Math.round((r.seasonalMultiplier-1)*100)}% for ${esc(r.categoryLabel||'the')} season`);
+  }
+  const g=parseFloat(document.getElementById('growthAdj')?.value)||0;
+  if(sd && g) parts.push(`${g>0?'+':''}${g}% growth setting`);
+  if(r.spikeFactored) parts.push(`boosted — ${fmtInt(r.QtySold_Online_Total_7d||0)} sold in the last 7 days`);
+  if(r.weatherActive) parts.push(`+${Math.round((r.weatherMult-1)*100)}% for the weather`);
+  if(r.seasonalBoostPct>0) parts.push(`+${Math.round(r.seasonalBoostPct*100)}% because it's low in season`);
+  return parts.join(', ');
+}
+function osWhySum(r,q){
+  const f=fmtInt, sug=r.buy||0, rate=r.adjustedDaily||0;
+  const lead=Math.round(r.leadTimeDays||0), rev=Math.round(r.reviewDays||0), td=Math.round(r.targetDays||0);
+  const saf=Math.max(0, Math.round((r.targetDays||0)/(r.locationFactor||1)) - lead - rev);
+  const stock=r.stock||0, need=r.target||0, dem=r.demandBuy||0;
+  const L=(op,val,txt,cls='')=>`<div class="ow-l ${cls}"><span class="ow-op">${op}</span><span class="ow-v">${val}</span><span class="ow-t">${txt}</span></div>`;
+  let h='';
+  if(r._seasonalBuy){
+    h+=L('','', `<b>Seasonal reorder.</b> ${esc(r._seasonalBuyBasis||'In season and it sold this time last year.')}`);
+  } else if(rate>0){
+    h+=L('', osRateTxt(rate), `expected sales — ${osRateBasis(r)}`);
+    h+=L('×', f(td)+' days', `to cover — ${f(lead)} delivery + ${f(rev)} until the next order + ${f(saf)} safety buffer${(r.locationFactor||1)!==1?` (× ${fmt1(r.locationFactor)} for this shop)`:''}`);
+    h+=L('=', f(need), 'needed to cover those days');
+    if(stock>0) h+=L('−', f(stock), 'in stock');
+    else if(stock<0) h+=L('+', f(-stock), `stock shows ${f(stock)} — more sold than received, check the count`, 'bad');
+    else h+=L('−', '0', 'in stock', 'bad');
+    if(dem!==sug && stock!==0) h+=L('=', f(dem), 'to order');
+    if(dem!==sug){
+      if(r.buyDriverKey==='cs') h+=L('↑', f(sug), `raised to the Capel Street minimum${r._csReason?' ('+esc(r._csReason)+')':''}`, 'up');
+      else if(r.buyDriverKey==='lastyear') h+=L('↑', f(sug), `raised — last ${_MONTH_ABBR[new Date().getMonth()]} we sold ${f(r.lyFloorQty)}, so order 90% of that`, 'up');
+      else if(r.buyDriverKey==='minone') h+=L('↑', '1', 'one to keep it in stock — it has sold before', 'up');
+      else if(r.buyUnrounded>0 && sug!==r.buyUnrounded) h+=L('↑', f(sug), `rounded up to packs of ${f(r.packSize)}${r.moq>0?' (minimum '+f(r.moq)+')':''}`, 'up');
+    }
+  } else {
+    if(r.buyDriverKey==='cs') h+=L('', f(sug), `Capel Street minimum${r._csReason?' ('+esc(r._csReason)+')':''} — no online sales to go on`);
+    else h+=L('', f(sug), 'no recent sales to work from');
+  }
+  h+=`<div class="ow-res"><span>Suggested order</span><b>${f(sug)}</b></div>`;
+  if(q!==sug) h+=`<div class="ow-edit">✏️ You changed this to <b>${f(q)}</b></div>`;
+  return h;
+}
+function osLineHtml(r){
+  const os=window._os, f=fmtInt;
+  const q=osQty(r), c=osUnitCost(r), edited=q!==(r.buy||0);
+  const ean=String(r.Barcode||'').trim();
+  const q30=r.QtySold_Online_Total_30d||0;
+  const oo = state.channel==='capel' ? (r.OnOrderQty_CS_PO||0) : (r.OnOrderQty_AK_PO||0);
+  const sd=r.seasonalDataUsed, mon=_MONTH_ABBR[new Date().getMonth()];
+  const stock=r.stock||0;
+  const tile=(lbl,val,cls='')=>`<div class="ot ${cls}"><div class="ot-v">${val}</div><div class="ot-l">${lbl}</div></div>`;
+  let tiles=tile('In stock', f(stock), stock<=0?'bad':'')
+          + tile('On order', f(oo), oo>0?'info':'muted')
+          + tile('Sold last 30 days', f(q30));
+  if(sd) tiles+=tile(`Sold ${mon} last year`, f(sd.q1||0));
+  else if(r.spikeFactored) tiles+=tile('Sold last 7 days', f(r.QtySold_Online_Total_7d||0), 'up');
+  // Plain-sentence notes — only things a buyer must act on
+  const notes=[];
+  if(r._orderNow===false) notes.push(`⏭ Can wait until ${esc(orderDayLabel(r._nextOrderDay))} — enough stock to last until then`);
+  if(r._multiNoDefault) notes.push(`⚠ Also listed under ${esc((r._otherSuppliers||[]).join(', '))} — no default supplier set in Linnworks`);
+  if(r.AltCost>0 && c>0 && r.AltSupplier && r.AltSupplier!==r.SupplierName && r.AltCost<c*0.98)
+    notes.push(`💰 €${r.AltCost.toFixed(2)} at ${esc(r.AltSupplier.split(' - ')[0])} — you're paying €${c.toFixed(2)}`);
+  const open=os.expanded.has(r.SKU);
+  return `<div class="ol-row${stock<=0?' oos':''}" data-sku="${esc(r.SKU)}">
+    <div class="ol-what">
+      <div class="ol-title">${esc(r.ItemTitle||'')}</div>
+      <div class="ol-codes">
+        <span class="ol-code"><i>SKU</i><b class="ol-sku">${esc(r.SKU)}</b></span>
+        <span class="ol-code"><i>Barcode</i>${ean?`<b class="ol-ean">${esc(ean)}</b><button class="os-copy" title="Copy barcode" onclick="event.stopPropagation();osCopy(this,'${jsArg(ean)}')">⧉</button>`:'<b class="ol-ean none">none</b>'}</span>
+      </div>
+      <div class="ol-tiles">${tiles}</div>
+      ${notes.length?`<div class="ol-notes">${notes.map(n=>`<div>${n}</div>`).join('')}</div>`:''}
+    </div>
+    <div class="ol-why"><div class="ow-h">Why ${f(r.buy||0)}?</div>${osWhySum(r,q)}
+      <button class="ol-more" onclick="osToggleWhy('${jsArg(r.SKU)}')">${open?'Hide full detail':'Full detail'}</button></div>
+    <div class="ol-order">
+      <div class="ol-order-lbl">Order</div>
+      <input class="ol-qty po-rev-qty${edited?' changed':''}" type="number" min="0" step="1" value="${q}" data-sku="${esc(r.SKU)}" oninput="osEditQty(this)" onchange="osEditQty(this,true)">
+      <div class="ol-cost">${q>0&&c>0?'€'+f(q*c):(c>0?'€0':'<span class="ol-nocost">no cost price</span>')}</div>
+      ${c>0?`<div class="ol-unit">€${c.toFixed(2)} each</div>`:''}
+    </div>
+    ${open?`<div class="ol-details"><div class="po-rev-why">${buildWhyText(r)}
+      <div><button class="po-ai-explain-btn" onclick="generateSKUExplanation('${jsArg(r.SKU)}',this)">🤖 Explain this buy</button><div class="po-ai-explain-text"></div></div></div></div>`:''}
+  </div>`;
+}
+
 function osCopy(btn, text){
   const done=()=>{ const t=btn.textContent; btn.textContent='✓'; btn.classList.add('copied'); setTimeout(()=>{ btn.textContent=t; btn.classList.remove('copied'); },1100); };
   if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done).catch(()=>fallback()); }
@@ -11386,53 +11537,17 @@ function osRender(rebuild){
   const waitRows=os.rows.filter(r=>r._orderNow===false);
   const nextLbl=waitRows.length?orderDayLabel(waitRows[0]._nextOrderDay):'';
 
-  // ── table body ──
+  // ── rows (V7.31.4 — visual line cards) ──
   let body='';
   if(!view.length){
     let msg;
-    if(os.preset==='now' && waitRows.length) msg=`✅ Nothing has to go on today's order.<br>All ${waitRows.length} line${waitRows.length!==1?'s':''} can wait until ${esc(nextLbl)}.<br><span style="font-size:12px">Choose <b>All lines</b> to order them early.</span>`;
+    if(os.preset==='now' && waitRows.length) msg=`✅ Nothing has to go on today's order.<br>All ${waitRows.length} line${waitRows.length!==1?'s':''} can wait until ${esc(nextLbl)}.<br><span style="font-size:13px">Choose <b>All lines</b> to order them early.</span>`;
     else if(!os.rows.length) msg='✅ Nothing needs ordering from this supplier right now.';
     else if(os.search) msg='No lines match your search.';
     else msg='No lines in this view.';
-    body=`<tr><td colspan="10" style="text-align:center;padding:40px 16px;color:#64748b;font-size:14px;line-height:1.7">${msg}</td></tr>`;
+    body=`<div class="ol-empty">${msg}</div>`;
   } else {
-    for(const r of view){
-      const q=osQty(r), c=osUnitCost(r), edited=q!==(r.buy||0);
-      const cc=coverClass(r.coverStatus);
-      const coverLabel=r.stock<=0?'OOS':(r.daysOfCover>=9999?'—':fmtInt(r.daysOfCover)+'d');
-      const onOrder = state.channel==='capel' ? (r.OnOrderQty_CS_PO||0) : (r.OnOrderQty_AK_PO||0);
-      const sold30 = r.QtySold_Online_Total_30d||0;
-      const gap=isArklowGapLine(r);
-      const tags=[];
-      if(r._orderNow===false) tags.push(`<span class="os-tag wait" title="Still above its reorder point on the next order day">⏭ Can wait until ${esc(orderDayLabel(r._nextOrderDay))}</span>`);
-      else if(r._nextOrderDay) tags.push(`<span class="os-tag now" title="Would fall below its reorder point before the next order day">⏱ Order now</span>`);
-      if(gap==='now') tags.push(`<span class="os-tag gap" title="Selling in the last 7 days and Arklow can't ship it">🔥 Arklow gap</span>`);
-      else if(gap==='due') tags.push(`<span class="os-tag gapdue" title="Due to sell and Arklow is out">📅 Arklow out</span>`);
-      if(r._csRequired) tags.push(`<span class="os-tag cs" title="CS-required minimum ${fmtInt(r._csQtyFloor||0)}">🔒 CS ${fmtInt(r._csQtyFloor||0)}</span>`);
-      if(r._seasonalBuy) tags.push(`<span class="os-tag season">📅 Seasonal</span>`);
-      if(r._multiNoDefault) tags.push(`<span class="os-tag multi" title="Also listed under ${esc((r._otherSuppliers||[]).join(', '))} — default supplier not known">⚠ Other supplier too</span>`);
-      if(r.AltCost>0 && c>0 && r.AltSupplier && r.AltSupplier!==r.SupplierName && r.AltCost<c*0.98) tags.push(`<span class="os-tag cheap" title="€${r.AltCost.toFixed(2)} at ${esc(r.AltSupplier)}">💰 Cheaper elsewhere</span>`);
-      if(r.buy>0 && r.buyUnrounded>0 && r.buy!==r.buyUnrounded) tags.push(`<span class="os-tag pack" title="Rounded from ${fmtInt(r.buyUnrounded)}">📦 Pack ${fmtInt(r.packSize)}${r.moq>0?' · min '+fmtInt(r.moq):''}</span>`);
-      const open=os.expanded.has(r.SKU);
-      body+=`<tr class="${r.stock<=0?'os-oos':''}">
-        <td><span class="po-rev-sku">${esc(r.SKU)}</span>${String(r.Barcode||'').trim()
-          ? `<div class="os-ean"><span class="os-ean-num">${esc(String(r.Barcode).trim())}</span><button class="os-copy" title="Copy EAN" onclick="event.stopPropagation();osCopy(this,'${jsArg(String(r.Barcode).trim())}')">⧉</button></div>`
-          : `<div class="os-ean none">no EAN</div>`}</td>
-        <td><div class="os-title">${esc(r.ItemTitle||'')}</div>${buyWhyLine(r,q)}<div class="os-tags">${tags.join('')}</div></td>
-        <td class="r"><span style="font-weight:700;color:${r.stock<=0?'#dc2626':r.stock<10?'#d97706':'#166534'}">${fmtInt(r.stock)}</span></td>
-        <td class="r">${onOrder>0?`<span style="font-weight:700;color:#1e40af" title="Already on an open PO">📦 ${fmtInt(onOrder)}</span>`:'<span style="color:#cbd5e1">—</span>'}</td>
-        <td class="r"><span class="po-rev-cover ${cc}">${coverLabel}</span></td>
-        <td class="r">${fmtInt(sold30)}</td>
-        <td class="r"><input class="po-rev-qty${edited?' changed':''}" type="number" min="0" step="1" value="${q}" data-sku="${esc(r.SKU)}" oninput="osEditQty(this)" onchange="osEditQty(this,true)" title="${edited?'Suggested '+fmtInt(r.buy||0):'Suggested quantity'}"></td>
-        <td class="r" style="font-size:11.5px">${c?'€'+c.toFixed(2):'<span style="color:#cbd5e1">no cost</span>'}</td>
-        <td class="r os-line" style="font-weight:800">${q>0&&c>0?'€'+fmtInt(q*c):'—'}</td>
-        <td><button class="os-why-btn" onclick="osToggleWhy('${jsArg(r.SKU)}')">${open?'▾ Hide':'▸ Why'}</button></td>
-      </tr>`;
-      if(open){
-        body+=`<tr class="os-why-row"><td colspan="10"><div class="po-rev-why">${buildWhyText(r)}
-          <div><button class="po-ai-explain-btn" onclick="generateSKUExplanation('${jsArg(r.SKU)}',this)">🤖 Explain this buy</button><div class="po-ai-explain-text"></div></div></div></td></tr>`;
-      }
-    }
+    for(const r of view) body+=osLineHtml(r);
   }
 
   const tabs=Object.keys(OS_PRESETS).filter(k=>k!=='gap'||showGap).map(k=>{
@@ -11456,23 +11571,17 @@ function osRender(rebuild){
           </div>
           <div class="os-tabs" id="osTabs"></div>
           <div class="os-toolbar">
-            <input class="po-review-search" id="osSearch" type="text" placeholder="Search SKU / item in this view…" oninput="window._os.search=this.value;osRender()">
-            <input class="os-refine" id="osRefine" type="text" placeholder='Refine with AI, e.g. "only top sellers" or "drop anything under €50/mo"' onkeydown="if(event.key==='Enter')osRefineAI()">
-            <button class="secondary" onclick="osRefineAI()" style="font-size:12px;padding:6px 12px">✦ Refine</button>
+            <input class="po-review-search" id="osSearch" type="text" placeholder="🔍 Search this order…" oninput="window._os.search=this.value;osRender()">
+            <button class="secondary os-refine-toggle" onclick="const b=document.getElementById('osRefineBox');b.style.display=b.style.display==='flex'?'none':'flex';document.getElementById('osRefine').focus()">✦ Refine with AI</button>
+            <span id="osRefineBox" style="display:none;flex:1;gap:6px;min-width:260px">
+              <input class="os-refine" id="osRefine" type="text" placeholder='e.g. "only top sellers" or "drop anything under €50/mo"' onkeydown="if(event.key==='Enter')osRefineAI()">
+              <button class="secondary" onclick="osRefineAI()" style="font-size:12px;padding:6px 12px">Go</button>
+            </span>
           </div>
           <div id="osRefineMsg" class="os-refine-msg" style="display:none"></div>
         </div>
         <div class="po-review-body">
-          <table class="po-review-table os-table">
-            <thead><tr>
-              <th style="width:150px">SKU · EAN</th><th>Item · why this quantity</th>
-              <th class="r" style="width:64px">Stock</th><th class="r" style="width:74px" title="Already on an open PO">On order</th>
-              <th class="r" style="width:66px">Cover</th><th class="r" style="width:64px" title="Units sold in the last 30 days">Sold 30d</th>
-              <th class="r" style="width:76px">Order qty</th><th class="r" style="width:72px">Unit cost</th>
-              <th class="r" style="width:82px">Line total</th><th style="width:70px"></th>
-            </tr></thead>
-            <tbody id="osBody"></tbody>
-          </table>
+          <div id="osBody" class="ol-list"></div>
         </div>
         <div class="ai-brief-panel" id="aiBriefPanel">
           <div class="ai-brief-hdr">
@@ -11521,12 +11630,15 @@ function osToggleWhy(sku){ const os=window._os; if(!os) return; os.expanded.has(
 function osEditQty(inp, committed){
   const os=window._os; if(!os) return;
   const sku=inp.dataset.sku, q=Math.max(0,parseInt(inp.value)||0);
-  if(committed){ const rr=os.rows.find(x=>x.SKU===sku); const wl=inp.closest('tr')?.querySelector('.os-why'); if(rr&&wl) wl.outerHTML=buyWhyLine(rr,q); }
   window._poEdits[os.supplier][sku]=q;
-  const r=os.rows.find(x=>x.SKU===sku);
-  inp.classList.toggle('changed', !!r && q!==(r.buy||0));
-  const lt=inp.closest('tr')?.querySelector('.os-line');
-  if(lt && r){ const c=osUnitCost(r); lt.textContent=(q>0&&c>0)?'€'+fmtInt(q*c):'—'; }
+  const r=os.rows.find(x=>x.SKU===sku); if(!r) return;
+  inp.classList.toggle('changed', q!==(r.buy||0));
+  const row=inp.closest('.ol-row');
+  if(row){
+    const c=osUnitCost(r);
+    const ce=row.querySelector('.ol-cost'); if(ce) ce.innerHTML=(q>0&&c>0)?'€'+fmtInt(q*c):(c>0?'€0':'<span class="ol-nocost">no cost price</span>');
+    if(committed){ const ow=row.querySelector('.ol-why'); if(ow){ const btn=ow.querySelector('.ol-more'); ow.innerHTML=`<div class="ow-h">Why ${fmtInt(r.buy||0)}?</div>`+osWhySum(r,q); if(btn) ow.appendChild(btn); } }
+  }
   osUpdateTotals();
 }
 
