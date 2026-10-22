@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.7 · FAST ORDER LINES</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.8 · COPY BARCODE ON EVERY LINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1106,6 +1106,11 @@
     .ol-row.focus .ls-title{white-space:normal}
     .ls-codes{display:flex;flex-wrap:wrap;gap:4px 12px;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#64748b;margin-top:2px}
     .ls-codes span:first-child{color:#1e40af;font-weight:700}
+    .ls-ean{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #cbd5e1;border-radius:6px;padding:1px 6px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:#0f172a;cursor:pointer;min-height:0;line-height:1.5}
+    .ls-ean:hover{border-color:#2563eb;background:#eff6ff}
+    .ls-ean-i{font-family:system-ui,sans-serif;font-size:11px;font-weight:800;color:#2563eb}
+    .ls-ean.copied{border-color:#16a34a;background:#dcfce7}.ls-ean.copied .ls-ean-i{color:#15803d}
+    .ls-noean{color:#cbd5e1;font-family:system-ui,sans-serif}
     .ls-cs{font-family:system-ui,sans-serif;font-size:12px;font-weight:800;color:#6b21a8;background:#f3e8ff;border-radius:6px;padding:0 6px}
     .ls-cs.short{color:#fff;background:#dc2626}
     .ls-n{font-size:19px;font-weight:800;text-align:center;color:#0f172a}
@@ -1240,7 +1245,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.7 · built 2026-10-22 · Order screen: wider, one slim line per item that opens when you reach it, Tab/Enter to the next quantity, progress count</div>
+  <div class="sub">V7.31.8 · built 2026-10-22 · Order screen: one-click barcode copy on every line · wider slim lines · Tab/Enter to the next quantity</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -11549,7 +11554,7 @@ function osLineHtml(r){
   return `<div class="ol-row${stock<=0?' oos':''}${seen?' seen':''}" data-sku="${esc(r.SKU)}">
     <div class="ol-line" onclick="osFocusLine('${jsArg(r.SKU)}',event)">
       <div class="ls-what"><div class="ls-title">${esc(r.ItemTitle||'')}</div>
-        <div class="ls-codes"><span>${esc(r.SKU)}</span>${r.Barcode?`<span>${esc(String(r.Barcode).trim())}</span>`:''}${cs}</div></div>
+        <div class="ls-codes"><span>${esc(r.SKU)}</span>${String(r.Barcode||'').trim()?`<button tabindex="-1" class="ls-ean" title="Click to copy barcode" onclick="event.stopPropagation();osCopy(this,'${jsArg(String(r.Barcode).trim())}')"><span class="ls-ean-n">${esc(String(r.Barcode).trim())}</span><span class="ls-ean-i">⧉ copy</span></button>`:'<span class="ls-noean">no barcode</span>'}${cs}</div></div>
       <div class="ls-n ${stock<=0?'bad':''}">${f(stock)}</div>
       <div class="ls-n ${oo>0?'info':'muted'}">${f(oo)}</div>
       <div class="ls-n">${f(q30)}</div>
@@ -11634,7 +11639,7 @@ function osUpdateGuide(){
 }
 
 function osCopy(btn, text){
-  const done=()=>{ const t=btn.textContent; btn.textContent='✓'; btn.classList.add('copied'); setTimeout(()=>{ btn.textContent=t; btn.classList.remove('copied'); },1100); };
+  const done=()=>{ const lbl=btn.querySelector('.ls-ean-i')||btn; const t=lbl.innerHTML; lbl.innerHTML=lbl===btn?'✓':'✓ copied'; btn.classList.add('copied'); setTimeout(()=>{ lbl.innerHTML=t; btn.classList.remove('copied'); },1200); };
   if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done).catch(()=>fallback()); }
   else fallback();
   function fallback(){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(e){} ta.remove(); done(); }
