@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.2 · ONE ORDER SCREEN</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.3 · WHY AT A GLANCE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1081,6 +1081,15 @@
     .os-tag.pack{background:#e0f2fe;color:#075985}
     .os-table tbody td{vertical-align:middle}
     .os-table tr.os-oos td{background:#fff7f7}
+    .os-ean{display:flex;align-items:center;gap:4px;margin-top:3px}
+    .os-ean-num{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#334155;letter-spacing:.02em;user-select:all}
+    .os-ean.none{font-size:10px;color:#cbd5e1}
+    .os-copy{padding:0 6px;font-size:12px;line-height:18px;min-height:0;background:#f1f5f9;color:#1e40af;border:1px solid #cbd5e1;border-radius:5px;cursor:pointer;font-weight:700}
+    .os-copy:hover{background:#dbeafe}.os-copy.copied{background:#dcfce7;color:#166534;border-color:#86efac}
+    .os-why{font-size:12px;color:#0f172a;margin-top:3px;line-height:1.45}
+    .os-why b{color:#1e3a8a}
+    .os-why-sub,.os-why-facts{color:#64748b}
+    .os-why-bad{color:#b91c1c;font-weight:700}.os-why-up{color:#15803d;font-weight:700}.os-why-info{color:#1e40af;font-weight:600}
     .os-why-btn{padding:3px 9px;font-size:11px;font-weight:700;background:#fff;color:#1e40af;border:1.5px solid #bfdbfe;border-radius:6px;cursor:pointer}
     .os-why-row td{background:#f8fafc!important;padding:10px 16px 14px!important}
     .wl-tile-btn{flex:1;padding:5px 0;background:#1e40af;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:background .12s}
@@ -1143,7 +1152,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.2 · built 2026-10-22 · One order screen — order now, all lines, critical, top impact and Arklow gap as views of the same lines</div>
+  <div class="sub">V7.31.3 · built 2026-10-22 · Order screen: one-line “why this quantity” on every row · EAN with copy beside the SKU</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -8104,6 +8113,8 @@ function computeRow(row){
   // POs). The run length is the ceiling now — no separate spike cap.
   const rawBuy = Math.max(0, target - stock);
   let buy = rawBuy;
+  // V7.31.3 — record WHICH rule set the final quantity, so the order screen can say it
+  let buyDriverKey = rawBuy>0 ? 'demand' : 'none', lyFloorQty = 0;
   const maxBuy = target;   // informational — the run-length target is the ceiling
 
   // FIX 2: May25 floor for OOS + seasonal items whose max-buy cap is suppressed by OOS history
@@ -8113,12 +8124,13 @@ function computeRow(row){
     const may25qty = seasonalDataUsed?.q1 || seasonalDataUsed?.q2 || 0;
     if(stock <= 0 && may25qty >= 10 && buy < may25qty * 0.8){
       buy = ceilNonNeg(may25qty * 0.9); // buy 90% of last May as a conservative floor
+      buyDriverKey = 'lastyear'; lyFloorQty = may25qty;
     }
   }
 
-  if(row._csRequired&&row._csQtyFloor>0) buy=Math.max(buy,row._csQtyFloor);
+  if(row._csRequired&&row._csQtyFloor>0 && row._csQtyFloor>buy){ buy=row._csQtyFloor; buyDriverKey='cs'; }
   const minOneFallbackApplied=!!fallbackUsed&&stock<=0&&demandQty>0&&buy<=0;
-  if(minOneFallbackApplied) buy=1;
+  if(minOneFallbackApplied){ buy=1; buyDriverKey='minone'; }
 
   const daysOfCover=effectiveDaily>0?(stock/effectiveDaily):(stock>0?9999:0);
   // Status is now relative to the reorder point (lead + safety), not a flat 14d.
@@ -8201,7 +8213,7 @@ function computeRow(row){
     baseDaily:base30dDaily, adjustedDaily:effectiveDaily, daysOfCover,coverStatus,coverDays:effectiveCoverDays,leadTimeDays,leadTimeCap,
     target,rawBuy,maxBuy,buy,stock,status,ramp,capelSignal,minOneFallbackApplied,
     buyUnrounded, packSize:Math.max(1,Math.round(row.SupplierPackSize||1)), moq:Math.max(0,Math.round(row.SupplierMinOrder||0)),
-    engineBaseDaily, engineBaseSrc, lyEvidence,
+    engineBaseDaily, engineBaseSrc, lyEvidence, buyDriverKey, lyFloorQty, demandBuy:rawBuy,
     _csRequired:row._csRequired||false,
     _csQtyFloor:row._csQtyFloor||0,
     _csReason:row._csReason||'',
@@ -9698,7 +9710,7 @@ function buildWhyText(r){
   rows.push(`<div class="wbs-row">
     <span class="wbs-icon">📦</span>
     <span class="wbs-lbl">Stock</span>
-    <span class="wbs-val" style="color:${stockCol};font-weight:700">${fmtInt(r.stock)} units — ${stockLbl}</span>
+    <span class="wbs-val" style="color:${stockCol};font-weight:700">${fmtInt(r.stock)} units — ${stockLbl}${r.stock<0?' <span style="color:#b91c1c">(negative stock — Linnworks shows more sold than received, check the count)</span>':''}</span>
   </div>`);
 
   // ── Signal 2: 30D demand ──────────────────────────────────────────────────
@@ -9713,7 +9725,9 @@ function buildWhyText(r){
   // ── Signal 3: Same month last year ────────────────────────────────────────
   if(r.seasonalDataUsed){
     const sd=r.seasonalDataUsed;
-    const col=sd.q1>0?sd.col1.replace(/_/,'/'):sd.col2.replace(/_/,'/');
+    // V7.31.3 — "2025_10" → "Oct 2025"
+    const _ym=c=>{ const m=String(c).match(/^(\d{4})_(\d{2})$/); return m?(_MONTH_ABBR[+m[2]-1]+' '+m[1]):String(c).replace(/_/,'/'); };
+    const col=sd.q1>0?_ym(sd.col1):_ym(sd.col2);
     const qty=sd.q1>0?sd.q1:sd.q2;
     // Compare last year's same-month sales to the current 30D rate. When current is
     // 0 but last year had sales, last year was HIGHER than now (demand has since
@@ -9724,8 +9738,8 @@ function buildWhyText(r){
                   `<span style="color:#64748b">≈ similar to now</span>`;
     rows.push(`<div class="wbs-row">
       <span class="wbs-icon">📅</span>
-      <span class="wbs-lbl">Last ${col}</span>
-      <span class="wbs-val">${fmtInt(qty)} units ${vsLabel}</span>
+      <span class="wbs-lbl">${col}</span>
+      <span class="wbs-val">${fmtInt(qty)} sold ${vsLabel}</span>
     </div>`);
   } else if(r.categoryLabel && r.categoryLabel!=='General'){
     const q12 = r.QtySold_Total_330d || 0;
@@ -9746,7 +9760,9 @@ function buildWhyText(r){
     rows.push(`<div class="wbs-row">
       <span class="wbs-icon">🌿</span>
       <span class="wbs-lbl">Seasonal</span>
-      <span class="wbs-val" style="color:#16a34a;font-weight:600">${esc(r.categoryLabel||'Seasonal')} — ${monthLabel()} +${pct}% (${src})</span>
+      <span class="wbs-val" style="color:#16a34a;font-weight:600">${r.seasonalDataUsed
+        ? `${monthLabel()} sells ${fmt1(r.seasonalMultiplier)}× the current rate (from this SKU's own sales last year)`
+        : `${esc(r.categoryLabel||'Seasonal')} season — ${monthLabel()} +${pct}% (category estimate)`}</span>
     </div>`);
   } else if(r.seasonalMultiplier>=0.95 && r.categoryLabel && r.categoryLabel!=='General'){
     rows.push(`<div class="wbs-row">
@@ -11291,6 +11307,58 @@ function osQty(r){
 }
 function osUnitCost(r){ return r.SupplierCostPrice||r.UnitCost||0; }
 
+// V7.31.3 — the answer to "why this number?" in ONE line, on every row.
+// Bold part = the rule that actually set the quantity (recorded by the engine).
+// Grey part = the few facts behind it, most important first.
+function buyWhyLine(r, q){
+  const mon=_MONTH_ABBR[new Date().getMonth()];
+  const sug=r.buy||0, f=x=>fmtInt(x);
+  const rate=(r.adjustedDaily||0), rateTxt = rate>=1 ? fmt1(rate)+'/day' : (rate*30>=1 ? fmt1(rate*30)+'/mo' : (rate>0? '<1/mo':'0'));
+  let head;
+  if(q!==sug) head=`<b>${f(q)} = your edit</b> <span class="os-why-sub">(suggested ${f(sug)})</span>`;
+  else if(r._seasonalBuy) head=`<b>${f(sug)} = seasonal reorder</b> <span class="os-why-sub">(${esc(r._seasonalBuyBasis||'in season')})</span>`;
+  else switch(r.buyDriverKey){
+    case 'cs':       head=`<b>${f(sug)} = CS minimum${r._csReason?' ('+esc(r._csReason)+')':''}</b>`+(r.demandBuy>0?` <span class="os-why-sub">· demand alone ${f(r.demandBuy)}</span>`:` <span class="os-why-sub">· no demand of its own</span>`); break;
+    case 'lastyear': head=`<b>${f(sug)} = last ${mon}'s sales</b> <span class="os-why-sub">(${f(r.lyFloorQty)} sold then · ordering 90%)</span>`; break;
+    case 'minone':   head=`<b>1 = minimum</b> <span class="os-why-sub">· nothing sold in 30 days, but it sold in the last ${r.engineBaseSrc==='Fallback180'?'180':'90'}</span>`; break;
+    default: {
+      // Say WHERE the daily rate came from when it isn't simply "what it sells now"
+      const base=r.base30dDaily||0;
+      let src='';
+      if(r.seasonalDataUsed && rate>base*1.2){ const m0=_MONTH_ABBR[new Date().getMonth()], m1=_MONTH_ABBR[(new Date().getMonth()+1)%12]; src=` (last year's ${m0}–${m1} rate)`; }
+      else if(r.spikeFactored) src=' (boosted by this week’s spike)';
+      else if(r.engineBaseSrc && r.engineBaseSrc!=='30D') src=` (${esc(r.engineBaseSrc.replace('Fallback','last '))}${/^Fallback/.test(r.engineBaseSrc)?' days':''} rate)`;
+      else if(r.seasonalMultiplier>1.05) src=' (seasonal estimate)';
+      head=`<b>${f(sug)} = ${f(r.targetDays)} days of sales</b> <span class="os-why-sub">at ${rateTxt}${src}, less what's in stock</span>`;
+    }
+  }
+  if(q===sug && r.buyUnrounded>0 && sug!==r.buyUnrounded) head+=` <span class="os-why-sub">· rounded up from ${f(r.buyUnrounded)} (pack ${f(r.packSize)}${r.moq>0?', min '+f(r.moq):''})</span>`;
+
+  const facts=[];
+  if(r.stock<0) facts.push(`<span class="os-why-bad" title="Linnworks shows more sold than received — check the stock count">${f(r.stock)} in stock (negative)</span>`);
+  else if(r.stock===0) facts.push(`<span class="os-why-bad">out of stock</span>`);
+  else facts.push(`${f(r.stock)} in stock${r.daysOfCover<9999?' ('+f(r.daysOfCover)+'d)':''}`);
+  const q30=r.base30dQty ?? r.QtySold_Online_Total_30d ?? 0;
+  facts.push(`sells ${f(q30)}/mo`);
+  if(r.spikeFactored) facts.push(`<span class="os-why-up">↑ ${fmt1(r.spikeRatio)}× faster this week</span>`);
+  if(r.seasonalDataUsed){
+    const sd=r.seasonalDataUsed, ly=sd.q1||0;
+    facts.push(`${mon} last year ${f(ly)}${ly>q30*1.2?' <span class="os-why-up">↑</span>':''}`);
+  } else if(r.seasonalMultiplier>1.05) facts.push(`<span class="os-why-up">${esc(r.categoryLabel)} season +${Math.round((r.seasonalMultiplier-1)*100)}%</span>`);
+  if(r.weatherActive) facts.push(`weather +${Math.round((r.weatherMult-1)*100)}%`);
+  const oo = state.channel==='capel' ? (r.OnOrderQty_CS_PO||0) : (r.OnOrderQty_AK_PO||0);
+  if(oo>0) facts.push(`<span class="os-why-info">${f(oo)} already on order</span>`);
+  if(r.abcClass==='A') facts.push('top seller');
+  return `<div class="os-why">${head}<span class="os-why-facts"> · ${facts.join(' · ')}</span></div>`;
+}
+
+function osCopy(btn, text){
+  const done=()=>{ const t=btn.textContent; btn.textContent='✓'; btn.classList.add('copied'); setTimeout(()=>{ btn.textContent=t; btn.classList.remove('copied'); },1100); };
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done).catch(()=>fallback()); }
+  else fallback();
+  function fallback(){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(e){} ta.remove(); done(); }
+}
+
 function openOrderScreen(supplier, preset, opts){
   opts=opts||{};
   if(!supplier){ alert('Select a supplier first — orders are always built for one supplier.'); return; }
@@ -11347,13 +11415,15 @@ function osRender(rebuild){
       if(r.buy>0 && r.buyUnrounded>0 && r.buy!==r.buyUnrounded) tags.push(`<span class="os-tag pack" title="Rounded from ${fmtInt(r.buyUnrounded)}">📦 Pack ${fmtInt(r.packSize)}${r.moq>0?' · min '+fmtInt(r.moq):''}</span>`);
       const open=os.expanded.has(r.SKU);
       body+=`<tr class="${r.stock<=0?'os-oos':''}">
-        <td><span class="po-rev-sku">${esc(r.SKU)}</span></td>
-        <td><div class="os-title">${esc(r.ItemTitle||'')}</div><div class="os-tags">${tags.join('')}</div></td>
+        <td><span class="po-rev-sku">${esc(r.SKU)}</span>${String(r.Barcode||'').trim()
+          ? `<div class="os-ean"><span class="os-ean-num">${esc(String(r.Barcode).trim())}</span><button class="os-copy" title="Copy EAN" onclick="event.stopPropagation();osCopy(this,'${jsArg(String(r.Barcode).trim())}')">⧉</button></div>`
+          : `<div class="os-ean none">no EAN</div>`}</td>
+        <td><div class="os-title">${esc(r.ItemTitle||'')}</div>${buyWhyLine(r,q)}<div class="os-tags">${tags.join('')}</div></td>
         <td class="r"><span style="font-weight:700;color:${r.stock<=0?'#dc2626':r.stock<10?'#d97706':'#166534'}">${fmtInt(r.stock)}</span></td>
         <td class="r">${onOrder>0?`<span style="font-weight:700;color:#1e40af" title="Already on an open PO">📦 ${fmtInt(onOrder)}</span>`:'<span style="color:#cbd5e1">—</span>'}</td>
         <td class="r"><span class="po-rev-cover ${cc}">${coverLabel}</span></td>
         <td class="r">${fmtInt(sold30)}</td>
-        <td class="r"><input class="po-rev-qty${edited?' changed':''}" type="number" min="0" step="1" value="${q}" data-sku="${esc(r.SKU)}" oninput="osEditQty(this)" title="${edited?'Suggested '+fmtInt(r.buy||0):'Suggested quantity'}"></td>
+        <td class="r"><input class="po-rev-qty${edited?' changed':''}" type="number" min="0" step="1" value="${q}" data-sku="${esc(r.SKU)}" oninput="osEditQty(this)" onchange="osEditQty(this,true)" title="${edited?'Suggested '+fmtInt(r.buy||0):'Suggested quantity'}"></td>
         <td class="r" style="font-size:11.5px">${c?'€'+c.toFixed(2):'<span style="color:#cbd5e1">no cost</span>'}</td>
         <td class="r os-line" style="font-weight:800">${q>0&&c>0?'€'+fmtInt(q*c):'—'}</td>
         <td><button class="os-why-btn" onclick="osToggleWhy('${jsArg(r.SKU)}')">${open?'▾ Hide':'▸ Why'}</button></td>
@@ -11395,7 +11465,7 @@ function osRender(rebuild){
         <div class="po-review-body">
           <table class="po-review-table os-table">
             <thead><tr>
-              <th style="width:100px">SKU</th><th>Item</th>
+              <th style="width:150px">SKU · EAN</th><th>Item · why this quantity</th>
               <th class="r" style="width:64px">Stock</th><th class="r" style="width:74px" title="Already on an open PO">On order</th>
               <th class="r" style="width:66px">Cover</th><th class="r" style="width:64px" title="Units sold in the last 30 days">Sold 30d</th>
               <th class="r" style="width:76px">Order qty</th><th class="r" style="width:72px">Unit cost</th>
@@ -11448,9 +11518,10 @@ function osUpdateTotals(){
 function osSetPreset(k){ const os=window._os; if(!os) return; os.preset=k; os.keep=null; const m=document.getElementById('osRefineMsg'); if(m) m.style.display='none'; osRender(); }
 function osToggleWhy(sku){ const os=window._os; if(!os) return; os.expanded.has(sku)?os.expanded.delete(sku):os.expanded.add(sku); osRender(); }
 
-function osEditQty(inp){
+function osEditQty(inp, committed){
   const os=window._os; if(!os) return;
   const sku=inp.dataset.sku, q=Math.max(0,parseInt(inp.value)||0);
+  if(committed){ const rr=os.rows.find(x=>x.SKU===sku); const wl=inp.closest('tr')?.querySelector('.os-why'); if(rr&&wl) wl.outerHTML=buyWhyLine(rr,q); }
   window._poEdits[os.supplier][sku]=q;
   const r=os.rows.find(x=>x.SKU===sku);
   inp.classList.toggle('changed', !!r && q!==(r.buy||0));
