@@ -1099,6 +1099,10 @@
     .ot-l{font-size:12px;font-weight:600;color:#64748b;margin-top:2px}
     .ot.bad{background:#fef2f2;border-color:#fecaca}.ot.bad .ot-v{color:#dc2626}
     .ot.info .ot-v{color:#1d4ed8}.ot.muted .ot-v{color:#94a3b8}.ot.up .ot-v{color:#15803d}
+    .ol-cs{margin-top:10px;background:#f3e8ff;border:2px solid #a855f7;border-radius:10px;padding:10px 12px;color:#581c87}
+    .ol-cs-main{font-size:16px;font-weight:700}.ol-cs-main b{font-size:20px}
+    .ol-cs-sub{font-size:13px;margin-top:2px;color:#6b21a8}
+    .ol-cs.short{background:#fef2f2;border-color:#dc2626;color:#991b1b}.ol-cs.short .ol-cs-sub{color:#991b1b}
     .ol-notes{margin-top:10px;font-size:13.5px;color:#92400e;line-height:1.5}
     .ol-why{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px}
     .ow-h{font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
@@ -6413,7 +6417,7 @@ function parseCSFeed(rows){
       if(!isNaN(expDate) && expDate < today) continue;
     }
     // channel: 'arklow', 'capel street', or 'both'
-    lines.push({sku, supplier, qty, reason, channel});
+    lines.push({sku, supplier, qty, reason, channel, expires});
   }
   return lines;
 }
@@ -6631,6 +6635,7 @@ function mergeCSIntoRows(rows, csLines){
       existing._csRequired = true;
       existing._csQtyFloor = Math.max(existing._csQtyFloor, cs.qty);
       existing._csReason = cs.reason || existing._csReason;
+      existing._csExpires = cs.expires || existing._csExpires || '';
     } else {
       // Inject synthetic row — look for the supplier in existing rows to get SupplierName
       // cs.supplier may match exactly or by prefix
@@ -6650,6 +6655,7 @@ function mergeCSIntoRows(rows, csLines){
         _csRequired: true,
         _csQtyFloor: cs.qty,
         _csReason: cs.reason,
+        _csExpires: cs.expires||'',
         _synthetic: true
       });
     }
@@ -8257,7 +8263,7 @@ function computeRow(row){
     engineBaseDaily, engineBaseSrc, lyEvidence, buyDriverKey, lyFloorQty, demandBuy:rawBuy,
     _csRequired:row._csRequired||false,
     _csQtyFloor:row._csQtyFloor||0,
-    _csReason:row._csReason||'',
+    _csReason:row._csReason||'', _csExpires:row._csExpires||'',
     isDiscontinued: q11Total===0 && has180Activity===0 && !isComposite,
     // Lapsed seller: sold ≥3 in the last 12 months, now OUT OF STOCK, yet the engine
     // recommends BUY 0 — because nothing moved in the recent 30/90d window the demand
@@ -11446,18 +11452,30 @@ function osWhySum(r,q){
     else h+=L('−', '0', 'in stock', 'bad');
     if(dem!==sug && stock!==0) h+=L('=', f(dem), 'to order');
     if(dem!==sug){
-      if(r.buyDriverKey==='cs') h+=L('↑', f(sug), `raised to the Capel Street minimum${r._csReason?' ('+esc(r._csReason)+')':''}`, 'up');
+      if(r.buyDriverKey==='cs') h+=L('↑', f(sug), `raised to the Customer Service minimum${r._csReason?' ('+esc(r._csReason)+')':''}`, 'up');
       else if(r.buyDriverKey==='lastyear') h+=L('↑', f(sug), `raised — last ${_MONTH_ABBR[new Date().getMonth()]} we sold ${f(r.lyFloorQty)}, so order 90% of that`, 'up');
       else if(r.buyDriverKey==='minone') h+=L('↑', '1', 'one to keep it in stock — it has sold before', 'up');
       else if(r.buyUnrounded>0 && sug!==r.buyUnrounded) h+=L('↑', f(sug), `rounded up to packs of ${f(r.packSize)}${r.moq>0?' (minimum '+f(r.moq)+')':''}`, 'up');
     }
   } else {
-    if(r.buyDriverKey==='cs') h+=L('', f(sug), `Capel Street minimum${r._csReason?' ('+esc(r._csReason)+')':''} — no online sales to go on`);
+    if(r.buyDriverKey==='cs') h+=L('', f(sug), `Customer Service minimum${r._csReason?' ('+esc(r._csReason)+')':''} — no online sales to go on`);
     else h+=L('', f(sug), 'no recent sales to work from');
   }
   h+=`<div class="ow-res"><span>Suggested order</span><b>${f(sug)}</b></div>`;
   if(q!==sug) h+=`<div class="ow-edit">✏️ You changed this to <b>${f(q)}</b></div>`;
   return h;
+}
+// Customer Service requirement — must be visible without clicking (Mark, V7.31.4)
+function osCsBanner(r,q){
+  if(!r._csRequired || !(r._csQtyFloor>0)) return '';
+  const here = state.channel==='capel' ? 'Capel Street' : 'Arklow';
+  let until='';
+  if(r._csExpires){ const d=new Date(r._csExpires); if(!isNaN(d)) until=` · until ${d.getDate()} ${_MONTH_ABBR[d.getMonth()]}`; }
+  const short = q < r._csQtyFloor;
+  return `<div class="ol-cs${short?' short':''}">
+    <div class="ol-cs-main">🔒 Customer Service requires <b>${fmtInt(r._csQtyFloor)}</b> in ${here}</div>
+    <div class="ol-cs-sub">${r._csReason?'Requested by '+esc(r._csReason):'Customer Service request'}${until}${short?` · <b>your order of ${fmtInt(q)} is below this</b>`:''}</div>
+  </div>`;
 }
 function osLineHtml(r){
   const os=window._os, f=fmtInt;
@@ -11488,6 +11506,7 @@ function osLineHtml(r){
         <span class="ol-code"><i>Barcode</i>${ean?`<b class="ol-ean">${esc(ean)}</b><button class="os-copy" title="Copy barcode" onclick="event.stopPropagation();osCopy(this,'${jsArg(ean)}')">⧉</button>`:'<b class="ol-ean none">none</b>'}</span>
       </div>
       <div class="ol-tiles">${tiles}</div>
+      ${osCsBanner(r,q)}
       ${notes.length?`<div class="ol-notes">${notes.map(n=>`<div>${n}</div>`).join('')}</div>`:''}
     </div>
     <div class="ol-why"><div class="ow-h">Why ${f(r.buy||0)}?</div>${osWhySum(r,q)}
@@ -11637,6 +11656,7 @@ function osEditQty(inp, committed){
   if(row){
     const c=osUnitCost(r);
     const ce=row.querySelector('.ol-cost'); if(ce) ce.innerHTML=(q>0&&c>0)?'€'+fmtInt(q*c):(c>0?'€0':'<span class="ol-nocost">no cost price</span>');
+    const csb=row.querySelector('.ol-cs'); if(csb) csb.outerHTML=osCsBanner(r,q);
     if(committed){ const ow=row.querySelector('.ol-why'); if(ow){ const btn=ow.querySelector('.ol-more'); ow.innerHTML=`<div class="ow-h">Why ${fmtInt(r.buy||0)}?</div>`+osWhySum(r,q); if(btn) ow.appendChild(btn); } }
   }
   osUpdateTotals();
