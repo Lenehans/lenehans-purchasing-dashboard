@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.5 · CUSTOMER SERVICE ON EVERY LINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.6 · CLEARER VIEW BUTTONS</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1060,12 +1060,20 @@
     .os-sup{font-size:18px;font-weight:900;color:#0f172a;line-height:1.2}
     .os-ch{font-size:11px;font-weight:700;color:#475569;background:#f1f5f9;border-radius:5px;padding:2px 7px;margin-left:4px;vertical-align:middle}
     .os-hist{font-size:12px;color:#64748b;margin-top:2px}
-    .os-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 8px}
-    .os-tab{background:#fff;color:#334155;border:1.5px solid #cbd5e1;border-radius:8px;padding:6px 11px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
-    .os-tab:hover{background:#f8fafc;border-color:#94a3b8}
-    .os-tab.active{background:#1e3a5f;color:#fff;border-color:#1e3a5f}
-    .os-tab-n{font-size:11px;font-weight:800;background:rgba(148,163,184,.25);border-radius:9px;padding:0 7px}
-    .os-tab.active .os-tab-n{background:rgba(255,255,255,.2)}
+    .os-tabs-lbl{font-size:12px;font-weight:800;color:#475569;text-transform:uppercase;letter-spacing:.07em;margin:10px 0 6px}
+    .os-tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin:0 0 10px}
+    .os-tab{--c:#334155;--bg:#f8fafc;background:var(--bg);color:#0f172a;border:2px solid #cbd5e1;border-top:5px solid var(--c);border-radius:12px;padding:10px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;min-height:0;box-shadow:0 1px 2px rgba(15,23,42,.06);transition:transform .08s,box-shadow .12s}
+    .os-tab:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(15,23,42,.12);border-color:var(--c)}
+    .os-tab-top{display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px}
+    .os-tab-lbl{font-size:15px;font-weight:800;line-height:1.2}
+    .os-tab-n{font-size:20px;font-weight:800;color:var(--c);line-height:1}
+    .os-tab-sub{font-size:12.5px;font-weight:600;color:#64748b;display:flex;align-items:center;gap:4px}
+    .os-tab-now{--c:#1d4ed8;--bg:#eff6ff}.os-tab-all{--c:#334155;--bg:#f8fafc}.os-tab-urgent{--c:#dc2626;--bg:#fef2f2}
+    .os-tab-impact{--c:#d97706;--bg:#fffbeb}.os-tab-gap{--c:#be123c;--bg:#fff1f2}
+    .os-tab.active{background:var(--c);border-color:var(--c);color:#fff;box-shadow:0 4px 14px rgba(15,23,42,.25)}
+    .os-tab.active .os-tab-n,.os-tab.active .os-tab-sub{color:#fff}
+    .os-tab.active .os-tab-sub{opacity:.9}
+    .os-tab .os-cap{font-size:12px;padding:1px 4px;border-radius:6px;border:1px solid #cbd5e1;color:#0f172a;background:#fff}
     .os-cap{font-size:11px;padding:1px 3px;border-radius:5px;border:1px solid #cbd5e1;min-height:0}
     .os-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
     .os-toolbar .po-review-search{margin-left:0;width:240px}
@@ -1197,7 +1205,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.5 · built 2026-10-22 · Order screen: labelled numbers, the sum behind every quantity, Customer Service requirement under the stock</div>
+  <div class="sub">V7.31.6 · built 2026-10-22 · Order screen: big, colour-coded view buttons with counts and a plain description</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -11319,11 +11327,11 @@ function osCanonicalRows(sup){
 }
 
 const OS_PRESETS = {
-  now:    {label:'⏱ Order now',                tip:'Lines that would fall below their reorder point before this supplier’s next order day'},
-  all:    {label:'All lines',                   tip:'Every line in this supplier’s order'},
-  urgent: {label:'🔴 Out of stock & critical',  tip:'Out of stock, or already below the reorder point'},
-  impact: {label:'⚡ Top impact',               tip:'Fewest lines, biggest effect — ranked by lost-sales risk, value and urgency'},
-  gap:    {label:'🚨 Arklow gap',              tip:'Selling now (or due to) but Arklow can’t ship it — Capel is covering'}
+  now:    {sub:'Can’t wait for the next order', label:'⏱ Order now',                tip:'Lines that would fall below their reorder point before this supplier’s next order day'},
+  all:    {sub:'Everything suggested', label:'📋 All lines',                   tip:'Every line in this supplier’s order'},
+  urgent: {sub:'Out of stock or nearly', label:'🔴 Out of stock & critical',  tip:'Out of stock, or already below the reorder point'},
+  impact: {sub:'Biggest effect, fewest lines', label:'⚡ Top impact',               tip:'Fewest lines, biggest effect — ranked by lost-sales risk, value and urgency'},
+  gap:    {sub:'Selling, but Arklow has none', label:'🚨 Arklow gap',              tip:'Selling now (or due to) but Arklow can’t ship it — Capel is covering'}
 };
 
 function osPresetRows(preset){
@@ -11571,7 +11579,9 @@ function osRender(rebuild){
 
   const tabs=Object.keys(OS_PRESETS).filter(k=>k!=='gap'||showGap).map(k=>{
     const capSel = k==='impact' ? ` <select onclick="event.stopPropagation()" onchange="window._os.cap=parseInt(this.value)||15;window._os.preset='impact';osRender()" class="os-cap">${[10,15,20,30].map(n=>`<option value="${n}"${n===os.cap?' selected':''}>${n}</option>`).join('')}</select>` : '';
-    return `<button class="os-tab${os.preset===k?' active':''}" title="${esc(OS_PRESETS[k].tip)}" onclick="osSetPreset('${k}')">${OS_PRESETS[k].label} <span class="os-tab-n">${counts[k]}</span>${capSel}</button>`;
+    return `<button class="os-tab os-tab-${k}${os.preset===k?' active':''}" title="${esc(OS_PRESETS[k].tip)}" onclick="osSetPreset('${k}')">
+      <span class="os-tab-top"><span class="os-tab-lbl">${OS_PRESETS[k].label}</span><span class="os-tab-n">${counts[k]}</span></span>
+      <span class="os-tab-sub">${OS_PRESETS[k].sub}${capSel?' · show '+capSel:''}</span></button>`;
   }).join('');
 
   const overlay=document.getElementById('poReviewOverlay');
@@ -11588,6 +11598,7 @@ function osRender(rebuild){
             </div>
             <span class="sc-status" id="osStatus"></span>
           </div>
+          <div class="os-tabs-lbl">Which lines do you want to see?</div>
           <div class="os-tabs" id="osTabs"></div>
           <div class="os-toolbar">
             <input class="po-review-search" id="osSearch" type="text" placeholder="🔍 Search this order…" oninput="window._os.search=this.value;osRender()">
