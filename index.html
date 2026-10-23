@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.14 · BOTH MONTHS LAST YEAR</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.15 · ORDER DATES READ CORRECTLY</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1263,7 +1263,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.14 · built 2026-10-23 · Order screen: “Why buy this quantity?” shows both of last year’s months (e.g. Oct 11 · Nov 15) · sold next 30 days last year · sticky column names</div>
+  <div class="sub">V7.31.15 · built 2026-10-23 · PO dates like “23 Oct” and “9 October” now read correctly (were taken as the 1st) · Mark ordered shows instantly · both of last year’s months in “Why buy”</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -10483,7 +10483,7 @@ async function loadGovernanceFeeds(){
   ]);
   if(csR.status==='fulfilled'){ state.csLines=parseCSFeed(csR.value); msgs.push(`CS Shared: ${state.csLines.length} active lines`); }
   else { state.csLines=[]; msgs.push('CS Shared unavailable'); }
-  if(poR.status==='fulfilled'){ state.poStatusMap=parsePOFeed(poR.value); msgs.push(`PO Status: ${Object.keys(state.poStatusMap).length} suppliers`); }
+  if(poR.status==='fulfilled'){ state.poStatusMap=applyPOJustDone_(parsePOFeed(poR.value)); msgs.push(`PO Status: ${Object.keys(state.poStatusMap).length} suppliers`); }
   else { state.poStatusMap={}; msgs.push('PO Status unavailable'); }
 
   // Do-not-order list — BACKGROUND (never delays the main load). Re-applies on arrival.
@@ -11240,20 +11240,49 @@ function showDiag(text){
   setTimeout(()=>{ ta.scrollTop=0; },0);
 }
 // Parse a PO date string ("19.06", "02/06/26", "19-06-2026") → Date, else month label
+// Reads every date style used on the PO Status sheet's "Done" columns:
+//   07/10 · 05/10/26 · 19/10/2026 · 19 Oct · 07 Oct · 9 October · 2026-10-23
+// No year written → the year of that month's column (e.g. "Oct 2026"), else this year
+// (and last year if that would put it in the future). If the date can't be read we
+// fall back to the 1st of the column's month and FLAG it (_monthOnly), so the card
+// says "in Oct" rather than pretending it was 1 Oct.
 function parsePODate(dateStr, monthStr){
   const s=String(dateStr||'').trim();
   const today=new Date(); today.setHours(0,0,0,0);
-  const m=s.match(/(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?/);
-  if(m){
-    let day=+m[1], mon=+m[2]-1, yr=m[3]?+m[3]:today.getFullYear();
-    if(yr<100) yr+=2000;
-    const d=new Date(yr,mon,day); d.setHours(0,0,0,0);
-    if(!isNaN(d.getTime())){ if(d>today && !m[3]) d.setFullYear(d.getFullYear()-1); return d; }
+  const MON=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const colYr=+((String(monthStr||'').match(/(\d{4})/)||[])[1]||0);
+  const make=(y,mo,d,yearKnown)=>{
+    if(!(mo>=0&&mo<=11&&d>=1&&d<=31)) return null;
+    if(y<100) y+=2000;
+    const dt=new Date(y,mo,d); dt.setHours(0,0,0,0);
+    if(isNaN(dt.getTime())||dt.getDate()!==d) return null;
+    if(!yearKnown && dt>today) dt.setFullYear(dt.getFullYear()-1);
+    return dt;
+  };
+  const yr=(written)=> written ? [+written,true] : (colYr ? [colYr,true] : [today.getFullYear(),false]);
+  let m, d;
+  if(s){
+    // 2026-10-23
+    if((m=s.match(/(\d{4})-(\d{1,2})-(\d{1,2})/)) && (d=make(+m[1],+m[2]-1,+m[3],true))) return d;
+    // 19 Oct · 07 Oct · 9 October · 23-Oct-2026 · 1st Nov 2026
+    if((m=s.match(/(\d{1,2})(?:st|nd|rd|th)?[\s\-\/.]*([A-Za-z]{3,})\.?(?:[\s\-\/,.]*(\d{4}|\d{2})(?!\d))?/))){
+      const mo=MON.indexOf(m[2].slice(0,3).toLowerCase());
+      if(mo>=0){ const [y,k]=yr(m[3]); if((d=make(y,mo,+m[1],k))) return d; }
+    }
+    // Oct 19 · October 9, 2026
+    if((m=s.match(/([A-Za-z]{3,})\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:[\s,]+(\d{4}))?/))){
+      const mo=MON.indexOf(m[1].slice(0,3).toLowerCase());
+      if(mo>=0){ const [y,k]=yr(m[3]); if((d=make(y,mo,+m[2],k))) return d; }
+    }
+    // 07/10 · 05/10/26 · 19/10/2026 · 02.06.26  (day first, Irish style)
+    if((m=s.match(/(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?/))){
+      const [y,k]=yr(m[3]); if((d=make(y,+m[2]-1,+m[1],k))) return d;
+    }
   }
   const mm=String(monthStr||'').match(/([A-Za-z]{3,})\s*(\d{4})/);
   if(mm){
-    const idx=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].indexOf(mm[1].slice(0,3).toLowerCase());
-    if(idx>=0) return new Date(+mm[2], idx, 1);
+    const idx=MON.indexOf(mm[1].slice(0,3).toLowerCase());
+    if(idx>=0){ const f=new Date(+mm[2], idx, 1); f._monthOnly=true; return f; }
   }
   return null;
 }
@@ -11356,7 +11385,7 @@ function supplierOrderStatus(name){
   }
   const CADENCE_WORDS={'3x week':'orders 3 times a week','2x week':'orders twice a week','Weekly':'orders every week','Fortnightly':'orders every 2 weeks','Monthly':'orders every month'};
   let hist = lastDone
-    ? `Last ordered ${lastDate?shortD(lastDate):esc(lastDone.month||'')}${lastDone.person?' by '+esc(lastDone.person):''}`
+    ? `Last ordered ${lastDate&&!lastDate._monthOnly?shortD(lastDate):'in '+esc(String(lastDone.month||'').split(' ')[0])}${lastDone.person?' by '+esc(lastDone.person):''}${lastDate&&lastDate._monthOnly&&lastDone.date?` <span class="sc-note" title="The date on the PO sheet couldn't be read">(date “${esc(lastDone.date)}” unreadable)</span>`:''}`
     : 'No order recorded on the PO sheet';
   if(cadence) hist += ` · ${CADENCE_WORDS[cadence]||esc(cadence)}`;
   const tone = key==='overdue'||key==='none'?'red' : key==='due'?'amber' : key==='checked'?'blue' : 'green';
@@ -12605,6 +12634,17 @@ tr:hover td{background:#f1f5f9}
   w.document.write(html);
   w.document.close();
 }
+// Keep a just-marked "DONE" until the sheet export shows it (or 6 hours pass).
+function applyPOJustDone_(map){
+  const jd=state._poJustDone||{}, now=Date.now();
+  for(const [key,v] of Object.entries(jd)){
+    const fresh=map[key];
+    const sheetHasIt = fresh && fresh.isDone && fresh.monthKey===v.entry.monthKey;
+    if(sheetHasIt || now-v.at>6*3600*1000){ delete jd[key]; continue; }
+    map[key]=v.entry;
+  }
+  return map;
+}
 function markSupplierDone(supplierName){
   if(!PO_UPDATER_URL) return;
   const ch        = state.channel === 'capel' ? 'CS' : 'AK';
@@ -12620,9 +12660,22 @@ function markSupplierDone(supplierName){
     .then(r=>r.json())
     .then(data=>{
       if(data.ok){
-        // Reload PO feed and re-render
+        // Show it as ordered straight away (Google's CSV export can lag a few minutes),
+        // then reload the sheet. The local entry is kept until the sheet catches up.
+        const key = `${supplierName}||${state.channel==='capel'?'capel street':'arklow'}`;
+        const now = new Date(); const mIdx=now.getMonth();
+        const entry = { raw:'DONE', isDone:true, isChecked:false,
+          date: `${String(now.getDate()).padStart(2,'0')}/${String(mIdx+1).padStart(2,'0')}/${now.getFullYear()}`,
+          person: buyer || (data.buyer||''), month: currentMonthLabel(), channel: state.channel==='capel'?'capel street':'arklow',
+          monthIdx: mIdx, monthKey: now.getFullYear()*12+mIdx };
+        const prev = state.poStatusMap[key];
+        entry.history = [entry].concat(((prev&&prev.history)||[]).filter(h=>h.monthKey!==entry.monthKey)).slice(0,6);
+        state._poJustDone = state._poJustDone || {};
+        state._poJustDone[key] = { entry, at: Date.now() };
+        state.poStatusMap[key] = entry;
+        recompute();
         fetchCSV(PO_URL,'PO Status').then(poRaw=>{
-          state.poStatusMap = parsePOFeed(poRaw);
+          state.poStatusMap = applyPOJustDone_(parsePOFeed(poRaw));
           recompute();
         }).catch(()=>{});
       } else {
