@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.8 · COPY BARCODE ON EVERY LINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.10 · TOP SELLERS MARKED</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1093,9 +1093,9 @@
     .os-modal .po-review-body{background:#f1f5f9;padding:10px 14px 14px}
     .os-modal{width:min(1760px,98vw)!important}
     .ol-list{display:flex;flex-direction:column;gap:0;background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
-    .ls-head,.ol-line{display:grid;grid-template-columns:minmax(260px,2.2fr) 84px 84px 96px minmax(200px,2fr) 120px 96px 28px;gap:12px;align-items:center;padding:8px 16px}
+    .ls-head,.ol-line{display:grid;grid-template-columns:minmax(260px,420px) 118px minmax(220px,1fr) 84px 84px 96px 28px;gap:14px;align-items:center;padding:8px 16px}
     .ls-head{position:sticky;top:-10px;z-index:3;background:#f8fafc;border-bottom:2px solid #e2e8f0;font-size:11.5px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;text-align:center}
-    .ls-head span:first-child,.ls-head .l{text-align:left}
+    .ls-head .l{text-align:left}
     .ol-list .ol-row{display:block;border:none;border-left:5px solid transparent;border-bottom:1px solid #eef2f6;border-radius:0;padding:0;background:#fff}
     .ol-list .ol-row.oos{border-left-color:#dc2626}
     .ol-line{cursor:pointer;min-height:56px}
@@ -1106,6 +1106,8 @@
     .ol-row.focus .ls-title{white-space:normal}
     .ls-codes{display:flex;flex-wrap:wrap;gap:4px 12px;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#64748b;margin-top:2px}
     .ls-codes span:first-child{color:#1e40af;font-weight:700}
+    .rk{display:inline-block;font-size:12px;font-weight:800;border-radius:6px;padding:1px 7px;margin-right:8px;vertical-align:2px;white-space:nowrap}
+    .rk10{background:#fbbf24;color:#451a03}.rk100{background:#fde68a;color:#78350f}.rk1000{background:#e0e7ff;color:#3730a3}.rkA{background:#f1f5f9;color:#334155;border:1px solid #cbd5e1}
     .ls-ean{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #cbd5e1;border-radius:6px;padding:1px 6px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:#0f172a;cursor:pointer;min-height:0;line-height:1.5}
     .ls-ean:hover{border-color:#2563eb;background:#eff6ff}
     .ls-ean-i{font-family:system-ui,sans-serif;font-size:11px;font-weight:800;color:#2563eb}
@@ -1119,7 +1121,7 @@
     .ws-edit{color:#92400e;font-weight:700}
     .ls-qty{text-align:center}
     .ol-line .ol-qty{width:96px;font-size:22px;padding:6px 4px;border-width:2px}
-    .ls-val{font-size:15px;font-weight:800;text-align:right;color:#0f172a;margin-top:0}
+    .ls-val{font-size:13.5px;font-weight:800;text-align:center;color:#475569;margin-top:3px}
     .ls-tick{font-size:16px;font-weight:900;color:transparent;text-align:center}
     .ol-row.seen .ls-tick{color:#16a34a}
     .ol-body:empty{display:none}
@@ -1131,7 +1133,7 @@
     .og-keys kbd{background:#fff;border:1px solid #6ee7b7;border-bottom-width:2px;border-radius:4px;padding:0 5px;font-size:11.5px;font-family:inherit;font-weight:700}
     .og-prog{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;white-space:nowrap}
     .og-bar{width:140px;height:8px;background:#d1fae5;border-radius:4px;overflow:hidden}.og-bar div{height:100%;background:#059669}
-    @media (max-width:1100px){.ls-head{display:none}.ol-line{grid-template-columns:1fr 60px 60px 60px 100px;grid-template-areas:"w s o d q" "y y y y v"}.ls-what{grid-area:w}.ls-why{grid-area:y}.ls-qty{grid-area:q}.ls-val{grid-area:v}.ls-tick{display:none}.ol-card{grid-template-columns:1fr}}
+    @media (max-width:1100px){.ls-head{display:none}.ol-line{grid-template-columns:1fr 110px 56px 56px 56px;grid-template-areas:"w q s o d" "y q y y y"}.ls-qty{grid-area:q}.ls-what{grid-area:w}.ls-why{grid-area:y}.ls-s{grid-area:s}.ls-o{grid-area:o}.ls-d{grid-area:d}.ls-tick{display:none}.ol-card{grid-template-columns:1fr;padding-left:16px}}
     .ol-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) 140px;grid-template-areas:"what why order" "det det det";gap:6px 22px;align-items:start;background:#fff;border:1px solid #e2e8f0;border-left:5px solid #cbd5e1;border-radius:12px;padding:16px 18px}
     .ol-row.oos{border-left-color:#dc2626}
     .ol-what{grid-area:what}.ol-why{grid-area:why}.ol-order{grid-area:order}.ol-details{grid-area:det}
@@ -1245,7 +1247,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.8 · built 2026-10-22 · Order screen: one-click barcode copy on every line · wider slim lines · Tab/Enter to the next quantity</div>
+  <div class="sub">V7.31.10 · built 2026-10-23 · Order screen: quantity just right of the product name · Top 10 / 100 / 1000 seller badges · barcode copy · Tab/Enter to the next quantity</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -11544,6 +11546,18 @@ function osWhyShort(r,q){
   if(r.seasonalDataUsed) t='📅 '+t; else if(r.spikeFactored) t='🔥 '+t;
   return t;
 }
+// How important is this item? Same ranking the rest of the dashboard uses:
+// every SKU ranked by online sales € in the last 30 days (#1 = biggest).
+function osRankBadge(r){
+  const rank=state.skuRankMap&&state.skuRankMap.get(r.SKU);
+  const rev=r.Revenue_Online_Total_30d||0;
+  const tip=rank&&rev>0?`#${fmtInt(rank)} of all items by online sales € in the last 30 days (€${fmtInt(rev)})`:'';
+  if(rank&&rev>0&&rank<=10)   return `<span class="rk rk10" title="${tip}">🏆 Top 10 · #${rank}</span>`;
+  if(rank&&rev>0&&rank<=100)  return `<span class="rk rk100" title="${tip}">★ Top 100 · #${rank}</span>`;
+  if(rank&&rev>0&&rank<=1000) return `<span class="rk rk1000" title="${tip}">Top 1000 · #${fmtInt(rank)}</span>`;
+  if(r.abcClass==='A') return `<span class="rk rkA" title="A item — €1,000+ or 100+ units sold in the last 180 days">A item</span>`;
+  return '';
+}
 function osLineHtml(r){
   const os=window._os, f=fmtInt;
   const q=osQty(r), c=osUnitCost(r), edited=q!==(r.buy||0);
@@ -11553,15 +11567,15 @@ function osLineHtml(r){
   const cs = r._csRequired && r._csQtyFloor>0 ? `<span class="ls-cs${q<r._csQtyFloor?' short':''}">🔒 Customer Service requires ${f(r._csQtyFloor)}</span>` : '';
   return `<div class="ol-row${stock<=0?' oos':''}${seen?' seen':''}" data-sku="${esc(r.SKU)}">
     <div class="ol-line" onclick="osFocusLine('${jsArg(r.SKU)}',event)">
-      <div class="ls-what"><div class="ls-title">${esc(r.ItemTitle||'')}</div>
+      <div class="ls-what"><div class="ls-title">${osRankBadge(r)}${esc(r.ItemTitle||'')}</div>
         <div class="ls-codes"><span>${esc(r.SKU)}</span>${String(r.Barcode||'').trim()?`<button tabindex="-1" class="ls-ean" title="Click to copy barcode" onclick="event.stopPropagation();osCopy(this,'${jsArg(String(r.Barcode).trim())}')"><span class="ls-ean-n">${esc(String(r.Barcode).trim())}</span><span class="ls-ean-i">⧉ copy</span></button>`:'<span class="ls-noean">no barcode</span>'}${cs}</div></div>
-      <div class="ls-n ${stock<=0?'bad':''}">${f(stock)}</div>
-      <div class="ls-n ${oo>0?'info':'muted'}">${f(oo)}</div>
-      <div class="ls-n">${f(q30)}</div>
-      <div class="ls-why">${osWhyShort(r,q)}</div>
       <div class="ls-qty"><input class="ol-qty po-rev-qty${edited?' changed':''}" type="number" min="0" step="1" value="${q}" data-sku="${esc(r.SKU)}"
-        onfocus="osFocusLine(this.dataset.sku)" onkeydown="osQtyKey(event,this)" oninput="osEditQty(this)" onchange="osEditQty(this,true)"></div>
-      <div class="ls-val ol-cost">${q>0&&c>0?'€'+f(q*c):(c>0?'€0':'<span class="ol-nocost">no cost</span>')}</div>
+        onfocus="osFocusLine(this.dataset.sku)" onkeydown="osQtyKey(event,this)" oninput="osEditQty(this)" onchange="osEditQty(this,true)">
+        <div class="ls-val ol-cost">${q>0&&c>0?'€'+f(q*c):(c>0?'€0':'<span class="ol-nocost">no cost</span>')}</div></div>
+      <div class="ls-why">${osWhyShort(r,q)}</div>
+      <div class="ls-n ls-s ${stock<=0?'bad':''}">${f(stock)}</div>
+      <div class="ls-n ls-o ${oo>0?'info':'muted'}">${f(oo)}</div>
+      <div class="ls-n ls-d">${f(q30)}</div>
       <div class="ls-tick" title="Checked">✓</div>
     </div>
     <div class="ol-body"></div>
@@ -11586,8 +11600,6 @@ function osBodyHtml(r){
   return `<div class="ol-card">
     <div class="ol-what">
       <div class="ol-codes">
-        <span class="ol-code"><i>SKU</i><b class="ol-sku">${esc(r.SKU)}</b></span>
-        <span class="ol-code"><i>Barcode</i>${ean?`<b class="ol-ean">${esc(ean)}</b><button tabindex="-1" class="os-copy" title="Copy barcode" onclick="event.stopPropagation();osCopy(this,'${jsArg(ean)}')">⧉</button>`:'<b class="ol-ean none">none</b>'}</span>
         ${c>0?`<span class="ol-code"><i>Cost</i><b>€${c.toFixed(2)} each</b></span>`:''}
       </div>
       <div class="ol-tiles">${tiles}</div>
@@ -11682,7 +11694,7 @@ function osRender(rebuild){
     else msg='No lines in this view.';
     body=`<div class="ol-empty">${msg}</div>`;
   } else {
-    body+=`<div class="ls-head"><span>Product</span><span>In stock</span><span>On order</span><span>Sold 30 days</span><span class="l">Why this quantity</span><span>Order</span><span>Value</span><span></span></div>`;
+    body+=`<div class="ls-head"><span class="l">Product</span><span>Order</span><span class="l">Why this quantity</span><span>In stock</span><span>On order</span><span>Sold 30 days</span><span></span></div>`;
     for(const r of view) body+=osLineHtml(r);
   }
 
