@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.15 · ORDER DATES READ CORRECTLY</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.16 · CARDS STAY PUT WHEN ORDERED</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1263,7 +1263,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.15 · built 2026-10-23 · PO dates like “23 Oct” and “9 October” now read correctly (were taken as the 1st) · Mark ordered shows instantly · both of last year’s months in “Why buy”</div>
+  <div class="sub">V7.31.16 · built 2026-10-23 · Supplier cards sorted by stock need only — marking one ordered turns it green but doesn’t move it · PO dates like “23 Oct” read correctly</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -9061,7 +9061,6 @@ function renderActionNow(rows){
 
   // V7.31.2 — one status function shared with the order screen
   function cardStatus(name){ return supplierOrderStatus(name); }
-  const STATUS_RANK={overdue:0,due:1,none:2,ordered:3,checked:4};
 
   function makeCard(s){
     const f = fullOrderBySupplier.get(s.name) || {value:0,lines:0,oos:0,oosA:0,crit:0,critA:0,lost:0,noCost:0};
@@ -9131,13 +9130,16 @@ function renderActionNow(rows){
     </div>`;
   }
 
-  // status + sort: overdue first, then due today, then no record; within each, most
-  // out-of-stock lines first, then most sales being lost
+  // Sort by NEED only — most lines out of stock, then most about to run out, then most
+  // sales being lost. Order status (overdue / ordered) deliberately does NOT move a card:
+  // marking a supplier ordered turns its badge green but leaves it in place, so the team
+  // can see what's been done (Mark, 23 Oct). Name breaks ties so the order never jumps.
   const cardList=[...atRisk, ...lowOnly];
   cardList.forEach(s=>{ s._status=cardStatus(s.name); });
   cardList.sort((a,b)=>{
-    const fa=fullOrderBySupplier.get(a.name)||{oos:0,lost:0}, fb=fullOrderBySupplier.get(b.name)||{oos:0,lost:0};
-    return (STATUS_RANK[a._status.key]-STATUS_RANK[b._status.key]) || (fb.oos-fa.oos) || (fb.lost-fa.lost);
+    const z={oos:0,crit:0,lost:0};
+    const fa=fullOrderBySupplier.get(a.name)||z, fb=fullOrderBySupplier.get(b.name)||z;
+    return ((fb.oos||0)-(fa.oos||0)) || ((fb.crit||0)-(fa.crit||0)) || ((fb.lost||0)-(fa.lost||0)) || String(a.name).localeCompare(String(b.name));
   });
 
   let html=`<div class="sc-grid">`;
