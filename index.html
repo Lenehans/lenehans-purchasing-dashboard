@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.16 · CARDS STAY PUT WHEN ORDERED</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.17 · ORDER BOX BESIDE THE STOCK</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1094,7 +1094,7 @@
     .os-modal{width:min(1760px,98vw)!important}
     .ol-list{display:flex;flex-direction:column;gap:0;background:#fff;border:1px solid #e2e8f0;border-radius:0 0 12px 12px;margin-top:10px}
     .ol-list>.ol-row:last-child{border-bottom:none;border-radius:0 0 12px 12px}
-    .ls-head,.ol-line{display:grid;grid-template-columns:76px var(--pw,280px) 70px 70px 78px 96px 112px minmax(160px,1fr) 92px 24px;gap:10px;align-items:center;padding:8px 14px}
+    .ls-head,.ol-line{display:grid;grid-template-columns:76px var(--pw,280px) 70px 70px 112px 78px 96px minmax(160px,1fr) 92px 24px;gap:10px;align-items:center;padding:8px 14px}
     .ls-head{position:sticky;top:0;z-index:5;background:#f8fafc;border-bottom:2px solid #cbd5e1;border-radius:0;box-shadow:0 4px 8px -4px rgba(15,23,42,.18);font-size:11.5px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;text-align:center}
     .ls-head .l{text-align:left}.ls-head .r{text-align:right}
     .ls-head span{line-height:1.25}
@@ -1145,7 +1145,7 @@
     .og-keys kbd{background:#fff;border:1px solid #6ee7b7;border-bottom-width:2px;border-radius:4px;padding:0 5px;font-size:11.5px;font-family:inherit;font-weight:700}
     .og-prog{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;white-space:nowrap}
     .og-bar{width:140px;height:8px;background:#d1fae5;border-radius:4px;overflow:hidden}.og-bar div{height:100%;background:#059669}
-    @media (max-width:1180px){.ls-head,.ol-line{grid-template-columns:62px minmax(180px,1fr) 58px 58px 64px 80px 100px 78px;grid-template-areas:"r w s o d l q v" "r y y y y y q v"}
+    @media (max-width:1180px){.ls-head,.ol-line{grid-template-columns:62px minmax(180px,1fr) 58px 58px 100px 64px 80px 78px;grid-template-areas:"r w s o q d l v" "r y y y y y y v"}
       .ls-head span:nth-child(8),.ls-head span:nth-child(10),.ls-tick{display:none}
       .ls-rank{grid-area:r}.ls-what{grid-area:w}.ls-s{grid-area:s}.ls-o{grid-area:o}.ls-d{grid-area:d}.ls-ly{grid-area:l}.ls-qty{grid-area:q}.ls-why{grid-area:y}.ls-val{grid-area:v}
       .ls-csrow{grid-area:auto;grid-column:3/8;grid-row:3}
@@ -1263,7 +1263,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.16 · built 2026-10-23 · Supplier cards sorted by stock need only — marking one ordered turns it green but doesn’t move it · PO dates like “23 Oct” read correctly</div>
+  <div class="sub">V7.31.17 · built 2026-10-23 · Order screen: order box right after In stock / On order, with sales to its right · cards stay put when ordered · PO dates read correctly</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -11649,10 +11649,10 @@ function osLineHtml(r){
         <div class="ls-codes"><span>${esc(r.SKU)}</span>${String(r.Barcode||'').trim()?`<button tabindex="-1" class="ls-ean" title="Click to copy barcode" onclick="event.stopPropagation();osCopy(this,'${jsArg(String(r.Barcode).trim())}')"><span class="ls-ean-n">${esc(String(r.Barcode).trim())}</span><span class="ls-ean-i">⧉ copy</span></button>`:'<span class="ls-noean">no barcode</span>'}</div></div>
       <div class="ls-n ls-s ${stock<=0?'bad':''}">${f(stock)}</div>
       <div class="ls-n ls-o ${oo>0?'info':'muted'}">${f(oo)}</div>
-      <div class="ls-n ls-d">${f(q30)}</div>
-      <div class="ls-n ls-ly ${lyCls}">${ly==null?'—':f(Math.round(ly))}</div>
       <div class="ls-qty"><input class="ol-qty po-rev-qty${edited?' changed':''}" type="number" min="0" step="1" value="${q}" data-sku="${esc(r.SKU)}"
         onfocus="osFocusLine(this.dataset.sku)" onkeydown="osQtyKey(event,this)" oninput="osEditQty(this)" onchange="osEditQty(this,true)"></div>
+      <div class="ls-n ls-d">${f(q30)}</div>
+      <div class="ls-n ls-ly ${lyCls}">${ly==null?'—':f(Math.round(ly))}</div>
       <div class="ls-why">${osWhyShort(r,q)}</div>
       <div class="ls-val ol-cost">${q>0&&c>0?'€'+f(q*c):(c>0?'€0':'<span class="ol-nocost">no cost</span>')}</div>
       <div class="ls-tick" title="Checked">✓</div>
@@ -11798,7 +11798,7 @@ function osRender(rebuild){
     else msg='No lines in this view.';
     body=`<div class="ol-empty">${msg}</div>`;
   } else {
-    body+=`<div class="ls-head"><span>Rank</span><span class="l">Product</span><span>In stock</span><span>On order</span><span>Sold last 30 days</span><span>Sold next 30 days last year</span><span class="hq">Order</span><span class="l">Why buy this quantity?</span><span class="r">Line total</span><span></span></div>`;
+    body+=`<div class="ls-head"><span>Rank</span><span class="l">Product</span><span>In stock</span><span>On order</span><span class="hq">Order</span><span>Sold last 30 days</span><span>Sold next 30 days last year</span><span class="l">Why buy this quantity?</span><span class="r">Line total</span><span></span></div>`;
     for(const r of view) body+=osLineHtml(r);
   }
 
