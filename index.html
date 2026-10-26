@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.20 · MEASURED GROWTH ON LAST YEAR</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.21 · NEEDS A LOOK / READY TO GO</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1103,6 +1103,17 @@
     .ls-rank b{font-size:16px;font-weight:900}.ls-rank i{font-style:normal;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;margin-top:2px}
     .ls-rank.rk10{background:#fbbf24;color:#451a03}.ls-rank.rk100{background:#fde68a;color:#78350f}
     .ls-rank.rk1000{background:#e0e7ff;color:#3730a3}.ls-rank.rk-rest{color:#475569}.ls-rank.rk-none{color:#cbd5e1}.ls-rank.rk-none i{color:#94a3b8}
+    .ol-sec{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;font-size:15px;color:#0f172a;border-bottom:1px solid #e2e8f0}
+    .ol-sec.look{background:#fff7ed;border-left:5px solid #f97316}
+    .ol-sec.look.ok{background:#f0fdf4;border-left-color:#16a34a}
+    .ol-sec.ready{background:#f0fdf4;border-left:5px solid #16a34a;cursor:pointer;border-top:2px solid #e2e8f0}
+    .ol-sec.ready:hover{background:#dcfce7}
+    .ol-sec-btn{background:#fff;border:1.5px solid #16a34a;color:#15803d;font-weight:800;font-size:13px;border-radius:8px;padding:5px 12px;cursor:pointer;min-height:0}
+    .ls-flags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+    .lf{font-size:12px;font-weight:700;border-radius:6px;padding:1px 7px;background:#f1f5f9;color:#334155;white-space:nowrap}
+    .lf-money{background:#dbeafe;color:#1e3a8a}.lf-season{background:#fef9c3;color:#854d0e}.lf-hot{background:#ffedd5;color:#9a3412}
+    .lf-jump,.lf-bad{background:#fee2e2;color:#991b1b}.lf-pack{background:#ede9fe;color:#5b21b6}.lf-top{background:#fde68a;color:#78350f}.lf-sup{background:#fef3c7;color:#92400e}
+    .og-sel{font-size:12px;padding:1px 4px;border-radius:6px;border:1px solid #6ee7b7;background:#fff;color:#065f46;font-weight:700}
     .ls-csrow{grid-column:3/8;grid-row:2;margin-top:-2px;background:#f3e8ff;border:1.5px solid #a855f7;color:#581c87;border-radius:8px;padding:4px 10px;font-size:13.5px;font-weight:700;text-align:center}
     .ls-csrow b{font-size:15px}
     .ls-csrow.short{background:#fef2f2;border-color:#dc2626;color:#991b1b}
@@ -1264,7 +1275,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.20 · built 2026-10-26 · Measured sales growth (per supplier, Jul–Sep vs last year, 100–150%) now applied to all last-year-based quantities on Arklow · shown on the order screen · open POs netted off every buy</div>
+  <div class="sub">V7.31.21 · built 2026-10-26 · Order screen split: “Needs a look” (each line shows why) and “Ready to go” (folded, exported as suggested) · big € lines always checked · growth measured over up to 12 months · open POs netted</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -1519,7 +1530,7 @@ Fine Sea Salt drum	SSFCTDP63	350g	6	238	34	7	5011289 002499	05011289 002512"
       <label id="fallback180Label">180D fallback
         <button id="fallback180Btn" class="fallback-btn fallback-off" data-active="false">180D off</button>
       </label>
-      <label id="growthAdjLabel" title="Leave at 0 to use each supplier's MEASURED growth (last 3 months vs last year, 100%–150%). Type a % here only to override it for everyone — e.g. 40 if you know you're 40% up.">📈 Growth adj %
+      <label id="growthAdjLabel" title="Leave at 0 to use each supplier's MEASURED growth (up to the last 12 months vs the 12 before, 100%–150%). Type a % here only to override it for everyone — e.g. 40 if you know you're 40% up.">📈 Growth adj %
         <input id="growthAdj" type="number" min="-50" max="200" step="5" value="0" style="width:58px" onchange="render()">
       </label>
       <label id="showFilterLabel">Show
@@ -7514,23 +7525,26 @@ function next30LastYear(sku){
   return total;
 }
 // How much are sales up on last year? Measured, not assumed (Mark, 26 Oct: "our sales
-// are up"). Compares the last 3 FULL months with the same 3 months a year earlier, from
-// the same monthly history, per supplier — falling back to the whole store when a
-// supplier sold under 60 units in those months last year. Used by the last-year floor:
+// are up"). V7.31.21: compares as many FULL months as the history holds in both years —
+// up to the last 12 months against the 12 before (was a fixed Jul–Sep, too thin for
+// seasonal suppliers). Per supplier, falling back to the whole store when a supplier
+// sold under 60 units in the earlier period. Needs at least 3 overlapping months. Used by the last-year floor:
 // never below 100% of last year, capped at +50% so one odd month can't run away.
 const LY_GROWTH_MIN=1.0, LY_GROWTH_MAX=1.5, LY_GROWTH_MIN_UNITS=60;
 function buildLyGrowth_(rows){
   const out={overall:null, bySup:new Map(), label:''};
   if(!state.monthlyLoaded || !state.monthlyCols || !state.monthlyData) return out;
   const t=new Date(), now=[], then=[];
-  for(let i=1;i<=3;i++){
+  for(let i=1;i<=12;i++){            // most recent full month backwards, stop at the first gap
     const d=new Date(t.getFullYear(), t.getMonth()-i, 1);
     const k=`${d.getFullYear()}_${String(d.getMonth()+1).padStart(2,'0')}`, k0=`${d.getFullYear()-1}_${String(d.getMonth()+1).padStart(2,'0')}`;
-    if(!state.monthlyCols.has(k) || !state.monthlyCols.has(k0)) return out;
+    if(!state.monthlyCols.has(k) || !state.monthlyCols.has(k0)) break;
     now.push(k); then.push(k0);
   }
-  const m1=_MONTH_ABBR[+then[2].slice(5)-1], m3=_MONTH_ABBR[+then[0].slice(5)-1];
-  out.label=`${m1}–${m3}`;
+  if(now.length<3) return out;
+  const lbl=k=>_MONTH_ABBR[+k.slice(5)-1]+' '+k.slice(0,4);
+  out.months=now.length;
+  out.label = now.length===12 ? 'last 12 months' : `${lbl(now[now.length-1])}–${lbl(now[0])}`;
   const sum=(data,keys)=>keys.reduce((a,k)=>a+((data&&data[k])||0),0);
   let N=0,T=0;
   for(const data of Object.values(state.monthlyData)){ N+=sum(data,now); T+=sum(data,then); }
@@ -7547,7 +7561,7 @@ function buildLyGrowth_(rows){
   for(const e of out.bySup.values()) e.g = e.then>0 ? e.now/e.then : null;
   return out;
 }
-// → {g (clamped 1.0–1.5), raw, basis:'supplier'|'store'|'none', label:'Jul–Sep'}
+// → {g (clamped 1.0–1.5), raw, basis:'supplier'|'store'|'none', label:'last 12 months'}
 function lyGrowthFor(supplier){
   const G=state.lyGrowth||{}; const e=G.bySup&&G.bySup.get(supplier);
   let raw=null, basis='none';
@@ -8120,7 +8134,7 @@ function computeRow(row){
   const growthMult   = growthAdj !== 0 ? 1 + growthAdj / 100 : 1;
   // V7.31.20 — growth applied to LAST YEAR's figures (seasonal rate + last-year floor).
   // The buyer's Growth adj % box wins when set; otherwise the measured growth for this
-  // supplier (Jul–Sep vs last year, 100%–150%). Capel: none — the measured figure is
+  // supplier (up to the last 12 months vs the 12 before, 100%–150%). Capel: none — the measured figure is
   // mostly online sales, and the shop deliberately never inherits online growth.
   const lyGi = growthAdj !== 0 ? {g:growthMult, raw:growthMult, basis:'manual', label:''}
              : isCapel ? {g:1, raw:null, basis:'capel', label:''}
@@ -9258,7 +9272,7 @@ function render(){
     growthInput.style.opacity = isCapel ? '0.4' : '1';
     growthLabel.title = isCapel
       ? 'Growth adjustment is disabled for Capel Street — online growth rate does not apply to the shop.'
-      : 'Leave at 0 to use each supplier\'s MEASURED growth (last 3 months vs last year, 100%–150%). Type a % here only to override it for everyone.';
+      : 'Leave at 0 to use each supplier\'s MEASURED growth (up to the last 12 months vs the 12 before, 100%–150%). Type a % here only to override it for everyone.';
     // Show/hide CS override note
     let csNote = document.getElementById('growthAdjCsNote');
     if(isCapel){
@@ -11668,7 +11682,7 @@ function osCsBanner(r,q){
 // Last year's two months behind the season figures (this month + next), e.g.
 // {a:'Oct',qa:11,b:'Nov',qb:15,used:'Oct'} — `used` = the month the 90% rule took
 // (this month, or next month when this month sold nothing). Year added if not last year.
-// "sales up 12% (Wilsons, Jul–Sep vs last year)" — the growth the last-year floor used
+// "sales up 12% (this supplier, last 12 months)" — the growth the last-year floor used
 function osGrowthTxt(r, long){
   const gi=r.lyGrowthUsed; if(!gi) return '';
   const who = gi.basis==='supplier' ? 'this supplier' : gi.basis==='store' ? 'the whole store' : '';
@@ -11723,6 +11737,45 @@ function osWhyShort(r,q){
 // every SKU ranked by online sales € in the last 30 days (#1 = biggest).
 // Rank — always printed on the line (no hover). Same ranking the rest of the dashboard
 // uses: every SKU ranked by online sales € in the last 30 days (#1 = biggest).
+// ── V7.31.21 "Needs a look" vs "Ready to go" ────────────────────────────────
+// A line needs a look only for a SPECIFIC reason the dashboard can name; everything
+// else is a routine top-up that goes through as suggested. Classified on the
+// SUGGESTED quantity, so editing a line never makes it jump between sections.
+// "The money": the biggest € lines that together make up the chosen share of the
+// view's value (default 50%) always need a look.
+function osClassify(view){
+  const os=window._os; const flags=new Map();
+  const share=(os&&os.bigShare!=null?os.bigShare:50)/100;
+  const big=new Set();
+  if(share>0){
+    const vals=view.map(r=>({sku:r.SKU, v:(r.buy||0)*osUnitCost(r)})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+    const total=vals.reduce((a,x)=>a+x.v,0); let run=0;
+    for(const x of vals){ if(run>=total*share) break; big.add(x.sku); run+=x.v; }
+  }
+  for(const r of view){
+    const f=[], sug=r.buy||0, q30=r.QtySold_Online_Total_30d||0, c=osUnitCost(r);
+    const rank=state.skuRankMap&&state.skuRankMap.get(r.SKU), rev=r.Revenue_Online_Total_30d||0;
+    if(r._csRequired && r._csQtyFloor>0) f.push(['cs','🔒 Customer Service request']);
+    if((r.stock||0)<0) f.push(['bad',`Stock shows ${fmtInt(r.stock)} — check the count`]);
+    if(big.has(r.SKU)) f.push(['money',`💶 Big line · €${fmtInt(sug*c)}`]);
+    if(r.buyDriverKey==='lastyear') f.push(['season','📅 Raised by last year’s sales']);
+    if(r.spikeFactored) f.push(['hot','🔥 Boosted by this week’s sales']);
+    if(sug>=10 && sug>3*Math.max(q30,1)){
+      const ly=next30LastYear(r.SKU);
+      if(!(ly!=null && sug<=ly*1.6)) f.push(['jump', q30>0?`⚠ ${Math.round(sug/q30)}× a normal month’s sales`:'⚠ No sales in the last 30 days']);
+    }
+    if(r.buyUnrounded>0 && sug>=2*r.buyUnrounded && sug-r.buyUnrounded>=6) f.push(['pack',`📦 Pack size rounds ${fmtInt(r.buyUnrounded)} up to ${fmtInt(sug)}`]);
+    if(rank && rev>0 && rank<=100 && (r.stock||0)<=0) f.push(['top','★ Top 100 seller, out of stock']);
+    if(r._multiNoDefault) f.push(['sup','⚠ Also on another supplier']);
+    if(r.AltCost>0 && c>0 && r.AltSupplier && r.AltSupplier!==r.SupplierName && r.AltCost<c*0.98) f.push(['sup',`💰 Cheaper at ${esc(r.AltSupplier.split(' - ')[0])}`]);
+    if(!(c>0) && sug>0) f.push(['bad','No cost price']);
+    if(f.length) flags.set(r.SKU,f);
+  }
+  return flags;
+}
+function osToggleReady(){ const os=window._os; if(!os) return; os.showReady=!os.showReady; osRender(); }
+function osSetBigShare(v){ const os=window._os; if(!os) return; os.bigShare=+v; osRender(); }
+
 function osRankCell(r){
   const rank=state.skuRankMap&&state.skuRankMap.get(r.SKU);
   const rev=r.Revenue_Online_Total_30d||0;
@@ -11734,6 +11787,11 @@ function osRankCell(r){
 // day takes its month's average (e.g. 24 Oct–22 Nov = 8/31 of Oct + 22/30 of Nov).
 // null when the history doesn't cover those months.
 function osNext30LastYear(r){ return next30LastYear(r.SKU); }
+function osFlagChips(r){
+  const fl=window._os&&window._os.flags&&window._os.flags.get(r.SKU); if(!fl) return '';
+  const shown=fl.filter(([k])=>k!=='cs'); if(!shown.length) return '';
+  return `<div class="ls-flags">${shown.map(([k,t])=>`<span class="lf lf-${k}">${t}</span>`).join('')}</div>`;
+}
 function osLineHtml(r){
   const os=window._os, f=fmtInt;
   const q=osQty(r), c=osUnitCost(r), edited=q!==(r.buy||0);
@@ -11747,7 +11805,7 @@ function osLineHtml(r){
     <div class="ol-line" onclick="osFocusLine('${jsArg(r.SKU)}',event)">
       ${osRankCell(r)}
       <div class="ls-what"><div class="ls-title">${esc(r.ItemTitle||'')}</div>
-        <div class="ls-codes"><span>${esc(r.SKU)}</span>${String(r.Barcode||'').trim()?`<button tabindex="-1" class="ls-ean" title="Click to copy barcode" onclick="event.stopPropagation();osCopy(this,'${jsArg(String(r.Barcode).trim())}')"><span class="ls-ean-n">${esc(String(r.Barcode).trim())}</span><span class="ls-ean-i">⧉ copy</span></button>`:'<span class="ls-noean">no barcode</span>'}</div></div>
+        <div class="ls-codes"><span>${esc(r.SKU)}</span>${String(r.Barcode||'').trim()?`<button tabindex="-1" class="ls-ean" title="Click to copy barcode" onclick="event.stopPropagation();osCopy(this,'${jsArg(String(r.Barcode).trim())}')"><span class="ls-ean-n">${esc(String(r.Barcode).trim())}</span><span class="ls-ean-i">⧉ copy</span></button>`:'<span class="ls-noean">no barcode</span>'}</div>${osFlagChips(r)}</div>
       <div class="ls-n ls-s ${stock<=0?'bad':''}">${f(stock)}</div>
       <div class="ls-n ls-o ${oo>0?'info':'muted'}">${f(oo)}</div>
       <div class="ls-qty"><input class="ol-qty po-rev-qty${edited?' changed':''}" type="number" min="0" step="1" value="${q}" data-sku="${esc(r.SKU)}"
@@ -11845,13 +11903,19 @@ function osQtyKey(e, inp){
 }
 function osUpdateGuide(){
   const os=window._os, g=document.getElementById('osGuide'); if(!os||!g) return;
-  const view=osViewRows(); let lines=0,val=0;
-  for(const r of view){ const q=osQty(r); if(q>0){ lines++; val+=q*osUnitCost(r); } }
-  const seen=view.filter(r=>os.seen&&os.seen.has(r.SKU)).length;
-  const pct=view.length?Math.round(seen/view.length*100):0;
-  g.innerHTML = lines ? `<div class="og-main"><b>${fmtInt(lines)} line${lines!==1?'s':''} ready to order as suggested · €${fmtInt(Math.round(val))}.</b>
-      Only change the ones you disagree with, then Export. <span class="og-keys"><kbd>Tab</kbd> or <kbd>Enter</kbd> = next item</span></div>
-      <div class="og-prog"><div class="og-bar"><div style="width:${pct}%"></div></div><span>Checked ${fmtInt(seen)} of ${fmtInt(view.length)}</span></div>`
+  const view=osViewRows(); let lines=0,val=0, rVal=0, rLines=0;
+  const flags=os.flags||new Map();
+  for(const r of view){ const q=osQty(r); if(q>0){ lines++; val+=q*osUnitCost(r); if(!flags.has(r.SKU)){ rLines++; rVal+=q*osUnitCost(r); } } }
+  const look=view.filter(r=>flags.has(r.SKU));
+  const seen=look.filter(r=>os.seen&&os.seen.has(r.SKU)).length;
+  const pct=look.length?Math.round(seen/look.length*100):100;
+  const rv=document.getElementById('osReadyVal'); if(rv) rv.textContent='€'+fmtInt(Math.round(rVal));
+  const share=os.bigShare!=null?os.bigShare:50;
+  const sel=`<select class="og-sel" onchange="osSetBigShare(this.value)" title="Always check the biggest € lines that together make up this share of the order">${[[0,'off'],[50,'top 50% of the €'],[80,'top 80% of the €']].map(([v,t])=>`<option value="${v}"${v===share?' selected':''}>${t}</option>`).join('')}</select>`;
+  g.innerHTML = lines ? `<div class="og-main"><b>${fmtInt(look.length)} line${look.length!==1?'s':''} need${look.length===1?'s':''} a look</b> · ${fmtInt(rLines)} ready to go as suggested.
+      Check the ${fmtInt(look.length)}, then Export all ${fmtInt(lines)} (€${fmtInt(Math.round(val))}).
+      <span class="og-keys">Big lines: ${sel} · <kbd>Tab</kbd>/<kbd>Enter</kbd> = next</span></div>
+      <div class="og-prog"><div class="og-bar"><div style="width:${pct}%"></div></div><span>Checked ${fmtInt(seen)} of ${fmtInt(look.length)}</span></div>`
     : '';
 }
 
@@ -11872,7 +11936,7 @@ function openOrderScreen(supplier, preset, opts){
   const rank=r=>r.coverStatus==='Out of Stock'||r.stock<=0?0:r.coverStatus==='Critical'?1:r.coverStatus==='Low'?2:3;
   rows.sort((a,b)=>((a._orderNow===false)-(b._orderNow===false)) || rank(a)-rank(b) || (a.daysOfCover||0)-(b.daysOfCover||0));
   const prevCap = window._os && window._os.supplier===sup ? window._os.cap : 15;
-  window._os={supplier:sup, preset:preset||'now', cap:opts.cap||prevCap||15, search:'', keep:null, rows, expanded:new Set(), seen:new Set(), focus:null};
+  window._os={supplier:sup, preset:preset||'now', cap:opts.cap||prevCap||15, search:'', keep:null, rows, expanded:new Set(), seen:new Set(), focus:null, showReady:false, bigShare:50, flags:new Map()};
   window._poEdits[sup]=window._poEdits[sup]||{};
   window._poReviewCtx={rows, supplier:sup, orderScreen:true};   // minimise / restore plumbing
   // If the requested view is empty but there's work in the order, explain rather than show a blank list
@@ -11900,7 +11964,20 @@ function osRender(rebuild){
     body=`<div class="ol-empty">${msg}</div>`;
   } else {
     body+=`<div class="ls-head"><span>Rank</span><span class="l">Product</span><span>In stock</span><span>On order</span><span class="hq">Order</span><span>Sold last 30 days</span><span>Sold next 30 days last year</span><span class="l">Why buy this quantity?</span><span class="r">Line total</span><span></span></div>`;
-    for(const r of view) body+=osLineHtml(r);
+    os.flags=osClassify(view);
+    const look=view.filter(r=>os.flags.has(r.SKU)), ready=view.filter(r=>!os.flags.has(r.SKU));
+    const showReady=!!os.showReady || !!(os.search||'').trim();
+    if(look.length){
+      body+=`<div class="ol-sec look"><span>👀 <b>Needs a look</b> — ${fmtInt(look.length)} line${look.length!==1?'s':''}, each with its reason</span></div>`;
+      for(const r of look) body+=osLineHtml(r);
+    } else {
+      body+=`<div class="ol-sec look ok"><span>✅ <b>Nothing needs a look</b> — every line is a routine top-up</span></div>`;
+    }
+    if(ready.length){
+      body+=`<div class="ol-sec ready" onclick="osToggleReady()"><span>✅ <b>Ready to go</b> — ${fmtInt(ready.length)} line${ready.length!==1?'s':''} as suggested · <span id="osReadyVal"></span></span>
+        <button tabindex="-1" class="ol-sec-btn" onclick="event.stopPropagation();osToggleReady()">${showReady?'▲ Hide them':'▼ Show them'}</button></div>`;
+      if(showReady) for(const r of ready) body+=osLineHtml(r);
+    }
   }
 
   const tabs=Object.keys(OS_PRESETS).filter(k=>k!=='gap'||showGap).map(k=>{
