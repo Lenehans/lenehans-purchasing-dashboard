@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.17 · ORDER BOX BESIDE THE STOCK</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.20 · MEASURED GROWTH ON LAST YEAR</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1130,6 +1130,7 @@
     .ls-n.bad{color:#dc2626}.ls-n.info{color:#1d4ed8}.ls-n.muted{color:#cbd5e1}
     .ls-why{font-size:13.5px;color:#475569;line-height:1.35}
     .ws-edit{color:#92400e;font-weight:700}
+    .os-growth{color:#15803d;font-weight:700}
     .ls-why b{color:#0f172a;font-weight:800}
     .ls-qty{text-align:center}
     .ol-line .ol-qty{width:96px;font-size:22px;padding:6px 4px;border-width:2px}
@@ -1175,7 +1176,7 @@
     .ow-l{display:grid;grid-template-columns:18px 86px 1fr;gap:8px;align-items:baseline;padding:3px 0;font-size:14px;color:#334155;line-height:1.4}
     .ow-op{font-weight:800;color:#64748b;text-align:center}
     .ow-v{font-weight:800;color:#0f172a;font-size:15px;white-space:nowrap}
-    .ow-l.bad .ow-v{color:#dc2626}.ow-l.up .ow-v{color:#7c3aed}
+    .ow-l.bad .ow-v{color:#dc2626}.ow-l.info .ow-v{color:#1d4ed8}.ow-l.up .ow-v{color:#7c3aed}
     .ow-res{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid #cbd5e1;margin-top:6px;padding-top:6px;font-size:14px;font-weight:700;color:#334155}
     .ow-res b{font-size:20px;color:#0f172a}
     .ow-edit{margin-top:6px;font-size:13.5px;color:#92400e;background:#fef3c7;border-radius:6px;padding:4px 8px}
@@ -1263,7 +1264,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.17 · built 2026-10-23 · Order screen: order box right after In stock / On order, with sales to its right · cards stay put when ordered · PO dates read correctly</div>
+  <div class="sub">V7.31.20 · built 2026-10-26 · Measured sales growth (per supplier, Jul–Sep vs last year, 100–150%) now applied to all last-year-based quantities on Arklow · shown on the order screen · open POs netted off every buy</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -1431,7 +1432,7 @@ Fine Sea Salt drum	SSFCTDP63	350g	6	238	34	7	5011289 002499	05011289 002512"
       <button id="testUrlBtn" class="secondary">Test URL</button>
       <button onclick="(function(){var s=prompt('Supplier name to audit (e.g. WILSONS):');if(!s)return;openSupplierAudit(s.trim());})()">📋 Supplier Audit</button>
       <button onclick="(function(){var sku=prompt('Enter SKU to diagnose (e.g. 802518):');if(!sku)return;var ch=state.channel;var rows=(state.computedRows||[]).filter(function(x){return String(x.SKU||'').trim()===sku.trim();});if(!rows.length){alert('SKU ['+sku+'] not found in computed rows.\n\nMake sure data is loaded and check channel.');return;}var msg='🔍 SKU: '+sku+' | Channel: '+ch+'\nFound in '+rows.length+' supplier row'+(rows.length>1?'s (multi-supplier!)':'')+'\n\n';rows.forEach(function(r,i){var rank=(state.skuRankMap&&state.skuRankMap.get(sku.trim()))||'?';var inTop500=rank<=500;msg+='━━━ Supplier '+(i+1)+': '+(r.SupplierName||'?')+' ━━━\n';msg+='Stock → CS:'+( r.NetStock_CapelStreet||0)+' AK:'+(r.NetStock_Arklow||0)+'\n';msg+='Stock basis AK → Available:'+(r.AvailableQty_Arklow||0)+' · OnOrderQty:'+(r.OnOrderQty_Arklow||0)+' · PO inbound:'+(r.OnOrderQty_AK_PO||0)+' · NetStock:'+(r.NetStock_Arklow||0)+'\n';msg+='Pack '+(r.packSize||1)+' · MOQ '+(r.moq||0)+' · buy before rounding '+(r.buyUnrounded!=null?r.buyUnrounded:'?')+' · demand base '+(r.engineBaseSrc||'30D')+'\n';msg+='Default supplier: '+(r._defaultSupplier||'not known')+(r._notDefaultSupplier?' (buy moved there)':'')+'\n';msg+='CS demand 30d: '+(r.QtySold_Shop_CapelStreet_30d||0)+' units\n';msg+='CS revenue 30d: €'+(r.Revenue_Shop_CapelStreet_30d||0).toFixed(2)+'\n';msg+='AK demand 30d: '+(r.QtySold_Online_Arklow_30d||0)+' units (online only)\n';msg+='AK demand 180d: '+(r.QtySold_Online_Arklow_180d||0)+' units\n';msg+='CS demand 90d/180d: '+(r.QtySold_Shop_CapelStreet_90d||0)+' / '+(r.QtySold_Shop_CapelStreet_180d||0)+' units\n';msg+='📅 12-mo total (330d): '+(r.QtySold_Total_330d||0)+' units'+(r.isLapsedSeller?' 💤 LAPSED SELLER — sold last year, OOS, BUY 0':'')+'\n';msg+='📊 365d by channel → CS till: '+(r.QtySold_Shop_CapelStreet_365d||0)+' · CS online: '+(r.QtySold_Online_CapelStreet_365d||0)+' · AK online: '+(r.QtySold_Online_Arklow_365d||0)+'\n';var _ak180=(r.QtySold_Online_Arklow_180d||0)/180,_ak30=(r.QtySold_Online_Arklow_30d||0)/30;msg+='Seasonal (AK): '+(_ak180>0?(_ak30/_ak180).toFixed(1)+'× its 180d avg'+((_ak30/_ak180)>=1.5?' 📈 in season':''):'n/a')+'\n';msg+='⚠️ AK till/counter sales are NOT in demand (online only)\n';msg+='Adj daily: '+((r.adjustedDaily||0).toFixed(2))+' | Days cover: '+Math.round(r.daysOfCover||0)+'\n';msg+='⏱ Lead '+(r.leadTimeDays||0)+'d + safety '+(r.safetyDays||0)+'d → reorder at '+(r.reorderPointDays||0)+'d cover | top up to '+(r.targetDays||0)+'d\n';msg+='🔁 Cadence '+(r.cadence||'—')+' → review '+(r.reviewDays||0)+'d · location ×'+(r.locationFactor||1)+' · variability ×'+(r.variabilityFactor||1)+'\n';msg+='Status: '+(r.coverStatus||'?')+' | ABC: '+(r.abcClass||'?')+'\n';msg+='BUY: '+(r.buy||0)+' units\n';msg+='Rank: '+rank+(inTop500?' ✅ in QO':' ❌ not in Quick Order')+'\n';msg+='Governance: '+(!!(state.governedSuppliers&&state.governedSuppliers.has(r.SupplierName))?'✅ pass':'❌ FAIL — hidden!')+'\n\n';});showDiag(msg);})()">🔍 Diagnose SKU</button>
-      <button class="secondary" onclick="stockBasisCheck()" title="Checks what NetStock contains across the catalogue — needed before inbound POs are netted into the buy">🧪 Stock basis check</button>
+      <button class="secondary" onclick="stockBasisCheck()" title="Checks what NetStock contains. Run 26 Oct 2026: NetStock excludes open-PO stock, so V7.31.18 nets open POs into the buy">🧪 Stock basis check</button>
       <label>or CSV file
         <input id="csvFile" type="file" accept=".csv,text/csv">
       </label>
@@ -1518,7 +1519,7 @@ Fine Sea Salt drum	SSFCTDP63	350g	6	238	34	7	5011289 002499	05011289 002512"
       <label id="fallback180Label">180D fallback
         <button id="fallback180Btn" class="fallback-btn fallback-off" data-active="false">180D off</button>
       </label>
-      <label id="growthAdjLabel" title="YoY growth adjustment applied to all historical seasonal data. Set to 40 if you're 40% up on last year — prevents under-ordering on seasonal buys.">📈 Growth adj %
+      <label id="growthAdjLabel" title="Leave at 0 to use each supplier's MEASURED growth (last 3 months vs last year, 100%–150%). Type a % here only to override it for everyone — e.g. 40 if you know you're 40% up.">📈 Growth adj %
         <input id="growthAdj" type="number" min="-50" max="200" step="5" value="0" style="width:58px" onchange="render()">
       </label>
       <label id="showFilterLabel">Show
@@ -7497,6 +7498,65 @@ function hasCapelHistory(row){
         + (row.QtySold_Shop_CapelStreet_365d||0)+(row.QtySold_Online_CapelStreet_365d||0)) > 0;
 }
 
+// What this SKU sold in the NEXT 30 DAYS, one year ago, from the monthly history
+// (each day takes its month's average: e.g. 27 Oct–25 Nov = 5/31 of Oct + 25/30 of Nov).
+// null when the history doesn't cover those months.
+function next30LastYear(sku){
+  if(!state.monthlyLoaded || !state.monthlyCols || !state.monthlyCols.size) return null;
+  const data=(state.monthlyData&&state.monthlyData[sku])||{};
+  const t=new Date(); let total=0;
+  for(let i=1;i<=30;i++){
+    const d=new Date(t.getFullYear()-1, t.getMonth(), t.getDate()+i);
+    const key=`${d.getFullYear()}_${String(d.getMonth()+1).padStart(2,'0')}`;
+    if(!state.monthlyCols.has(key)) return null;
+    total += (data[key]||0) / new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+  }
+  return total;
+}
+// How much are sales up on last year? Measured, not assumed (Mark, 26 Oct: "our sales
+// are up"). Compares the last 3 FULL months with the same 3 months a year earlier, from
+// the same monthly history, per supplier — falling back to the whole store when a
+// supplier sold under 60 units in those months last year. Used by the last-year floor:
+// never below 100% of last year, capped at +50% so one odd month can't run away.
+const LY_GROWTH_MIN=1.0, LY_GROWTH_MAX=1.5, LY_GROWTH_MIN_UNITS=60;
+function buildLyGrowth_(rows){
+  const out={overall:null, bySup:new Map(), label:''};
+  if(!state.monthlyLoaded || !state.monthlyCols || !state.monthlyData) return out;
+  const t=new Date(), now=[], then=[];
+  for(let i=1;i<=3;i++){
+    const d=new Date(t.getFullYear(), t.getMonth()-i, 1);
+    const k=`${d.getFullYear()}_${String(d.getMonth()+1).padStart(2,'0')}`, k0=`${d.getFullYear()-1}_${String(d.getMonth()+1).padStart(2,'0')}`;
+    if(!state.monthlyCols.has(k) || !state.monthlyCols.has(k0)) return out;
+    now.push(k); then.push(k0);
+  }
+  const m1=_MONTH_ABBR[+then[2].slice(5)-1], m3=_MONTH_ABBR[+then[0].slice(5)-1];
+  out.label=`${m1}–${m3}`;
+  const sum=(data,keys)=>keys.reduce((a,k)=>a+((data&&data[k])||0),0);
+  let N=0,T=0;
+  for(const data of Object.values(state.monthlyData)){ N+=sum(data,now); T+=sum(data,then); }
+  if(T>0) out.overall={now:N, then:T, g:N/T};
+  const seen=new Map();
+  for(const r of (rows||[])){
+    const sup=r.SupplierName; if(!sup) continue;
+    let set=seen.get(sup); if(!set){ set=new Set(); seen.set(sup,set); }
+    if(set.has(r.SKU)) continue; set.add(r.SKU);
+    const data=state.monthlyData[r.SKU]; if(!data) continue;
+    const e=out.bySup.get(sup)||{now:0,then:0};
+    e.now+=sum(data,now); e.then+=sum(data,then); out.bySup.set(sup,e);
+  }
+  for(const e of out.bySup.values()) e.g = e.then>0 ? e.now/e.then : null;
+  return out;
+}
+// → {g (clamped 1.0–1.5), raw, basis:'supplier'|'store'|'none', label:'Jul–Sep'}
+function lyGrowthFor(supplier){
+  const G=state.lyGrowth||{}; const e=G.bySup&&G.bySup.get(supplier);
+  let raw=null, basis='none';
+  if(e && e.then>=LY_GROWTH_MIN_UNITS && e.g!=null){ raw=e.g; basis='supplier'; }
+  else if(G.overall){ raw=G.overall.g; basis='store'; }
+  const g = raw==null ? 1 : Math.min(LY_GROWTH_MAX, Math.max(LY_GROWTH_MIN, raw));
+  return {g, raw, basis, label:G.label||''};
+}
+
 function getSeasonalDemandFromData(sku, baseDailyRate){
   const data = state.monthlyData[sku];
   if(!data || !state.monthlyLoaded) return null; // no data → caller uses fallback
@@ -7727,9 +7787,9 @@ function buildBuyerReason(res){
       const sd = res.seasonalDataUsed;
       const col1label = sd.col1.replace(/_/,'/');
       const col2label = sd.col2.replace(/_/,'/');
-      const growthAdj = num(document.getElementById('growthAdj')?.value)||0;
-      const growthNote = growthAdj!==0
-        ? ` <span style="color:#7c3aed;font-weight:700">(+${growthAdj}% growth adjustment applied → ${fmt1(sd.daily*(1+growthAdj/100))}/day effective)</span>`
+      const gi = res.lyRateGrowth || {g:1};
+      const growthNote = gi.g>1.005
+        ? ` <span style="color:#7c3aed;font-weight:700">(+${Math.round((gi.g-1)*100)}% ${gi.basis==='manual'?'growth adjustment':'because sales are up on last year'} → ${fmt1(sd.daily*gi.g)}/day effective)</span>`
         : '';
       if(sd.bothPresent){
         lines.push(`Seasonal demand from ${sd.yr} actuals: ${col1label}=${fmtInt(sd.q1)} units, ${col2label}=${fmtInt(sd.q2)} units → ${fmt1(sd.daily)}/day average.${growthNote}`);
@@ -8058,6 +8118,13 @@ function computeRow(row){
   const growthAdjRaw = num(document.getElementById('growthAdj')?.value) || 0;
   const growthAdj    = (state.channel === 'capel') ? 0 : growthAdjRaw;
   const growthMult   = growthAdj !== 0 ? 1 + growthAdj / 100 : 1;
+  // V7.31.20 — growth applied to LAST YEAR's figures (seasonal rate + last-year floor).
+  // The buyer's Growth adj % box wins when set; otherwise the measured growth for this
+  // supplier (Jul–Sep vs last year, 100%–150%). Capel: none — the measured figure is
+  // mostly online sales, and the shop deliberately never inherits online growth.
+  const lyGi = growthAdj !== 0 ? {g:growthMult, raw:growthMult, basis:'manual', label:''}
+             : isCapel ? {g:1, raw:null, basis:'capel', label:''}
+             : lyGrowthFor(row.SupplierName);
 
   // Signal 2 & 3: seasonal (historical data takes priority over profile)
   let adjustedDaily    = engineBaseDaily;
@@ -8071,8 +8138,8 @@ function computeRow(row){
   // Capel seasonal build-ahead (e.g. a ladder that only ever sold in Arklow).
   const _capelNoHist = (state.channel==='capel') && !hasCapelHistory(row);
   if(monthlyResult && !_capelNoHist){
-    // Apply growth multiplier to historical seasonal rate
-    adjustedDaily = monthlyResult.daily * growthMult;
+    // Last year's rate × growth (measured, or the buyer's Growth adj % if set)
+    adjustedDaily = monthlyResult.daily * lyGi.g;
     // Seasonal floor: for known seasonal categories don't let stockout-suppressed
     // historical data dampen below the live 30D rate
     const seasonalFloorCategories = ['WEED_CONTROL','GARDEN_TOOLS','WATERING','BBQ',
@@ -8089,7 +8156,7 @@ function computeRow(row){
       adjustedDaily = Math.max(adjustedDaily, engineBaseDaily);
     seasonalDataUsed   = monthlyResult;
     seasonalMultiplier = engineBaseDaily > 0 ? Math.max(1, adjustedDaily / engineBaseDaily) : 1;
-    const growthNote   = growthMult !== 1 ? ` × ${fmt1(growthMult)} growth adj` : '';
+    const growthNote   = lyGi.g !== 1 ? ` × ${fmt1(lyGi.g)} ${lyGi.basis==='manual'?'growth adj':'sales growth'}` : '';
     seasonalNote = `${monthlyResult.yr} data: ${monthlyResult.col1.replace('_','/')}=${monthlyResult.q1}, ${monthlyResult.col2.replace('_','/')}=${monthlyResult.q2}${growthNote}`;
   } else if(cls.seasonalProfile && cls.seasonalProfile !== 'NONE'){
     // No historical data — use profile multiplier, also scaled by growth factor
@@ -8223,9 +8290,12 @@ function computeRow(row){
 
   const target = ceilNonNeg(effectiveDaily * targetDays);
 
-  // Buy: top up to the target, net of net stock (NetStock already nets inbound
-  // POs). The run length is the ceiling now — no separate spike cap.
-  const rawBuy = Math.max(0, target - stock);
+  // Buy: top up to the target, net of stock AND of stock already on order from the
+  // supplier (open POs). V7.31.18 — the Stock basis check (26 Oct, 1,519 Arklow rows)
+  // proved NetStock = Available − customer-committed qty and NEVER includes open-PO
+  // inbound (OO_AK / OO_CS), so without this an open PO was ordered a second time.
+  const inboundPO = Math.max(0, isCapel ? (row.OnOrderQty_CS_PO||0) : (row.OnOrderQty_AK_PO||0));
+  const rawBuy = Math.max(0, target - stock - inboundPO);
   let buy = rawBuy;
   // V7.31.3 — record WHICH rule set the final quantity, so the order screen can say it
   let buyDriverKey = rawBuy>0 ? 'demand' : 'none', lyFloorQty = 0;
@@ -8234,16 +8304,26 @@ function computeRow(row){
   // FIX 2: May25 floor for OOS + seasonal items whose max-buy cap is suppressed by OOS history
   // When stock=0 AND we have strong May25 data AND the cap is artificially low (OOS last year too),
   // use the May25 historical figure as the minimum buy floor
-  if(buy > 0 || rawBuy > 0){
-    const may25qty = seasonalDataUsed?.q1 || seasonalDataUsed?.q2 || 0;
-    if(stock <= 0 && may25qty >= 10 && buy < may25qty * 0.8){
-      buy = ceilNonNeg(may25qty * 0.9); // buy 90% of last May as a conservative floor
-      buyDriverKey = 'lastyear'; lyFloorQty = may25qty;
+  // V7.31.19 — LAST-YEAR FLOOR (Mark, 26 Oct). An out-of-stock line whose own history
+  // the engine trusts orders at least what it sold in the NEXT 30 DAYS LAST YEAR, scaled
+  // by how much sales are actually up (measured, never below 100%), less anything already
+  // on order. Replaces "90% of this calendar month last year", which on 26 Oct meant
+  // ordering for 5 days of October instead of the month ahead.
+  let lyGrowthUsed = null;
+  if(seasonalDataUsed && stock <= 0){
+    const ly30 = next30LastYear(row.SKU);
+    if(ly30 != null && ly30 >= 10){
+      const gi = lyGi;
+      const lyNet = Math.max(0, ceilNonNeg(ly30 * gi.g) - inboundPO);
+      if(lyNet > buy){
+        buy = lyNet;
+        buyDriverKey = 'lastyear'; lyFloorQty = ly30; lyGrowthUsed = gi;   // unrounded; shown rounded
+      }
     }
   }
 
   if(row._csRequired&&row._csQtyFloor>0 && row._csQtyFloor>buy){ buy=row._csQtyFloor; buyDriverKey='cs'; }
-  const minOneFallbackApplied=!!fallbackUsed&&stock<=0&&demandQty>0&&buy<=0;
+  const minOneFallbackApplied=!!fallbackUsed&&stock<=0&&inboundPO<=0&&demandQty>0&&buy<=0;
   if(minOneFallbackApplied){ buy=1; buyDriverKey='minone'; }
 
   const daysOfCover=effectiveDaily>0?(stock/effectiveDaily):(stock>0?9999:0);
@@ -8327,7 +8407,7 @@ function computeRow(row){
     baseDaily:base30dDaily, adjustedDaily:effectiveDaily, daysOfCover,coverStatus,coverDays:effectiveCoverDays,leadTimeDays,leadTimeCap,
     target,rawBuy,maxBuy,buy,stock,status,ramp,capelSignal,minOneFallbackApplied,
     buyUnrounded, packSize:Math.max(1,Math.round(row.SupplierPackSize||1)), moq:Math.max(0,Math.round(row.SupplierMinOrder||0)),
-    engineBaseDaily, engineBaseSrc, lyEvidence, buyDriverKey, lyFloorQty, demandBuy:rawBuy,
+    engineBaseDaily, engineBaseSrc, lyEvidence, buyDriverKey, lyFloorQty, lyGrowthUsed, lyRateGrowth:lyGi, demandBuy:rawBuy, inboundPO,
     _csRequired:row._csRequired||false,
     _csQtyFloor:row._csQtyFloor||0,
     _csReason:row._csReason||'', _csExpires:row._csExpires||'',
@@ -8541,7 +8621,9 @@ function applySeasonalRescue_(rows){
         const ly = r.seasonalDataUsed ? Math.max(r.seasonalDataUsed.q1||0, r.seasonalDataUsed.q2||0) : 0;
         const yr = (r.QtySold_Total_330d||0) || ((r.QtySold_Shop_CapelStreet_365d||0)+(r.QtySold_Online_CapelStreet_365d||0)+(r.QtySold_Online_Arklow_365d||0));
         const histQty = ly>0 ? ly : Math.ceil(yr/12*2);
-        const q = roundToSupplierPack(Math.max(1, histQty - Math.max(0,stk)), r);
+        const inb = Math.max(0, capel ? (r.OnOrderQty_CS_PO||0) : (r.OnOrderQty_AK_PO||0));
+        const need = histQty - Math.max(0,stk) - inb;
+        const q = (inb>0 && need<=0) ? 0 : roundToSupplierPack(Math.max(1, need), r);
         if(q>0){
           r.buy=q; r._seasonalBuy=true; r._seasonalBuyBasis = ly>0 ? ('last year '+ly+' units') : ('12-month avg, '+yr+'/yr');
           try{ r.reason = buildBuyerReason(r) + ` 📅 Seasonal reorder: ${st==='in'?'in season now':'season starting soon'} — ${fmtInt(q)} units based on ${esc(r._seasonalBuyBasis)}.`; }catch(e){}
@@ -8659,6 +8741,7 @@ function getFilteredRows(){
 async function recompute(){
   const rows = state.governedRows;
   if(!rows || !rows.length){ state.computedRows=[]; render(); return; }
+  try{ state.lyGrowth = buildLyGrowth_(rows); }catch(e){ state.lyGrowth = null; }
   const _t0=performance.now();
   // (timing logged at end of this function — see '[recompute] done')
 
@@ -9175,7 +9258,7 @@ function render(){
     growthInput.style.opacity = isCapel ? '0.4' : '1';
     growthLabel.title = isCapel
       ? 'Growth adjustment is disabled for Capel Street — online growth rate does not apply to the shop.'
-      : 'YoY growth adjustment applied to all historical seasonal data. Set to 40 if you\'re 40% up on last year — prevents under-ordering on seasonal buys.';
+      : 'Leave at 0 to use each supplier\'s MEASURED growth (last 3 months vs last year, 100%–150%). Type a % here only to override it for everyone.';
     // Show/hide CS override note
     let csNote = document.getElementById('growthAdjCsNote');
     if(isCapel){
@@ -9983,7 +10066,7 @@ function buildWhyText(r){
   rows.push(`<div class="wbs-row wbs-result">
     <span class="wbs-icon">🎯</span>
     <span class="wbs-lbl">Target</span>
-    <span class="wbs-val">${fmtInt(r.coverDays)}d × ${(r.adjustedDaily||0).toFixed(2)}/day = <strong>${fmtInt(r.target)} needed</strong> · ${fmtInt(Math.max(0,r.target-r.stock))} gap &nbsp;→&nbsp; <strong style="color:#1e40af;font-size:20px;letter-spacing:-.01em">Buy ${fmtInt(r.buy)}</strong></span>
+    <span class="wbs-val">${fmtInt(r.coverDays)}d × ${(r.adjustedDaily||0).toFixed(2)}/day = <strong>${fmtInt(r.target)} needed</strong> · less ${fmtInt(Math.max(0,r.stock))} in stock${(r.inboundPO||0)>0?' and '+fmtInt(r.inboundPO)+' already on order':''} = ${fmtInt(Math.max(0,r.target-r.stock-(r.inboundPO||0)))} gap &nbsp;→&nbsp; <strong style="color:#1e40af;font-size:20px;letter-spacing:-.01em">Buy ${fmtInt(r.buy)}</strong></span>
   </div>`);
 
   return `<div class="wbs">${rows.join('')}</div>`;
@@ -11464,7 +11547,7 @@ function buyWhyLine(r, q){
   else if(r._seasonalBuy) head=`<b>${f(sug)} = seasonal reorder</b> <span class="os-why-sub">(${esc(r._seasonalBuyBasis||'in season')})</span>`;
   else switch(r.buyDriverKey){
     case 'cs':       head=`<b>${f(sug)} = CS minimum${r._csReason?' ('+esc(r._csReason)+')':''}</b>`+(r.demandBuy>0?` <span class="os-why-sub">· demand alone ${f(r.demandBuy)}</span>`:` <span class="os-why-sub">· no demand of its own</span>`); break;
-    case 'lastyear': head=`<b>${f(sug)} = last ${mon}'s sales</b> <span class="os-why-sub">(${f(r.lyFloorQty)} sold then · ordering 90%)</span>`; break;
+    case 'lastyear': head=`<b>${f(sug)} = next 30 days last year</b> <span class="os-why-sub">(${f(r.lyFloorQty)} sold then${osGrowthTxt(r)})</span>`; break;
     case 'minone':   head=`<b>1 = minimum</b> <span class="os-why-sub">· nothing sold in 30 days, but it sold in the last ${r.engineBaseSrc==='Fallback180'?'180':'90'}</span>`; break;
     default: {
       // Say WHERE the daily rate came from when it isn't simply "what it sells now"
@@ -11515,8 +11598,13 @@ function osRateBasis(r){
     const m1=_MONTH_ABBR[+sd.col1.slice(5)-1], m2=_MONTH_ABBR[+sd.col2.slice(5)-1];
     const floored = (r.engineBaseDaily||0) > sd.daily*1.01 && q30>=5 && (r.engineBaseDaily||0)>=(r.adjustedDaily||0)/(1+(r.seasonalBoostPct||0))/(r.weatherActive?r.weatherMult:1)*0.99;
     if(floored) parts.push(`selling ${fmtInt(q30)} in the last 30 days — more than last ${m1} (${fmtInt(sd.q1)})`);
-    else if(sd.bothPresent) parts.push(`last year ${m1}–${m2} sold ${fmtInt(sd.q1+sd.q2)} (${m1} ${fmtInt(sd.q1)} + ${m2} ${fmtInt(sd.q2)})`);
-    else parts.push(`last year sold ${m1} ${fmtInt(sd.q1||0)} + ${m2} ${fmtInt(sd.q2||0)}${sd.yr!==new Date().getFullYear()-1?' ('+sd.yr+')':''}`);
+    else {
+      if(sd.bothPresent) parts.push(`last year ${m1}–${m2} sold ${fmtInt(sd.q1+sd.q2)} (${m1} ${fmtInt(sd.q1)} + ${m2} ${fmtInt(sd.q2)})`);
+      else parts.push(`last year sold ${m1} ${fmtInt(sd.q1||0)} + ${m2} ${fmtInt(sd.q2||0)}${sd.yr!==new Date().getFullYear()-1?' ('+sd.yr+')':''}`);
+      const gi=r.lyRateGrowth;
+      if(gi && gi.g>1.005) parts.push(gi.basis==='manual' ? `+${Math.round((gi.g-1)*100)}% growth setting`
+        : `+${Math.round((gi.g-1)*100)}% because sales are up (${gi.basis==='supplier'?'this supplier':'whole store'}, ${gi.label} vs last year${gi.raw>gi.g+0.001?', capped':''})`);
+    }
   } else {
     const src=r.engineBaseSrc||'30D';
     if(src==='7D') parts.push(`sold ${fmtInt(r.QtySold_Online_Total_7d||0)} in the last 7 days`);
@@ -11525,8 +11613,6 @@ function osRateBasis(r){
     else parts.push(`sold ${fmtInt(q30)} in the last 30 days`);
     if(r.seasonalMultiplier>1.05) parts.push(`+${Math.round((r.seasonalMultiplier-1)*100)}% for ${esc(r.categoryLabel||'the')} season`);
   }
-  const g=parseFloat(document.getElementById('growthAdj')?.value)||0;
-  if(sd && g) parts.push(`${g>0?'+':''}${g}% growth setting`);
   if(r.spikeFactored) parts.push(`boosted — ${fmtInt(r.QtySold_Online_Total_7d||0)} sold in the last 7 days`);
   if(r.weatherActive) parts.push(`+${Math.round((r.weatherMult-1)*100)}% for the weather`);
   if(r.seasonalBoostPct>0) parts.push(`+${Math.round(r.seasonalBoostPct*100)}% because it's low in season`);
@@ -11548,12 +11634,14 @@ function osWhySum(r,q){
     if(stock>0) h+=L('−', f(stock), 'in stock');
     else if(stock<0) h+=L('+', f(-stock), `stock shows ${f(stock)} — more sold than received, check the count`, 'bad');
     else h+=L('−', '0', 'in stock', 'bad');
-    if(dem!==sug && stock!==0) h+=L('=', f(dem), 'to order');
+    const inb=r.inboundPO||0;
+    if(inb>0) h+=L('−', f(inb), 'already on order from the supplier (open POs)', 'info');
+    if(dem!==sug && (stock!==0 || inb>0)) h+=L('=', f(dem), 'to order');
     if(dem!==sug){
       if(r.buyDriverKey==='cs') h+=L('↑', f(sug), `raised to the Customer Service minimum${r._csReason?' ('+esc(r._csReason)+')':''}`, 'up');
-      else if(r.buyDriverKey==='lastyear'){ const m=osLyMonths(r);
-        h+=L('↑', f(sug), m ? `raised — last year we sold ${f(m.qa)} in ${m.a} and ${f(m.qb)} in ${m.b}; it's out of stock, so we order at least 90% of ${m.used}'s ${f(m.usedQ)}`
-                            : `raised — last year we sold ${f(r.lyFloorQty)}; it's out of stock, so we order at least 90% of that`, 'up'); }
+      else if(r.buyDriverKey==='lastyear'){
+        const gi=r.lyGrowthUsed||{g:1,basis:'none'}, base=Math.ceil((r.lyFloorQty||0)*gi.g);
+        h+=L('↑', f(sug), `raised — it's out of stock, and in the next 30 days last year we sold ${f(r.lyFloorQty)}${osGrowthTxt(r,true)}, so we order at least ${f(base)}${(r.inboundPO||0)>0?` (less the ${f(r.inboundPO)} already on order)`:''}`, 'up'); }
       else if(r.buyDriverKey==='minone') h+=L('↑', '1', 'one to keep it in stock — it has sold before', 'up');
       else if(r.buyUnrounded>0 && sug!==r.buyUnrounded) h+=L('↑', f(sug), `rounded up to packs of ${f(r.packSize)}${r.moq>0?' (minimum '+f(r.moq)+')':''}`, 'up');
     }
@@ -11580,6 +11668,29 @@ function osCsBanner(r,q){
 // Last year's two months behind the season figures (this month + next), e.g.
 // {a:'Oct',qa:11,b:'Nov',qb:15,used:'Oct'} — `used` = the month the 90% rule took
 // (this month, or next month when this month sold nothing). Year added if not last year.
+// "sales up 12% (Wilsons, Jul–Sep vs last year)" — the growth the last-year floor used
+function osGrowthTxt(r, long){
+  const gi=r.lyGrowthUsed; if(!gi) return '';
+  const who = gi.basis==='supplier' ? 'this supplier' : gi.basis==='store' ? 'the whole store' : '';
+  if(gi.basis==='manual') return long ? `; your growth setting is ${gi.g>=1?'+':''}${Math.round((gi.g-1)*100)}%` : ` · growth setting ${Math.round((gi.g-1)*100)}%`;
+  if(gi.basis==='capel') return long ? '; Capel Street uses 100% of last year (online growth isn’t applied to the shop)' : '';
+  if(gi.raw==null) return long ? '; no growth figure yet, so 100% of last year' : '';
+  const pct=Math.round((gi.raw-1)*100);
+  if(gi.raw<1) return long ? `; sales for ${who} are ${-pct}% down on last year (${gi.label}), but we never go below 100% of last year` : ' · 100%';
+  const capped = gi.raw>gi.g+0.001;
+  return long ? `; sales for ${who} are up ${pct}% on last year (${gi.label})${capped?`, capped at +${Math.round((gi.g-1)*100)}%`:''}` : ` · sales up ${Math.round((gi.g-1)*100)}%`;
+}
+// Header note on the order screen: the growth figure behind every last-year number.
+function osSupplierGrowthTxt(sup){
+  const manual=num(document.getElementById('growthAdj')?.value)||0;
+  if(state.channel==='capel') return '';
+  if(manual) return ` · <b class="os-growth">Growth setting ${manual>0?'+':''}${manual}% on last year's figures</b>`;
+  const gi=lyGrowthFor(sup); if(gi.raw==null) return '';
+  const pct=Math.round((gi.raw-1)*100);
+  const who=gi.basis==='supplier'?'this supplier':'whole store';
+  const used=Math.round((gi.g-1)*100);
+  return ` · <b class="os-growth" title="Compared with the same months last year, from the monthly sales history. Applied to last year's figures, never below 100%, capped at +50%.">Sales vs last year: ${pct>=0?'+':''}${pct}% (${who}, ${esc(gi.label)})${used!==pct?` → using +${used}%`:''}</b>`;
+}
 function osLyMonths(r){
   const sd=r.seasonalDataUsed; if(!sd) return null;
   const yrTag = sd.yr!==new Date().getFullYear()-1 ? ' '+sd.yr : '';
@@ -11594,14 +11705,15 @@ function osWhyShort(r,q){
   if(r._seasonalBuy) return '📅 seasonal reorder';
   switch(r.buyDriverKey){
     case 'cs': return `🔒 Customer Service minimum`;
-    case 'lastyear': { const m=osLyMonths(r);
-      return m ? `📅 Last year <b>${m.a} ${f(m.qa)}</b> · <b>${m.b} ${f(m.qb)}</b> → 90% of ${m.used}` : `📅 last year sold ${f(r.lyFloorQty)} → 90% of that`; }
+    case 'lastyear': { const gi=r.lyGrowthUsed||{g:1}; const base=Math.ceil((r.lyFloorQty||0)*gi.g);
+      return `📅 Next 30 days last year <b>${f(r.lyFloorQty)}</b>${gi.g>1.005?` · sales up ${Math.round((gi.g-1)*100)}%`:''} → <b>${f(base)}</b>${(r.inboundPO||0)>0?` − ${f(r.inboundPO)} on order`:''}`; }
     case 'minone': return 'one to keep in stock';
   }
   const rate=r.adjustedDaily||0;
   if(!(rate>0)) return '—';
   let t=`${rate>=10?f(rate):rate.toFixed(rate>=1?1:2)}/day × ${f(r.targetDays)} days`;
   if((r.stock||0)>0) t+=` − ${f(r.stock)} stock`;
+  if((r.inboundPO||0)>0) t+=` − ${f(r.inboundPO)} on order`;
   if(r.buyUnrounded>0 && sug!==r.buyUnrounded) t+=` · packs of ${f(r.packSize)}`;
   const m=osLyMonths(r);
   if(m) t=`📅 Last year <b>${m.a} ${f(m.qa)}</b> · <b>${m.b} ${f(m.qb)}</b> → ${t}`; else if(r.spikeFactored) t='🔥 '+t;
@@ -11621,18 +11733,7 @@ function osRankCell(r){
 // What sold in the NEXT 30 days, one year ago. History is held by month, so each
 // day takes its month's average (e.g. 24 Oct–22 Nov = 8/31 of Oct + 22/30 of Nov).
 // null when the history doesn't cover those months.
-function osNext30LastYear(r){
-  if(!state.monthlyLoaded || !state.monthlyCols || !state.monthlyCols.size) return null;
-  const data=(state.monthlyData&&state.monthlyData[r.SKU])||{};
-  const t=new Date(); let total=0;
-  for(let i=1;i<=30;i++){
-    const d=new Date(t.getFullYear()-1, t.getMonth(), t.getDate()+i);
-    const key=`${d.getFullYear()}_${String(d.getMonth()+1).padStart(2,'0')}`;
-    if(!state.monthlyCols.has(key)) return null;
-    total += (data[key]||0) / new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
-  }
-  return total;
-}
+function osNext30LastYear(r){ return next30LastYear(r.SKU); }
 function osLineHtml(r){
   const os=window._os, f=fmtInt;
   const q=osQty(r), c=osUnitCost(r), edited=q!==(r.buy||0);
@@ -11862,7 +11963,7 @@ function osRender(rebuild){
   const code=String(os.supplier).indexOf(' - ')>0?String(os.supplier).split(' - ')[0]:'';
   const disp=String(os.supplier).indexOf(' - ')>0?String(os.supplier).slice(String(os.supplier).indexOf(' - ')+3):String(os.supplier);
   $('osSup').innerHTML=`${esc(disp)} ${code?`<span class="sc-code">${esc(code)}</span>`:''} <span class="os-ch">${state.channel==='capel'?'Capel Street':'Arklow'}</span>`;
-  $('osHist').innerHTML=st.hist;
+  $('osHist').innerHTML=st.hist+osSupplierGrowthTxt(os.supplier);
   $('osStatus').className='sc-status '+st.tone; $('osStatus').textContent=st.label;
   $('osTabs').innerHTML=tabs;
   $('osBody').innerHTML=body;
