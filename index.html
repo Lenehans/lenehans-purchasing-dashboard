@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.22 · OPEN LINE FIXED</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.23 · EAN IN THE EXPORT</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1276,7 +1276,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.22 · built 2026-10-27 · Order screen: the line you’re on never hides under the column headings · “Why buy” box sits beside it · “Needs a look” / “Ready to go” · open POs netted</div>
+  <div class="sub">V7.31.23 · built 2026-10-27 · Order exports now include the EAN (last column, so the Linnworks import is unchanged) · open line sits under the column headings · “Needs a look” / “Ready to go”</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -9582,14 +9582,14 @@ function exportCSV(){
   let rows=getFilteredRows();if(!rows.length) return;
   let cols,filename;
   if(state.activeSupplier){
-    cols=['SupplierName','SKU','ItemTitle','categoryLabel','seasonalNote','seasonalMultiplier','demandMode','demandUsed','demandQty','demandDays','baseDaily','adjustedDaily','daysOfCover','coverStatus','coverDays','stock','target','maxBuy','buy','status','_csRequired','_csQtyFloor','_csReason','reason'];
+    cols=['SupplierName','SKU','Barcode','ItemTitle','categoryLabel','seasonalNote','seasonalMultiplier','demandMode','demandUsed','demandQty','demandDays','baseDaily','adjustedDaily','daysOfCover','coverStatus','coverDays','stock','target','maxBuy','buy','status','_csRequired','_csQtyFloor','_csReason','reason'];
     filename=`supplier_detail_${state.activeSupplier.replace(/[^a-z0-9]+/gi,'_').toLowerCase()}_${document.getElementById('demandMode').value}.csv`;
   }else{
     rows=supplierSummaryRows(rows);
     cols=['SupplierName','skuCount','buySkuCount','criticalCount','seasonalCount','totalNetStock','totalBuy','topSkuBuy','topSku','topItem','csLineCount'];
     filename=`supplier_summary_${document.getElementById('demandMode').value}.csv`;
   }
-  const lines=[cols.join(',')];
+  const lines=[cols.map(c=>c==='Barcode'?'EAN':c).join(',')];
   for(const r of rows){lines.push(cols.map(c=>{let v=r[c];if(typeof v==='number') v=String(v);v=String(v??'');if(/[",\n]/.test(v)) v='"'+v.replace(/"/g,'""')+'"';return v;}).join(','));}
   const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();URL.revokeObjectURL(a.href);
 }
@@ -10293,10 +10293,10 @@ function executePOExport(){
   if(!exportRows.length){alert('No lines with qty > 0 to export.');return;}
 
   const cols=['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','_csRequired','_csQtyFloor','coverStatus','stock','target','reason'];
-  const headers=[...cols,'Tax Rate'];
+  const headers=[...cols,'Tax Rate','EAN'];   // EAN last — existing columns keep their positions
   const lines=[headers.join(',')];
   for(const r of exportRows){
-    lines.push([...cols.map(c=>{let v=r[c];if(typeof v==='boolean') v=v?'YES':'NO';if(typeof v==='number') v=String(v);v=String(v??'');if(/[",\n]/.test(v)) v='"'+v.replace(/"/g,'""')+'"';return v;}),'0'].join(','));
+    lines.push([...cols.map(c=>{let v=r[c];if(typeof v==='boolean') v=v?'YES':'NO';if(typeof v==='number') v=String(v);v=String(v??'');if(/[",\n]/.test(v)) v='"'+v.replace(/"/g,'""')+'"';return v;}),'0',String(r.Barcode||'').trim()].join(','));
   }
   const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'});
   const a=document.createElement('a');
@@ -12095,10 +12095,12 @@ function osExport(){
   const rows=osViewRows().map(r=>({...r, buy:osQty(r)})).filter(r=>r.buy>0);
   if(!rows.length){ alert('No lines with a quantity above 0 in this view.'); return; }
   const mode=document.getElementById('demandMode')?.value||'Seasonal';
+  // V7.31.23 — EAN (barcode) added as the LAST column (Mark, 27 Oct). Every existing
+  // column keeps its position, so a saved Linnworks PO-import mapping is unaffected.
   const cols=['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','_csRequired','_csQtyFloor','coverStatus','stock','target','reason'];
-  const lines=[[...cols,'Tax Rate'].join(',')];
+  const lines=[[...cols,'Tax Rate','EAN'].join(',')];
   for(const r of rows){
-    lines.push([...cols.map(c=>{let v=r[c];if(typeof v==='boolean') v=v?'YES':'NO';v=String(v??'').replace(/<[^>]+>/g,'');if(/[",\n]/.test(v)) v='"'+v.replace(/"/g,'""')+'"';return v;}),'0'].join(','));
+    lines.push([...cols.map(c=>{let v=r[c];if(typeof v==='boolean') v=v?'YES':'NO';v=String(v??'').replace(/<[^>]+>/g,'');if(/[",\n]/.test(v)) v='"'+v.replace(/"/g,'""')+'"';return v;}),'0',String(r.Barcode||'').trim()].join(','));
   }
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'}));
@@ -13620,11 +13622,11 @@ function exportNoosPO(allInOne){
 }
 
 function downloadNoosCsv(rows,label){
-  const headers=['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','coverStatus','stock','target','reason','Tax Rate'];
+  const headers=['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','coverStatus','stock','target','reason','Tax Rate','EAN'];
   const lines=[headers.join(',')];
   for(const r of rows){
     const vals=[r.SupplierName,r.SKU,r.ItemTitle,r.buy,r.SupplierCostPrice||0,
-      r.coverStatus,r.stock,r.target,r.reason||'','0']
+      r.coverStatus,r.stock,r.target,r.reason||'','0',String(r.Barcode||'').trim()]
     .map(function(v){v=String(v==null?'':v);if(/[",\n]/.test(v)) v='"'+v.replace(/"/g,'""')+'"';return v;});
     lines.push(vals.join(','));
   }
@@ -13918,11 +13920,11 @@ function closeQuickOrder() {
 function quickOrderExport() {
   var lines = _qoGetVisible().filter(function(r){ return (_qo.qtys[r.SKU]||0)>0; });
   if (!lines.length) { alert('No lines with qty > 0'); return; }
-  var headers = ['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','coverStatus','stock','target','reason','Tax Rate'];
+  var headers = ['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','coverStatus','stock','target','reason','Tax Rate','EAN'];
   var csv = [headers.join(',')];
   for (var i=0; i<lines.length; i++) {
     var r = lines[i];
-    var vals = [r.SupplierName,r.SKU,r.ItemTitle,_qo.qtys[r.SKU]||r.buy,r.SupplierCostPrice||0,r.coverStatus,r.stock||0,r.target||0,r.reason||'','0']
+    var vals = [r.SupplierName,r.SKU,r.ItemTitle,_qo.qtys[r.SKU]||r.buy,r.SupplierCostPrice||0,r.coverStatus,r.stock||0,r.target||0,r.reason||'','0',String(r.Barcode||'').trim()]
       .map(function(v){ v=String(v==null?'':v); if(/[",\r\n]/.test(v)) v='"'+v.replace(/"/g,'""')+'"'; return v; });
     csv.push(vals.join(','));
   }
