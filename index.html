@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.21 · NEEDS A LOOK / READY TO GO</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.22 · OPEN LINE FIXED</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1090,7 +1090,7 @@
     .os-table tbody td{vertical-align:middle}
     .os-table tr.os-oos td{background:#fff7f7}
     /* ── V7.31.4 order lines: labelled numbers + the sum behind the quantity ── */
-    .os-modal .po-review-body{background:#f1f5f9;padding:0 14px 14px}
+    .os-modal .po-review-body{background:#f1f5f9;padding:0 14px 14px;overflow-anchor:none}
     .os-modal{width:min(1760px,98vw)!important}
     .ol-list{display:flex;flex-direction:column;gap:0;background:#fff;border:1px solid #e2e8f0;border-radius:0 0 12px 12px;margin-top:10px}
     .ol-list>.ol-row:last-child{border-bottom:none;border-radius:0 0 12px 12px}
@@ -1118,7 +1118,7 @@
     .ls-csrow b{font-size:15px}
     .ls-csrow.short{background:#fef2f2;border-color:#dc2626;color:#991b1b}
     .ls-n.ls-ly.up{color:#15803d}.ls-n.ls-ly.down{color:#b45309}
-    .ol-list .ol-row{display:block;border:none;border-left:5px solid transparent;border-bottom:1px solid #eef2f6;border-radius:0;padding:0;background:#fff}
+    .ol-list .ol-row{scroll-margin-top:var(--hh,84px);scroll-margin-bottom:12px;display:block;border:none;border-left:5px solid transparent;border-bottom:1px solid #eef2f6;border-radius:0;padding:0;background:#fff}
     .ol-list .ol-row.oos{border-left-color:#dc2626}
     .ol-line{cursor:pointer;min-height:56px}
     .ol-row:hover .ol-line{background:#f8fafc}
@@ -1144,12 +1144,13 @@
     .os-growth{color:#15803d;font-weight:700}
     .ls-why b{color:#0f172a;font-weight:800}
     .ls-qty{text-align:center}
-    .ol-line .ol-qty{width:96px;font-size:22px;padding:6px 4px;border-width:2px}
+    .ol-line .ol-qty{scroll-margin-top:calc(var(--hh,84px) + 18px);scroll-margin-bottom:40px;width:96px;font-size:22px;padding:6px 4px;border-width:2px}
     .ls-val{font-size:15px;font-weight:800;text-align:right;color:#0f172a}
     .ls-tick{font-size:16px;font-weight:900;color:transparent;text-align:center}
     .ol-row.seen .ls-tick{color:#16a34a}
     .ol-body:empty{display:none}
-    .ol-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:18px;padding:4px 16px 16px 100px}
+    .ol-card{display:grid;grid-template-columns:minmax(220px,0.7fr) minmax(0,1.5fr);gap:18px;padding:4px 16px 16px 100px;max-width:1500px}
+    .ol-card>.ol-what,.ol-card>.ol-why,.ol-card>.ol-details{grid-area:auto}   /* old V7.31.4 area names made a phantom 4th column */
     .ol-card .ol-details{grid-column:1/-1}
     .os-guide{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 20px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:10px 14px;margin-top:8px;font-size:14.5px;color:#065f46}
     .os-guide:empty{display:none}
@@ -1275,7 +1276,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.21 · built 2026-10-26 · Order screen split: “Needs a look” (each line shows why) and “Ready to go” (folded, exported as suggested) · big € lines always checked · growth measured over up to 12 months · open POs netted</div>
+  <div class="sub">V7.31.22 · built 2026-10-27 · Order screen: the line you’re on never hides under the column headings · “Why buy” box sits beside it · “Needs a look” / “Ready to go” · open POs netted</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -11760,7 +11761,7 @@ function osClassify(view){
     if(big.has(r.SKU)) f.push(['money',`💶 Big line · €${fmtInt(sug*c)}`]);
     if(r.buyDriverKey==='lastyear') f.push(['season','📅 Raised by last year’s sales']);
     if(r.spikeFactored) f.push(['hot','🔥 Boosted by this week’s sales']);
-    if(sug>=10 && sug>3*Math.max(q30,1)){
+    if(sug>=10 && sug>3*Math.max(q30,1) && !['cs','lastyear','minone'].includes(r.buyDriverKey) && !r._seasonalBuy){
       const ly=next30LastYear(r.SKU);
       if(!(ly!=null && sug<=ly*1.6)) f.push(['jump', q30>0?`⚠ ${Math.round(sug/q30)}× a normal month’s sales`:'⚠ No sales in the last 30 days']);
     }
@@ -11886,7 +11887,11 @@ function osFocusLine(sku, ev){
     row.classList.add('focus'); if(r) row.querySelector('.ol-body').innerHTML=osBodyHtml(r);
     os.focus=String(sku);
     os.seen=os.seen||new Set(); os.seen.add(String(sku)); row.classList.add('seen'); osUpdateGuide();
-    try{ row.scrollIntoView({block:'nearest'}); }catch(e){}
+    // V7.31.22 — "typewriter": the line you're on always sits just under the sticky
+    // column headings (scroll-margin-top = header height), so your eyes stay in one place.
+    // Re-applied next frame because the browser scrolls the focused box itself after this.
+    const put=()=>{ try{ row.scrollIntoView({block:'start'}); }catch(e){} };
+    put(); try{ requestAnimationFrame(put); }catch(e){}
   }
   const inp=row.querySelector('input.ol-qty');
   if(inp && document.activeElement!==inp){ inp.focus(); }
@@ -12045,6 +12050,7 @@ function osRender(rebuild){
   $('osTabs').innerHTML=tabs;
   $('osBody').innerHTML=body;
   osFitProductCol(view);
+  try{ const hd=document.querySelector('#osBody .ls-head'); if(hd&&hd.offsetHeight) document.getElementById('osBody').style.setProperty('--hh',(hd.offsetHeight+8)+'px'); }catch(e){}
   osUpdateTotals(); osUpdateGuide();
   if(os.focus){ const f=os.focus; os.focus=null; const row=[...document.querySelectorAll('#osBody .ol-row')].find(x=>x.dataset.sku===f);
     if(row){ const r=os.rows.find(x=>x.SKU===f); row.classList.add('focus'); if(r) row.querySelector('.ol-body').innerHTML=osBodyHtml(r); os.focus=f; } }
