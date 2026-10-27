@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.26 · DO-NOT-ORDER MATCHES TP_ CODES</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.28 · ONLINE + CAPEL TILL HISTORY LIVE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1290,7 +1290,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.26 · built 2026-10-27 · Do-not-order list matches a supplier’s code with or without the TP_ prefix · sales history channel check · sales by month on every open line · EAN in exports</div>
+  <div class="sub">V7.31.28 · built 2026-10-27 · Monthly history: online only on Arklow (Apr 2025 →), Capel till only on Capel Street (Jul 2025 →) · do-not-order matches TP_ codes · EAN in exports</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -4326,6 +4326,10 @@ const SYNC_STAMP_URL   = 'https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOi
 const SCHEDULE_URL  = 'https://docs.google.com/spreadsheets/d/1RatBuXuxKn2mpznYga2pupmbTnv2m_H46BLZIxN3pKo/export?format=csv&gid=15121436';
 // Monthly sales history — SKU × month columns (2024_01 … 2025_02)
 const MONTHLY_URL   = 'https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=1156598081';
+// V7.31.27 — Capel Street till monthly history (MONTHLYSALES_SHOP tab, written by the Apps
+// Script's fetchMonthlySales V2). MONTHLY_URL above is ONLINE ONLY from V2 onwards.
+// MONTHLYSALES_SHOP tab, gid 398729972 (created by fetchMonthlySales V2 on 27 Oct 2026).
+const MONTHLY_SHOP_URL = 'https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=398729972';
 
 // ─── SUPPLIER FALLBACK OVERRIDES (localStorage) ───────────────────────────────
 const FB_STORAGE_KEY = 'lenehans_supplier_fallbacks';
@@ -7563,8 +7567,16 @@ const LY_GROWTH_MIN=1.0, LY_GROWTH_MAX=1.5, LY_GROWTH_MIN_UNITS=60;
 //   online only  = Arklow online + Capel online (365d)
 //   all channels = online + Capel till (365d)
 // and count which it matches. Result shown on every "Sold per month" chart.
+// Arklow (online) uses the online monthly history. Capel Street uses the Capel till
+// history when that feed is loaded; until then it keeps the online feed (as before).
+function selectMonthlyForChannel_(){
+  const src = (state.channel==='capel' && state.monthlyShop) ? state.monthlyShop : state.monthlyOnline;
+  if(src){ state.monthlyData=src.data; state.monthlyCols=src.cols; }
+  state.monthlySource = (src && src===state.monthlyShop) ? 'shop' : 'online';
+}
 function checkMonthlyBasis_(rows){
   const out={verdict:'unknown', tested:0, online:0, all:0, sumM:0, sumOn:0, sumAll:0};
+  if(state.monthlySource==='shop'){ out.verdict='shop'; return out; }   // Capel till tab — a different feed
   if(!state.monthlyLoaded || !state.monthlyCols || !state.monthlyCols.size || !state.monthlyData) return out;
   const t=new Date(), key=d=>`${d.getFullYear()}_${String(d.getMonth()+1).padStart(2,'0')}`;
   // rolling ~365 days from monthly totals: part of the month a year ago, the 11 months
@@ -7595,6 +7607,7 @@ window.monthlyBasisCheck=function(){
   const verdict={online:'ONLINE SALES ONLY ✓ — the monthly history matches online sales, not the till.',
                  all:'⚠ ALL CHANNELS — the monthly history includes Capel Street till sales.',
                  mixed:'⚠ UNCLEAR — about half the items match each; the history may be built inconsistently.',
+                 shop:'Capel Street channel — using the separate Capel till history (MONTHLYSALES_SHOP). Switch to Arklow to check the online history.',
                  unknown:'Not enough data to tell (needs a full year of monthly columns and 20+ items that also sell in the shop).'}[b.verdict];
   const msg='Sales history check — what does the monthly history count?\n\n'
     +'Items tested (also sell over the Capel till): '+b.tested+'\n'
@@ -8830,6 +8843,7 @@ function getFilteredRows(){
 async function recompute(){
   const rows = state.governedRows;
   if(!rows || !rows.length){ state.computedRows=[]; render(); return; }
+  selectMonthlyForChannel_();
   try{ state.lyGrowth = buildLyGrowth_(rows); }catch(e){ state.lyGrowth = null; }
   try{ state.monthlyBasis = checkMonthlyBasis_(rows); }catch(e){ state.monthlyBasis = null; }
   const _t0=performance.now();
@@ -10703,6 +10717,7 @@ async function loadGovernanceFeeds(){
     fetchCSV(normalizeGoogleCsvUrl(monthlyUrl), 'Monthly Sales')
       .then(mRaw=>{
         state.monthlyData = parseMonthlyFeed(mRaw);
+        state.monthlyOnline = { data: state.monthlyData, cols: state.monthlyCols };
         state.monthlyLoaded = true;
         console.log('[Monthly history]', Object.keys(state.monthlyData).length, 'SKUs');
         scheduleRecompute('monthly history');
@@ -10710,6 +10725,18 @@ async function loadGovernanceFeeds(){
       .catch(e=>{ state.monthlyData = {}; console.warn('[Monthly history] unavailable:', e.message); });
   } else {
     state.monthlyData = state.monthlyData || {};
+  }
+  // Capel Street till history — only once the tab's gid is filled in
+  if(!MONTHLY_SHOP_URL.includes('MONTHLYSHOP_GID_HERE')){
+    fetchCSV(MONTHLY_SHOP_URL, 'Monthly Sales (Capel till)')
+      .then(sRaw=>{
+        const keepData=state.monthlyData, keepCols=state.monthlyCols;
+        const d=parseMonthlyFeed(sRaw); state.monthlyShop={ data:d, cols:state.monthlyCols };
+        state.monthlyData=keepData; state.monthlyCols=keepCols;          // parse sets these; restore online
+        console.log('[Monthly history · Capel till]', Object.keys(d).length, 'SKUs');
+        scheduleRecompute('monthly history (Capel till)');
+      })
+      .catch(e=>{ state.monthlyShop=null; console.warn('[Monthly history · Capel till] unavailable:', e.message); });
   }
 
   state.governedSuppliers=buildGovernedSet(getChannelCSLines(), getChannelPOMap());
@@ -11884,7 +11911,8 @@ function osMonthStrip(r){
   const vb=(state.monthlyBasis||{}).verdict;
   const basis = vb==='online' ? `<span class="ms-basis ok" title="Checked against the main feed's channel split: the monthly history matches online sales">online only ✓</span>`
               : vb==='all' ? `<span class="ms-basis warn" title="Checked against the main feed: the monthly history includes Capel Street till sales">⚠ includes Capel shop sales</span>`
-              : vb==='mixed' ? `<span class="ms-basis warn" title="The monthly history matches neither online-only nor all-channel sales consistently">⚠ channel unclear</span>` : '';
+              : vb==='mixed' ? `<span class="ms-basis warn" title="The monthly history matches neither online-only nor all-channel sales consistently">⚠ channel unclear</span>`
+              : vb==='shop' ? `<span class="ms-basis ok" title="Capel Street channel: monthly history from the Capel till only">Capel till sales ✓</span>` : '';
   return `<div class="ms"><div class="ms-h">Sold per month · <b>${f(tot12)}</b> in the last 12 months ${basis}</div>
     <div class="ms-row">${cols}</div>
     <div class="ms-k"><span class="ms-dot"></span>Coming months last year: <b>${comingTxt}</b> · last bar = this month so far</div></div>`;
