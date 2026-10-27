@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.25 · SALES HISTORY CHECK</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.26 · DO-NOT-ORDER MATCHES TP_ CODES</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1290,7 +1290,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.25 · built 2026-10-27 · Sales history checked against the channel split on every load — chart says “online only ✓” or warns · sales by month on every open line · EAN in exports</div>
+  <div class="sub">V7.31.26 · built 2026-10-27 · Do-not-order list matches a supplier’s code with or without the TP_ prefix · sales history channel check · sales by month on every open line · EAN in exports</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -6400,11 +6400,20 @@ function parseDefaultSupplierFeed(rows){
 // Is this SKU on the do-not-order list for this supplier? ('*' scope = everywhere)
 function isExcludedSku(sku, supplierName){
   if(!state.excludedSkus || !state.excludedSkus.size) return false;
-  const scopes = state.excludedSkus.get(String(sku||'').trim());
-  if(!scopes) return false;
-  if(scopes.includes('*')) return true;
+  const k = String(sku||'').trim();
   const sup = String(supplierName||'').toLowerCase();
-  return scopes.some(s => sup.includes(String(s).toLowerCase()));
+  const supMatch = scopes => scopes.some(s => s!=='*' && sup.includes(String(s).toLowerCase()));
+  const scopes = state.excludedSkus.get(k);
+  if(scopes){
+    if(scopes.includes('*')) return true;
+    if(supMatch(scopes)) return true;
+  }
+  // V7.31.26 — the same supplier code with/without Linnworks' "TP_" prefix (Ashtown
+  // lines exist both ways, e.g. 1761-16 and TP_1761-16). Only for SUPPLIER-SCOPED
+  // rows that name this line's own supplier, so a global row never jumps across.
+  const alt = /^TP_/i.test(k) ? k.slice(3) : 'TP_'+k;
+  const altScopes = state.excludedSkus.get(alt);
+  return !!(altScopes && supMatch(altScopes));
 }
 
 // Diagnostic: type dnoCheck('SKU123') in the browser console to see exactly why a SKU
