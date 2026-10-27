@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.24 · SALES BY MONTH ON EVERY LINE</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.25 · SALES HISTORY CHECK</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1117,6 +1117,7 @@
     .ms{margin-top:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px}
     .ms-h{font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
     .ms-h b{color:#0f172a;font-size:13px}
+    .ms-basis{font-size:11px;font-weight:800;text-transform:none;letter-spacing:0;border-radius:6px;padding:1px 7px;margin-left:6px}.ms-basis.ok{background:#dcfce7;color:#166534}.ms-basis.warn{background:#fef3c7;color:#92400e}
     .ms-row{display:flex;align-items:flex-end;gap:3px}
     .ms-c{flex:1;min-width:22px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
     .ms-n{font-size:12px;font-weight:800;color:#0f172a;margin-bottom:2px}
@@ -1289,7 +1290,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.24 · built 2026-10-27 · Open line shows sales by month for the last year, coming months highlighted · rank box says “none in 30 days” · EAN in every order export</div>
+  <div class="sub">V7.31.25 · built 2026-10-27 · Sales history checked against the channel split on every load — chart says “online only ✓” or warns · sales by month on every open line · EAN in exports</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -1458,6 +1459,7 @@ Fine Sea Salt drum	SSFCTDP63	350g	6	238	34	7	5011289 002499	05011289 002512"
       <button onclick="(function(){var s=prompt('Supplier name to audit (e.g. WILSONS):');if(!s)return;openSupplierAudit(s.trim());})()">📋 Supplier Audit</button>
       <button onclick="(function(){var sku=prompt('Enter SKU to diagnose (e.g. 802518):');if(!sku)return;var ch=state.channel;var rows=(state.computedRows||[]).filter(function(x){return String(x.SKU||'').trim()===sku.trim();});if(!rows.length){alert('SKU ['+sku+'] not found in computed rows.\n\nMake sure data is loaded and check channel.');return;}var msg='🔍 SKU: '+sku+' | Channel: '+ch+'\nFound in '+rows.length+' supplier row'+(rows.length>1?'s (multi-supplier!)':'')+'\n\n';rows.forEach(function(r,i){var rank=(state.skuRankMap&&state.skuRankMap.get(sku.trim()))||'?';var inTop500=rank<=500;msg+='━━━ Supplier '+(i+1)+': '+(r.SupplierName||'?')+' ━━━\n';msg+='Stock → CS:'+( r.NetStock_CapelStreet||0)+' AK:'+(r.NetStock_Arklow||0)+'\n';msg+='Stock basis AK → Available:'+(r.AvailableQty_Arklow||0)+' · OnOrderQty:'+(r.OnOrderQty_Arklow||0)+' · PO inbound:'+(r.OnOrderQty_AK_PO||0)+' · NetStock:'+(r.NetStock_Arklow||0)+'\n';msg+='Pack '+(r.packSize||1)+' · MOQ '+(r.moq||0)+' · buy before rounding '+(r.buyUnrounded!=null?r.buyUnrounded:'?')+' · demand base '+(r.engineBaseSrc||'30D')+'\n';msg+='Default supplier: '+(r._defaultSupplier||'not known')+(r._notDefaultSupplier?' (buy moved there)':'')+'\n';msg+='CS demand 30d: '+(r.QtySold_Shop_CapelStreet_30d||0)+' units\n';msg+='CS revenue 30d: €'+(r.Revenue_Shop_CapelStreet_30d||0).toFixed(2)+'\n';msg+='AK demand 30d: '+(r.QtySold_Online_Arklow_30d||0)+' units (online only)\n';msg+='AK demand 180d: '+(r.QtySold_Online_Arklow_180d||0)+' units\n';msg+='CS demand 90d/180d: '+(r.QtySold_Shop_CapelStreet_90d||0)+' / '+(r.QtySold_Shop_CapelStreet_180d||0)+' units\n';msg+='📅 12-mo total (330d): '+(r.QtySold_Total_330d||0)+' units'+(r.isLapsedSeller?' 💤 LAPSED SELLER — sold last year, OOS, BUY 0':'')+'\n';msg+='📊 365d by channel → CS till: '+(r.QtySold_Shop_CapelStreet_365d||0)+' · CS online: '+(r.QtySold_Online_CapelStreet_365d||0)+' · AK online: '+(r.QtySold_Online_Arklow_365d||0)+'\n';var _ak180=(r.QtySold_Online_Arklow_180d||0)/180,_ak30=(r.QtySold_Online_Arklow_30d||0)/30;msg+='Seasonal (AK): '+(_ak180>0?(_ak30/_ak180).toFixed(1)+'× its 180d avg'+((_ak30/_ak180)>=1.5?' 📈 in season':''):'n/a')+'\n';msg+='⚠️ AK till/counter sales are NOT in demand (online only)\n';msg+='Adj daily: '+((r.adjustedDaily||0).toFixed(2))+' | Days cover: '+Math.round(r.daysOfCover||0)+'\n';msg+='⏱ Lead '+(r.leadTimeDays||0)+'d + safety '+(r.safetyDays||0)+'d → reorder at '+(r.reorderPointDays||0)+'d cover | top up to '+(r.targetDays||0)+'d\n';msg+='🔁 Cadence '+(r.cadence||'—')+' → review '+(r.reviewDays||0)+'d · location ×'+(r.locationFactor||1)+' · variability ×'+(r.variabilityFactor||1)+'\n';msg+='Status: '+(r.coverStatus||'?')+' | ABC: '+(r.abcClass||'?')+'\n';msg+='BUY: '+(r.buy||0)+' units\n';msg+='Rank: '+rank+(inTop500?' ✅ in QO':' ❌ not in Quick Order')+'\n';msg+='Governance: '+(!!(state.governedSuppliers&&state.governedSuppliers.has(r.SupplierName))?'✅ pass':'❌ FAIL — hidden!')+'\n\n';});showDiag(msg);})()">🔍 Diagnose SKU</button>
       <button class="secondary" onclick="stockBasisCheck()" title="Checks what NetStock contains. Run 26 Oct 2026: NetStock excludes open-PO stock, so V7.31.18 nets open POs into the buy">🧪 Stock basis check</button>
+      <button class="secondary" onclick="monthlyBasisCheck()" title="Checks whether the monthly sales history counts online sales only, or the Capel Street till too">📅 Sales history check</button>
       <label>or CSV file
         <input id="csvFile" type="file" accept=".csv,text/csv">
       </label>
@@ -7545,6 +7547,56 @@ function next30LastYear(sku){
 // sold under 60 units in the earlier period. Needs at least 3 overlapping months. Used by the last-year floor:
 // never below 100% of last year, capped at +50% so one odd month can't run away.
 const LY_GROWTH_MIN=1.0, LY_GROWTH_MAX=1.5, LY_GROWTH_MIN_UNITS=60;
+// V7.31.25 — WHAT DOES THE MONTHLY HISTORY COUNT? (Mark, 27 Oct: "make sure this is
+// online demand only"). The sheet's SQL isn't visible here, so we test it against the
+// main feed, which splits the last 365 days by channel. For every item that also sells
+// over the Capel till, compare its last ~365 days in the monthly history with
+//   online only  = Arklow online + Capel online (365d)
+//   all channels = online + Capel till (365d)
+// and count which it matches. Result shown on every "Sold per month" chart.
+function checkMonthlyBasis_(rows){
+  const out={verdict:'unknown', tested:0, online:0, all:0, sumM:0, sumOn:0, sumAll:0};
+  if(!state.monthlyLoaded || !state.monthlyCols || !state.monthlyCols.size || !state.monthlyData) return out;
+  const t=new Date(), key=d=>`${d.getFullYear()}_${String(d.getMonth()+1).padStart(2,'0')}`;
+  // rolling ~365 days from monthly totals: part of the month a year ago, the 11 months
+  // between, and this month so far
+  const first=new Date(t.getFullYear()-1, t.getMonth(), 1), dim=new Date(first.getFullYear(), first.getMonth()+1, 0).getDate();
+  const parts=[[key(first), Math.max(0,(dim-t.getDate())/dim)]];
+  for(let i=11;i>=0;i--) parts.push([key(new Date(t.getFullYear(), t.getMonth()-i, 1)), 1]);
+  if(parts.slice(0,-1).some(([k])=>!state.monthlyCols.has(k))) return out;   // need a full year of columns
+  const seen=new Set();
+  for(const r of (rows||[])){
+    if(seen.has(r.SKU)) continue; seen.add(r.SKU);
+    const sh=r.QtySold_Shop_CapelStreet_365d||0, on=(r.QtySold_Online_Arklow_365d||0)+(r.QtySold_Online_CapelStreet_365d||0);
+    if(sh<5) continue;                                  // can't tell the two apart without till sales
+    const d=state.monthlyData[r.SKU]||{};
+    const m=parts.reduce((a,[k,w])=>a+(d[k]||0)*w,0);
+    out.tested++; out.sumM+=m; out.sumOn+=on; out.sumAll+=on+sh;
+    if(Math.abs(m-on) < Math.abs(m-(on+sh))) out.online++; else out.all++;
+  }
+  if(out.tested>=20){
+    const p=out.online/out.tested;
+    out.verdict = p>=0.7 ? 'online' : p<=0.3 ? 'all' : 'mixed';
+  }
+  return out;
+}
+window.monthlyBasisCheck=function(){
+  const b=state.monthlyBasis||checkMonthlyBasis_(state.governedRows||[]);
+  const pct=v=>b.tested?Math.round(v/b.tested*100)+'%':'—';
+  const verdict={online:'ONLINE SALES ONLY ✓ — the monthly history matches online sales, not the till.',
+                 all:'⚠ ALL CHANNELS — the monthly history includes Capel Street till sales.',
+                 mixed:'⚠ UNCLEAR — about half the items match each; the history may be built inconsistently.',
+                 unknown:'Not enough data to tell (needs a full year of monthly columns and 20+ items that also sell in the shop).'}[b.verdict];
+  const msg='Sales history check — what does the monthly history count?\n\n'
+    +'Items tested (also sell over the Capel till): '+b.tested+'\n'
+    +'Match ONLINE only (Arklow + Capel online): '+pct(b.online)+'\n'
+    +'Match ONLINE + CAPEL TILL:                 '+pct(b.all)+'\n\n'
+    +'Totals for those items, last ~365 days:\n'
+    +'  monthly history '+fmtInt(Math.round(b.sumM))+' · online '+fmtInt(b.sumOn)+' · online + till '+fmtInt(b.sumAll)+'\n\n'
+    +verdict+'\n\nSend this to Claude.';
+  console.log(msg); if(typeof showDiag==='function') showDiag(msg); return b;
+};
+
 function buildLyGrowth_(rows){
   const out={overall:null, bySup:new Map(), label:''};
   if(!state.monthlyLoaded || !state.monthlyCols || !state.monthlyData) return out;
@@ -8770,6 +8822,7 @@ async function recompute(){
   const rows = state.governedRows;
   if(!rows || !rows.length){ state.computedRows=[]; render(); return; }
   try{ state.lyGrowth = buildLyGrowth_(rows); }catch(e){ state.lyGrowth = null; }
+  try{ state.monthlyBasis = checkMonthlyBasis_(rows); }catch(e){ state.monthlyBasis = null; }
   const _t0=performance.now();
   // (timing logged at end of this function — see '[recompute] done')
 
@@ -11819,7 +11872,11 @@ function osMonthStrip(r){
     const h=m.has&&m.q>0?Math.max(4,Math.round(m.q/max*46)):1;
     return `<div class="ms-c${cls}"><div class="ms-n">${m.has?f(m.q):'–'}</div><div class="ms-b" style="height:${h}px"></div><div class="ms-m">${_MONTH_ABBR[m.d.getMonth()]}<br>${String(m.d.getFullYear()).slice(2)}</div></div>`;
   }).join('');
-  return `<div class="ms"><div class="ms-h">Sold per month · <b>${f(tot12)}</b> in the last 12 months</div>
+  const vb=(state.monthlyBasis||{}).verdict;
+  const basis = vb==='online' ? `<span class="ms-basis ok" title="Checked against the main feed's channel split: the monthly history matches online sales">online only ✓</span>`
+              : vb==='all' ? `<span class="ms-basis warn" title="Checked against the main feed: the monthly history includes Capel Street till sales">⚠ includes Capel shop sales</span>`
+              : vb==='mixed' ? `<span class="ms-basis warn" title="The monthly history matches neither online-only nor all-channel sales consistently">⚠ channel unclear</span>` : '';
+  return `<div class="ms"><div class="ms-h">Sold per month · <b>${f(tot12)}</b> in the last 12 months ${basis}</div>
     <div class="ms-row">${cols}</div>
     <div class="ms-k"><span class="ms-dot"></span>Coming months last year: <b>${comingTxt}</b> · last bar = this month so far</div></div>`;
 }
