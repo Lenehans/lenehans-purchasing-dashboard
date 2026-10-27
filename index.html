@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.23 · EAN IN THE EXPORT</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.24 · SALES BY MONTH ON EVERY LINE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1114,6 +1114,19 @@
     .lf-money{background:#dbeafe;color:#1e3a8a}.lf-season{background:#fef9c3;color:#854d0e}.lf-hot{background:#ffedd5;color:#9a3412}
     .lf-jump,.lf-bad{background:#fee2e2;color:#991b1b}.lf-pack{background:#ede9fe;color:#5b21b6}.lf-top{background:#fde68a;color:#78350f}.lf-sup{background:#fef3c7;color:#92400e}
     .og-sel{font-size:12px;padding:1px 4px;border-radius:6px;border:1px solid #6ee7b7;background:#fff;color:#065f46;font-weight:700}
+    .ms{margin-top:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px}
+    .ms-h{font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+    .ms-h b{color:#0f172a;font-size:13px}
+    .ms-row{display:flex;align-items:flex-end;gap:3px}
+    .ms-c{flex:1;min-width:22px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+    .ms-n{font-size:12px;font-weight:800;color:#0f172a;margin-bottom:2px}
+    .ms-b{width:72%;background:#94a3b8;border-radius:3px 3px 0 0}
+    .ms-m{font-size:10px;color:#64748b;line-height:1.1;margin-top:3px;text-align:center}
+    .ms-c.next .ms-b{background:#f59e0b}.ms-c.next .ms-n{color:#b45309}.ms-c.next .ms-m{color:#b45309;font-weight:800}
+    .ms-c.now .ms-b{background:#cbd5e1;background-image:repeating-linear-gradient(45deg,#cbd5e1 0 4px,#e2e8f0 4px 8px)}
+    .ms-c.nodata .ms-n{color:#cbd5e1}
+    .ms-k{font-size:12px;color:#64748b;margin-top:6px}.ms-k b{color:#b45309}
+    .ms-dot{display:inline-block;width:9px;height:9px;background:#f59e0b;border-radius:2px;margin-right:5px;vertical-align:-1px}
     .ls-csrow{grid-column:3/8;grid-row:2;margin-top:-2px;background:#f3e8ff;border:1.5px solid #a855f7;color:#581c87;border-radius:8px;padding:4px 10px;font-size:13.5px;font-weight:700;text-align:center}
     .ls-csrow b{font-size:15px}
     .ls-csrow.short{background:#fef2f2;border-color:#dc2626;color:#991b1b}
@@ -1276,7 +1289,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.23 · built 2026-10-27 · Order exports now include the EAN (last column, so the Linnworks import is unchanged) · open line sits under the column headings · “Needs a look” / “Ready to go”</div>
+  <div class="sub">V7.31.24 · built 2026-10-27 · Open line shows sales by month for the last year, coming months highlighted · rank box says “none in 30 days” · EAN in every order export</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -11780,7 +11793,7 @@ function osSetBigShare(v){ const os=window._os; if(!os) return; os.bigShare=+v; 
 function osRankCell(r){
   const rank=state.skuRankMap&&state.skuRankMap.get(r.SKU);
   const rev=r.Revenue_Online_Total_30d||0;
-  if(!(rank&&rev>0)) return `<div class="ls-rank rk-none"><b>—</b><i>${r.abcClass==='A'?'A item':'no sales'}</i></div>`;
+  if(!(rank&&rev>0)) return `<div class="ls-rank rk-none"><b>—</b><i>${r.abcClass==='A'?'A item':'none in 30 days'}</i></div>`;
   const tier = rank<=10?['rk10','Top 10']:rank<=100?['rk100','Top 100']:rank<=1000?['rk1000','Top 1000']:['rk-rest', r.abcClass==='A'?'A item':''];
   return `<div class="ls-rank ${tier[0]}"><b>#${fmtInt(rank)}</b>${tier[1]?`<i>${tier[1]}</i>`:''}</div>`;
 }
@@ -11788,6 +11801,28 @@ function osRankCell(r){
 // day takes its month's average (e.g. 24 Oct–22 Nov = 8/31 of Oct + 22/30 of Nov).
 // null when the history doesn't cover those months.
 function osNext30LastYear(r){ return next30LastYear(r.SKU); }
+// V7.31.24 — "Sold per month": the last 12 months + this month so far, from the monthly
+// sales history, with the NEXT 2 MONTHS LAST YEAR in amber — so a winter line that sold
+// in December shows it, even when the 30-day columns read 0 (Mark, 27 Oct: coal helmets).
+function osMonthStrip(r){
+  if(!state.monthlyLoaded || !state.monthlyCols || !state.monthlyCols.size) return '';
+  const data=(state.monthlyData&&state.monthlyData[r.SKU])||{}, f=fmtInt;
+  const key=d=>`${d.getFullYear()}_${String(d.getMonth()+1).padStart(2,'0')}`;
+  const t=new Date(), ms=[];
+  for(let i=12;i>=0;i--){ const d=new Date(t.getFullYear(), t.getMonth()-i, 1); const k=key(d); ms.push({k,d,has:state.monthlyCols.has(k),q:data[k]||0,now:i===0}); }
+  const coming=new Set([1,2].map(n=>key(new Date(t.getFullYear()-1, t.getMonth()+n, 1))));
+  const max=Math.max(1,...ms.map(m=>m.q));
+  const tot12=ms.filter(m=>!m.now&&m.has).reduce((a,m)=>a+m.q,0);
+  const comingTxt=[...coming].map(k=>`${_MONTH_ABBR[+k.slice(5)-1]} ${f(data[k]||0)}`).join(' · ');
+  const cols=ms.map(m=>{
+    const cls=(coming.has(m.k)?' next':'')+(m.now?' now':'')+(m.has?'':' nodata');
+    const h=m.has&&m.q>0?Math.max(4,Math.round(m.q/max*46)):1;
+    return `<div class="ms-c${cls}"><div class="ms-n">${m.has?f(m.q):'–'}</div><div class="ms-b" style="height:${h}px"></div><div class="ms-m">${_MONTH_ABBR[m.d.getMonth()]}<br>${String(m.d.getFullYear()).slice(2)}</div></div>`;
+  }).join('');
+  return `<div class="ms"><div class="ms-h">Sold per month · <b>${f(tot12)}</b> in the last 12 months</div>
+    <div class="ms-row">${cols}</div>
+    <div class="ms-k"><span class="ms-dot"></span>Coming months last year: <b>${comingTxt}</b> · last bar = this month so far</div></div>`;
+}
 function osFlagChips(r){
   const fl=window._os&&window._os.flags&&window._os.flags.get(r.SKU); if(!fl) return '';
   const shown=fl.filter(([k])=>k!=='cs'); if(!shown.length) return '';
@@ -11842,7 +11877,7 @@ function osBodyHtml(r){
       <div class="ol-codes">
         ${c>0?`<span class="ol-code"><i>Cost</i><b>€${c.toFixed(2)} each</b></span>`:''}
       </div>
-      ${osCsBanner(r,q)}
+      ${osMonthStrip(r)}
       ${notes.length?`<div class="ol-notes">${notes.map(n=>`<div>${n}</div>`).join('')}</div>`:''}
     </div>
     <div class="ol-why"><div class="ow-h">Why buy ${f(r.buy||0)}?</div>${osWhySum(r,q)}
