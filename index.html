@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.28 · ONLINE + CAPEL TILL HISTORY LIVE</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.30 · COMPACT QUICK MODE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1128,6 +1128,51 @@
     .ms-c.nodata .ms-n{color:#cbd5e1}
     .ms-k{font-size:12px;color:#64748b;margin-top:6px}.ms-k b{color:#b45309}
     .ms-dot{display:inline-block;width:9px;height:9px;background:#f59e0b;border-radius:2px;margin-right:5px;vertical-align:-1px}
+    /* ── V7.31.29 Quick mode ── */
+    .os-mode{display:inline-flex;border:2px solid #cbd5e1;border-radius:10px;overflow:hidden;margin-left:10px;flex-shrink:0}
+    .os-mode button{border:none;background:#fff;color:#475569;font-weight:800;font-size:13px;padding:6px 12px;cursor:pointer;min-height:0;border-radius:0}
+    .os-mode button.on{background:#1e3a5f;color:#fff}
+    .os-quickbar{display:none;align-items:center;gap:8px;margin:6px 0 2px;flex-wrap:wrap}
+    .os-modal.quick .os-quickbar{display:flex}
+    .os-modal.quick .os-tabs-lbl,.os-modal.quick #osTabs,.os-modal.quick .os-toolbar,.os-modal.quick #osGuide,.os-modal.quick #osRefineMsg{display:none!important}
+    .oq-lbl{font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em}
+    .oq-btn{border:2px solid #cbd5e1;background:#fff;color:#0f172a;font-weight:800;font-size:13.5px;border-radius:9px;padding:4px 12px;cursor:pointer;min-height:0}
+    .oq-btn b{margin-left:4px;color:#64748b}.oq-btn.on{background:#1e3a5f;border-color:#1e3a5f;color:#fff}.oq-btn.on b{color:#fff}
+    .oq-search{margin-left:auto;width:220px;max-width:220px}
+    /* V7.31.30 — Quick mode is compact: the panel is only as wide as the line, rows are short */
+    .os-modal.quick{width:min(calc(var(--qpw,320px) + 430px),98vw)!important;min-width:min(700px,98vw)}
+    .os-modal.quick .po-review-hdr{padding:10px 14px 6px}
+    .os-modal.quick .os-head{margin-bottom:0;align-items:center}
+    .os-modal.quick .os-sup{font-size:17px}
+    .os-modal.quick .po-review-body{padding:0 10px 10px}
+    .os-modal.quick .ol-list{margin-top:6px}
+    .os-modal.quick .po-review-ftr{padding:8px 14px;gap:6px}
+    .os-modal.quick .po-review-ftr button{flex-shrink:0}
+    .os-modal.quick .po-review-ftr button{padding:5px 9px;font-size:12.5px}
+    .os-modal.quick .po-rev-total{font-size:12.5px;line-height:1.35;min-width:0}.os-modal.quick .po-rev-total span{font-size:16px}
+    .os-modal.quick .ol-card{grid-template-columns:1fr;padding:2px 12px 12px;max-width:none}
+    .ls-head.ql-head,.ql-line{grid-template-columns:var(--qpw,320px) 62px 84px 68px 74px 24px;grid-template-areas:none;justify-content:start;gap:8px}
+    .ls-head.ql-head{padding:5px 12px;font-size:10.5px}
+    .ql-line{display:grid;align-items:center;padding:3px 12px;cursor:pointer}
+    .ql-row:hover .ql-line{background:#f8fafc}
+    .ol-row.qfocus{background:#f5f9ff;box-shadow:inset 0 0 0 2px #2563eb}
+    .ql-title{font-size:14.5px;line-height:1.2;font-weight:700;color:#0f172a;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .ql-line .ls-codes{margin-top:1px;font-size:11.5px;gap:3px 8px}
+    .ql-line .ls-ean{padding:0 5px;font-size:12px;line-height:1.35}
+    .ql-star{font-family:system-ui,sans-serif;font-size:11px;font-weight:800;background:#fde68a;color:#78350f;border-radius:5px;padding:0 5px}
+    .ql-line .ls-n{font-size:17px}
+    .ql-oo{font-size:10.5px;font-weight:700;color:#1d4ed8;margin-top:0;line-height:1.1}
+    .ql-line .ls-val{font-size:14.5px}
+    .ql-info{width:24px;height:24px;border-radius:50%;border:1.5px solid #cbd5e1;background:#fff;color:#64748b;font-weight:800;cursor:pointer;padding:0;min-height:0;font-size:12.5px}
+    .ql-info:hover,.ql-info.on{border-color:#2563eb;color:#2563eb;background:#eff6ff}
+    .ql-line .ls-csrow{grid-column:1/-1;grid-row:2;margin:0 0 1px;padding:2px 8px;font-size:12.5px;border-radius:6px}
+    .ql-line .ls-csrow b{font-size:13.5px}
+    .ql-line .ol-qty{width:80px;font-size:19px;padding:2px 4px;border-width:2px;border-radius:8px}
+    .ql-sec{padding:4px 12px;font-weight:800;font-size:13.5px;color:#0f172a;border-left:5px solid;border-bottom:1px solid #e2e8f0}
+    .ql-sec span{font-weight:800;color:#64748b;margin-left:4px}
+    .ql-sec.oos{background:#fef2f2;border-left-color:#dc2626}.ql-sec.crit{background:#fff7ed;border-left-color:#f97316}
+    .ql-sec.low{background:#fefce8;border-left-color:#eab308}.ql-sec.oth{background:#f0fdf4;border-left-color:#16a34a}
+    .ql-showall{margin-top:10px;border:2px solid #1e3a5f;background:#fff;color:#1e3a5f;font-weight:800;border-radius:10px;padding:8px 16px;cursor:pointer}
     .ls-csrow{grid-column:3/8;grid-row:2;margin-top:-2px;background:#f3e8ff;border:1.5px solid #a855f7;color:#581c87;border-radius:8px;padding:4px 10px;font-size:13.5px;font-weight:700;text-align:center}
     .ls-csrow b{font-size:15px}
     .ls-csrow.short{background:#fef2f2;border-color:#dc2626;color:#991b1b}
@@ -1290,7 +1335,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.28 · built 2026-10-27 · Monthly history: online only on Arklow (Apr 2025 →), Capel till only on Capel Street (Jul 2025 →) · do-not-order matches TP_ codes · EAN in exports</div>
+  <div class="sub">V7.31.30 · built 2026-11-04 · Order screen ⚡ Quick mode compact (narrow panel, short rows, no empty space) alongside 🔍 Detail · online-only sales history · EAN in exports</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -11879,6 +11924,63 @@ function osClassify(view){
 function osToggleReady(){ const os=window._os; if(!os) return; os.showReady=!os.showReady; osRender(); }
 function osSetBigShare(v){ const os=window._os; if(!os) return; os.bigShare=+v; osRender(); }
 
+// ── V7.31.29 QUICK MODE (Dave, 4 Nov: "takes too long, too much information") ──────
+// The old Quick Order's look on the current engine: critical lines first in status
+// sections, one slim line each (name · SKU · barcode copy · stock · order · sold 30 days
+// · line €), Customer Service bar where it applies, Tab straight down the quantities,
+// nothing opens unless ⓘ is clicked. Remembered per person.
+function osModeKey_(){ return 'lenehans_os_mode_'+((typeof usageUser==='function'&&usageUser())||'default'); }
+function osSavedMode_(){ try{ return localStorage.getItem(osModeKey_())==='quick'?'quick':'detail'; }catch(e){ return 'detail'; } }
+function osSetMode(m){
+  const os=window._os; if(!os) return;
+  os.mode = m==='quick'?'quick':'detail';
+  try{ localStorage.setItem(osModeKey_(), os.mode); }catch(e){}
+  if(os.mode==='quick' && (os.preset==='now'||os.preset==='impact')) os.preset='urgent';
+  if(os.mode==='detail' && os.preset==='urgent') os.preset='now';
+  os.expanded=new Set(); os.focus=null;
+  osRender(true);
+}
+function osQuickFilter(f){ const os=window._os; if(!os) return; os.preset = f==='all'?'all':'urgent'; osRender(); }
+function osQuickWhy(sku){ const os=window._os; if(!os) return; sku=String(sku); os.expanded.has(sku)?os.expanded.delete(sku):os.expanded.add(sku); osRender(); }
+const OS_QUICK_SECTIONS=[['oos','🔴 Out of stock'],['crit','🟠 Running out'],['low','🟡 Low'],['oth','🟢 Other suggested lines']];
+function osQuickSection_(r){ return (r.stock<=0||r.coverStatus==='Out of Stock')?0 : r.coverStatus==='Critical'?1 : r.coverStatus==='Low'?2 : 3; }
+function osQuickBody_(view){
+  const sorted=view.slice().sort((a,b)=>osQuickSection_(a)-osQuickSection_(b) || (a.daysOfCover||0)-(b.daysOfCover||0));
+  const n=[0,0,0,0]; sorted.forEach(r=>n[osQuickSection_(r)]++);
+  let h=`<div class="ls-head ql-head"><span class="l">Product</span><span>In stock</span><span class="hq">Order</span><span>Sold last 30 days</span><span class="r">Line total</span><span></span></div>`, last=-1;
+  for(const r of sorted){
+    const s=osQuickSection_(r);
+    if(s!==last){ h+=`<div class="ql-sec ${OS_QUICK_SECTIONS[s][0]}">${OS_QUICK_SECTIONS[s][1]} <span>${fmtInt(n[s])}</span></div>`; last=s; }
+    h+=osQuickLineHtml(r);
+  }
+  return h;
+}
+function osQuickLineHtml(r){
+  const os=window._os, f=fmtInt;
+  const q=osQty(r), c=osUnitCost(r), edited=q!==(r.buy||0);
+  const stock=r.stock||0, q30=r.QtySold_Online_Total_30d||0;
+  const oo = state.channel==='capel' ? (r.OnOrderQty_CS_PO||0) : (r.OnOrderQty_AK_PO||0);
+  const ean=String(r.Barcode||'').trim();
+  const rank=state.skuRankMap&&state.skuRankMap.get(r.SKU), rev=r.Revenue_Online_Total_30d||0;
+  const star = rank&&rev>0&&rank<=100 ? `<span class="ql-star">⭐ #${rank}</span>` : '';
+  const cs = r._csRequired && r._csQtyFloor>0 ? `<div class="ls-csrow${q<r._csQtyFloor?' short':''}">🔒 Customer Service requires <b>${f(r._csQtyFloor)}</b>${r._csReason?' · '+esc(r._csReason):''}${q<r._csQtyFloor?' · your order is below this':''}</div>` : '';
+  const open=os.expanded.has(String(r.SKU));
+  return `<div class="ol-row ql-row${stock<=0?' oos':''}${os.seen&&os.seen.has(r.SKU)?' seen':''}" data-sku="${esc(r.SKU)}">
+    <div class="ql-line" onclick="osFocusLine('${jsArg(r.SKU)}',event)">
+      <div class="ql-what"><div class="ql-title" title="${esc(r.ItemTitle||'')}">${esc(r.ItemTitle||'')}</div>
+        <div class="ls-codes"><span>${esc(r.SKU)}</span>${ean?`<button tabindex="-1" class="ls-ean" title="Click to copy barcode" onclick="event.stopPropagation();osCopy(this,'${jsArg(ean)}')"><span class="ls-ean-n">${esc(ean)}</span><span class="ls-ean-i">⧉ copy</span></button>`:'<span class="ls-noean">no barcode</span>'}${star}</div></div>
+      <div class="ls-n ls-s ${stock<=0?'bad':''}">${f(stock)}${oo>0?`<div class="ql-oo">+${f(oo)} on order</div>`:''}</div>
+      <div class="ls-qty"><input class="ol-qty po-rev-qty${edited?' changed':''}" type="number" min="0" step="1" value="${q}" data-sku="${esc(r.SKU)}"
+        onfocus="osFocusLine(this.dataset.sku)" onkeydown="osQtyKey(event,this)" oninput="osEditQty(this)" onchange="osEditQty(this,true)"></div>
+      <div class="ls-n ls-d">${f(q30)}</div>
+      <div class="ls-val ol-cost">${q>0&&c>0?'€'+f(q*c):(c>0?'€0':'<span class="ol-nocost">no cost</span>')}</div>
+      <button tabindex="-1" class="ql-info${open?' on':''}" title="Why this quantity?" onclick="event.stopPropagation();osQuickWhy('${jsArg(r.SKU)}')">ⓘ</button>
+      ${cs}
+    </div>
+    <div class="ol-body">${open?osBodyHtml(r):''}</div>
+  </div>`;
+}
+
 function osRankCell(r){
   const rank=state.skuRankMap&&state.skuRankMap.get(r.SKU);
   const rev=r.Revenue_Online_Total_30d||0;
@@ -11984,6 +12086,7 @@ function osBodyHtml(r){
 // numbers sit close to the name. Longer names wrap to a second line.
 function osFitProductCol(view){
   const list=document.getElementById('osBody'); if(!list) return;
+  if(window._os && window._os.mode==='quick') return osFitQuickCol_(view, list);
   let w=280;
   try{
     const t=list.querySelector('.ls-title');
@@ -12005,11 +12108,39 @@ function osFitProductCol(view){
   }catch(e){ w=280; }
   list.style.setProperty('--pw', w+'px');
 }
+// V7.31.30 — Quick mode: the product column fits the names (85% on one line, the rest wrap
+// to two), and the panel is sized to the line, so there is no empty space to the right.
+function osFitQuickCol_(view, list){
+  let w=320;
+  try{
+    const t=list.querySelector('.ql-title'); const cs=t?getComputedStyle(t):null;
+    const ctx=document.createElement('canvas').getContext('2d');
+    if(ctx && cs){
+      ctx.font=`${cs.fontWeight||700} ${cs.fontSize||'14.5px'} ${cs.fontFamily||'sans-serif'}`;
+      const ws=view.slice(0,800).map(r=>ctx.measureText(String(r.ItemTitle||'')).width).sort((a,b)=>a-b);
+      const mx=ws.length?ws[Math.min(ws.length-1, Math.floor(ws.length*0.85))]:0;
+      let cw=0;
+      for(const c of [...list.querySelectorAll('.ql-what .ls-codes')].slice(0,200)){
+        const kids=[...c.children]; cw=Math.max(cw, kids.reduce((a,k)=>a+k.getBoundingClientRect().width,0)+8*Math.max(0,kids.length-1));
+      }
+      w=Math.max(240, Math.min(400, Math.ceil(Math.max(mx, cw))+6));
+    }
+  }catch(e){ w=320; }
+  const m=list.closest('.os-modal')||list;
+  m.style.setProperty('--qpw', w+'px');
+}
 function osFocusLine(sku, ev){
   const os=window._os; if(!os) return;
   const list=document.getElementById('osBody'); if(!list) return;
   const row=[...list.querySelectorAll('.ol-row')].find(x=>x.dataset.sku===String(sku)); if(!row) return;
   if(ev && ev.target && ev.target.closest('input,button,select')) return;
+  if(os.mode==='quick'){
+    list.querySelectorAll('.ol-row.qfocus').forEach(x=>x.classList.remove('qfocus'));
+    row.classList.add('qfocus','seen'); os.seen=os.seen||new Set(); os.seen.add(String(sku));
+    try{ row.scrollIntoView({block:'nearest'}); }catch(e){}
+    const qi=row.querySelector('input.ol-qty'); if(qi && document.activeElement!==qi) qi.focus(); if(qi) try{ qi.select(); }catch(e){}
+    return;
+  }
   if(os.focus!==String(sku)){
     list.querySelectorAll('.ol-row.focus').forEach(x=>{ x.classList.remove('focus'); x.querySelector('.ol-body').innerHTML=''; });
     const r=os.rows.find(x=>x.SKU===String(sku));
@@ -12070,7 +12201,9 @@ function openOrderScreen(supplier, preset, opts){
   const rank=r=>r.coverStatus==='Out of Stock'||r.stock<=0?0:r.coverStatus==='Critical'?1:r.coverStatus==='Low'?2:3;
   rows.sort((a,b)=>((a._orderNow===false)-(b._orderNow===false)) || rank(a)-rank(b) || (a.daysOfCover||0)-(b.daysOfCover||0));
   const prevCap = window._os && window._os.supplier===sup ? window._os.cap : 15;
-  window._os={supplier:sup, preset:preset||'now', cap:opts.cap||prevCap||15, search:'', keep:null, rows, expanded:new Set(), seen:new Set(), focus:null, showReady:false, bigShare:50, flags:new Map()};
+  const mode = osSavedMode_();
+  if(mode==='quick' && (!preset || preset==='now')) preset='urgent';   // Quick opens on Critical, like the old Quick Order
+  window._os={supplier:sup, mode, preset:preset||'now', cap:opts.cap||prevCap||15, search:'', keep:null, rows, expanded:new Set(), seen:new Set(), focus:null, showReady:false, bigShare:50, flags:new Map()};
   window._poEdits[sup]=window._poEdits[sup]||{};
   window._poReviewCtx={rows, supplier:sup, orderScreen:true};   // minimise / restore plumbing
   // If the requested view is empty but there's work in the order, explain rather than show a blank list
@@ -12091,12 +12224,15 @@ function osRender(rebuild){
   let body='';
   if(!view.length){
     let msg;
-    if(os.preset==='now' && waitRows.length) msg=`✅ Nothing has to go on today's order.<br>All ${waitRows.length} line${waitRows.length!==1?'s':''} can wait until ${esc(nextLbl)}.<br><span style="font-size:13px">Choose <b>All lines</b> to order them early.</span>`;
+    if(os.mode==='quick' && os.preset==='urgent' && os.rows.length) msg=`✅ Nothing critical for this supplier right now.<br><button class="ql-showall" onclick="osQuickFilter('all')">Show all ${fmtInt(os.rows.length)} suggested lines</button>`;
+    else if(os.preset==='now' && waitRows.length) msg=`✅ Nothing has to go on today's order.<br>All ${waitRows.length} line${waitRows.length!==1?'s':''} can wait until ${esc(nextLbl)}.<br><span style="font-size:13px">Choose <b>All lines</b> to order them early.</span>`;
     else if(!os.rows.length) msg='✅ Nothing needs ordering from this supplier right now.';
     else if(os.search) msg='No lines match your search.';
     else msg='No lines in this view.';
     body=`<div class="ol-empty">${msg}</div>`;
   } else {
+    if(os.mode==='quick'){ body+=osQuickBody_(view); }
+    else {
     body+=`<div class="ls-head"><span>Rank</span><span class="l">Product</span><span>In stock</span><span>On order</span><span class="hq">Order</span><span>Sold last 30 days</span><span>Sold next 30 days last year</span><span class="l">Why buy this quantity?</span><span class="r">Line total</span><span></span></div>`;
     os.flags=osClassify(view);
     const look=view.filter(r=>os.flags.has(r.SKU)), ready=view.filter(r=>!os.flags.has(r.SKU));
@@ -12111,6 +12247,7 @@ function osRender(rebuild){
       body+=`<div class="ol-sec ready" onclick="osToggleReady()"><span>✅ <b>Ready to go</b> — ${fmtInt(ready.length)} line${ready.length!==1?'s':''} as suggested · <span id="osReadyVal"></span></span>
         <button tabindex="-1" class="ol-sec-btn" onclick="event.stopPropagation();osToggleReady()">${showReady?'▲ Hide them':'▼ Show them'}</button></div>`;
       if(showReady) for(const r of ready) body+=osLineHtml(r);
+    }
     }
   }
 
@@ -12134,9 +12271,12 @@ function osRender(rebuild){
               <div class="os-hist" id="osHist"></div>
             </div>
             <span class="sc-status" id="osStatus"></span>
+            <div class="os-mode" id="osModeSwitch"></div>
           </div>
           <div class="os-tabs-lbl">Which lines do you want to see?</div>
           <div class="os-tabs" id="osTabs"></div>
+          <div class="os-quickbar"><span class="oq-lbl">Show</span><span id="osQuickBtns"></span>
+            <input class="po-review-search oq-search" id="osQSearch" type="text" placeholder="🔍 Search this order…" oninput="window._os.search=this.value;osRender()"></div>
           <div class="os-toolbar">
             <input class="po-review-search" id="osSearch" type="text" placeholder="🔍 Search this order…" oninput="window._os.search=this.value;osRender()">
             <button tabindex="-1" class="secondary os-refine-toggle" onclick="const b=document.getElementById('osRefineBox');b.style.display=b.style.display==='flex'?'none':'flex';document.getElementById('osRefine').focus()">✦ Refine with AI</button>
@@ -12177,11 +12317,15 @@ function osRender(rebuild){
   $('osHist').innerHTML=st.hist+osSupplierGrowthTxt(os.supplier);
   $('osStatus').className='sc-status '+st.tone; $('osStatus').textContent=st.label;
   $('osTabs').innerHTML=tabs;
+  const quick=os.mode==='quick';
+  document.querySelector('#poReviewOverlay .os-modal')?.classList.toggle('quick', quick);
+  $('osModeSwitch').innerHTML=`<button tabindex="-1" class="${quick?'on':''}" onclick="osSetMode('quick')" title="Slim list: critical lines first, Tab straight down the quantities">⚡ Quick</button><button tabindex="-1" class="${quick?'':'on'}" onclick="osSetMode('detail')" title="Full view: reasons, Needs a look, sales by month">🔍 Detail</button>`;
+  $('osQuickBtns').innerHTML=`<button tabindex="-1" class="oq-btn${os.preset==='urgent'?' on':''}" onclick="osQuickFilter('urgent')">🔴 Critical <b>${fmtInt(counts.urgent||0)}</b></button><button tabindex="-1" class="oq-btn${os.preset==='all'?' on':''}" onclick="osQuickFilter('all')">All lines <b>${fmtInt(counts.all||0)}</b></button>`;
   $('osBody').innerHTML=body;
   osFitProductCol(view);
   try{ const hd=document.querySelector('#osBody .ls-head'); if(hd&&hd.offsetHeight) document.getElementById('osBody').style.setProperty('--hh',(hd.offsetHeight+8)+'px'); }catch(e){}
   osUpdateTotals(); osUpdateGuide();
-  if(os.focus){ const f=os.focus; os.focus=null; const row=[...document.querySelectorAll('#osBody .ol-row')].find(x=>x.dataset.sku===f);
+  if(os.focus && os.mode!=='quick'){ const f=os.focus; os.focus=null; const row=[...document.querySelectorAll('#osBody .ol-row')].find(x=>x.dataset.sku===f);
     if(row){ const r=os.rows.find(x=>x.SKU===f); row.classList.add('focus'); if(r) row.querySelector('.ol-body').innerHTML=osBodyHtml(r); os.focus=f; } }
 }
 
