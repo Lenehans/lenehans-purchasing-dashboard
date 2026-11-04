@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.30 · COMPACT QUICK MODE</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.31 · QUICK BY DEFAULT</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1335,7 +1335,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.30 · built 2026-11-04 · Order screen ⚡ Quick mode compact (narrow panel, short rows, no empty space) alongside 🔍 Detail · online-only sales history · EAN in exports</div>
+  <div class="sub">V7.31.31 · built 2026-11-04 · Order screen opens in ⚡ Quick for everyone (compact, critical first) · 🔍 Detail one click away and remembered per person · online-only sales history · EAN in exports</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -11930,7 +11930,8 @@ function osSetBigShare(v){ const os=window._os; if(!os) return; os.bigShare=+v; 
 // · line €), Customer Service bar where it applies, Tab straight down the quantities,
 // nothing opens unless ⓘ is clicked. Remembered per person.
 function osModeKey_(){ return 'lenehans_os_mode_'+((typeof usageUser==='function'&&usageUser())||'default'); }
-function osSavedMode_(){ try{ return localStorage.getItem(osModeKey_())==='quick'?'quick':'detail'; }catch(e){ return 'detail'; } }
+// V7.31.31 — Quick is the default for everyone (Mark, 4 Nov); anyone who picks Detail keeps Detail
+function osSavedMode_(){ try{ return localStorage.getItem(osModeKey_())==='detail'?'detail':'quick'; }catch(e){ return 'quick'; } }
 function osSetMode(m){
   const os=window._os; if(!os) return;
   os.mode = m==='quick'?'quick':'detail';
@@ -12320,7 +12321,8 @@ function osRender(rebuild){
   const quick=os.mode==='quick';
   document.querySelector('#poReviewOverlay .os-modal')?.classList.toggle('quick', quick);
   $('osModeSwitch').innerHTML=`<button tabindex="-1" class="${quick?'on':''}" onclick="osSetMode('quick')" title="Slim list: critical lines first, Tab straight down the quantities">⚡ Quick</button><button tabindex="-1" class="${quick?'':'on'}" onclick="osSetMode('detail')" title="Full view: reasons, Needs a look, sales by month">🔍 Detail</button>`;
-  $('osQuickBtns').innerHTML=`<button tabindex="-1" class="oq-btn${os.preset==='urgent'?' on':''}" onclick="osQuickFilter('urgent')">🔴 Critical <b>${fmtInt(counts.urgent||0)}</b></button><button tabindex="-1" class="oq-btn${os.preset==='all'?' on':''}" onclick="osQuickFilter('all')">All lines <b>${fmtInt(counts.all||0)}</b></button>`;
+  const qExtra = (os.preset!=='urgent' && os.preset!=='all' && OS_PRESETS[os.preset]) ? `<button tabindex="-1" class="oq-btn on">${OS_PRESETS[os.preset].label} <b>${fmtInt(counts[os.preset]||0)}</b></button>` : '';
+  $('osQuickBtns').innerHTML=qExtra+`<button tabindex="-1" class="oq-btn${os.preset==='urgent'?' on':''}" onclick="osQuickFilter('urgent')">🔴 Critical <b>${fmtInt(counts.urgent||0)}</b></button><button tabindex="-1" class="oq-btn${os.preset==='all'?' on':''}" onclick="osQuickFilter('all')">All lines <b>${fmtInt(counts.all||0)}</b></button>`;
   $('osBody').innerHTML=body;
   osFitProductCol(view);
   try{ const hd=document.querySelector('#osBody .ls-head'); if(hd&&hd.offsetHeight) document.getElementById('osBody').style.setProperty('--hh',(hd.offsetHeight+8)+'px'); }catch(e){}
