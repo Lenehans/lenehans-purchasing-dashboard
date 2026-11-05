@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.31 · QUICK BY DEFAULT</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.32 · SIMILAR IN STOCK</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1172,6 +1172,18 @@
     .ql-sec span{font-weight:800;color:#64748b;margin-left:4px}
     .ql-sec.oos{background:#fef2f2;border-left-color:#dc2626}.ql-sec.crit{background:#fff7ed;border-left-color:#f97316}
     .ql-sec.low{background:#fefce8;border-left-color:#eab308}.ql-sec.oth{background:#f0fdf4;border-left-color:#16a34a}
+    /* V7.31.32 — similar product already in stock */
+    .ls-simrow{grid-column:3/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#ecfeff;border:1.5px solid #06b6d4;color:#155e75;border-radius:8px;padding:3px 8px;font-size:13px;font-weight:600;line-height:1.3;margin:0 0 2px}
+    .ls-simrow b{font-size:14px;color:#0e7490}
+    .sim-sub{font-weight:500;color:#0e7490;font-size:12px}
+    .sim-more{font-weight:800;color:#0e7490;text-decoration:underline dotted;cursor:help}
+    .sim-b{display:flex;gap:4px;flex-shrink:0}
+    .sim-btn{border:1.5px solid #0891b2;background:#0891b2;color:#fff;font-weight:800;font-size:11.5px;border-radius:6px;padding:2px 8px;cursor:pointer;min-height:0;white-space:nowrap}
+    .sim-btn.ghost{background:#fff;color:#0e7490}
+    .ls-simrow.done{opacity:.5}
+    .ql-line .ls-simrow{grid-column:1/-1;font-size:12.5px;padding:2px 8px;border-radius:6px}
+    .lf-sim{background:#cffafe;color:#155e75}
+    .oq-btn.sim{border-color:#67e8f9}.oq-btn.sim.on{background:#0e7490;border-color:#0e7490;color:#fff}
     .ql-showall{margin-top:10px;border:2px solid #1e3a5f;background:#fff;color:#1e3a5f;font-weight:800;border-radius:10px;padding:8px 16px;cursor:pointer}
     .ls-csrow{grid-column:3/8;grid-row:2;margin-top:-2px;background:#f3e8ff;border:1.5px solid #a855f7;color:#581c87;border-radius:8px;padding:4px 10px;font-size:13.5px;font-weight:700;text-align:center}
     .ls-csrow b{font-size:15px}
@@ -1335,7 +1347,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.31 · built 2026-11-04 · Order screen opens in ⚡ Quick for everyone (compact, critical first) · 🔍 Detail one click away and remembered per person · online-only sales history · EAN in exports</div>
+  <div class="sub">V7.31.32 · built 2026-11-05 · 🔁 Similar in stock: flags order lines where another supplier's product (or the same barcode) is already on the shelf · ⚡ Quick by default · online-only sales history · EAN in exports</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -10824,6 +10836,7 @@ async function processRawRows(parsedRaw, sourceName){
   if(normalised.length===0){setStatus('❌ No rows found in CSV.',true);return;}
 
   state.rawRows=normalised;
+  try{ simReset_(parsedRaw); }catch(e){}   // V7.31.32 similar-in-stock catalogue (every supplier)
   const withCS=mergeCSIntoRows([...normalised],getChannelCSLines());
   const governed=applyGovernance(withCS);
   state.governedRows=governed;
@@ -11666,7 +11679,8 @@ const OS_PRESETS = {
   all:    {sub:'Everything suggested', label:'📋 All lines',                   tip:'Every line in this supplier’s order'},
   urgent: {sub:'Out of stock or nearly', label:'🔴 Out of stock & critical',  tip:'Out of stock, or already below the reorder point'},
   impact: {sub:'Biggest effect, fewest lines', label:'⚡ Top impact',               tip:'Fewest lines, biggest effect — ranked by lost-sales risk, value and urgency'},
-  gap:    {sub:'Selling, but Arklow has none', label:'🚨 Arklow gap',              tip:'Selling now (or due to) but Arklow can’t ship it — Capel is covering'}
+  gap:    {sub:'Selling, but Arklow has none', label:'🚨 Arklow gap',              tip:'Selling now (or due to) but Arklow can’t ship it — Capel is covering'},
+  similar:{sub:'We already hold something like it', label:'🔁 Similar in stock',      tip:'Another supplier’s product that does the same job (or the same barcode under another SKU) is already on the shelf'}
 };
 
 function osPresetRows(preset){
@@ -11676,6 +11690,7 @@ function osPresetRows(preset){
   if(preset==='now')    return rows.filter(r=>r._orderNow!==false);
   if(preset==='urgent') return rows.filter(urgentish);
   if(preset==='gap')    return rows.filter(r=>isArklowGapLine(r));
+  if(preset==='similar') return rows.filter(r=>simAltsFor(r).length>0);
   if(preset==='impact'){
     return rows.filter(r=>urgentish(r)||r.coverStatus==='Low')
       .map(r=>({r,s:quickOrderScore(r)})).sort((a,b)=>b.s-a.s).slice(0,os.cap||15).map(x=>x.r);
@@ -11904,6 +11919,7 @@ function osClassify(view){
     const f=[], sug=r.buy||0, q30=r.QtySold_Online_Total_30d||0, c=osUnitCost(r);
     const rank=state.skuRankMap&&state.skuRankMap.get(r.SKU), rev=r.Revenue_Online_Total_30d||0;
     if(r._csRequired && r._csQtyFloor>0) f.push(['cs','🔒 Customer Service request']);
+    if(simAltsFor(r).length) f.push(['sim','🔁 Similar in stock']);
     if((r.stock||0)<0) f.push(['bad',`Stock shows ${fmtInt(r.stock)} — check the count`]);
     if(big.has(r.SKU)) f.push(['money',`💶 Big line · €${fmtInt(sug*c)}`]);
     if(r.buyDriverKey==='lastyear') f.push(['season','📅 Raised by last year’s sales']);
@@ -11941,7 +11957,7 @@ function osSetMode(m){
   os.expanded=new Set(); os.focus=null;
   osRender(true);
 }
-function osQuickFilter(f){ const os=window._os; if(!os) return; os.preset = f==='all'?'all':'urgent'; osRender(); }
+function osQuickFilter(f){ const os=window._os; if(!os) return; os.preset = f==='all'?'all':f==='similar'?'similar':'urgent'; osRender(); }
 function osQuickWhy(sku){ const os=window._os; if(!os) return; sku=String(sku); os.expanded.has(sku)?os.expanded.delete(sku):os.expanded.add(sku); osRender(); }
 const OS_QUICK_SECTIONS=[['oos','🔴 Out of stock'],['crit','🟠 Running out'],['low','🟡 Low'],['oth','🟢 Other suggested lines']];
 function osQuickSection_(r){ return (r.stock<=0||r.coverStatus==='Out of Stock')?0 : r.coverStatus==='Critical'?1 : r.coverStatus==='Low'?2 : 3; }
@@ -11976,10 +11992,354 @@ function osQuickLineHtml(r){
       <div class="ls-n ls-d">${f(q30)}</div>
       <div class="ls-val ol-cost">${q>0&&c>0?'€'+f(q*c):(c>0?'€0':'<span class="ol-nocost">no cost</span>')}</div>
       <button tabindex="-1" class="ql-info${open?' on':''}" title="Why this quantity?" onclick="event.stopPropagation();osQuickWhy('${jsArg(r.SKU)}')">ⓘ</button>
-      ${cs}
+      ${cs}${osSimBar(r)}
     </div>
     <div class="ol-body">${open?osBodyHtml(r):''}</div>
   </div>`;
+}
+
+// ── V7.31.32 "Similar in stock" — find products we already hold that do the same job ──
+// Mark, 5 Nov: ordering a 6mm masonry bit from FF001 when ABC002's 6mm one is on the shelf
+// should be flagged like the Customer Service bar: "we have XYZ — do you really need this?"
+// Built once per data load from ALL QueryData rows (every supplier, not only governed ones).
+const SIM_STOP=new Set(('a an and the of for with to in on by from w c l x or at as is it its your you our new each '+
+  'heavy duty high quality premium professional pro durable precision efficient tough performance ideal perfect easy use '+
+  'speed fast effective reliable strong secure value economy general purpose standard genuine original great best top '+
+  'carded card loose single only plus ultra super maxi range type style design various size sizes metric imperial '+
+  'home garden diy trade tool tools product item items').split(' '));
+// words that change WHAT the product is — present in one title but not the other → not the same thing
+const SIM_KIND=new Set(('set kit assorted assortment refill replacement spare blade handle frame holder case box bag cover lid '+
+  'nozzle cartridge battery charger bracket mount base stand hasp chain scale station bait adaptor adapter extension attachment '+
+  'accessory sheet roll tip bit pump hose filter brush roller tray glue spray primer cleaner remover '+
+  'wallet storage organiser rack hook hanger clip clamp').split(' '));
+// modifiers that make it a different product when only one title has them (junior hacksaw ≠ hacksaw, SDS bit ≠ plain bit)
+const SIM_MODS=new Set(('junior mini micro long short extra xl jumbo large small medium little sds cordless corded electric battery solar led '+
+  'halogen rechargeable kid child children baby adult men women lady left right male female internal external inner outer round square '+
+  'flat hex oval angled straight curved live humane glue electronic ultrasonic sticky enclosed multicatch bimetal hss cobalt tungsten '+
+  'diamond carbide fine coarse medium soft hard wide narrow deep shallow waterproof fireproof outdoor indoor magnetic insulated '+
+  'keyalike combination digit luggage travel').split(' '));
+const SIM_GROUPS=[
+  new Set('white black grey gray silver gold brass chrome red blue green yellow orange pink purple brown cream magnolia ivory beige clear natural transparent oak walnut pine mahogany teak cherry ash'.split(' ')),
+  new Set('gloss matt matte satin eggshell silk sheen'.split(' ')),
+];
+const SIM_SUPWORDS_GENERIC=new Set('ltd limited tools tool trading hardware sons son distributors distributor ireland irish eu trade centres centre center paints abrasives the group industries international wholesale ironmongery europe and co company plc inc global supplies supply hand default'.split(' '));
+const SIM_UNITS={mm:['len',1],cm:['len',10],m:['len',1000],metre:['len',1000],metres:['len',1000],meter:['len',1000],meters:['len',1000],mtr:['len',1000],mtrs:['len',1000],
+  in:['len',25.4],inch:['len',25.4],inches:['len',25.4],'"':['len',25.4],"''":['len',25.4],ft:['len',304.8],feet:['len',304.8],foot:['len',304.8],"'":['len',304.8],
+  ml:['vol',1],l:['vol',1000],ltr:['vol',1000],ltrs:['vol',1000],litre:['vol',1000],litres:['vol',1000],liter:['vol',1000],liters:['vol',1000],
+  g:['wt',1],gr:['wt',1],gram:['wt',1],grams:['wt',1],kg:['wt',1000],w:['pow',1],kw:['pow',1000],v:['volt',1],ah:['ah',1],tpi:['tpi',1]};
+const SIM_UNIT_RE=`(mm|cm|metres?|meters?|mtrs?|m|inches|inch|in|"|''|feet|foot|ft|'|ml|ltrs?|litres?|liters?|l|grams?|gr|kg|g|kw|w|v|ah|tpi)`;
+
+function simSpecs_(full){
+  let s=(' '+full+' ').replace(/(\d)\s*(mm|cm|m|"|in)?\s*x\s*(?=\d)/g,'$1$2 x ').replace(/([\d"])x(?=\d)/g,'$1 x ');
+  const sp={len:[],vol:[],wt:[],pow:[],volt:[],ah:[],tpi:[],cnt:[],code:[],bare:[]};
+  const cut=(re,fn)=>{ s=s.replace(re,(...m)=>{ fn&&fn(m); return ' '; }); };
+  cut(/\b\d+\s*in\s*1\b/g);                                     // "3 in 1"
+  cut(/\b\d+\s*series\b/g);                                     // "28 series"
+  cut(/\b(\d+)\s*-?\s*(digit|dial|cutter|way|gang|tier|step|core|ply|drawer|shelf|blade|key)s?\b/g, m=>sp.code.push(m[1]+m[2]));
+  cut(/\b(?:pack|card|set|box|bag|pk|tub|bucket|tube) of (\d+)\b/g, m=>sp.cnt.push(+m[1]));
+  cut(/\b(?:pack|pk)\s*(\d+)\b/g, m=>sp.cnt.push(+m[1]));                                 // "Pack 4", "Pack 100"
+  cut(/\b(\d+)\s*-?\s*(?:pk|pks|packs?|pcs?|pces?|pieces?|piece|pairs?|pr|units?|sheets?|rolls?)\b/g, m=>sp.cnt.push(+m[1]));
+  cut(/\b(?:twin\s*-?\s*pack|twinpack|twins?|pair|duo)\b/g, ()=>sp.cnt.push(2));
+  cut(/\b(?:triple\s*-?\s*pack|triple|trio)\b/g, ()=>sp.cnt.push(3));
+  cut(/\b(m|pz|ph|no\.?|grit|grade|size|p|gauge)\s?(\d{1,3})\b/g, m=>{ const k=m[1].replace('.',''); if(k==='p'&&+m[2]<40) return; sp.code.push(k+(+m[2])); });
+  // fractions of an inch: 1/2" 3/16 1 1/4"
+  cut(/\b(?:(\d+)[\s-]+)?(\d{1,2})\/(\d{1,2})\s*("|''|in\b|inch(?:es)?\b)?/g, m=>{
+    const a=+(m[1]||0), n=+m[2], d=+m[3];
+    if(n<d && [2,4,8,16,32,64].includes(d)) sp.len.push(+(((a+n/d)*25.4).toFixed(2)));
+  });
+  // number (+unit), allowing chains like 6x150mm, 12"x24tpi, 200 x 4.8mm
+  const re=new RegExp(`(\\d+(?:\\.\\d+)?)\\s*${SIM_UNIT_RE}?(?![a-z0-9])`,'g');
+  const chain=[]; let m;
+  const t=s; s='';
+  let last=0;
+  while((m=re.exec(t))){
+    const raw=m[1], unit=(m[2]||'').trim();
+    // model-number guard: a number glued to letters on the left (64ti, hb80) is not a size
+    const before=t[m.index-1]||' ';
+    if(/[a-z]/.test(before)){ continue; }
+    const after=t.slice(re.lastIndex, re.lastIndex+1);
+    if(/[a-z]/.test(after) && !unit){ continue; }                       // 132r, 208t
+    if(!unit && raw.length>=4 && !raw.includes('.')) { s+=t.slice(last,m.index)+' '; last=re.lastIndex; continue; }  // 3000, 6601 → model
+    chain.push({v:parseFloat(raw), unit, at:m.index});
+    s+=t.slice(last,m.index)+' '; last=re.lastIndex;
+  }
+  s+=t.slice(last);
+  // unitless numbers in an "a x b" chain take the unit of the chain (6x150mm → both mm)
+  for(let i=0;i<chain.length;i++){
+    if(chain[i].unit) continue;
+    for(let j=i+1;j<chain.length && j<=i+2;j++){ const gap=t.slice(chain[j-1].at, chain[j].at); if(!/x/.test(gap)) break; if(chain[j].unit){ chain[i].unit=chain[j].unit; break; } }
+    if(!chain[i].unit && i>0){ const gap=t.slice(chain[i-1].at, chain[i].at); if(/x/.test(gap) && chain[i-1].unit) chain[i].unit=chain[i-1].unit; }
+  }
+  for(const c of chain){
+    const u=SIM_UNITS[c.unit];
+    if(u) sp[u[0]].push(+((c.v*u[1]).toFixed(2)));
+    else if(c.unit==='t') sp.code.push(c.v+'t');
+    else sp.bare.push(c.v);
+  }
+  if(sp.bare.length && sp.len.length){ sp.len.push(...sp.bare); sp.bare=[]; }   // "Masonry Bit X 5.5 150mm" → 5.5mm
+  sp.cntMax = sp.cnt.length ? Math.max(...sp.cnt) : 1;
+  for(const k of ['len','vol','wt','pow','volt','ah','tpi','cnt','code','bare']) if(!sp[k].length) sp[k]=SIM_E;   // share one empty array (55k titles)
+  sp.codeKey = [...new Set(sp.code)].sort().join(',');
+  sp.codeStrict = sp.code.some(c=>/^(m|pz|ph|no|p|grit|grade|size|gauge)\d/.test(c));
+  return {sp, rest:s};
+}
+function simWords_(title, vocab){
+  let s=String(title||'').toLowerCase().replace(/\[[^\]]*\]/g,' ').replace(/[™®©]/g,' ').replace(/×/g,'x');
+  // what comes WITH it ("with 2 blades", "c/w blade", "+3 free blades") is not what it IS
+  const extras=new Set();
+  s=s.replace(/\b(?:with|c\/w|w\/)\s*|\s\+\s*/g,' §').replace(/§([^-–—|,(§]*)/g,(m,x)=>{ x.toLowerCase().replace(/[^a-z]+/g,' ').split(' ').forEach(w=>{ if(w.length>2){ if(w.endsWith('es')&&w.length>4) w=w.slice(0,-1); if(w.endsWith('s')&&!/(ss|us|is)$/.test(w)) w=w.slice(0,-1); extras.add(w); } }); return ' '; });
+  const full=s;
+  // long SEO tails: "… – High-Speed & Durable …", "… for Concrete Stone Brick"
+  const cutAt=(sep)=>{ const i=s.indexOf(sep); if(i>0){ const pre=s.slice(0,i); if(pre.trim().split(/\s+/).length>=3) s=pre; } };
+  cutAt(' – '); cutAt(' — '); cutAt(' | ');
+  { const i=s.indexOf(' for '); if(i>0 && s.slice(0,i).trim().split(/\s+/).length>=4) s=s.slice(0,i); }
+  const {sp, rest:restFull}=simSpecs_(full);
+  const rest = s===full ? restFull : simSpecs_(s).rest;
+  let toks=rest.replace(/sds\s*-?\s*(\+|plus)/g,' sds ').replace(/([a-z])-([a-z])/g,'$1$2').replace(/[^a-z]+/g,' ').trim().split(/\s+/).filter(Boolean);
+  // join split compounds that are written as one word elsewhere ("pest stop" = "peststop", "hack saw" = "hacksaw")
+  if(vocab){ const out=[]; for(let i=0;i<toks.length;i++){ const j=toks[i]+(toks[i+1]||''); if(toks[i+1] && j.length>=6 && vocab.has(j)){ out.push(j); i++; } else out.push(toks[i]); } toks=out; }
+  const words=new Set();
+  for(let w of toks){
+    if(w.length<2) continue;
+    if(w.length>5 && w.endsWith('ies')) w=w.slice(0,-3)+'y';
+    else if(w.length>3 && w.endsWith('s') && !/(ss|us|is)$/.test(w)) w=w.slice(0,-1);
+    if(SIM_STOP.has(w)) continue;
+    words.add(w);
+  }
+  if(words.has('bit') && words.has('drill')) words.delete('drill');
+  return {words, sp, extras};
+}
+function simNear_(a,b){ const d=a-b; return (d<0?-d:d) <= 0.03*(a>b?a:b) + 1e-9; }
+function simSubset_(xs,ys){ // every x has its own partner in ys
+  if(xs.length===1){ const x=xs[0]; for(let i=0;i<ys.length;i++) if(simNear_(x,ys[i])) return true; return false; }
+  const used=new Uint8Array(ys.length);
+  for(const x of xs){ let ok=false; for(let i=0;i<ys.length;i++){ if(!used[i]&&simNear_(x,ys[i])){ used[i]=1; ok=true; break; } } if(!ok) return false; }
+  return true;
+}
+function simFitArr_(x,y){ if(!x.length||!y.length) return true; return x.length<=y.length?simSubset_(x,y):simSubset_(y,x); }
+const SIM_E=[];
+function simSpecsFit_(a,b){
+  if(a.cntMax!==b.cntMax) return false;
+  let al=a.len, bl=b.len, ab=a.bare, bb=b.bare;
+  if(ab.length && !al.length && bl.length){ al=ab; ab=SIM_E; }
+  if(bb.length && !bl.length && al.length){ bl=bb; bb=SIM_E; }
+  if(!simFitArr_(al,bl) || !simFitArr_(ab,bb)) return false;
+  if(!simFitArr_(a.vol,b.vol) || !simFitArr_(a.wt,b.wt) || !simFitArr_(a.pow,b.pow) || !simFitArr_(a.volt,b.volt) || !simFitArr_(a.ah,b.ah) || !simFitArr_(a.tpi,b.tpi)) return false;
+  if(a.codeKey && b.codeKey) return a.codeKey===b.codeKey;
+  if(a.codeStrict || b.codeStrict) return false;   // "pz2" vs nothing is not the same; "3 digit" vs nothing is fine
+  return true;
+}
+function simSpecTxt_(sp){ return JSON.stringify(sp); }
+
+// Build the index. rows: [{sku,title,sups:Set,ak,cs,s30ak,s30cs,ean}]
+function simVocab_(rows){   // single words (hyphens removed), to re-join "pest stop" = "peststop"
+  const vocab=new Set();
+  for(const r of rows){ String(r.title||'').toLowerCase().replace(/([a-z])-([a-z])/g,'$1$2').replace(/[^a-z]+/g,' ').split(' ').forEach(w=>{ if(w.length>=6) vocab.add(w); }); }
+  return vocab;
+}
+function simPrep_(r, vocab){ const {words,sp,extras}=simWords_(r.title, vocab); return {...r, words, sp, extras}; }
+function simBuildIndex_(rows){ const vocab=simVocab_(rows); return simFinish_(rows.map(r=>simPrep_(r,vocab)), vocab); }
+// same, in slices, so the page stays responsive while 55k titles are read
+async function simBuildIndexAsync_(rows){
+  const vocab=simVocab_(rows); const items=[];
+  for(let k=0;k<rows.length;k+=2500){ for(let i=k;i<Math.min(rows.length,k+2500);i++) items.push(simPrep_(rows[i],vocab)); await new Promise(r=>setTimeout(r,0)); }
+  return simFinish_(items, vocab);
+}
+function simFinish_(items, vocab){
+  // document frequency + which suppliers use each word (brand detection)
+  const df=new Map(), supCount=new Map();
+  for(const it of items){ for(const w of it.words){ df.set(w,(df.get(w)||0)+1); let m=supCount.get(w); if(!m){ m=new Map(); supCount.set(w,m); } for(const s of it.sups) m.set(s,(m.get(s)||0)+1); } }
+  const N=items.length;
+  const supWords=new Set();
+  for(const it of items) for(const s of it.sups) String(s).toLowerCase().replace(/[^a-z]+/g,' ').split(' ').forEach(w=>{ if(w.length>=4 && !SIM_SUPWORDS_GENERIC.has(w)) supWords.add(w); });
+  const idf=new Map(), brand=new Set();
+  for(const [w,d] of df){
+    idf.set(w, Math.min(8, Math.log((N+1)/(d+1))+0.5));
+    const top=Math.max(...supCount.get(w).values());
+    if(SIM_KIND.has(w)||SIM_MODS.has(w)||SIM_GROUPS.some(g=>g.has(w))) continue;
+    if((d>=3 && top/d>=0.8) || supWords.has(w)) brand.add(w);
+  }
+  // which product types come in several sizes? (masonry bits, padlocks, cable ties: yes · junior hacksaws: no)
+  const sizeOf=sp=>{ for(const k of ['len','vol','wt','pow','volt','ah']) if(sp[k].length) return k+':'+Math.min(...sp[k]); if(sp.bare.length) return 'bare:'+Math.min(...sp.bare); return null; };
+  const keyOf=it=>[...it.words].filter(w=>!brand.has(w) && !SIM_GROUPS.some(g=>g.has(w))).sort().join(' ');
+  const sizesByKey=new Map();
+  for(const it of items){ it.key=keyOf(it); it.size=sizeOf(it.sp); if(!it.size) continue; let a=sizesByKey.get(it.key); if(!a){ a=[]; sizesByKey.set(it.key,a); } a.push(it.size); }
+  const multiSize=new Set();
+  for(const [k,a] of sizesByKey){
+    const byKind=new Map(); for(const z of a){ const [u,v]=z.split(':'); if(!byKind.has(u)) byKind.set(u,[]); byKind.get(u).push(+v); }
+    for(const vs of byKind.values()){ vs.sort((x,y)=>x-y); let n=0, start=null; for(const v of vs){ if(start==null || !simNear_(v,start)){ n++; start=v; } } if(n>=2){ multiSize.add(k); break; } }
+  }
+  for(const it of items){
+    it.brandArr=[...it.words].filter(w=>brand.has(w));
+    it.kinds=[...it.words].filter(w=>SIM_KIND.has(w));
+    it.mods=[...it.words].filter(w=>SIM_MODS.has(w));
+    it.groups=SIM_GROUPS.map(g=>[...it.words].filter(w=>g.has(w)));
+    it.num=['len','vol','wt','pow','volt','ah'].some(k=>it.sp[k].length)||it.sp.bare.length>0;
+    it.seek=[...it.words].filter(w=>!brand.has(w)).sort((a,b)=>(df.get(a)||0)-(df.get(b)||0));
+  }
+  const post=new Map(), byEan=new Map();
+  items.forEach((it,i)=>{
+    if(!(it.ak>0||it.cs>0)) return;            // only products we actually hold can be alternatives
+    for(const w of it.words){ let p=post.get(w); if(!p){ p=[]; post.set(w,p); } p.push(i); }
+    const e=String(it.ean||'').replace(/^'+/,'').trim(); if(e.length>=8 && !/^0+$/.test(e)){ let p=byEan.get(e); if(!p){ p=[]; byEan.set(e,p); } p.push(i); }
+  });
+  const bySku=new Map(items.map((it,i)=>[it.sku,i]));
+  return {items, idf, df, brand, post, byEan, bySku, vocab, N, multiSize, stamp:new Int32Array(items.length), q:0, cache:new Map()};
+}
+function simScore_(ix, A, B){
+  if(!simSpecsFit_(A.sp, B.sp)) return 0;
+  for(let g=0;g<SIM_GROUPS.length;g++){ const ga=A.groups[g], gb=B.groups[g]; if(ga.length&&gb.length&&!ga.some(w=>gb.includes(w))) return 0; }
+  // a title with no size can't stand in for a sized one when that kind of product comes in several sizes
+  if(!!A.size !== !!B.size){ if(ix.multiSize.has(A.key)||ix.multiSize.has(B.key)) return 0; }
+  // bundles: "with mitre box", "+ case" — only match another bundle
+  const BUNDLE=['box','case','bag','kit','set','wallet','charger','battery','stand'];
+  for(const w of BUNDLE){ if(A.extras.has(w)!==B.extras.has(w) && !(A.words.has(w)||B.words.has(w))) return 0; }
+  for(const w of A.kinds) if(!B.words.has(w)) return 0;
+  for(const w of B.kinds) if(!A.words.has(w)) return 0;
+  for(const w of A.mods) if(!B.words.has(w)) return 0;
+  for(const w of B.mods) if(!A.words.has(w)) return 0;
+  // words only: another supplier's product (a supplier's own range is mostly variants — colours, sizes)
+  // another supplier's product, or another BRAND (Benman vs Safeline, even when ABC002 lists both).
+  // Within one supplier's own brand (Dulux colours, Abus variants) only near-identical titles count.
+  const bA=A.brandArr, bB=B.brandArr;
+  const cross=![...A.sups].some(s=>B.sups.has(s)) || (bA.length>0 && bB.length>0 && !bA.some(w=>bB.includes(w)));
+  if(!cross){
+    let sh=0, wa=0, wb=0; const v=w=>SIM_GROUPS.some(g=>g.has(w))?0.3:(ix.idf.get(w)||1);
+    for(const w of A.words){ wa+=v(w); if(B.words.has(w)) sh+=v(w); } for(const w of B.words) wb+=v(w);
+    if(!wa||!wb) return 0; const cs=sh/Math.min(wa,wb), cl=sh/Math.max(wa,wb);
+    return (cs>=0.9 && cl>=0.75) ? +(((cs+cl)/2)).toFixed(3) : 0;
+  }
+  // brand / product-line words count for little; a rare word on one side only (Fatmax, Tylon, Redline) is
+  // usually a line name, so it can't sink the match on its own
+  const wt=(w,shared)=>{ if(SIM_GROUPS.some(g=>g.has(w))) return 0.3; let v=ix.idf.get(w)||1; if(ix.brand.has(w)) v*=0.12; else if(!shared && (ix.df.get(w)||0)<=3) v=Math.min(v,0.6); return v; };
+  let sh=0, wa=0, wb=0, nShared=0;
+  for(const w of A.words){ const on=B.words.has(w); const v=wt(w,on); wa+=v; if(on){ sh+=v; nShared++; } }
+  for(const w of B.words) wb+=wt(w,A.words.has(w));
+  if(!nShared || !wa || !wb) return 0;
+  const cs=sh/Math.min(wa,wb), cl=sh/Math.max(wa,wb);
+  // both titles state a size and the sizes agree → strong evidence; otherwise the words must carry it
+  const strong=A.num&&B.num;
+  if(strong ? (cs<0.8 || cl<0.3) : (cs<0.85 || cl<0.5)) return 0;
+  return +(((cs+cl)/2)).toFixed(3);
+}
+// alternatives in stock for one SKU (any supplier). channel: 'arklow' | 'capel'
+function simFind_(ix, sku, channel, opts){
+  const i=ix.bySku.get(String(sku)); if(i==null) return [];
+  const A=ix.items[i]; const out=new Map();
+  const ean=String(A.ean||'').replace(/^'+/,'').trim();
+  if(ean.length>=8) for(const j of (ix.byEan.get(ean)||[])) if(j!==i) out.set(j,{score:1, same:'barcode'});
+  const q=++ix.q, st=ix.stamp; st[i]=q;
+  let used=0;
+  for(const w of A.seek){
+    const p=ix.post.get(w); if(!p) continue;
+    if(p.length>4000 && used>0) continue;
+    if(++used>3) break;
+    for(const j of p){ if(st[j]===q) continue; st[j]=q; if(out.has(j)) continue; const B=ix.items[j]; let sc=simScore_(ix,A,B);
+      if(sc>0) out.set(j,{score:sc, exact:A.num && A.sp.len.length===B.sp.len.length}); }
+  }
+  const res=[];
+  for(const [j,m] of out){
+    const B=ix.items[j]; const stock = channel==='capel'?B.cs:B.ak; const sold=channel==='capel'?B.s30cs:B.s30ak;
+    if(!(stock>0)) continue;
+    res.push({sku:B.sku, title:B.title, sups:[...B.sups], stock, sold30:sold, spare:stock-sold, score:m.score, same:m.same||'', exact:!!m.exact});
+  }
+  // same barcode first, then the same sizes exactly, then whichever has the most to spare
+  res.sort((a,b)=>(b.same?1:0)-(a.same?1:0) || (b.exact?1:0)-(a.exact?1:0) || b.spare-a.spare || b.score-a.score);
+  return res;
+}
+
+// ── dashboard glue: catalogue from ALL QueryData rows, background index, order-screen bar ──
+function simCatalogue_(parsedRaw){
+  const by=new Map();
+  const n=v=>{ const x=parseFloat(String(v==null?'':v).replace(/[^0-9.\-]/g,'')); return isFinite(x)?x:0; };
+  const pick=(r,a,b)=>r[a]!=null&&r[a]!==''?r[a]:r[b];
+  for(const r of parsedRaw||[]){
+    const sku=String(r.SKU!=null?r.SKU:'').trim().replace(/^'+/,''); if(!sku) continue;
+    let x=by.get(sku);
+    if(!x){
+      x={sku, title:String(r.ItemTitle||''), sups:new Set(),
+        ak:n(pick(r,'NSk_AK','NetStock_Arklow')), cs:n(pick(r,'NSk_CS','NetStock_CapelStreet')),
+        s30ak:n(pick(r,'QSold_On30','QtySold_Online_Total_30d')),
+        s30cs:n(pick(r,'QSold_OnCS30','QtySold_Online_CapelStreet_30d'))+n(pick(r,'QSold_ShCS30','QtySold_Shop_CapelStreet_30d')),
+        ean:String(r.Barcode||'').trim().replace(/^'+/,'')};
+      by.set(sku,x);
+    }
+    const sup=String(r.SupplierName||'').trim(); if(sup) x.sups.add(sup);
+  }
+  return [...by.values()];
+}
+// called on every data load: keep the new rows (state.simRows = "waiting to be indexed") and build a moment
+// later in the background. The previous index stays in use until the new one is ready, so an auto-refresh
+// never makes the bars blink out on an open order screen.
+function simReset_(parsedRaw){
+  try{ state.simRows=simCatalogue_(parsedRaw); }catch(e){ state.simRows=null; }
+  state.simBuild=null;
+  clearTimeout(state._simT); state._simT=setTimeout(()=>{ simEnsure_(); }, 1500);
+}
+function simEnsure_(){
+  if(!state.simRows) return Promise.resolve(state.simIx||null);
+  if(!state.simBuild){
+    const rows=state.simRows, t0=performance.now();
+    const job=simBuildIndexAsync_(rows).then(ix=>{
+      if(state.simRows===rows){ state.simIx=ix; ix.ms=Math.round(performance.now()-t0); state.simRows=null; }
+      if(state.simBuild===job) state.simBuild=null; return state.simIx;
+    }).catch(e=>{ console.warn('Similar-in-stock index failed',e); if(state.simBuild===job) state.simBuild=null; return state.simIx||null; });
+    state.simBuild=job;
+  }
+  return state.simBuild;
+}
+// opening an order screen right after a load: index the fresh rows now rather than show stale stock
+function simIndexNow_(){
+  if(!state.simRows) return state.simIx||null;
+  try{ const t0=performance.now(); state.simIx=simBuildIndex_(state.simRows); state.simIx.ms=Math.round(performance.now()-t0); state.simRows=null; state.simBuild=null; }
+  catch(e){ console.warn('Similar-in-stock index failed',e); }
+  return state.simIx||null;
+}
+const SIM_NOTSAME_KEY='lenehans_sim_notsame';
+function simNotSame_(){
+  if(!state._simNS){ let a=[]; try{ a=JSON.parse(localStorage.getItem(SIM_NOTSAME_KEY)||'[]'); }catch(e){} state._simNS=new Set(Array.isArray(a)?a:[]); }
+  return state._simNS;
+}
+function simMarkNotSame_(a,b){
+  const s=simNotSame_(); s.add(a+'|'+b); s.add(b+'|'+a);
+  try{ localStorage.setItem(SIM_NOTSAME_KEY, JSON.stringify([...s].slice(-4000))); }catch(e){}
+}
+// every similar product in stock for this order line (this store), minus "not the same" and lines in this order
+function simAltsAll_(r){
+  const ix=state.simIx; if(!ix||!r||!r.SKU) return [];
+  const key=state.channel+'|'+r.SKU;
+  let a=ix.cache.get(key);
+  if(!a){ try{ a=simFind_(ix, String(r.SKU), state.channel); }catch(e){ a=[]; } ix.cache.set(key,a); }
+  const os=window._os, ns=simNotSame_();
+  if(os && !os._skuSet) os._skuSet=new Set(os.rows.map(x=>String(x.SKU)));
+  return a.filter(x=>!ns.has(r.SKU+'|'+x.sku) && !(os && os._skuSet.has(x.sku)));
+}
+// the ones worth a flag: stock left over after a month of their own sales — at least 2,
+// or enough to cover this order (1 spare is enough when we'd only order 1)
+function simAltsFor(r){ const need=Math.max(1,r.buy||0); return simAltsAll_(r).filter(x=>x.spare>=Math.min(2,need)); }
+// "ABC002 - ABC Abrasives Ltd" → ABC002 · "BLA001- BLACKSPUR HAND TOOLS" → BLA001 · "FITZPATRICK WHOLESALE" → FITZPATRICK WHOLESALE
+function simSupCode_(s){ s=String(s||'').trim(); const m=s.match(/^([^\s-]+)\s*-/); if(m) return m[1]; const t=s.split(/\s+/)[0]; return /\d/.test(t)?t:s.slice(0,22); }
+function simSupTxt_(a){ return [...new Set(a.sups.map(simSupCode_))].filter(Boolean).slice(0,2).join(', '); }
+function osSimBar(r){
+  const alts=simAltsFor(r); if(!alts.length) return '';
+  const a=alts[0], f=fmtInt, q=osQty(r);
+  const more=alts.length>1?` <span class="sim-more" title="${esc(alts.slice(1).map(x=>`${f(x.stock)} × ${x.title} (${simSupTxt_(x)})`).join('\n'))}">+${alts.length-1} more</span>`:'';
+  const lead=a.same==='barcode'?'Same barcode — we have':'We have';
+  return `<div class="ls-simrow${q===0?' done':''}" data-alt="${esc(a.sku)}"><span class="sim-t">🔁 ${lead} <b>${f(a.stock)}</b> × ${esc(a.title)} <span class="sim-sub">(${esc(simSupTxt_(a))} · sold ${f(a.sold30)} last 30 days)</span>${more} — do you really need this?</span>`+
+    `<span class="sim-b"><button tabindex="-1" class="sim-btn" title="Don't order this line" onclick="event.stopPropagation();osSimZero('${jsArg(r.SKU)}')">Set to 0</button>`+
+    `<button tabindex="-1" class="sim-btn ghost" title="These are different products — don't flag this pair again" onclick="event.stopPropagation();osSimNotSame('${jsArg(r.SKU)}','${jsArg(a.sku)}')">Not the same</button></span></div>`;
+}
+function osSimZero(sku){
+  const inp=[...document.querySelectorAll('#osBody input.ol-qty')].find(x=>x.dataset.sku===String(sku)); if(!inp) return;
+  inp.value='0'; osEditQty(inp,true);
+}
+function osSimNotSame(sku, alt){
+  sku=String(sku); alt=String(alt);
+  simMarkNotSame_(sku, alt);
+  const os=window._os; const r=os&&os.rows.find(x=>String(x.SKU)===sku);
+  const row=[...document.querySelectorAll('#osBody .ol-row')].find(x=>x.dataset.sku===sku);
+  if(row&&r){ const bar=row.querySelector('.ls-simrow'); if(bar){ const h=osSimBar(r); if(h) bar.outerHTML=h; else bar.remove(); } }
+  const n=document.getElementById('osSimN'); if(n&&os) n.textContent=fmtInt(osPresetRows('similar').length);
 }
 
 function osRankCell(r){
@@ -12048,7 +12408,7 @@ function osLineHtml(r){
       <div class="ls-why">${osWhyShort(r,q)}</div>
       <div class="ls-val ol-cost">${q>0&&c>0?'€'+f(q*c):(c>0?'€0':'<span class="ol-nocost">no cost</span>')}</div>
       <div class="ls-tick" title="Checked">✓</div>
-      ${cs}
+      ${cs}${osSimBar(r)}
     </div>
     <div class="ol-body"></div>
   </div>`;
@@ -12068,6 +12428,8 @@ function osBodyHtml(r){
   if(r._multiNoDefault) notes.push(`⚠ Also listed under ${esc((r._otherSuppliers||[]).join(', '))} — no default supplier set in Linnworks`);
   if(r.AltCost>0 && c>0 && r.AltSupplier && r.AltSupplier!==r.SupplierName && r.AltCost<c*0.98)
     notes.push(`💰 €${r.AltCost.toFixed(2)} at ${esc(r.AltSupplier.split(' - ')[0])} — you're paying €${c.toFixed(2)}`);
+  for(const a of simAltsAll_(r).slice(0,5))
+    notes.push(`🔁 ${a.same==='barcode'?'Same barcode: ':'Similar: '}<b>${f(a.stock)}</b> in stock of ${esc(a.title)} · ${esc(simSupTxt_(a))} · ${esc(a.sku)} · sold ${f(a.sold30)} in 30 days`);
   const open=os.expanded.has(r.SKU);
   return `<div class="ol-card">
     <div class="ol-what">
@@ -12205,6 +12567,7 @@ function openOrderScreen(supplier, preset, opts){
   const mode = osSavedMode_();
   if(mode==='quick' && (!preset || preset==='now')) preset='urgent';   // Quick opens on Critical, like the old Quick Order
   window._os={supplier:sup, mode, preset:preset||'now', cap:opts.cap||prevCap||15, search:'', keep:null, rows, expanded:new Set(), seen:new Set(), focus:null, showReady:false, bigShare:50, flags:new Map()};
+  try{ simIndexNow_(); }catch(e){}
   window._poEdits[sup]=window._poEdits[sup]||{};
   window._poReviewCtx={rows, supplier:sup, orderScreen:true};   // minimise / restore plumbing
   // If the requested view is empty but there's work in the order, explain rather than show a blank list
@@ -12252,7 +12615,7 @@ function osRender(rebuild){
     }
   }
 
-  const tabs=Object.keys(OS_PRESETS).filter(k=>k!=='gap'||showGap).map(k=>{
+  const tabs=Object.keys(OS_PRESETS).filter(k=>(k!=='gap'||showGap)&&(k!=='similar'||counts.similar>0)).map(k=>{
     const capSel = k==='impact' ? ` <select onclick="event.stopPropagation()" onchange="window._os.cap=parseInt(this.value)||15;window._os.preset='impact';osRender()" class="os-cap">${[10,15,20,30].map(n=>`<option value="${n}"${n===os.cap?' selected':''}>${n}</option>`).join('')}</select>` : '';
     return `<button class="os-tab os-tab-${k}${os.preset===k?' active':''}" title="${esc(OS_PRESETS[k].tip)}" onclick="osSetPreset('${k}')">
       <span class="os-tab-top"><span class="os-tab-lbl">${OS_PRESETS[k].label}</span><span class="os-tab-n">${counts[k]}</span></span>
@@ -12321,8 +12684,8 @@ function osRender(rebuild){
   const quick=os.mode==='quick';
   document.querySelector('#poReviewOverlay .os-modal')?.classList.toggle('quick', quick);
   $('osModeSwitch').innerHTML=`<button tabindex="-1" class="${quick?'on':''}" onclick="osSetMode('quick')" title="Slim list: critical lines first, Tab straight down the quantities">⚡ Quick</button><button tabindex="-1" class="${quick?'':'on'}" onclick="osSetMode('detail')" title="Full view: reasons, Needs a look, sales by month">🔍 Detail</button>`;
-  const qExtra = (os.preset!=='urgent' && os.preset!=='all' && OS_PRESETS[os.preset]) ? `<button tabindex="-1" class="oq-btn on">${OS_PRESETS[os.preset].label} <b>${fmtInt(counts[os.preset]||0)}</b></button>` : '';
-  $('osQuickBtns').innerHTML=qExtra+`<button tabindex="-1" class="oq-btn${os.preset==='urgent'?' on':''}" onclick="osQuickFilter('urgent')">🔴 Critical <b>${fmtInt(counts.urgent||0)}</b></button><button tabindex="-1" class="oq-btn${os.preset==='all'?' on':''}" onclick="osQuickFilter('all')">All lines <b>${fmtInt(counts.all||0)}</b></button>`;
+  const qExtra = (os.preset!=='urgent' && os.preset!=='all' && os.preset!=='similar' && OS_PRESETS[os.preset]) ? `<button tabindex="-1" class="oq-btn on">${OS_PRESETS[os.preset].label} <b>${fmtInt(counts[os.preset]||0)}</b></button>` : '';
+  $('osQuickBtns').innerHTML=qExtra+`<button tabindex="-1" class="oq-btn${os.preset==='urgent'?' on':''}" onclick="osQuickFilter('urgent')">🔴 Critical <b>${fmtInt(counts.urgent||0)}</b></button><button tabindex="-1" class="oq-btn${os.preset==='all'?' on':''}" onclick="osQuickFilter('all')">All lines <b>${fmtInt(counts.all||0)}</b></button>`+(counts.similar?`<button tabindex="-1" class="oq-btn sim${os.preset==='similar'?' on':''}" onclick="osQuickFilter('similar')" title="Lines where we already hold a similar product">🔁 Similar in stock <b id="osSimN">${fmtInt(counts.similar)}</b></button>`:'');
   $('osBody').innerHTML=body;
   osFitProductCol(view);
   try{ const hd=document.querySelector('#osBody .ls-head'); if(hd&&hd.offsetHeight) document.getElementById('osBody').style.setProperty('--hh',(hd.offsetHeight+8)+'px'); }catch(e){}
@@ -12358,6 +12721,7 @@ function osEditQty(inp, committed){
     const ws=row.querySelector('.ls-why'); if(ws) ws.innerHTML=osWhyShort(r,q);
     const lc=row.querySelector('.ls-csrow'); if(lc){ const f=fmtInt; lc.classList.toggle('short', q<r._csQtyFloor); lc.innerHTML=`🔒 Customer Service requires <b>${f(r._csQtyFloor)}</b>${r._csReason?' · '+esc(r._csReason):''}${q<r._csQtyFloor?' · your order is below this':''}`; }
     const csb=row.querySelector('.ol-cs'); if(csb) csb.outerHTML=osCsBanner(r,q);
+    const sb=row.querySelector('.ls-simrow'); if(sb) sb.classList.toggle('done', q===0);
     if(committed){ const ow=row.querySelector('.ol-why'); if(ow){ const btn=ow.querySelector('.ol-more'); ow.innerHTML=`<div class="ow-h">Why buy ${fmtInt(r.buy||0)}?</div>`+osWhySum(r,q); if(btn) ow.appendChild(btn); } }
   }
   osUpdateTotals(); osUpdateGuide();
