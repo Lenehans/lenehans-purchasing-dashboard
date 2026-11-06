@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.31.32 · SIMILAR IN STOCK</title>
+  <title>Lenehans Purchasing Dashboard · V7.31.35 · BIG HEADINGS</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1094,10 +1094,10 @@
     .os-modal{width:min(1760px,98vw)!important}
     .ol-list{display:flex;flex-direction:column;gap:0;background:#fff;border:1px solid #e2e8f0;border-radius:0 0 12px 12px;margin-top:10px}
     .ol-list>.ol-row:last-child{border-bottom:none;border-radius:0 0 12px 12px}
-    .ls-head,.ol-line{display:grid;grid-template-columns:76px var(--pw,280px) 70px 70px 112px 78px 96px minmax(160px,1fr) 92px 24px;gap:10px;align-items:center;padding:8px 14px}
-    .ls-head{position:sticky;top:0;z-index:5;background:#f8fafc;border-bottom:2px solid #cbd5e1;border-radius:0;box-shadow:0 4px 8px -4px rgba(15,23,42,.18);font-size:11.5px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;text-align:center}
+    .ls-head,.ol-line{display:grid;grid-template-columns:84px var(--pw,280px) 100px 104px 112px 112px 140px minmax(160px,1fr) 104px 24px;gap:10px;align-items:center;padding:8px 14px}
+    .ls-head{position:sticky;top:0;z-index:5;background:#f8fafc;border-bottom:2px solid #cbd5e1;border-radius:0;box-shadow:0 4px 8px -4px rgba(15,23,42,.18);font-size:22px;font-weight:800;color:#1e293b;text-transform:none;letter-spacing:-.01em;text-align:center}
     .ls-head .l{text-align:left}.ls-head .r{text-align:right}
-    .ls-head span{line-height:1.25}
+    .ls-head span{line-height:1.12}
     .ls-head .hq{color:#1d4ed8}
     .ls-rank{display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;padding:4px 2px;line-height:1.1}
     .ls-rank b{font-size:16px;font-weight:900}.ls-rank i{font-style:normal;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;margin-top:2px}
@@ -1140,7 +1140,7 @@
     .oq-btn b{margin-left:4px;color:#64748b}.oq-btn.on{background:#1e3a5f;border-color:#1e3a5f;color:#fff}.oq-btn.on b{color:#fff}
     .oq-search{margin-left:auto;width:220px;max-width:220px}
     /* V7.31.30 — Quick mode is compact: the panel is only as wide as the line, rows are short */
-    .os-modal.quick{width:min(calc(var(--qpw,320px) + 430px),98vw)!important;min-width:min(700px,98vw)}
+    .os-modal.quick{width:min(calc(var(--qpw,450px) + 830px),98vw)!important;min-width:min(1270px,98vw)}
     .os-modal.quick .po-review-hdr{padding:10px 14px 6px}
     .os-modal.quick .os-head{margin-bottom:0;align-items:center}
     .os-modal.quick .os-sup{font-size:17px}
@@ -1151,8 +1151,8 @@
     .os-modal.quick .po-review-ftr button{padding:5px 9px;font-size:12.5px}
     .os-modal.quick .po-rev-total{font-size:12.5px;line-height:1.35;min-width:0}.os-modal.quick .po-rev-total span{font-size:16px}
     .os-modal.quick .ol-card{grid-template-columns:1fr;padding:2px 12px 12px;max-width:none}
-    .ls-head.ql-head,.ql-line{grid-template-columns:var(--qpw,320px) 62px 84px 68px 74px 24px;grid-template-areas:none;justify-content:start;gap:8px}
-    .ls-head.ql-head{padding:5px 12px;font-size:10.5px}
+    .ls-head.ql-head,.ql-line{grid-template-columns:var(--qpw,450px) 100px 104px 104px 112px 140px 104px 26px;grid-template-areas:none;justify-content:start;gap:10px}
+    .ls-head.ql-head{padding:8px 12px;font-size:22px}
     .ql-line{display:grid;align-items:center;padding:3px 12px;cursor:pointer}
     .ql-row:hover .ql-line{background:#f8fafc}
     .ol-row.qfocus{background:#f5f9ff;box-shadow:inset 0 0 0 2px #2563eb}
@@ -1160,28 +1160,31 @@
     .ql-line .ls-codes{margin-top:1px;font-size:11.5px;gap:3px 8px}
     .ql-line .ls-ean{padding:0 5px;font-size:12px;line-height:1.35}
     .ql-star{font-family:system-ui,sans-serif;font-size:11px;font-weight:800;background:#fde68a;color:#78350f;border-radius:5px;padding:0 5px}
-    .ql-line .ls-n{font-size:17px}
+    .ql-line .ls-n{font-size:22px}
     .ql-oo{font-size:10.5px;font-weight:700;color:#1d4ed8;margin-top:0;line-height:1.1}
-    .ql-line .ls-val{font-size:14.5px}
+    .ql-line .ls-val{font-size:16px}
     .ql-info{width:24px;height:24px;border-radius:50%;border:1.5px solid #cbd5e1;background:#fff;color:#64748b;font-weight:800;cursor:pointer;padding:0;min-height:0;font-size:12.5px}
     .ql-info:hover,.ql-info.on{border-color:#2563eb;color:#2563eb;background:#eff6ff}
     .ql-line .ls-csrow{grid-column:1/-1;grid-row:2;margin:0 0 1px;padding:2px 8px;font-size:12.5px;border-radius:6px}
     .ql-line .ls-csrow b{font-size:13.5px}
-    .ql-line .ol-qty{width:80px;font-size:19px;padding:2px 4px;border-width:2px;border-radius:8px}
+    .ql-line .ol-qty{width:84px;font-size:22px;padding:2px 4px;border-width:2px;border-radius:8px;scroll-margin-top:calc(var(--hh,84px) + 40px);scroll-margin-bottom:24px}
     .ql-sec{padding:4px 12px;font-weight:800;font-size:13.5px;color:#0f172a;border-left:5px solid;border-bottom:1px solid #e2e8f0}
     .ql-sec span{font-weight:800;color:#64748b;margin-left:4px}
     .ql-sec.oos{background:#fef2f2;border-left-color:#dc2626}.ql-sec.crit{background:#fff7ed;border-left-color:#f97316}
     .ql-sec.low{background:#fefce8;border-left-color:#eab308}.ql-sec.oth{background:#f0fdf4;border-left-color:#16a34a}
     /* V7.31.32 — similar product already in stock */
-    .ls-simrow{grid-column:3/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#ecfeff;border:1.5px solid #06b6d4;color:#155e75;border-radius:8px;padding:3px 8px;font-size:13px;font-weight:600;line-height:1.3;margin:0 0 2px}
+    .ls-simrow{grid-column:1/3;display:flex;align-items:center;gap:8px;background:#ecfeff;border:1.5px solid #06b6d4;color:#155e75;border-radius:8px;padding:3px 6px 3px 8px;font-size:13px;font-weight:600;line-height:1.3;margin:0 0 3px;min-width:0}
     .ls-simrow b{font-size:14px;color:#0e7490}
-    .sim-sub{font-weight:500;color:#0e7490;font-size:12px}
-    .sim-more{font-weight:800;color:#0e7490;text-decoration:underline dotted;cursor:help}
-    .sim-b{display:flex;gap:4px;flex-shrink:0}
-    .sim-btn{border:1.5px solid #0891b2;background:#0891b2;color:#fff;font-weight:800;font-size:11.5px;border-radius:6px;padding:2px 8px;cursor:pointer;min-height:0;white-space:nowrap}
+    .sim-t{flex:1;min-width:0;display:flex;flex-direction:column}
+    .sim-l1,.sim-l2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sim-l2{font-weight:500;font-size:12px;color:#0e7490}
+    .sim-sup{font-weight:800;color:#155e75}
+    .sim-more{font-weight:800;color:#0e7490;text-decoration:underline dotted;cursor:help;margin-left:5px}
+    .sim-b{display:flex;flex-direction:column;gap:2px;flex-shrink:0}
+    .sim-btn{border:1.5px solid #0891b2;background:#0891b2;color:#fff;font-weight:800;font-size:11px;border-radius:6px;padding:1px 7px;cursor:pointer;min-height:0;white-space:nowrap;line-height:1.35}
     .sim-btn.ghost{background:#fff;color:#0e7490}
     .ls-simrow.done{opacity:.5}
-    .ql-line .ls-simrow{grid-column:1/-1;font-size:12.5px;padding:2px 8px;border-radius:6px}
+    .ql-line .ls-simrow{grid-column:1/2;font-size:12.5px;border-radius:6px}
     .lf-sim{background:#cffafe;color:#155e75}
     .oq-btn.sim{border-color:#67e8f9}.oq-btn.sim.on{background:#0e7490;border-color:#0e7490;color:#fff}
     .ql-showall{margin-top:10px;border:2px solid #1e3a5f;background:#fff;color:#1e3a5f;font-weight:800;border-radius:10px;padding:8px 16px;cursor:pointer}
@@ -1208,7 +1211,7 @@
     .ls-noean{color:#cbd5e1;font-family:system-ui,sans-serif}
     .ls-cs{font-family:system-ui,sans-serif;font-size:12px;font-weight:800;color:#6b21a8;background:#f3e8ff;border-radius:6px;padding:0 6px}
     .ls-cs.short{color:#fff;background:#dc2626}
-    .ls-n{font-size:19px;font-weight:800;text-align:center;color:#0f172a}
+    .ls-n{font-size:22px;font-weight:800;text-align:center;color:#0f172a}
     .ls-n.bad{color:#dc2626}.ls-n.info{color:#1d4ed8}.ls-n.muted{color:#cbd5e1}
     .ls-why{font-size:13.5px;color:#475569;line-height:1.35}
     .ws-edit{color:#92400e;font-weight:700}
@@ -1347,7 +1350,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.31.32 · built 2026-11-05 · 🔁 Similar in stock: flags order lines where another supplier's product (or the same barcode) is already on the shelf · ⚡ Quick by default · online-only sales history · EAN in exports</div>
+  <div class="sub">V7.31.35 · built 2026-11-06 · column headings 22px · 🔁 Similar-in-stock note under the product name · bigger numbers · white spirit ≠ meths · ⚡ Quick shows On order + last year · online-only sales history · EAN in exports</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -11964,7 +11967,7 @@ function osQuickSection_(r){ return (r.stock<=0||r.coverStatus==='Out of Stock')
 function osQuickBody_(view){
   const sorted=view.slice().sort((a,b)=>osQuickSection_(a)-osQuickSection_(b) || (a.daysOfCover||0)-(b.daysOfCover||0));
   const n=[0,0,0,0]; sorted.forEach(r=>n[osQuickSection_(r)]++);
-  let h=`<div class="ls-head ql-head"><span class="l">Product</span><span>In stock</span><span class="hq">Order</span><span>Sold last 30 days</span><span class="r">Line total</span><span></span></div>`, last=-1;
+  let h=`<div class="ls-head ql-head"><span class="l">Product</span><span>In stock</span><span>On order</span><span class="hq">Order</span><span>Sold last 30 days</span><span>Sold next 30 days last year</span><span class="r">Line total</span><span></span></div>`, last=-1;
   for(const r of sorted){
     const s=osQuickSection_(r);
     if(s!==last){ h+=`<div class="ql-sec ${OS_QUICK_SECTIONS[s][0]}">${OS_QUICK_SECTIONS[s][1]} <span>${fmtInt(n[s])}</span></div>`; last=s; }
@@ -11980,16 +11983,20 @@ function osQuickLineHtml(r){
   const ean=String(r.Barcode||'').trim();
   const rank=state.skuRankMap&&state.skuRankMap.get(r.SKU), rev=r.Revenue_Online_Total_30d||0;
   const star = rank&&rev>0&&rank<=100 ? `<span class="ql-star">⭐ #${rank}</span>` : '';
+  const ly=osNext30LastYear(r);
+  const lyCls = ly==null ? 'muted' : (ly>=q30*1.25 && ly-q30>=2 ? 'up' : (ly<=q30*0.75 && q30-ly>=2 ? 'down' : ''));
   const cs = r._csRequired && r._csQtyFloor>0 ? `<div class="ls-csrow${q<r._csQtyFloor?' short':''}">🔒 Customer Service requires <b>${f(r._csQtyFloor)}</b>${r._csReason?' · '+esc(r._csReason):''}${q<r._csQtyFloor?' · your order is below this':''}</div>` : '';
   const open=os.expanded.has(String(r.SKU));
   return `<div class="ol-row ql-row${stock<=0?' oos':''}${os.seen&&os.seen.has(r.SKU)?' seen':''}" data-sku="${esc(r.SKU)}">
     <div class="ql-line" onclick="osFocusLine('${jsArg(r.SKU)}',event)">
       <div class="ql-what"><div class="ql-title" title="${esc(r.ItemTitle||'')}">${esc(r.ItemTitle||'')}</div>
         <div class="ls-codes"><span>${esc(r.SKU)}</span>${ean?`<button tabindex="-1" class="ls-ean" title="Click to copy barcode" onclick="event.stopPropagation();osCopy(this,'${jsArg(ean)}')"><span class="ls-ean-n">${esc(ean)}</span><span class="ls-ean-i">⧉ copy</span></button>`:'<span class="ls-noean">no barcode</span>'}${star}</div></div>
-      <div class="ls-n ls-s ${stock<=0?'bad':''}">${f(stock)}${oo>0?`<div class="ql-oo">+${f(oo)} on order</div>`:''}</div>
+      <div class="ls-n ls-s ${stock<=0?'bad':''}">${f(stock)}</div>
+      <div class="ls-n ls-o ${oo>0?'info':'muted'}">${f(oo)}</div>
       <div class="ls-qty"><input class="ol-qty po-rev-qty${edited?' changed':''}" type="number" min="0" step="1" value="${q}" data-sku="${esc(r.SKU)}"
         onfocus="osFocusLine(this.dataset.sku)" onkeydown="osQtyKey(event,this)" oninput="osEditQty(this)" onchange="osEditQty(this,true)"></div>
       <div class="ls-n ls-d">${f(q30)}</div>
+      <div class="ls-n ls-ly ${lyCls}">${ly==null?'—':f(Math.round(ly))}</div>
       <div class="ls-val ol-cost">${q>0&&c>0?'€'+f(q*c):(c>0?'€0':'<span class="ol-nocost">no cost</span>')}</div>
       <button tabindex="-1" class="ql-info${open?' on':''}" title="Why this quantity?" onclick="event.stopPropagation();osQuickWhy('${jsArg(r.SKU)}')">ⓘ</button>
       ${cs}${osSimBar(r)}
@@ -12011,13 +12018,16 @@ const SIM_STOP=new Set(('a an and the of for with to in on by from w c l x or at
 const SIM_KIND=new Set(('set kit assorted assortment refill replacement spare blade handle frame holder case box bag cover lid '+
   'nozzle cartridge battery charger bracket mount base stand hasp chain scale station bait adaptor adapter extension attachment '+
   'accessory sheet roll tip bit pump hose filter brush roller tray glue spray primer cleaner remover '+
-  'wallet storage organiser rack hook hanger clip clamp').split(' '));
+  'wallet storage organiser rack hook hanger clip clamp wick liner element mantle gasket seal valve pad head insert spare part '+
+  'level').split(' '));
 // modifiers that make it a different product when only one title has them (junior hacksaw ≠ hacksaw, SDS bit ≠ plain bit)
 const SIM_MODS=new Set(('junior mini micro long short extra xl jumbo large small medium little sds cordless corded electric battery solar led '+
   'halogen rechargeable kid child children baby adult men women lady left right male female internal external inner outer round square '+
   'flat hex oval angled straight curved live humane glue electronic ultrasonic sticky enclosed multicatch bimetal hss cobalt tungsten '+
   'diamond carbide fine coarse medium soft hard wide narrow deep shallow waterproof fireproof outdoor indoor magnetic insulated '+
   'keyalike combination digit luggage travel').split(' '));
+// spare parts fit particular models: only a near-identical title counts
+const SIM_PARTS=new Set('wick liner element mantle gasket seal valve insert spare part cartridge filter refill replacement nozzle head pad'.split(' '));
 const SIM_GROUPS=[
   new Set('white black grey gray silver gold brass chrome red blue green yellow orange pink purple brown cream magnolia ivory beige clear natural transparent oak walnut pine mahogany teak cherry ash'.split(' ')),
   new Set('gloss matt matte satin eggshell silk sheen'.split(' ')),
@@ -12025,15 +12035,17 @@ const SIM_GROUPS=[
 const SIM_SUPWORDS_GENERIC=new Set('ltd limited tools tool trading hardware sons son distributors distributor ireland irish eu trade centres centre center paints abrasives the group industries international wholesale ironmongery europe and co company plc inc global supplies supply hand default'.split(' '));
 const SIM_UNITS={mm:['len',1],cm:['len',10],m:['len',1000],metre:['len',1000],metres:['len',1000],meter:['len',1000],meters:['len',1000],mtr:['len',1000],mtrs:['len',1000],
   in:['len',25.4],inch:['len',25.4],inches:['len',25.4],'"':['len',25.4],"''":['len',25.4],ft:['len',304.8],feet:['len',304.8],foot:['len',304.8],"'":['len',304.8],
-  ml:['vol',1],l:['vol',1000],ltr:['vol',1000],ltrs:['vol',1000],litre:['vol',1000],litres:['vol',1000],liter:['vol',1000],liters:['vol',1000],
+  ml:['vol',1],l:['vol',1000],lt:['vol',1000],lts:['vol',1000],ltr:['vol',1000],ltrs:['vol',1000],litre:['vol',1000],litres:['vol',1000],liter:['vol',1000],liters:['vol',1000],
   g:['wt',1],gr:['wt',1],gram:['wt',1],grams:['wt',1],kg:['wt',1000],w:['pow',1],kw:['pow',1000],v:['volt',1],ah:['ah',1],tpi:['tpi',1]};
-const SIM_UNIT_RE=`(mm|cm|metres?|meters?|mtrs?|m|inches|inch|in|"|''|feet|foot|ft|'|ml|ltrs?|litres?|liters?|l|grams?|gr|kg|g|kw|w|v|ah|tpi)`;
+const SIM_UNIT_RE=`(mm|cm|metres?|meters?|mtrs?|m|inches|inch|in|"|''|feet|foot|ft|'|ml|ltrs?|lts?|litres?|liters?|l|grams?|gr|kg|g|kw|w|v|ah|tpi)`;
 
 function simSpecs_(full){
   let s=(' '+full+' ').replace(/(\d)\s*(mm|cm|m|"|in)?\s*x\s*(?=\d)/g,'$1$2 x ').replace(/([\d"])x(?=\d)/g,'$1 x ');
   const sp={len:[],vol:[],wt:[],pow:[],volt:[],ah:[],tpi:[],cnt:[],code:[],bare:[]};
   const cut=(re,fn)=>{ s=s.replace(re,(...m)=>{ fn&&fn(m); return ' '; }); };
   cut(/\b\d+\s*in\s*1\b/g);                                     // "3 in 1"
+  cut(/(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*%/g, m=>sp.code.push('pct'+m[1]+'-'+m[2]));   // "5-10%"
+  cut(/(\d+(?:\.\d+)?)\s*%/g, m=>sp.code.push('pct'+m[1]));                               // "18%"
   cut(/\b\d+\s*series\b/g);                                     // "28 series"
   cut(/\b(\d+)\s*-?\s*(digit|dial|cutter|way|gang|tier|step|core|ply|drawer|shelf|blade|key)s?\b/g, m=>sp.code.push(m[1]+m[2]));
   cut(/\b(?:pack|card|set|box|bag|pk|tub|bucket|tube) of (\d+)\b/g, m=>sp.cnt.push(+m[1]));
@@ -12080,7 +12092,7 @@ function simSpecs_(full){
   sp.cntMax = sp.cnt.length ? Math.max(...sp.cnt) : 1;
   for(const k of ['len','vol','wt','pow','volt','ah','tpi','cnt','code','bare']) if(!sp[k].length) sp[k]=SIM_E;   // share one empty array (55k titles)
   sp.codeKey = [...new Set(sp.code)].sort().join(',');
-  sp.codeStrict = sp.code.some(c=>/^(m|pz|ph|no|p|grit|grade|size|gauge)\d/.test(c));
+  sp.codeStrict = sp.code.some(c=>/^(m|pz|ph|no|p|grit|grade|size|gauge|pct)\d/.test(c));
   return {sp, rest:s};
 }
 function simWords_(title, vocab){
@@ -12103,27 +12115,30 @@ function simWords_(title, vocab){
     if(w.length<2) continue;
     if(w.length>5 && w.endsWith('ies')) w=w.slice(0,-3)+'y';
     else if(w.length>3 && w.endsWith('s') && !/(ss|us|is)$/.test(w)) w=w.slice(0,-1);
-    if(SIM_STOP.has(w)) continue;
+    if(SIM_STOP.has(w) || SIM_UNITS[w]) continue;
     words.add(w);
   }
   if(words.has('bit') && words.has('drill')) words.delete('drill');
   return {words, sp, extras};
 }
 function simNear_(a,b){ const d=a-b; return (d<0?-d:d) <= 0.03*(a>b?a:b) + 1e-9; }
-function simSubset_(xs,ys){ // every x has its own partner in ys
-  if(xs.length===1){ const x=xs[0]; for(let i=0;i<ys.length;i++) if(simNear_(x,ys[i])) return true; return false; }
+// every x has its own partner in ys. Sizes with units allow 3% (6" = 152mm ≈ 150mm); bare numbers
+// are often model numbers (Aladdin 202 vs 203), so they must be exact.
+function simSubset_(xs,ys,exact){
+  const eq=exact?((a,b)=>a===b):simNear_;
+  if(xs.length===1){ const x=xs[0]; for(let i=0;i<ys.length;i++) if(eq(x,ys[i])) return true; return false; }
   const used=new Uint8Array(ys.length);
-  for(const x of xs){ let ok=false; for(let i=0;i<ys.length;i++){ if(!used[i]&&simNear_(x,ys[i])){ used[i]=1; ok=true; break; } } if(!ok) return false; }
+  for(const x of xs){ let ok=false; for(let i=0;i<ys.length;i++){ if(!used[i]&&eq(x,ys[i])){ used[i]=1; ok=true; break; } } if(!ok) return false; }
   return true;
 }
-function simFitArr_(x,y){ if(!x.length||!y.length) return true; return x.length<=y.length?simSubset_(x,y):simSubset_(y,x); }
+function simFitArr_(x,y,exact){ if(!x.length||!y.length) return true; return x.length<=y.length?simSubset_(x,y,exact):simSubset_(y,x,exact); }
 const SIM_E=[];
 function simSpecsFit_(a,b){
   if(a.cntMax!==b.cntMax) return false;
   let al=a.len, bl=b.len, ab=a.bare, bb=b.bare;
   if(ab.length && !al.length && bl.length){ al=ab; ab=SIM_E; }
   if(bb.length && !bl.length && al.length){ bl=bb; bb=SIM_E; }
-  if(!simFitArr_(al,bl) || !simFitArr_(ab,bb)) return false;
+  if(!simFitArr_(al,bl) || !simFitArr_(ab,bb,true)) return false;
   if(!simFitArr_(a.vol,b.vol) || !simFitArr_(a.wt,b.wt) || !simFitArr_(a.pow,b.pow) || !simFitArr_(a.volt,b.volt) || !simFitArr_(a.ah,b.ah) || !simFitArr_(a.tpi,b.tpi)) return false;
   if(a.codeKey && b.codeKey) return a.codeKey===b.codeKey;
   if(a.codeStrict || b.codeStrict) return false;   // "pz2" vs nothing is not the same; "3 digit" vs nothing is fine
@@ -12145,7 +12160,33 @@ async function simBuildIndexAsync_(rows){
   for(let k=0;k<rows.length;k+=2500){ for(let i=k;i<Math.min(rows.length,k+2500);i++) items.push(simPrep_(rows[i],vocab)); await new Promise(r=>setTimeout(r,0)); }
   return simFinish_(items, vocab);
 }
+// Damerau (adjacent swap) edit distance, giving up past max
+function simDL_(a,b,max){
+  const n=a.length, m=b.length; if(Math.abs(n-m)>max) return max+1;
+  let p2=null, p=Array.from({length:m+1},(_,j)=>j);
+  for(let i=1;i<=n;i++){ const c=[i]; let lo=c[0];
+    for(let j=1;j<=m;j++){ let v=Math.min(p[j]+1, c[j-1]+1, p[j-1]+(a[i-1]===b[j-1]?0:1));
+      if(p2 && i>1 && j>1 && a[i-1]===b[j-2] && a[i-2]===b[j-1]) v=Math.min(v, p2[j-2]+1);
+      c.push(v); if(v<lo) lo=v; }
+    if(lo>max) return max+1; p2=p; p=c; }
+  return p[m];
+}
+function simFixTypos_(items){
+  const df=new Map(); for(const it of items) for(const w of it.words) df.set(w,(df.get(w)||0)+1);
+  const common=new Map(); for(const [w,d] of df) if(d>=3 && w.length>=6){ const k=w.slice(0,3); if(!common.has(k)) common.set(k,[]); common.get(k).push(w); }
+  const fix=new Map();
+  for(const [w,d] of df){
+    if(d>2 || w.length<7) continue;
+    const c=common.get(w.slice(0,3)); if(!c) continue;
+    const max=w.length>=9?2:1; let best=null, bd=max+1;
+    for(const x of c){ if(x===w) continue; const dd=simDL_(w,x,max); if(dd<bd || (dd===bd && best && (df.get(x)||0)>(df.get(best)||0))){ bd=dd; best=x; } }
+    if(best && bd<=max) fix.set(w,best);
+  }
+  if(fix.size) for(const it of items){ let ch=false; const ws=new Set(); for(const w of it.words){ const f=fix.get(w); if(f){ ch=true; ws.add(f); } else ws.add(w); } if(ch) it.words=ws; }
+  return fix;
+}
 function simFinish_(items, vocab){
+  const typos=simFixTypos_(items);
   // document frequency + which suppliers use each word (brand detection)
   const df=new Map(), supCount=new Map();
   for(const it of items){ for(const w of it.words){ df.set(w,(df.get(w)||0)+1); let m=supCount.get(w); if(!m){ m=new Map(); supCount.set(w,m); } for(const s of it.sups) m.set(s,(m.get(s)||0)+1); } }
@@ -12184,7 +12225,7 @@ function simFinish_(items, vocab){
     const e=String(it.ean||'').replace(/^'+/,'').trim(); if(e.length>=8 && !/^0+$/.test(e)){ let p=byEan.get(e); if(!p){ p=[]; byEan.set(e,p); } p.push(i); }
   });
   const bySku=new Map(items.map((it,i)=>[it.sku,i]));
-  return {items, idf, df, brand, post, byEan, bySku, vocab, N, multiSize, stamp:new Int32Array(items.length), q:0, cache:new Map()};
+  return {items, idf, df, brand, post, byEan, bySku, vocab, N, multiSize, typos, stamp:new Int32Array(items.length), q:0, cache:new Map()};
 }
 function simScore_(ix, A, B){
   if(!simSpecsFit_(A.sp, B.sp)) return 0;
@@ -12202,16 +12243,17 @@ function simScore_(ix, A, B){
   // another supplier's product, or another BRAND (Benman vs Safeline, even when ABC002 lists both).
   // Within one supplier's own brand (Dulux colours, Abus variants) only near-identical titles count.
   const bA=A.brandArr, bB=B.brandArr;
-  const cross=![...A.sups].some(s=>B.sups.has(s)) || (bA.length>0 && bB.length>0 && !bA.some(w=>bB.includes(w)));
+  const isPart=A.kinds.some(w=>SIM_PARTS.has(w));
+  const cross=!isPart && (![...A.sups].some(s=>B.sups.has(s)) || (bA.length>0 && bB.length>0 && !bA.some(w=>bB.includes(w))));
   if(!cross){
-    let sh=0, wa=0, wb=0; const v=w=>SIM_GROUPS.some(g=>g.has(w))?0.3:(ix.idf.get(w)||1);
+    let sh=0, wa=0, wb=0; const v=w=>(ix.idf.get(w)||1);
     for(const w of A.words){ wa+=v(w); if(B.words.has(w)) sh+=v(w); } for(const w of B.words) wb+=v(w);
     if(!wa||!wb) return 0; const cs=sh/Math.min(wa,wb), cl=sh/Math.max(wa,wb);
     return (cs>=0.9 && cl>=0.75) ? +(((cs+cl)/2)).toFixed(3) : 0;
   }
   // brand / product-line words count for little; a rare word on one side only (Fatmax, Tylon, Redline) is
   // usually a line name, so it can't sink the match on its own
-  const wt=(w,shared)=>{ if(SIM_GROUPS.some(g=>g.has(w))) return 0.3; let v=ix.idf.get(w)||1; if(ix.brand.has(w)) v*=0.12; else if(!shared && (ix.df.get(w)||0)<=3) v=Math.min(v,0.6); return v; };
+  const wt=(w,shared)=>{ let v=ix.idf.get(w)||1; if(ix.brand.has(w)) v*=0.12; else if(!shared && (ix.df.get(w)||0)<=3) v=Math.min(v,0.6); return v; };
   let sh=0, wa=0, wb=0, nShared=0;
   for(const w of A.words){ const on=B.words.has(w); const v=wt(w,on); wa+=v; if(on){ sh+=v; nShared++; } }
   for(const w of B.words) wb+=wt(w,A.words.has(w));
@@ -12219,7 +12261,7 @@ function simScore_(ix, A, B){
   const cs=sh/Math.min(wa,wb), cl=sh/Math.max(wa,wb);
   // both titles state a size and the sizes agree → strong evidence; otherwise the words must carry it
   const strong=A.num&&B.num;
-  if(strong ? (cs<0.8 || cl<0.3) : (cs<0.85 || cl<0.5)) return 0;
+  if(strong ? (cs<0.8 || cl<0.4) : (cs<0.85 || cl<0.5)) return 0;
   return +(((cs+cl)/2)).toFixed(3);
 }
 // alternatives in stock for one SKU (any supplier). channel: 'arklow' | 'capel'
@@ -12247,7 +12289,6 @@ function simFind_(ix, sku, channel, opts){
   res.sort((a,b)=>(b.same?1:0)-(a.same?1:0) || (b.exact?1:0)-(a.exact?1:0) || b.spare-a.spare || b.score-a.score);
   return res;
 }
-
 // ── dashboard glue: catalogue from ALL QueryData rows, background index, order-screen bar ──
 function simCatalogue_(parsedRaw){
   const by=new Map();
@@ -12314,18 +12355,26 @@ function simAltsAll_(r){
   if(os && !os._skuSet) os._skuSet=new Set(os.rows.map(x=>String(x.SKU)));
   return a.filter(x=>!ns.has(r.SKU+'|'+x.sku) && !(os && os._skuSet.has(x.sku)));
 }
-// the ones worth a flag: stock left over after a month of their own sales — at least 2,
-// or enough to cover this order (1 spare is enough when we'd only order 1)
-function simAltsFor(r){ const need=Math.max(1,r.buy||0); return simAltsAll_(r).filter(x=>x.spare>=Math.min(2,need)); }
+// what the other product will need itself: the bigger of its last 30 days and the next 30 days last year
+// (24 meths in stock isn't spare if it sold 30 this time last year)
+function simWithLy_(x){ let ly=null; try{ ly=(typeof next30LastYear==='function')?next30LastYear(x.sku):null; }catch(e){}
+  const own=Math.max(x.sold30||0, ly!=null?Math.round(ly):0); return {...x, ly, own, spare:x.stock-own}; }
+// the ones worth a flag: stock left over after its own month — at least 2, or enough to cover this order
+function simAltsFor(r){ const need=Math.max(1,r.buy||0); return simAltsAll_(r).map(simWithLy_).filter(x=>x.spare>=Math.min(2,need)).sort((a,b)=>(b.same?1:0)-(a.same?1:0)||(b.exact?1:0)-(a.exact?1:0)||b.spare-a.spare); }
+function simSoldTxt_(a){ const f=fmtInt; return `sold ${f(a.sold30)} last 30 days`+(a.ly!=null?` · ${f(Math.round(a.ly))} next 30 days last year`:''); }
 // "ABC002 - ABC Abrasives Ltd" → ABC002 · "BLA001- BLACKSPUR HAND TOOLS" → BLA001 · "FITZPATRICK WHOLESALE" → FITZPATRICK WHOLESALE
-function simSupCode_(s){ s=String(s||'').trim(); const m=s.match(/^([^\s-]+)\s*-/); if(m) return m[1]; const t=s.split(/\s+/)[0]; return /\d/.test(t)?t:s.slice(0,22); }
+function simSupCode_(s){ s=String(s||'').trim(); const m=s.match(/^([^\s-]+)\s*-/); if(m) return m[1]; const t=s.split(/\s+/)[0]; return t.length>=3?t:s.slice(0,14); }
 function simSupTxt_(a){ return [...new Set(a.sups.map(simSupCode_))].filter(Boolean).slice(0,2).join(', '); }
 function osSimBar(r){
   const alts=simAltsFor(r); if(!alts.length) return '';
   const a=alts[0], f=fmtInt, q=osQty(r);
-  const more=alts.length>1?` <span class="sim-more" title="${esc(alts.slice(1).map(x=>`${f(x.stock)} × ${x.title} (${simSupTxt_(x)})`).join('\n'))}">+${alts.length-1} more</span>`:'';
+  const more=alts.length>1?` <span class="sim-more" title="${esc(alts.slice(1).map(x=>`${f(x.stock)} × ${x.title} (${simSupTxt_(x)} · ${simSoldTxt_(x)})`).join('\n'))}">+${alts.length-1} more</span>`:'';
   const lead=a.same==='barcode'?'Same barcode — we have':'We have';
-  return `<div class="ls-simrow${q===0?' done':''}" data-alt="${esc(a.sku)}"><span class="sim-t">🔁 ${lead} <b>${f(a.stock)}</b> × ${esc(a.title)} <span class="sim-sub">(${esc(simSupTxt_(a))} · sold ${f(a.sold30)} last 30 days)</span>${more} — do you really need this?</span>`+
+  const full=`${lead} ${f(a.stock)} × ${a.title} (${simSupTxt_(a)}) · ${simSoldTxt_(a)} — do you really need this?`;
+  // two short lines under the product name, so the numbers to the right keep white space beneath them
+  return `<div class="ls-simrow${q===0?' done':''}" data-alt="${esc(a.sku)}" title="${esc(full)}"><span class="sim-t">`+
+    `<span class="sim-l1">🔁 ${lead} <b>${f(a.stock)}</b> × ${esc(a.title)}</span>`+
+    `<span class="sim-l2"><span class="sim-sup">${esc(simSupTxt_(a))}</span>${more} · ${simSoldTxt_(a)}</span></span>`+
     `<span class="sim-b"><button tabindex="-1" class="sim-btn" title="Don't order this line" onclick="event.stopPropagation();osSimZero('${jsArg(r.SKU)}')">Set to 0</button>`+
     `<button tabindex="-1" class="sim-btn ghost" title="These are different products — don't flag this pair again" onclick="event.stopPropagation();osSimNotSame('${jsArg(r.SKU)}','${jsArg(a.sku)}')">Not the same</button></span></div>`;
 }
@@ -12428,8 +12477,8 @@ function osBodyHtml(r){
   if(r._multiNoDefault) notes.push(`⚠ Also listed under ${esc((r._otherSuppliers||[]).join(', '))} — no default supplier set in Linnworks`);
   if(r.AltCost>0 && c>0 && r.AltSupplier && r.AltSupplier!==r.SupplierName && r.AltCost<c*0.98)
     notes.push(`💰 €${r.AltCost.toFixed(2)} at ${esc(r.AltSupplier.split(' - ')[0])} — you're paying €${c.toFixed(2)}`);
-  for(const a of simAltsAll_(r).slice(0,5))
-    notes.push(`🔁 ${a.same==='barcode'?'Same barcode: ':'Similar: '}<b>${f(a.stock)}</b> in stock of ${esc(a.title)} · ${esc(simSupTxt_(a))} · ${esc(a.sku)} · sold ${f(a.sold30)} in 30 days`);
+  for(const a of simAltsAll_(r).slice(0,5).map(simWithLy_))
+    notes.push(`🔁 ${a.same==='barcode'?'Same barcode: ':'Similar: '}<b>${f(a.stock)}</b> in stock of ${esc(a.title)} · ${esc(simSupTxt_(a))} · ${esc(a.sku)} · ${simSoldTxt_(a)}`);
   const open=os.expanded.has(r.SKU);
   return `<div class="ol-card">
     <div class="ol-what">
@@ -12486,7 +12535,7 @@ function osFitQuickCol_(view, list){
       for(const c of [...list.querySelectorAll('.ql-what .ls-codes')].slice(0,200)){
         const kids=[...c.children]; cw=Math.max(cw, kids.reduce((a,k)=>a+k.getBoundingClientRect().width,0)+8*Math.max(0,kids.length-1));
       }
-      w=Math.max(240, Math.min(400, Math.ceil(Math.max(mx, cw))+6));
+      w=Math.max(450, Math.min(500, Math.ceil(Math.max(mx, cw))+6));
     }
   }catch(e){ w=320; }
   const m=list.closest('.os-modal')||list;
@@ -12500,7 +12549,15 @@ function osFocusLine(sku, ev){
   if(os.mode==='quick'){
     list.querySelectorAll('.ol-row.qfocus').forEach(x=>x.classList.remove('qfocus'));
     row.classList.add('qfocus','seen'); os.seen=os.seen||new Set(); os.seen.add(String(sku));
-    try{ row.scrollIntoView({block:'nearest'}); }catch(e){}
+    // keep the whole line clear of the (now taller) column headings — again after the browser's own focus scroll
+    // (measured, not scrollIntoView: Chrome counts a line hidden under a sticky header as "visible")
+    const keep=()=>{ try{
+      const sc=row.closest('.po-review-body'), hd=list.querySelector('.ls-head'); if(!sc) return;
+      const rr=row.getBoundingClientRect(), sr=sc.getBoundingClientRect(), top=(hd?hd.getBoundingClientRect().bottom:sr.top)+6;
+      if(rr.top<top) sc.scrollTop-=Math.ceil(top-rr.top);
+      else if(rr.bottom>sr.bottom-8) sc.scrollTop+=Math.ceil(Math.min(rr.bottom-(sr.bottom-8), rr.top-top));
+    }catch(e){} };
+    keep(); try{ requestAnimationFrame(keep); setTimeout(keep,30); }catch(e){}
     const qi=row.querySelector('input.ol-qty'); if(qi && document.activeElement!==qi) qi.focus(); if(qi) try{ qi.select(); }catch(e){}
     return;
   }
