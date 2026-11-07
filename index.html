@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.32.3 · V8 LIVE</title>
+  <title>Lenehans Purchasing Dashboard · V7.32.4 · V8 LIVE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1370,7 +1370,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.32.3 · built 2026-11-07 · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
+  <div class="sub">V7.32.4 · built 2026-11-07 · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -8929,17 +8929,22 @@ function v8Forecast_(x){
   // V7.32.1 — days out of stock (from the stock-out log): a month the line spent empty counts only
   // for the days it could actually sell. x.inStock = share of each month in stock, aligned with all
   // (missing = 1: not logged / no stock-out). Never inflates a month more than 4×.
-  const wAll=all.map((v,i)=>{ const f=x.inStock&&x.inStock[i]; return (f==null||!(f>=0)) ? 1 : Math.min(1,f); });
+  // V7.32.4 — a month Linnworks shows out of stock but the line still sold its usual amount means the
+  // stock figure was wrong (Capel till lines never booked in): it counts as in stock. Only sales below
+  // the line's usual month (median selling month) are treated as held back by the stock-out.
+  const typ=Math.max(1, med);
+  const wRaw=all.map((v,i)=>{ const f=x.inStock&&x.inStock[i]; return (f==null||!(f>=0)) ? 1 : Math.min(1,f); });
+  const wAll=wRaw.map((w,i)=> w>=1 ? 1 : Math.max(w, Math.min(1,(all[i]||0)/typ)));
   const wh=hist.map((v,j)=>v==null?null:wAll[N-12+j]), wHave=wh.filter(v=>v!=null);
   const nEff=Math.max(v8Sum_(wHave), n/4);
-  const oosMonths=[]; wh.forEach((w,j)=>{ if(w!=null && w<0.999) oosMonths.push({j, w}); });
+  const oosMonths=[], oosWrong=[]; wh.forEach((w,j)=>{ if(w==null) return; const raw=wRaw[N-12+j]; if(w<0.999) oosMonths.push({j, w, raw}); else if(raw<0.97) oosWrong.push({j, raw}); });
   const mean=rTotal/nEff, avg=mean+extra;
   const sigma=Math.sqrt(rHave.reduce((a,v)=>a+(v-rTotal/n)*(v-rTotal/n),0)/Math.max(1,n-1));
   const last3=v8Sum_(rHave.slice(-3)), w3=v8Sum_(wHave.slice(-3)), c3=wHave.slice(-3).length;
   const last3Rate = c3 ? last3*c3/Math.max(w3, c3/4) : last3;   // last 3 months' sales, scaled to the days it was in stock
   const lyOf=w=>{ if(!w) return null; let s=0; for(let j=0;j<w.length;j++){ if(!(w[j]>0)) continue; if(rh[j]==null) return null; s+=w[j]*rh[j]; } return s+extra*v8Sum_(w); };
   const ly30=lyOf(x.lyW30), ly60=lyOf(x.lyW60);
-  Object.assign(out,{total, rTotal, sold, avg, sigma, capM, capped, last3, last3Rate, ly30, ly60, med, oosMonths, nEff});
+  Object.assign(out,{total, rTotal, sold, avg, sigma, capM, capped, last3, last3Rate, ly30, ly60, med, oosMonths, oosWrong, nEff});
   const s30raw=Math.max(0,x.sold30||0), f30=(x.inStock30==null||!(x.inStock30>=0))?1:Math.min(1,x.inStock30);
   const s30=s30raw/Math.max(f30,1/3), s7=Math.max(0,x.sold7||0);   // last 30 days per day it could sell
   out.s30=s30; out.s30raw=s30raw; out.inStock30=f30; out.s7=s7;
@@ -9202,9 +9207,19 @@ function v8PriceIncVat_(r){
 // Arklow AND Capel are both out (Mark's StockChange check, 7 Nov). Arklow-empty lines Capel is
 // covering are counted separately (they're draining the shop).
 function v8CapelCovering_(r){ return state.channel!=='capel' && r && !r._excluded && (r.stock||0)<=0 && (r.NetStock_CapelStreet||0)>0; }
+// Linnworks has shown none in this store for over a month (stock-out log) yet it sold in the last 30
+// days → the stock figure is wrong (sold from stock never booked in). Not a lost sale; check the shelf.
+function v8Phantom_(r){
+  if(!r || (r.stock||0)>0) return null;
+  const L=state.stockoutLog, sp=L&&L.by&&L.by.get((state.channel==='capel'?'CS':'AK')+'|'+normSku_(r.SKU));
+  const open=sp&&sp.find(x=>!x.back); if(!open) return null;
+  const days=Math.round((Date.now()-new Date(open.since+'T12:00:00').getTime())/86400000); if(days<31) return null;
+  const s30 = state.channel==='capel' ? (r.QtySold_Shop_CapelStreet_30d||0)+(r.QtySold_Online_CapelStreet_30d||0) : (r.QtySold_Online_Total_30d||0);
+  return s30>0 ? {since:open.since, days, s30} : null;
+}
 function v8LostPerDay_(r){
   if(!r || r._excluded || (r.stock||0)>0) return null;
-  if(v8CapelCovering_(r)) return null;
+  if(v8CapelCovering_(r) || v8Phantom_(r)) return null;
   let perDay=0;
   if(r.v8){ if(r.v8.fc.pattern==='dead') return null; perDay=(r.v8.fc.F||0)/30; }
   else { const y = state.channel==='capel' ? (r.QtySold_Shop_CapelStreet_365d||0)+(r.QtySold_Online_CapelStreet_365d||0) : (r.QtySold_Online_Arklow_365d||0)+(r.QtySold_Online_CapelStreet_365d||0); perDay=y/365; }
@@ -9215,10 +9230,13 @@ function v8LostPerDay_(r){
 function v8DaysOut12_(r){
   const v=r&&r.v8; if(!v || !v.keys) return null;
   const so=v8StockoutFor_(r.SKU, {capel:state.channel==='capel', keys:v.keys}); if(!so) return null;
-  const keys12=v.keys.slice(-12), cur=v8MonthKey_(new Date());
-  let d=0; for(const k of keys12.concat([cur])) d+=so.oosDays.get(k)||0;
+  const cur=v8MonthKey_(new Date()), N=v.keys.length;
+  let d=0, raw=0;
+  for(const m of (v.fc.oosMonths||[])){ const k=v.keys[N-12+m.j], dim=new Date(+k.slice(0,4), +k.slice(5), 0).getDate(); d+=Math.round((1-m.w)*dim); raw+=Math.round((1-(m.raw!=null?m.raw:m.w))*dim); }
+  for(const m of (v.fc.oosWrong||[])){ const k=v.keys[N-12+m.j], dim=new Date(+k.slice(0,4), +k.slice(5), 0).getDate(); raw+=Math.round((1-m.raw)*dim); }
+  if(!v8Phantom_(r)) d+=so.oosDays.get(cur)||0;
   const price=v8PriceIncVat_(r), perDay=(v.fc.F||0)/30;
-  return {days:d, eur: price>0 ? d*perDay*price : 0};
+  return {days:d, rawDays:raw, eur: price>0 ? d*perDay*price : 0};
 }
 function v8LostSummary_(rows){
   const seen=new Set(), out={n:0, eur:0, noPrice:0, onOrder:0, covering:0, bySup:new Map(), lines:[], y:{n:0, days:0, eur:0}, ySup:new Map()};
@@ -9230,6 +9248,7 @@ function v8LostSummary_(rows){
     if(r._notDefaultSupplier) continue;
     const sku=String(r.SKU); if(seen.has(sku)) continue;
     if(v8CapelCovering_(r)){ seen.add(sku); out.covering++; continue; }
+    if(!r._excluded){ const ph=v8Phantom_(r); if(ph){ seen.add(sku); (out.phantom=out.phantom||[]).push({r, ph}); continue; } }
     const l=v8LostPerDay_(r); if(!l) continue; seen.add(sku);
     out.n++; out.eur+=l.eur; if(!(l.price>0)) out.noPrice++; if(l.onOrder) out.onOrder++;
     const s=out.bySup.get(r.SupplierName)||{n:0, eur:0, onOrder:0}; s.n++; s.eur+=l.eur; if(l.onOrder) s.onOrder++; out.bySup.set(r.SupplierName, s);
@@ -9250,6 +9269,9 @@ window.v8LostReport=function(){
   const supRows=new Map([...S.bySup.entries()].map(([k,s])=>[k,{now:s, y:S.ySup.get(k)}])); for(const [k,y] of S.ySup) if(!supRows.has(k)) supRows.set(k,{now:{n:0,eur:0,onOrder:0}, y});
   for(const [sup,o] of [...supRows.entries()].sort((a,b)=>(b[1].now.eur*365+(b[1].y?b[1].y.eur:0))-(a[1].now.eur*365+(a[1].y?a[1].y.eur:0))).slice(0,40))
     t+=pad(sup,34)+lp(f(o.now.n),8)+lp('€'+f(o.now.eur),9)+lp(f(o.now.onOrder),10)+(S.y.n?lp(o.y?'€'+f(o.y.eur):'—',12):'')+'\n';
+  const PH=(S.phantom||[]).sort((a,b)=>b.ph.s30-a.ph.s30);
+  if(PH.length){ t+=`\nSTOCK FIGURES TO CHECK — ${f(PH.length)} lines show none in Linnworks for over a month but are still selling here (not counted as lost; check the shelf and book the stock in)\n`+pad('SKU',14)+pad('Product',44)+lp('Out since',11)+lp('Sold 30d',10)+'\n';
+    for(const {r,ph} of PH.slice(0,25)) t+=pad(r.SKU,14)+pad(r.ItemTitle||'',44)+lp(ph.since.slice(2),11)+lp(f(ph.s30),10)+'\n'; }
   t+=`\nBiggest lines\n`+pad('SKU',14)+pad('Product',44)+lp('€/day',8)+lp('Sells/mo',10)+'  On order\n';
   for(const {r,l} of S.lines.sort((a,b)=>b.l.eur-a.l.eur).slice(0,30)) t+=pad(r.SKU,14)+pad(r.ItemTitle||'',44)+lp('€'+(l.eur>=10?f(l.eur):l.eur.toFixed(1)),8)+lp(v8Num_(l.perDay*30),10)+'  '+(l.onOrder?f(r.inboundPO):'—')+'\n';
   const L=state.stockoutLog, MT=state.stockoutMonths;
@@ -9412,7 +9434,8 @@ function v8SalesTxt_(r){
   }
   if(fc.onlineOnly) return `Only sells as Capel online orders — about ${N(fc.F)} a month`;
   const oosM=(fc.oosMonths||[]).filter(m=>m.w<0.97);
-  const oosNote = oosM.length ? ` (out of stock for part of ${oosM.length===1?v8MonthLbl_(v, v.keys.length-12+oosM[0].j).split(' ')[0]:oosM.length+' months'} — counted only for the days it could sell)` : '';
+  const oosNote = (oosM.length ? ` (out of stock for part of ${oosM.length===1?v8MonthLbl_(v, v.keys.length-12+oosM[0].j).split(' ')[0]:oosM.length+' months'} — counted only for the days it could sell)` : '')
+    + ((fc.oosWrong||[]).length ? ` (Linnworks showed it out in ${fc.oosWrong.length} month${fc.oosWrong.length!==1?'s':''} it still sold normally — its stock figure was wrong, so those count as in stock)` : '');
   let t=`Sold ${f(fc.total)} in the last 12 months, in ${fc.sold} of ${fc.n} months${capNote}${oosNote}`;
   if(fc.pattern==='slow'){
     if(b[0]==='season'){
@@ -12814,6 +12837,7 @@ function osClassify(view){
     if(r._csRequired && r._csQtyFloor>0) f.push(['cs','🔒 Customer Service request']);
     if(simAltsFor(r).length) f.push(['sim','🔁 Similar in stock']);
     if((r.stock||0)<0) f.push(['bad',`Stock shows ${fmtInt(r.stock)} — check the count`]);
+    try{ const ph=v8Phantom_(r); if(ph) f.push(['bad',`⚠ Selling with none in Linnworks since ${ph.since.slice(8)}/${ph.since.slice(5,7)} — check the shelf`]); }catch(e){}
     if(big.has(r.SKU)) f.push(['money',`💶 Big line · €${fmtInt(sug*c)}`]);
     if(r.buyDriverKey==='lastyear') f.push(['season','📅 Raised by last year’s sales']);
     const v8a = r._v8Active && r.v8;
@@ -13373,11 +13397,12 @@ function osBodyHtml(r){
   if(r._orderNow===false) notes.push(`⏭ Can wait until ${esc(orderDayLabel(r._nextOrderDay))} — enough stock to last until then`);
   try{
     const L=state.stockoutLog, sp=L&&L.by&&L.by.get((state.channel==='capel'?'CS':'AK')+'|'+normSku_(r.SKU));
-    const open=sp&&sp.find(x=>!x.back), lp=v8LostPerDay_(r);
-    if(open){ const d=Math.max(0,Math.round((Date.now()-new Date(open.since+'T12:00:00').getTime())/86400000)), dt=new Date(open.since+'T12:00:00');
+    const open=sp&&sp.find(x=>!x.back), lp=v8LostPerDay_(r), ph=v8Phantom_(r);
+    if(ph){ const dt=new Date(ph.since+'T12:00:00'); notes.push(`⚠ Linnworks has shown none here since ${dt.getDate()} ${_MONTH_ABBR[dt.getMonth()]} ${dt.getFullYear()} (${fmtInt(ph.days)} days), but it sold ${fmtInt(ph.s30)} in the last 30 days — the stock figure is wrong. Check the shelf before ordering.`); }
+    else if(open){ const d=Math.max(0,Math.round((Date.now()-new Date(open.since+'T12:00:00').getTime())/86400000)), dt=new Date(open.since+'T12:00:00');
       notes.push(`⛔ Out of stock since ${dt.getDate()} ${_MONTH_ABBR[dt.getMonth()]}${open.since===L.first?' (or earlier — the log started then)':''} · ${d} day${d!==1?'s':''}${lp&&lp.eur>0?` · ≈€${fmtInt(d*lp.eur)} of sales lost so far`:''}`); }
     else if(lp && lp.eur>0) notes.push(`⛔ Out of stock · ≈€${lp.eur>=10?fmtInt(lp.eur):lp.eur.toFixed(1)} of sales lost a day`);
-    const y12=v8DaysOut12_(r); if(y12 && y12.days>0) notes.push(`📉 Out of stock ${fmtInt(y12.days)} day${y12.days!==1?'s':''} in the last 12 months${y12.eur>0?` · ≈€${fmtInt(y12.eur)} of sales lost`:''} — V8 counts only the days it could sell`);
+    const y12=v8DaysOut12_(r); if(y12 && y12.days>0) notes.push(`📉 Out of stock ${fmtInt(y12.days)} day${y12.days!==1?'s':''} in the last 12 months${y12.eur>0?` · ≈€${fmtInt(y12.eur)} of sales lost`:''} — V8 counts only the days it could sell${y12.rawDays>y12.days+5?` (Linnworks showed ${fmtInt(y12.rawDays)}, but it kept selling on some of them)`:''}`);
     const past=sp?sp.filter(x=>x.back):[]; if(past.length && !(y12&&y12.days>0)) notes.push(`📉 Ran out ${past.length} time${past.length!==1?'s':''} since ${(()=>{const d=new Date(L.first+'T12:00:00');return d.getDate()+' '+_MONTH_ABBR[d.getMonth()];})()} (${past.reduce((a,x)=>a+Math.round((new Date(x.back)-new Date(x.since))/86400000),0)} days in all)`);
   }catch(e){}
   if(r._multiNoDefault) notes.push(`⚠ Also listed under ${esc((r._otherSuppliers||[]).join(', '))} — no default supplier set in Linnworks`);
