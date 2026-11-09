@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.34.1 · BREAD & BUTTER</title>
+  <title>Lenehans Purchasing Dashboard · V7.34.2 · ORDER IN STEPS</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1234,6 +1234,54 @@
 .oq-btn.grp-season.on{background:#166534;border-color:#166534;color:#fff}
 .os-grp-row{grid-column:1/-1;display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px}
 .brief-intel-pill.amber{background:#fef3c7;color:#92400e;border-color:#fcd34d}
+/* V7.34.2 — order in steps */
+#osQuickBtns{display:flex;flex-direction:column;gap:6px;flex:1 1 640px;min-width:0}
+.qs-steps{display:flex;align-items:stretch;filter:drop-shadow(0 1px 0 rgba(15,23,42,.06))}
+.qs-step{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:9px;border:0;margin-right:-10px;padding:11px 28px 11px 32px;font:inherit;font-size:15px;font-weight:700;line-height:1.2;white-space:nowrap;cursor:pointer;background:#e2e8f0;color:#334155;
+  clip-path:polygon(0 0,calc(100% - 18px) 0,100% 50%,calc(100% - 18px) 100%,0 100%,18px 50%)}
+.qs-step:first-child{padding-left:18px;clip-path:polygon(0 0,calc(100% - 18px) 0,100% 50%,calc(100% - 18px) 100%,0 100%)}
+.qs-step:last-child{margin-right:0}
+.qs-step .qs-l{overflow:hidden;text-overflow:ellipsis}
+.qs-step b{font-weight:800;font-variant-numeric:tabular-nums;opacity:.8}
+.qs-step i{font-style:normal;font-size:12px;font-weight:600;opacity:.8}
+.qs-step .qs-n{flex:none;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:12px;font-weight:800;background:#fff;color:#334155}
+.qs-step:hover{filter:brightness(.97)}
+.qs-step.on{background:#1e293b;color:#fff}
+.qs-step.on b{opacity:1}
+.qs-step.on .qs-n{background:#fbbf24;color:#1e293b}
+.qs-step.done{background:#dcfce7;color:#166534}
+.qs-step.done .qs-n{background:#16a34a;color:#fff}
+.qs-step.empty{background:#f1f5f9;color:#a3aec0;cursor:default}
+.qs-step.opt.todo{background:#f1f5f9;color:#475569}
+.qs-more{display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:13px;color:#64748b}
+.qs-more-l{margin-right:2px}
+.qs-more-b{border:0;background:none;color:#475569;font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:3px 7px;border-radius:6px}
+.qs-more-b:hover{background:#f1f5f9;color:#0f172a}
+.qs-more-b.on{background:#1e293b;color:#fff}
+.qs-end{display:flex;align-items:center;justify-content:space-between;gap:14px 20px;flex-wrap:wrap;margin:16px 0 8px;padding:16px 18px;border-radius:12px;background:#f0fdf4;border:1px solid #bbf7d0;color:#14532d;font-size:15px;line-height:1.5}
+.qs-end.off{background:#f8fafc;border-color:#e2e8f0;color:#475569}
+.qs-end.last{background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a}
+.qs-end-b{display:flex;gap:8px;flex-wrap:wrap}
+.qs-go,.qs-go2,.qs-go3{font:inherit;font-size:15px;font-weight:800;border-radius:10px;padding:11px 18px;cursor:pointer}
+.qs-go{background:#1e293b;color:#fff;border:0}
+.qs-go:hover{background:#0f172a}
+.qs-go2{background:#fff;color:#166534;border:1px solid #86efac}
+.qs-go3{background:#fff;color:#64748b;border:1px solid #cbd5e1;font-weight:700}
+/* V7.34.2 — 12-month chart on hover */
+.ql-spark{cursor:help}
+.ql-pop{display:none;position:fixed;z-index:100000;width:410px;max-width:calc(100vw - 16px);background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 14px 40px rgba(15,23,42,.22);padding:12px 13px 11px;pointer-events:none;font-size:13px;color:#334155}
+.ql-pop .qp-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.ql-pop .qp-h b{font-size:14px;color:#0f172a;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ql-pop .qp-h span{flex:none;font-size:12px;color:#94a3b8;font-family:ui-monospace,Menlo,monospace}
+.ql-pop .qp-s{margin:4px 0 6px;color:#475569}
+.ql-pop .qp-s b{color:#0f172a}
+.ql-pop .qp-c{display:block;width:100%;height:auto}
+.ql-pop .qp-ly{display:flex;align-items:center;gap:7px;margin-top:4px;color:#475569}
+.ql-pop .qp-ly b{color:#b45309}
+.ql-pop .qp-sw{flex:none;width:12px;height:12px;border-radius:3px}
+.ql-pop .qp-sw.ly{background:#f59e0b}
+.ql-pop .qp-sw.out{background:#fecaca;border:1.5px solid #dc2626}
+.qs-more-b b{font-weight:inherit}
     .ql-showall{margin-top:10px;border:2px solid #1e3a5f;background:#fff;color:#1e3a5f;font-weight:800;border-radius:10px;padding:8px 16px;cursor:pointer}
     .ls-csrow{grid-column:3/8;grid-row:2;margin-top:-2px;background:#f3e8ff;border:1.5px solid #a855f7;color:#581c87;border-radius:8px;padding:4px 10px;font-size:13.5px;font-weight:700;text-align:center}
     .ls-csrow b{font-size:15px}
@@ -1397,7 +1445,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.34.1 · built 2026-11-09 · 🧪 Model check runs each supplier on its own order cycle · 🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group · 🏪 Capel holds lean outside Bread & butter · 📦 stock to clear or move · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
+  <div class="sub">V7.34.2 · built 2026-11-09 · ⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest? · 🧪 Model check runs each supplier on its own order cycle · 🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group · 🏪 Capel holds lean outside Bread & butter · 📦 stock to clear or move · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -9554,7 +9602,9 @@ function v8Reapply_(){
 // ── switches: per computer (localStorage). A supplier's own setting beats the global one. ──
 // V7.32.1 — LIVE (Mark, 6 Nov: "this has to be live now"): V8 sets the quantities for every supplier
 // in both stores unless someone switches it off. New keys, so every computer starts ON.
-const V8_ALL_KEY='lenehans_v8_all_live', V8_SUP_KEY='lenehans_v8_sups_live';
+// V7.34.2 — Mark, 9 Nov: "turn on V8 for all suppliers by default" → new keys again: any supplier switched
+// off on a computer while testing starts ON. The per-supplier switch stays as a safety valve.
+const V8_ALL_KEY='lenehans_v8_all_v7342', V8_SUP_KEY='lenehans_v8_sups_v7342';
 function v8AllOn_(){ try{ return localStorage.getItem(V8_ALL_KEY)!=='0'; }catch(e){ return true; } }
 function v8SupMap_(){
   if(!state._v8Sups){ let m={}; try{ m=JSON.parse(localStorage.getItem(V8_SUP_KEY)||'{}')||{}; }catch(e){} state._v8Sups=(m&&typeof m==='object'&&!Array.isArray(m))?m:{}; }
@@ -11601,7 +11651,7 @@ async function generateAIBrief(){
 
   // V7.31.2 — inside the order screen, brief exactly the lines in the current view
   const rows = (window._os && document.querySelector('.os-modal'))
-    ? osViewRows().map(r=>({...r, buy: osQty(r)})).filter(r=>r.buy>0)
+    ? osOrderRows_().map(r=>({...r, buy: osQty(r)})).filter(r=>r.buy>0)
     : getFilteredRows()
       .filter(r => r.buy > 0 && (!state.omittedSkus.has(r.SKU) || r._csRequired))
       .map(r => ({...r, buy: qtyMap[r.SKU] !== undefined ? qtyMap[r.SKU] : r.buy}))
@@ -13111,7 +13161,7 @@ function osSetMode(m){
   const os=window._os; if(!os) return;
   os.mode = m==='quick'?'quick':'detail';
   try{ localStorage.setItem(osModeKey_(), os.mode); }catch(e){}
-  if(os.mode==='quick' && (os.preset==='now'||os.preset==='impact')) os.preset='all';   // V7.33 — Quick shows every line, sorted into piles
+  if(os.mode==='quick' && (os.preset==='now'||os.preset==='impact')) os.preset=osFirstStep_();   // V7.34.2 — back to the steps
   if(os.mode==='detail' && os.preset==='urgent') os.preset='now';
   os.expanded=new Set(); os.focus=null;
   osRender(true);
@@ -13167,21 +13217,81 @@ function osQuickChip_(r){
 }
 // Word-sized 12-month sales line (Tufte): the last 12 full months, amber rings on this month and next
 // LAST YEAR, red ticks under months it was out of stock most of the month (stock-out history).
-function osSpark_(r){
+function osSparkData_(r){
   const os=window._os||{};
   if(!os._sk) os._sk=(state.monthlyLoaded && state.monthlyCols && state.monthlyCols.size) ? v8Keys_(state.monthlyCols).slice(-12) : [];
-  const keys=os._sk; if(keys.length<2) return '<div class="ql-spark"><div class="ql-rate muted">—</div></div>';
-  const d=(state.monthlyData&&state.monthlyData[r.SKU])||{}, vals=keys.map(k=>state.monthlyCols.has(k)?(d[k]||0):null);
+  const keys=os._sk, d=(state.monthlyData&&state.monthlyData[r.SKU])||{};
+  const vals=keys.map(k=>state.monthlyCols.has(k)?(d[k]||0):null);
+  const oos=new Map(); for(const m of ((r.v8&&r.v8.fc&&r.v8.fc.oosMonths)||[])) if(m.w<0.75 && m.j>=0 && m.j<keys.length) oos.set(m.j, m.w);
+  const tot=vals.reduce((a,v)=>a+(v||0),0), F=(r.v8&&r.v8.fc)?r.v8.fc.F:tot/12;
+  return {keys, vals, oos, tot, F};
+}
+function osSpark_(r){
+  const D=osSparkData_(r), keys=D.keys, vals=D.vals;
+  if(keys.length<2) return '<div class="ql-spark"><div class="ql-rate muted">—</div></div>';
   const W=112, H=24, mx=Math.max(1,...vals.map(v=>v||0)), step=W/(keys.length-1), y=v=>(H-4-(v/mx)*(H-8)+1).toFixed(1);
   const pts=vals.map((v,i)=>v==null?'':`${(i*step).toFixed(1)},${y(v)}`).filter(Boolean).join(' ');
   let marks='';
-  for(const m of ((r.v8&&r.v8.fc&&r.v8.fc.oosMonths)||[])) if(m.w<0.75 && m.j>=0 && m.j<keys.length) marks+=`<rect x="${Math.max(0,m.j*step-4).toFixed(1)}" y="${H-2}" width="8" height="2" fill="#dc2626"/>`;
+  for(const j of D.oos.keys()) marks+=`<rect x="${Math.max(0,j*step-4).toFixed(1)}" y="${H-2}" width="8" height="2" fill="#dc2626"/>`;
   for(const i of [0,1]) if(vals[i]!=null) marks+=`<circle cx="${Math.max(2.2,i*step).toFixed(1)}" cy="${y(vals[i])}" r="2.2" fill="#f59e0b"/>`;
-  const tot=vals.reduce((a,v)=>a+(v||0),0), F=(r.v8&&r.v8.fc)?r.v8.fc.F:tot/12;
   const tip=keys.map((k,i)=>`${_MONTH_ABBR[+k.slice(5)-1]} ${k.slice(2,4)}: ${vals[i]==null?'–':fmtInt(vals[i])}`).join(' · ');
-  return `<div class="ql-spark" title="${esc('Sold per month: '+tip+'. Amber dots = this month and next month, last year. Red ticks = out of stock most of that month.')}">`
+  // V7.34.2 — hover (or tap) opens a proper chart: osSparkPop_
+  return `<div class="ql-spark" aria-label="${esc('Sold per month: '+tip)}">`
     +`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><polyline fill="none" stroke="#475569" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" points="${pts}"/>${marks}</svg>`
-    +`<div class="ql-rate">${tot>0?`≈${v8Num_(F)}/mo · ${fmtInt(tot)} in 12 mo`:(F>0?`≈${v8Num_(F)}/mo`:'no sales in 12 mo')}</div></div>`;
+    +`<div class="ql-rate">${D.tot>0?`≈${v8Num_(D.F)}/mo · ${fmtInt(D.tot)} in 12 mo`:(D.F>0?`≈${v8Num_(D.F)}/mo`:'no sales in 12 mo')}</div></div>`;
+}
+// ── V7.34.2 — the 12-month chart on hover (Mark, 9 Nov: "If you hover over the last 12 months – can we make it
+// more visual? easier to read?"): a labelled bar a month with its number; this month and next month LAST YEAR in
+// amber (what's coming); months it was out of stock most of the month in red (sales held back, not low demand).
+function osSparkPopHtml_(r){
+  const D=osSparkData_(r), keys=D.keys, vals=D.vals, f=fmtInt; if(keys.length<2) return '';
+  const W=384, top=22, ch=104, bot=36, H=top+ch+bot, n=keys.length, slot=W/n, bw=Math.min(22, slot*0.62);
+  const mx=Math.max(1,...vals.map(v=>v||0));
+  let g='', best=-1, bi=-1;
+  vals.forEach((v,i)=>{ if((v||0)>best){ best=v||0; bi=i; } });
+  for(let i=0;i<n;i++){
+    const v=vals[i], x=i*slot+(slot-bw)/2, h=v ? Math.max(2, (v/mx)*ch) : 0, yb=top+ch-h, k=keys[i];
+    const ly=i<=1, out=D.oos.has(i);
+    const fill = out ? '#fecaca' : ly ? '#f59e0b' : '#94a3b8', stroke = out ? '#dc2626' : 'none';
+    if(v==null) g+=`<text x="${(x+bw/2).toFixed(1)}" y="${top+ch-4}" text-anchor="middle" font-size="11" fill="#cbd5e1">–</text>`;
+    else if(v===0) g+=`<rect x="${x.toFixed(1)}" y="${top+ch-1.5}" width="${bw.toFixed(1)}" height="1.5" fill="${out?'#dc2626':'#cbd5e1'}"/>`;
+    else g+=`<rect x="${x.toFixed(1)}" y="${yb.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="${fill}" stroke="${stroke}" stroke-width="${out?1.5:0}"/>`;
+    if(v!=null) g+=`<text x="${(x+bw/2).toFixed(1)}" y="${(v?yb:top+ch-1.5)-5}" text-anchor="middle" font-size="12" font-weight="${ly||i===bi?800:600}" fill="${out?'#b91c1c':ly?'#b45309':'#334155'}">${f(v)}</text>`;
+    const mLbl=_MONTH_ABBR[+k.slice(5)-1];
+    g+=`<text x="${(x+bw/2).toFixed(1)}" y="${top+ch+15}" text-anchor="middle" font-size="11" font-weight="${ly?800:500}" fill="${out?'#b91c1c':ly?'#b45309':'#64748b'}">${mLbl}</text>`;
+    if(i===0 || k.slice(5)==='01') g+=`<text x="${(x+bw/2).toFixed(1)}" y="${top+ch+29}" text-anchor="middle" font-size="10" fill="#94a3b8">’${k.slice(2,4)}</text>`;
+    if(out) g+=`<rect x="${(x-1).toFixed(1)}" y="${top+ch+19}" width="${(bw+2).toFixed(1)}" height="3" rx="1.5" fill="#dc2626"/>`;
+  }
+  g+=`<line x1="0" x2="${W}" y1="${top+ch+0.5}" y2="${top+ch+0.5}" stroke="#e2e8f0"/>`;
+  const last3=vals.slice(-3).reduce((a,v)=>a+(v||0),0), ly2=(vals[0]||0)+(vals[1]||0);
+  const lyTxt = vals[0]!=null ? `Last year, this month <b>${f(vals[0]||0)}</b> and next month <b>${f(vals[1]||0)}</b>` : 'No figures for this time last year';
+  const outN=D.oos.size;
+  return `<div class="qp-h"><b>${esc(r.ItemTitle||'')}</b><span>${esc(r.SKU)}</span></div>
+    <div class="qp-s"><b>≈${v8Num_(D.F)} a month</b> · ${f(D.tot)} sold in 12 months · last 3 months ${f(last3)}${bi>=0&&best>0?` · best ${_MONTH_ABBR[+keys[bi].slice(5)-1]} (${f(best)})`:''}</div>
+    <svg class="qp-c" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Sales per month, last 12 months">${g}</svg>
+    <div class="qp-ly"><span class="qp-sw ly"></span><span>${lyTxt} — ${ly2>0?'what’s coming':'quiet this time last year'}</span></div>
+    ${outN?`<div class="qp-ly"><span class="qp-sw out"></span><span>Out of stock most of ${outN===1?'that month':'those '+outN+' months'} — sales held back, not low demand</span></div>`:''}`;
+}
+function osSparkPop_(el){
+  const row=el.closest('.ol-row'); if(!row) return;
+  const r=(typeof osFindRow_==='function') ? osFindRow_(row.dataset.sku) : null; if(!r) return;
+  let pop=document.getElementById('qlPop');
+  if(!pop){ pop=document.createElement('div'); pop.id='qlPop'; pop.className='ql-pop'; document.body.appendChild(pop); }
+  const html=osSparkPopHtml_(r); if(!html) return;
+  pop.innerHTML=html; pop.dataset.sku=row.dataset.sku; pop.style.display='block';
+  try{
+    const b=el.getBoundingClientRect(), pw=pop.offsetWidth||410, ph=pop.offsetHeight||250, vw=window.innerWidth, vh=window.innerHeight;
+    let left=Math.min(Math.max(8, b.left+b.width/2-pw/2), vw-pw-8), topY=b.bottom+8;
+    if(topY+ph>vh-8) topY=Math.max(8, b.top-ph-8);
+    pop.style.left=left+'px'; pop.style.top=topY+'px';
+  }catch(e){}
+}
+function osSparkHide_(){ const p=document.getElementById('qlPop'); if(p) p.style.display='none'; }
+if(typeof document!=='undefined' && !window.__qlPopWired){
+  window.__qlPopWired=true;
+  document.addEventListener('mouseover', e=>{ const el=e.target&&e.target.closest&&e.target.closest('#osBody .ql-spark'); if(el) osSparkPop_(el); });
+  document.addEventListener('mouseout', e=>{ const el=e.target&&e.target.closest&&e.target.closest('#osBody .ql-spark'); if(el && !(e.relatedTarget && el.contains(e.relatedTarget))) osSparkHide_(); });
+  document.addEventListener('scroll', osSparkHide_, true);
 }
 function osQuickBody_(view){
   const os=window._os, f=fmtInt;
@@ -13210,7 +13320,7 @@ function osQuickBody_(view){
       <span class="qt-acts"><button tabindex="-1" class="qt-btn" onclick="osRoutineToggle()">${routineOpen?'▲ Hide them':'▼ Show them'}</button>${os.routineOk?'<span class="qt-ok">✓ Approved</span>':`<button tabindex="-1" class="qt-btn ok" onclick="osRoutineApprove()">Approve all ${f(T.routine.length)}</button>`}</span></div>`;
     if(routineOpen) for(const r of T.routine) h+=osQuickLineHtml(r);
   }
-  return h;
+  return h+osStepEndHtml_(view);     // V7.34.2 — "Next: Seasonal ›" / "Want to look at the rest?"
 }
 function osTriageJump(k){
   const os=window._os; if(!os) return;
@@ -13239,6 +13349,74 @@ function osGrpBadge_(r){
   if(g==='season') return `<span class="ql-grp season" title="Seasonal, in season now">🎄 Seasonal</span>`;
   return '';
 }
+// ── V7.34.2 STEPS (Mark, 9 Nov: "Order first 1. Bread & Butter 2. Seasonal 3. B Lines? 4. Want to look at the
+// rest? … Bread & butter >>>>>> Seasonal >>>>>> etc."). Quick walks the order in that sequence and builds ONE
+// order: every step's lines go on it (The rest as suggested, unless you leave it off).
+const OS_STEPS=[{k:'bb', n:1, lbl:'🍞 Bread & butter'},{k:'season', n:2, lbl:'🎄 Seasonal'},{k:'b', n:3, lbl:'B lines'},{k:'rest', n:4, lbl:'The rest', opt:true}];
+function osIsStep_(k){ return OS_STEPS.some(s=>s.k===k); }
+function osFirstStep_(){ for(const s of OS_STEPS) if(osPresetRows(s.k).length) return s.k; return 'all'; }
+function osStepBarHtml_(counts){
+  const os=window._os, cur=os.preset, done=os.stepDone||new Set(), f=fmtInt;
+  const steps=OS_STEPS.map(s=>{
+    const n=counts[s.k]||0, st = cur===s.k ? 'on' : n===0 ? 'empty' : done.has(s.k) ? 'done' : 'todo';
+    const off = s.k==='rest' && os.restOff ? '<i>left off</i>' : '';
+    return `<button tabindex="-1" class="qs-step ${st}${s.opt?' opt':''}" onclick="osStepGo('${s.k}')" title="${esc(OS_PRESETS[s.k].tip)}"><span class="qs-n">${st==='done'?'✓':s.n}</span><span class="qs-l">${s.lbl}${s.opt?'?':''}</span><b>${f(n)}</b>${off}</button>`;
+  }).join('');
+  const more=[`<button tabindex="-1" class="qs-more-b${cur==='all'?' on':''}" onclick="osQuickFilter('all')" title="Every line in one list">All lines ${f(counts.all||0)}</button>`];
+  if(counts.similar) more.push(`<button tabindex="-1" class="qs-more-b${cur==='similar'?' on':''}" onclick="osQuickFilter('similar')" title="${esc(OS_PRESETS.similar.tip)}">🔁 Similar in stock <b id="osSimN">${f(counts.similar)}</b></button>`);
+  if(counts.decide) more.push(`<button tabindex="-1" class="qs-more-b${cur==='decide'?' on':''}" onclick="osQuickFilter('decide')" title="${esc(OS_PRESETS.decide.tip)}">🧐 Buyer decides ${f(counts.decide)}</button>`);
+  if(counts.v8add) more.push(`<button tabindex="-1" class="qs-more-b${cur==='v8add'?' on':''}" onclick="osQuickFilter('v8add')" title="${esc(OS_PRESETS.v8add.tip)}">🧠 V8 would add ${f(counts.v8add)}</button>`);
+  return `<div class="qs-steps">${steps}</div><div class="qs-more"><span class="qs-more-l">Or see:</span>${more.join('')}</div>`;
+}
+function osStepGo(k){
+  const os=window._os; if(!os) return;
+  os.stepDone=os.stepDone||new Set();
+  const from=OS_STEPS.findIndex(s=>s.k===os.preset), to=OS_STEPS.findIndex(s=>s.k===k);
+  if(from>=0 && to>from) os.stepDone.add(os.preset);           // moving on ticks the step you leave
+  os.preset=k; os.keep=null; os.showRoutine=false; os.search='';
+  const qs=document.getElementById('osQSearch'); if(qs) qs.value='';
+  osRender();
+  try{ const sc=document.querySelector('#poReviewOverlay .po-review-body'); if(sc) sc.scrollTop=0; }catch(e){}
+}
+function osStepNext(){
+  const os=window._os; if(!os) return;
+  const i=OS_STEPS.findIndex(s=>s.k===os.preset);
+  for(let j=i+1;j<OS_STEPS.length;j++) if(osPresetRows(OS_STEPS[j].k).length){ osStepGo(OS_STEPS[j].k); return; }
+  os.stepDone=os.stepDone||new Set(); if(i>=0) os.stepDone.add(os.preset); osRender();
+}
+function osRestDecide(how){
+  const os=window._os; if(!os) return;
+  os.stepDone=os.stepDone||new Set(); if(osIsStep_(os.preset)) os.stepDone.add(os.preset);
+  os.restOff = how==='off';
+  if(how!=='off') os.stepDone.add('rest');
+  try{ logUsage('quick_rest_'+(how==='off'?'off':'as_suggested'), os.supplier); }catch(e){}
+  osRender();
+  try{ const b=document.getElementById('osExportBtn'); if(b) b.focus(); }catch(e){}
+}
+// one order across the steps: every group's lines (The rest left off if chosen); other views export themselves
+function osOrderRows_(){
+  const os=window._os; if(!os) return [];
+  if(os.mode==='quick' && osIsStep_(os.preset)){ let rows=osPresetRows('all'); if(os.restOff) rows=rows.filter(r=>v8GrpOf_(r)!=='rest'); return rows; }
+  return osViewRows();
+}
+function osStepEndHtml_(view){
+  const os=window._os, k=os&&os.preset; if(!os || os.mode!=='quick' || !osIsStep_(k)) return '';
+  const f=fmtInt, val=a=>Math.round(a.reduce((s,r)=>s+osQty(r)*osUnitCost(r),0));
+  const i=OS_STEPS.findIndex(s=>s.k===k); let nx=null;
+  for(let j=i+1;j<OS_STEPS.length;j++){ const n=osPresetRows(OS_STEPS[j].k).length; if(n){ nx={...OS_STEPS[j], n}; break; } }
+  const here = view.length ? `✅ ${OS_STEPS[i].lbl}: ${f(view.length)} line${view.length!==1?'s':''} · €${f(val(view))}` : `${OS_STEPS[i].lbl}: nothing for this supplier`;
+  if(k==='rest' && os.restOff) return `<div class="qs-end off"><div class="qs-end-t">These ${f(view.length)} lines are <b>left off this order</b>.</div><div class="qs-end-b"><button tabindex="-1" class="qs-go2" onclick="osRestDecide('ok')">Put them back on the order</button></div></div>`;
+  if(nx && nx.k==='rest' && !(os.stepDone&&os.stepDone.has('rest')) && !os.restOff){
+    const rr=osPresetRows('rest');
+    return `<div class="qs-end"><div class="qs-end-t">${here}<br><b>Want to look at the rest?</b> ${f(rr.length)} slower lines · €${f(val(rr))} on this order. If you don’t, they go on as suggested.</div>
+      <div class="qs-end-b"><button tabindex="-1" class="qs-go" onclick="osStepGo('rest')">Yes, show me the rest ›</button><button tabindex="-1" class="qs-go2" onclick="osRestDecide('ok')">No — order them as suggested</button><button tabindex="-1" class="qs-go3" onclick="osRestDecide('off')">Leave them off this order</button></div></div>`;
+  }
+  if(nx && !(nx.k==='rest' && (os.restOff || (os.stepDone&&os.stepDone.has('rest')))))
+    return `<div class="qs-end"><div class="qs-end-t">${here}</div><div class="qs-end-b"><button tabindex="-1" class="qs-go" onclick="osStepNext()">Next: ${nx.lbl} · ${f(nx.n)} line${nx.n!==1?'s':''} ›</button></div></div>`;
+  const all=osOrderRows_().filter(r=>osQty(r)>0);
+  return `<div class="qs-end last"><div class="qs-end-t">${view.length?here+'<br>':''}<b>That’s the whole order: ${f(all.length)} line${all.length!==1?'s':''} · €${f(val(all))}</b>${os.restOff?' (the rest left off)':''}.</div><div class="qs-end-b"><button tabindex="-1" class="qs-go" onclick="osExport()">📄 Export ${f(all.length)} line${all.length!==1?'s':''}</button></div></div>`;
+}
+
 function osQuickLineHtml(r){
   const os=window._os, f=fmtInt;
   const q=osQty(r), c=osUnitCost(r), edited=q!==(r.buy||0);
@@ -13859,6 +14037,7 @@ function osQtyKey(e, inp){
   const all=[...document.querySelectorAll('#osBody input.ol-qty')], i=all.indexOf(inp);
   const nx=all[e.key==='ArrowUp'?i-1:i+1];
   if(nx) nx.focus();
+  else if(e.key!=='ArrowUp'){ const go=document.querySelector('#osBody .qs-end .qs-go'); if(go) go.focus(); }   // V7.34.2 — last line → the Next button (Enter again moves on)
 }
 function osUpdateGuide(){
   const os=window._os, g=document.getElementById('osGuide'); if(!os||!g) return;
@@ -13899,10 +14078,12 @@ function openOrderScreen(supplier, preset, opts){
   rows.sort((a,b)=>((a._orderNow===false)-(b._orderNow===false)) || rank(a)-rank(b) || (a.daysOfCover||0)-(b.daysOfCover||0));
   const prevCap = window._os && window._os.supplier===sup ? window._os.cap : 15;
   const mode = osSavedMode_();
-  if(mode==='quick' && (!preset || preset==='now')) preset='all';   // V7.33 — Quick opens on every line, sorted into Your call / Quick glance / Routine
+  if(mode==='quick' && (!preset || preset==='now')) preset='bb';   // V7.34.2 — Quick opens on step 1, Bread & butter (an explicit 'all' still shows every line)
   window._os={supplier:sup, mode, preset:preset||'now', cap:opts.cap||prevCap||15, search:'', keep:null, rows, expanded:new Set(), seen:new Set(), focus:null, showReady:false, bigShare:50, flags:new Map()};
   try{ window._os.extra=v8ExtraRows_(sup, rows); }catch(e){ window._os.extra={decide:[], v8add:[]}; }
   if((preset==='decide'||preset==='v8add') && !window._os.extra[preset].length) window._os.preset = mode==='quick'?'urgent':'now';
+  window._os.stepDone=new Set(); window._os.restOff=false;
+  if(mode==='quick' && window._os.preset==='bb') window._os.preset=osFirstStep_();   // first step with lines
   try{ simIndexNow_(); }catch(e){}
   window._poEdits[sup]=window._poEdits[sup]||{};
   window._poReviewCtx={rows, supplier:sup, orderScreen:true};   // minimise / restore plumbing
@@ -13929,7 +14110,7 @@ function osRender(rebuild){
     else if(!os.rows.length) msg='✅ Nothing needs ordering from this supplier right now.';
     else if(os.search) msg='No lines match your search.';
     else msg='No lines in this view.';
-    body=`<div class="ol-empty">${msg}</div>`;
+    body=`<div class="ol-empty">${msg}</div>`+osStepEndHtml_([]);
   } else {
     if(os.mode==='quick'){ body+=osQuickBody_(view); }
     else {
@@ -13976,7 +14157,7 @@ function osRender(rebuild){
           <div class="os-v8" id="osV8"></div>
           <div class="os-tabs-lbl">Which lines do you want to see?</div>
           <div class="os-tabs" id="osTabs"></div>
-          <div class="os-quickbar"><span class="oq-lbl">Show</span><span id="osQuickBtns"></span>
+          <div class="os-quickbar"><span id="osQuickBtns"></span>
             <input class="po-review-search oq-search" id="osQSearch" type="text" placeholder="🔍 Search this order…" oninput="window._os.search=this.value;osRender()"></div>
           <div class="os-toolbar">
             <input class="po-review-search" id="osSearch" type="text" placeholder="🔍 Search this order…" oninput="window._os.search=this.value;osRender()">
@@ -14026,6 +14207,7 @@ function osRender(rebuild){
     +OS_GROUP_KEYS.filter(k=>counts[k]>0||os.preset===k).map(k=>`<button tabindex="-1" class="oq-btn grp-${k}${os.preset===k?' on':''}" onclick="osQuickFilter('${k}')" title="${esc(OS_PRESETS[k].tip)}">${OS_PRESETS[k].label} <b>${fmtInt(counts[k]||0)}</b></button>`).join('')+(counts.similar?`<button tabindex="-1" class="oq-btn sim${os.preset==='similar'?' on':''}" onclick="osQuickFilter('similar')" title="Lines where we already hold a similar product">🔁 Similar in stock <b id="osSimN">${fmtInt(counts.similar)}</b></button>`:'')
     +(counts.decide?`<button tabindex="-1" class="oq-btn v8d${os.preset==='decide'?' on':''}" onclick="osQuickFilter('decide')" title="${esc(OS_PRESETS.decide.tip)}">🧐 Buyer decides <b>${fmtInt(counts.decide)}</b></button>`:'')
     +(counts.v8add?`<button tabindex="-1" class="oq-btn v8a${os.preset==='v8add'?' on':''}" onclick="osQuickFilter('v8add')" title="${esc(OS_PRESETS.v8add.tip)}">🧠 V8 would add <b>${fmtInt(counts.v8add)}</b></button>`:'');
+  if(os.mode==='quick') $('osQuickBtns').innerHTML=qExtra+osStepBarHtml_(counts);   // V7.34.2 — the steps
   const v8b=$('osV8'); if(v8b) v8b.innerHTML=osV8BarHtml_(os.supplier);
   $('osBody').innerHTML=body;
   osFitProductCol(view);
@@ -14037,11 +14219,11 @@ function osRender(rebuild){
 
 function osUpdateTotals(){
   const os=window._os; if(!os) return;
-  const view=osViewRows();
+  const view=osOrderRows_(), stepMode=os.mode==='quick' && osIsStep_(os.preset);
   let lines=0, units=0, val=0, noCost=0;
   for(const r of view){ const q=osQty(r); if(q>0){ lines++; units+=q; val+=q*osUnitCost(r); if(!(osUnitCost(r)>0)) noCost++; } }
   const tEl=document.getElementById('osTotal');
-  if(tEl) tEl.innerHTML=`This view: <span>€${fmtInt(Math.round(val))}</span> · ${fmtInt(lines)} line${lines!==1?'s':''} · ${fmtInt(units)} units${noCost?` <span class="sc-note">(${noCost} without a cost price)</span>`:''}`;
+  if(tEl) tEl.innerHTML=`${stepMode?'Whole order':'This view'}: <span>€${fmtInt(Math.round(val))}</span> · ${fmtInt(lines)} line${lines!==1?'s':''} · ${fmtInt(units)} units${noCost?` <span class="sc-note">(${noCost} without a cost price)</span>`:''}`;
   const b=document.getElementById('osExportBtn');
   if(b){ b.textContent=`📄 Export ${fmtInt(lines)} line${lines!==1?'s':''}`; b.disabled=lines===0; }
 }
@@ -14073,7 +14255,7 @@ function osEditQty(inp, committed){
 function osExport(){
   const os=window._os; if(!os) return;
   if(!os.supplier){ alert('No supplier selected.'); return; }
-  const rows=osViewRows().map(r=>({...r, buy:osQty(r)})).filter(r=>r.buy>0);
+  const rows=osOrderRows_().map(r=>({...r, buy:osQty(r)})).filter(r=>r.buy>0);
   if(!rows.length){ alert('No lines with a quantity above 0 in this view.'); return; }
   const mode=document.getElementById('demandMode')?.value||'Seasonal';
   // V7.31.23 — EAN (barcode) added as the LAST column (Mark, 27 Oct). Every existing
@@ -14085,7 +14267,7 @@ function osExport(){
   }
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'}));
-  a.download=`PO_${os.supplier.replace(/[^a-z0-9]+/gi,'_')}_${os.preset}_${mode}.csv`;
+  a.download=`PO_${os.supplier.replace(/[^a-z0-9]+/gi,'_')}_${osIsStep_(os.preset)&&os.mode==='quick'?'order':os.preset}_${mode}.csv`;
   a.click(); URL.revokeObjectURL(a.href);
   try{ logUsage('order_export', os.supplier+' · '+os.preset+' · '+rows.length+' lines'); }catch(e){}
   // Exported lines are placed — drop their edits; keep edits for lines not yet exported
