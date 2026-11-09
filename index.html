@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.33.1 · QUICK TRIAGE</title>
+  <title>Lenehans Purchasing Dashboard · V7.34.0 · BREAD & BUTTER</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1226,6 +1226,14 @@
     .ql-spark{display:flex;flex-direction:column;gap:1px;min-width:0}
     .ql-spark svg{display:block}
     .ql-rate{font-size:12px;font-weight:700;color:#475569;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* V7.34 groups */
+.ql-grp{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:700;line-height:17px;vertical-align:middle;white-space:nowrap}
+.ql-grp.bb{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+.ql-grp.season{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.oq-btn.grp-bb.on{background:#92400e;border-color:#92400e;color:#fff}
+.oq-btn.grp-season.on{background:#166534;border-color:#166534;color:#fff}
+.os-grp-row{grid-column:1/-1;display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px}
+.brief-intel-pill.amber{background:#fef3c7;color:#92400e;border-color:#fcd34d}
     .ql-showall{margin-top:10px;border:2px solid #1e3a5f;background:#fff;color:#1e3a5f;font-weight:800;border-radius:10px;padding:8px 16px;cursor:pointer}
     .ls-csrow{grid-column:3/8;grid-row:2;margin-top:-2px;background:#f3e8ff;border:1.5px solid #a855f7;color:#581c87;border-radius:8px;padding:4px 10px;font-size:13.5px;font-weight:700;text-align:center}
     .ls-csrow b{font-size:15px}
@@ -1389,7 +1397,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.33.1 · built 2026-11-09 · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
+  <div class="sub">V7.34.0 · built 2026-11-09 · 🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group · 🏪 Capel holds lean outside Bread & butter · 📦 stock to clear or move · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -1708,7 +1716,7 @@ Fine Sea Salt drum	SSFCTDP63	350g	6	238	34	7	5011289 002499	05011289 002512"
       </div>
       <div class="brief-stat-item">
         <div class="brief-stat-val amber" id="briefAItemCount">—</div>
-        <div class="brief-stat-lbl">A-items OOS or critical</div>
+        <div class="brief-stat-lbl" id="briefBBLbl">🍞 Bread & butter out</div>
       </div>
       <div class="brief-stat-item">
         <div class="brief-stat-val green" id="briefHealthyCount">—</div>
@@ -6107,11 +6115,11 @@ function renderBriefing(){
     const isAtRisk=r.coverStatus==='Out of Stock'||r.coverStatus==='Critical';
     const isActionable=(r.buy||0)>0; // no demand signal = no action needed
     if(r.coverStatus==='Out of Stock'){
-      if(isActionable){ s.oos++;if(r.abcClass==='A')s.oosA++; }
+      if(isActionable){ s.oos++;if(r._grp==='bb')s.oosA++; }
       s.lostRev+=estLostRevenue(r);
       s.minDays=0;
     }else if(r.coverStatus==='Critical'){
-      if(isActionable){ s.crit++;if(r.abcClass==='A')s.critA++; }
+      if(isActionable){ s.crit++;if(r._grp==='bb')s.critA++; }
       s.lostRev+=estLostRevenue(r);
       const d=r.daysOfCover||0;if(d<s.minDays)s.minDays=d;
     }else if(r.coverStatus==='Low')s.low++;
@@ -6141,6 +6149,7 @@ function renderBriefing(){
   const csGapTotal=allSuppliers.reduce((t,s)=>t+(s.csGapSkus||0),0);
   let intel='';
   if(overstockedVal>=500) intel+=`<span class="brief-intel-pill green" onclick="openWorkbench()">💰 €${fmtInt(overstockedVal)} tied in 120d+ stock — push to promotions</span>`;
+  try{ const CL=v8ClearSummary_(state.computedRows||[]); if(CL.eur>=500) intel+=`<span class="brief-intel-pill amber" onclick="v8ClearReport()" title="In stock here, no sales here in the last 12 months — move, give time (new) or clear">📦 €${fmtInt(CL.eur)} with no sales here in 12 months — clear or move</span>`; }catch(e){}
   if(csGapTotal>0) intel+=`<span class="brief-intel-pill purple" onclick="openWorkbench()">🏪 ${csGapTotal} SKU${csGapTotal!==1?'s':''} selling at CS but no AK reorder</span>`;
   const intelRow=document.getElementById('briefIntelRow');
   if(intelRow) intelRow.innerHTML=intel;
@@ -6154,7 +6163,11 @@ function renderBriefing(){
     setEl('briefLostLbl', LS.n ? `Lost a day · ${fmtInt(LS.n)} out of stock` : 'Nothing that sells is out');
   }catch(e){}
   setEl('briefSuppCount',atRisk.length);
-  setEl('briefAItemCount',totalAItems>0?totalAItems+' A-item'+(totalAItems!==1?'s':''):'—');
+  try{ const BB=v8BBSummary_(state.computedRows||[]); state._bb=BB;
+    setEl('briefAItemCount', BB.n ? fmtInt(BB.out)+' out' : '—');
+    setEl('briefBBLbl', BB.n ? `🍞 Bread & butter out · ${fmtInt(BB.low)} low · of ${fmtInt(BB.n)}` : '🍞 Bread & butter out');
+    const t=document.getElementById('briefAItemCount'); const it=t&&t.closest('.brief-stat-item'); if(it){ it.style.cursor='pointer'; it.onclick=()=>v8BBReport(); it.title='The lines that make half of this store’s sales — click for the list by supplier'; }
+  }catch(e){ setEl('briefAItemCount',totalAItems>0?totalAItems+' A-item'+(totalAItems!==1?'s':''):'—'); }
   setEl('briefHealthyCount',healthy.length);
 
   const heroEl=document.getElementById('briefHeroCard');
@@ -6197,7 +6210,7 @@ function renderBriefing(){
       <div>
         <div class="brief-hero-name">${esc(h.name)}</div>
         <div class="brief-hero-pills">
-          ${h.oosA+h.critA>0?`<span class="brief-hero-pill red">🔥 ${h.oosA+h.critA} A-item${h.oosA+h.critA!==1?'s':''} at risk</span>`:''}
+          ${h.oosA+h.critA>0?`<span class="brief-hero-pill red">🍞 ${h.oosA+h.critA} bread & butter at risk</span>`:''}
           ${h.oos>0?`<span class="brief-hero-pill red">🔴 ${h.oos} OOS</span>`:''}
           ${h.crit>0?`<span class="brief-hero-pill">🟠 ${h.crit} critical</span>`:''}
           ${h.buy>0?`<span class="brief-hero-pill">📦 Buy ${fmtInt(h.buy)} units</span>`:''}
@@ -6219,7 +6232,7 @@ function renderBriefing(){
     const po=_chPoMap[s.name];
     const poText=po?.isDone?'✅ PO done':(po?.month?'🔴 PO pending':'— No PO');
     const safeName=s.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    const meta=[s.oos>0?`🔴 ${s.oos} OOS`:'',s.crit>0?`🟠 ${s.crit} critical`:'',s.oosA+s.critA>0?`🔥 ${s.oosA+s.critA} A-item${s.oosA+s.critA!==1?'s':''}`:'',(s.buy>0?`Buy ${fmtInt(s.buy)}`:''),poText].filter(Boolean).join(' · ');
+    const meta=[s.oos>0?`🔴 ${s.oos} OOS`:'',s.crit>0?`🟠 ${s.crit} critical`:'',s.oosA+s.critA>0?`🍞 ${s.oosA+s.critA} bread & butter`:'',(s.buy>0?`Buy ${fmtInt(s.buy)}`:''),poText].filter(Boolean).join(' · ');
     return `<div class="brief-rank-card ${colour}" onclick="openWorkbench('${safeName}')">
       <div class="brief-rank-num">#${i+2}</div>
       <div><div class="brief-rank-name">${esc(s.name)}</div><div class="brief-rank-meta">${meta}</div></div>
@@ -8910,7 +8923,46 @@ const V8 = {
   SLOW_MONTHS: 3, MAX_MONTHS: 6, PACK_MONTHS: 12, PACK_EUR: 30,
   FAST: 30, SLOW: 5, NEW_MONTHS: 6, NEW_HOLD_MONTHS: 2,
   TREND_MIN_CAPEL: 0.7, TREND_MAX: 1.5,
+  GROUP_P: {bb:0.99, b:0.95, rest:0.90},           // V7.34 — service level by group (Bread & butter never out)
+  SHOP_KEEP1_BELOW: 1,                             // V7.34 — Capel: under 1 a month (outside Bread & butter) → keep 1
 };
+const V8_ZP={0.99:2.326, 0.97:1.88, 0.95:1.645, 0.9:1.28};
+// ── V7.34 GROUPS (Mark, 9 Nov: "Bread and butter items A items / Seasonal items / B items / The rest. So you
+// click on all or one of these and build orders from there."). Worked out per store from the last 12 months'
+// sales in € in that store (Capel: till + its online orders; Arklow: online):
+//   🍞 Bread & butter = the lines that make the first half of the store's sales (never out: 99%)
+//   B lines           = the next 30% (95%)
+//   The rest          = the last 20%, and lines with no sales (90%; Capel keeps 1 of lines selling under 1 a month)
+//   🎄 Seasonal       = shown on its own while its season is on (last year's next 60 days well above normal)
+// Screwfix-style: the shop holds its core range; the tail is held once, at Arklow (weekly transfers).
+const V8_GROUP_LBL={bb:'🍞 Bread & butter', season:'🎄 Seasonal', b:'B lines', rest:'The rest'};
+function v8StoreRev_(r, capel){
+  const onU=(r.QtySold_Online_Arklow_365d||0)+(r.QtySold_Online_CapelStreet_365d||0);
+  const onP=onU>0 && r.Revenue_Online_Total_365d>0 ? r.Revenue_Online_Total_365d/onU : 0;
+  const fb=r.RetailPrice>0 ? r.RetailPrice : (r.SupplierCostPrice||0)*2;
+  if(capel){
+    const till = r.Revenue_Shop_CapelStreet_365d>0 ? r.Revenue_Shop_CapelStreet_365d : (r.QtySold_Shop_CapelStreet_365d||0)*fb;
+    return till + (r.QtySold_Online_CapelStreet_365d||0)*(onP||fb);
+  }
+  return r.Revenue_Online_Total_365d>0 ? r.Revenue_Online_Total_365d : onU*fb;
+}
+function v8Groups_(rows, capel){
+  const by=new Map();
+  for(const r of rows||[]){ const k=String(r.SKU||'').trim(); if(!k || by.has(k)) continue; by.set(k, v8StoreRev_(r, capel)); }
+  const arr=[...by.entries()].filter(e=>e[1]>0).sort((a,b)=>b[1]-a[1]);
+  const tot=arr.reduce((t,e)=>t+e[1],0), map=new Map(), n={bb:0,b:0,rest:0};
+  let cum=0;
+  for(const [k,v] of arr){ const g = cum<tot*0.5 ? 'bb' : cum<tot*0.8 ? 'b' : 'rest'; cum+=v; map.set(k,g); n[g]++; }
+  n.rest += by.size-arr.length;
+  return {map, tot, n};
+}
+// in season now: a seasonal line whose next 60 days last year were at least 1.5× a normal two months
+function v8InSeason_(fc, hold){
+  if(!fc || !fc.seasonal || fc.pattern==='dead') return false;
+  if(hold && hold.build) return true;
+  return fc.ly60!=null && fc.ly60>=Math.max(3, 3*(fc.avg||0));
+}
+function v8GrpOf_(r){ return (r && (r._grpShow || r._grp)) || 'rest'; }
 function v8Sum_(a){ let s=0; for(const v of a) s+=v||0; return s; }
 // smallest k with P(Poisson(mean) ≤ k) ≥ p
 function v8Poisson_(mean, p){
@@ -9031,9 +9083,11 @@ function v8Forecast_(x){
 // out = order-up-to. W = delivery days + days until the next order: what has to last.
 function v8Hold_(fc, h){
   const L=Math.max(0,h.leadDays||0), R=Math.max(1,h.cycleDays||0), W=L+R;
-  const abc=(h.abc in V8.SERVICE)?h.abc:'C', p=V8.SERVICE[abc], z=V8.Z[abc];
+  const abc=(h.abc in V8.SERVICE)?h.abc:'C', grp=h.grp||null;
+  const p = grp&&V8.GROUP_P[grp] ? V8.GROUP_P[grp] : V8.SERVICE[abc], z = V8_ZP[p] || V8.Z[abc];
+  const shop = !!h.capel && !!grp && grp!=='bb';   // V7.34 — Capel outside Bread & butter: hold lean
   const F=fc.F||0, g=fc.g||1;
-  const r={rp:-1, out:0, W, L, R, p, abc, kind:'none', build:false};
+  const r={rp:-1, out:0, W, L, R, p, abc, grp, kind:'none', build:false};
   if(fc.pattern==='dead' || fc.pattern==='nohist') return r;
   const s60=fc.ly60!=null ? Math.ceil(fc.ly60*g-1e-9) : null, s30=fc.ly30!=null ? Math.ceil(fc.ly30*g-1e-9) : null;
   r.s60=s60; r.s30=s30;
@@ -9055,6 +9109,10 @@ function v8Hold_(fc, h){
     const q=v8Poisson_(d*W, p); r.poisson=q; r.rp=Math.max(0,q-1);
     if(fc.seasonal && fc.pattern==='slow' && s60!=null){
       r.out=Math.max(q, s60, 1); r.kind = s60>Math.max(q,1) ? 'season' : 'sure'; r.build = r.kind==='season';
+    } else if(shop && F<V8.SHOP_KEEP1_BELOW && (fc.pattern==='slow' || (fc.sellMonths||0)>=2)){
+      r.out=1; r.rp=0; r.kind='shop1';               // V7.34 — sells under once a month in the shop → keep 1
+    } else if(shop){                                 // V7.34 — shop, 1–5 a month: enough to last until the next delivery
+      r.out=Math.max(q, Math.ceil(1.5*F-1e-9), 1); r.kind='shop';   // (at least 1½ months, so it isn't 1 or 2 on every PO)
     } else if(fc.pattern==='new'){                  // V7.33.1 — a new line holds 2 months until it has a track record
       r.out=Math.max(Math.ceil(V8.NEW_HOLD_MONTHS*F-1e-9), q, 1); r.kind='new2months';
     } else { r.out=Math.max(Math.ceil(V8.SLOW_MONTHS*F-1e-9), q, 1); r.kind='3months'; }
@@ -9310,6 +9368,87 @@ window.v8LostReport=function(){
   try{ logUsage('lost_sales_report', state.channel); }catch(e){}
   return S;
 };
+// ── V7.34 — 🍞 Bread & butter: never out (Mark, 9 Nov: "Bread, milk for a supermarket") ──
+function v8BBSummary_(rows){
+  const seen=new Set(), out={n:0, out:0, low:0, eur:0, onOrder:0, phantom:0, covering:0, bySup:new Map(), lines:[]};
+  for(const r of (rows||[])){
+    if(r._notDefaultSupplier || r._grp!=='bb') continue;
+    const sku=String(r.SKU); if(seen.has(sku)) continue; seen.add(sku);
+    out.n++;
+    const st=r.coverStatus, isOut=(r.stock||0)<=0, cov=v8CapelCovering_(r), ph=isOut && !cov && !r._excluded ? v8Phantom_(r) : null;
+    let k=null;
+    if(isOut){ if(cov){ out.covering++; k='covering'; } else if(ph){ out.phantom++; k='phantom'; } else { out.out++; k='out'; } }
+    else if(st==='Critical'){ out.low++; k='low'; }
+    if(!k) continue;
+    const l = k==='out' ? v8LostPerDay_(r) : null, oo=(r.inboundPO||0)>0;
+    if(l) out.eur+=l.eur; if(oo && (k==='out'||k==='low')) out.onOrder++;
+    const sp=out.bySup.get(r.SupplierName)||{out:0, low:0, eur:0, onOrder:0}; if(k==='out'){ sp.out++; if(l) sp.eur+=l.eur; } if(k==='low') sp.low++; if(oo && (k==='out'||k==='low')) sp.onOrder++;
+    out.bySup.set(r.SupplierName, sp);
+    out.lines.push({r, k, l, oo, rev:v8StoreRev_(r, state.channel==='capel')});
+  }
+  return out;
+}
+window.v8BBReport=function(){
+  const S=v8BBSummary_(state.computedRows||[]), f=fmtInt, store=state.channel==='capel'?'Capel Street':'Arklow (online)';
+  const pad=(s,n)=>{ s=String(s); return s.length>=n?s.slice(0,n):s+' '.repeat(n-s.length); }, lp=(s,n)=>{ s=String(s); return s.length>=n?s:' '.repeat(n-s.length)+s; };
+  const G=state._grp;
+  let t=`🍞 BREAD & BUTTER — ${store}\n${new Date().toLocaleString('en-IE')}\n\n`;
+  t+=`The ${f(S.n)} lines that make half of this store's sales (last 12 months, €). These must never be out.\n`;
+  t+=`${f(S.out)} out of stock now (≈€${f(S.eur)} of sales a day) · ${f(S.low)} below their reorder point · ${f(S.onOrder)} of these already on order\n`;
+  if(S.phantom) t+=`${f(S.phantom)} more show none in Linnworks but are still selling — check the shelf and book the stock in\n`;
+  if(S.covering) t+=`${f(S.covering)} more are out in Arklow but Capel is shipping them\n`;
+  t+=`\nSupplier`+' '.repeat(26)+lp('Out',6)+lp('Low',6)+lp('€/day',9)+lp('On order',10)+'\n';
+  for(const [sup,o] of [...S.bySup.entries()].filter(([,o])=>o.out||o.low).sort((a,b)=>(b[1].eur-a[1].eur)||(b[1].out-a[1].out)||(b[1].low-a[1].low)).slice(0,40))
+    t+=pad(sup,34)+lp(f(o.out),6)+lp(f(o.low),6)+lp('€'+f(o.eur),9)+lp(f(o.onOrder),10)+'\n';
+  const lab={out:'OUT', low:'low', phantom:'check shelf', covering:'Capel shipping'};
+  t+=`\nLines (biggest sellers first)\n`+pad('SKU',14)+pad('Product',44)+pad('',15)+lp('Stock',7)+lp('On order',10)+'  Supplier\n';
+  for(const {r,k} of S.lines.sort((a,b)=>b.rev-a.rev).slice(0,60)) t+=pad(r.SKU,14)+pad(r.ItemTitle||'',44)+pad(lab[k],15)+lp(f(r.stock||0),7)+lp(f(r.inboundPO||0),10)+'  '+(r.SupplierName||'')+'\n';
+  showDiag(t, {wide:true, title:'🍞 Bread & butter — out of stock or running low', dl:{label:'⬇ All lines (CSV)', fn:()=>v8Csv_('bread_and_butter', ['SKU','Product','Supplier','Status','Stock','On order','Sales 12 mo €'], S.lines.sort((a,b)=>b.rev-a.rev).map(({r,k,rev})=>[r.SKU, r.ItemTitle||'', r.SupplierName||'', lab[k], r.stock||0, r.inboundPO||0, Math.round(rev)]))}});
+  try{ logUsage('bb_report', state.channel); }catch(e){}
+  return S;
+};
+// ── V7.34 — stock to clear or move: in stock here, no sales here in 12 months (Mark: "Do we really need
+// to get products in that haven't sold in a year?" — V8 never reorders them; this is what's already on the shelf)
+function v8ClearSummary_(rows){
+  const capel=state.channel==='capel', seen=new Set(), out={n:0, eur:0, k:{move:{n:0,eur:0}, new:{n:0,eur:0}, clear:{n:0,eur:0}}, lines:[]};
+  for(const r of (rows||[])){
+    const sku=String(r.SKU); if(seen.has(sku)) continue; seen.add(sku);
+    const st=r.stock||0; if(!(st>0)) continue;
+    const here = capel ? (r.QtySold_Shop_CapelStreet_365d||0)+(r.QtySold_Online_CapelStreet_365d||0) : (r.QtySold_Online_Arklow_365d||0)+(r.QtySold_Online_CapelStreet_365d||0);
+    if(here>0) continue;
+    const other = capel ? (r.QtySold_Online_Arklow_365d||0) : (r.QtySold_Shop_CapelStreet_365d||0);
+    const cost=r.RealCost>0 ? r.RealCost : (r.SupplierCostPrice||0), eur=st*cost;
+    const k = other>0 ? 'move' : (r.AgeDays!=null && r.AgeDays<180) ? 'new' : 'clear';
+    out.n++; out.eur+=eur; out.k[k].n++; out.k[k].eur+=eur;
+    out.lines.push({r, k, eur, other, st});
+  }
+  return out;
+}
+window.v8ClearReport=function(){
+  const S=v8ClearSummary_(state.computedRows||[]), f=fmtInt, capel=state.channel==='capel', store=capel?'Capel Street':'Arklow';
+  const pad=(s,n)=>{ s=String(s); return s.length>=n?s.slice(0,n):s+' '.repeat(n-s.length); }, lp=(s,n)=>{ s=String(s); return s.length>=n?s:' '.repeat(n-s.length)+s; };
+  const lab={move: capel?'move to Arklow':'move to Capel', new:'new — give it time', clear:'clear'};
+  let t=`📦 STOCK WITH NO SALES HERE IN 12 MONTHS — ${store}\n${new Date().toLocaleString('en-IE')}\n\n`;
+  t+=`${f(S.n)} lines in stock that haven't sold ${capel?'at Capel (till or its online orders)':'online'} in the last 12 months: €${f(S.eur)} at cost.\n`;
+  t+=`The ordering model never reorders these (only a Customer Service request does).\n\n`;
+  t+=`  ${lab.move.padEnd(22)} ${lp(f(S.k.move.n),6)} lines  €${f(S.k.move.eur)}   — sells ${capel?'online from Arklow':'at the Capel till'}\n`;
+  t+=`  ${lab.new.padEnd(22)} ${lp(f(S.k.new.n),6)} lines  €${f(S.k.new.eur)}   — on Linnworks under 6 months\n`;
+  t+=`  ${lab.clear.padEnd(22)} ${lp(f(S.k.clear.n),6)} lines  €${f(S.k.clear.eur)}   — sale, return to supplier, or write off\n\n`;
+  for(const k of ['clear','move']){
+    t+=`Biggest — ${lab[k]}\n`+pad('SKU',14)+pad('Product',46)+lp('Stock',7)+lp('€ at cost',11)+'  Supplier\n';
+    for(const x of S.lines.filter(x=>x.k===k).sort((a,b)=>b.eur-a.eur).slice(0,30)) t+=pad(x.r.SKU,14)+pad(x.r.ItemTitle||'',46)+lp(f(x.st),7)+lp('€'+f(x.eur),11)+'  '+(x.r.SupplierName||'')+'\n';
+    t+='\n';
+  }
+  showDiag(t, {wide:true, title:'📦 Stock to clear or move — no sales here in 12 months', dl:{label:'⬇ All lines (CSV)', fn:()=>v8Csv_('stock_to_clear_'+(capel?'capel':'arklow'), ['SKU','Product','Supplier','What to do','Stock','€ at cost','Sold in the other store 12 mo','Days on Linnworks'], S.lines.sort((a,b)=>b.eur-a.eur).map(x=>[x.r.SKU, x.r.ItemTitle||'', x.r.SupplierName||'', lab[x.k], x.st, Math.round(x.eur*100)/100, x.other, x.r.AgeDays==null?'':x.r.AgeDays]))}});
+  try{ logUsage('clear_report', state.channel); }catch(e){}
+  return S;
+};
+function v8Csv_(name, head, rows){
+  const q=v=>{ v=String(v??''); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+  const csv=[head.map(q).join(',')].concat(rows.map(r=>r.map(q).join(','))).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`${name}_${new Date().toISOString().slice(0,10)}.csv`; a.click(); try{ URL.revokeObjectURL(a.href); }catch(e){}
+}
 function v8Ctx_(keys, rows){
   const capel=state.channel==='capel', cols=state.monthlyCols;
   const vf=v8ValidFrom_(state.monthlyData, cols, keys);
@@ -9351,10 +9490,10 @@ function v8Plan_(r, ctx){
   const x=v8Inputs_(r, ctx);
   const fc=v8Forecast_(x); if(fc.pattern==='nohist') return null;
   fc.gi=x.gi;
-  const hold=v8Hold_(fc, {abc:r.abcClass, leadDays:r.leadTimeDays, cycleDays:r.reviewDays});
+  const hold=v8Hold_(fc, {abc:r.abcClass, leadDays:r.leadTimeDays, cycleDays:r.reviewDays, grp:r._grp||null, capel:ctx.capel});
   const stock=Math.round(r.stock||0);
   const ord=v8Order_(fc, hold, {stock, inbound:r.inboundPO||0, pack:r.packSize, moq:r.moq, cost:r.SupplierCostPrice||r.UnitCost||0});
-  return {fc, hold, ord, status:v8Status_(fc, hold, ord, stock), decide:ord.flags.some(f=>f.decide), keys:ctx.keys};
+  return {fc, hold, ord, status:v8Status_(fc, hold, ord, stock), decide:ord.flags.some(f=>f.decide), keys:ctx.keys, season:v8InSeason_(fc, hold)};
 }
 // final V8 quantity on this line, with the Customer Service floor and Do Not Order applied
 function v8FinalQty_(r){
@@ -9388,12 +9527,15 @@ function v8Swap_(r, on){
 function applyV8_(rows){
   const rd=v8Ready_();
   state._v8={ready:rd.ok, why:rd.why||'', patterns:{}, errors:0, active:0};
+  // V7.34 — groups for this store (Bread & butter / B / The rest), from 12 months' sales in €
+  try{ const G=v8Groups_(rows, state.channel==='capel'); state._grp=G; for(const r of rows){ r._grp=G.map.get(String(r.SKU||'').trim())||'rest'; r._grpShow=null; } }
+  catch(e){ console.warn('groups', e); }
   const ctx = rd.ok ? v8Ctx_(rd.keys, rows) : null;
   state._v8.ctx=ctx;
   for(const r of rows){
     r.v8=null; r._cur=null;
     if(ctx){ try{ r.v8=v8Plan_(r, ctx); }catch(e){ r.v8=null; state._v8.errors++; } }
-    if(r.v8){ const p=r.v8.fc.pattern; state._v8.patterns[p]=(state._v8.patterns[p]||0)+1; }
+    if(r.v8){ const p=r.v8.fc.pattern; state._v8.patterns[p]=(state._v8.patterns[p]||0)+1; if(r.v8.season) r._grpShow='season'; }
     const on=!!r.v8 && v8IsOn_(r.SupplierName);
     v8Swap_(r, on); if(on) state._v8.active++;
   }
@@ -9496,6 +9638,8 @@ function v8HoldTxt_(r){
     case 'none': return 'nothing to hold';
     case '3months': return `keep 3 months (${f(h.out)})${h.capped?'':''}${rpTxt}`;
     case 'new2months': return `keep 2 months (${f(h.out)}) while it’s new${rpTxt}`;
+    case 'shop1': return 'the shop keeps 1 — it sells less than once a month here';
+    case 'shop': return `the shop keeps ${f(h.out)} — ${pct}% sure to last until the next delivery (${f(h.W)} days), at least 1½ months${rpTxt}`;
     case 'sure': return `keep ${f(h.out)} — ${pct}% sure to last ${f(h.W)} days (delivery + next order)${rpTxt}`;
     case 'season': return `season coming — hold the next 60 days last year (${f(h.out)})${rpTxt}`;
     case 'cover': return `keep ${f(h.W+h.R)} days’ sales + ${f(h.ss||0)} safety (${pct}% sure not to run out) = ${f(h.out)}${h.capped?' (capped at 6 months)':''}${rpTxt}`;
@@ -9651,6 +9795,8 @@ function v8BackTest_(store, supFilter){
   const pats=['fast','medium','slow','rare','new','dead','all'];
   const blank=()=>({lm:0, A:0, eV:0, eC:0, bV:0, bC:0, mV:0, mC:0, sV:0, sC:0, hV:0, hC:0, hVe:0, hCe:0, aLm:0, aOutV:0, aOutC:0, lV:0, lC:0, gV:0, gC:0, Ap:0, skus:new Set()});
   const P={}; pats.forEach(p=>P[p]=blank());
+  const GK=['bb','season','b','rest'], G={}; GK.forEach(k=>G[k]=blank());
+  const GR=v8Groups_(state.governedRows||[], store==='capel');      // V7.34 — store-wide groups
   const S=new Map();
   const loc = store==='capel' ? 0.7 : 1;
   const W30=[1,0,0,0], W60=[1,1,0,0];
@@ -9668,14 +9814,16 @@ function v8BackTest_(store, supFilter){
       const fc=v8Forecast_({all, sold30:s30, sold7:0, extraMonthly:0, g:1, seasonalTag:tag, weatherMult:1, lyW30:W30, lyW60:W60});
       const u6=v8Sum_(series.slice(Math.max(0,ti-6),ti));
       const abc = u6>=100?'A':u6>=20?'B':u6>=5?'C':'D';
-      const hold=v8Hold_(fc, {abc, leadDays:L, cycleDays:R});
+      const grp=GR.map.get(sku)||'rest';
+      const hold=v8Hold_(fc, {abc, leadDays:L, cycleDays:R, grp, capel:store==='capel'});
+      const gk=v8InSeason_(fc, hold) ? 'season' : grp;
       // current engine, replayed
       const ly1=ti-12>=0?series[ti-12]:null, ly2=ti-11>=0?series[ti-11]:null;
       let Fc=s30;
       if((ly1||0)>0 || (ly2||0)>0){ const both=(ly1||0)>0&&(ly2||0)>0; Fc = both?(ly1+ly2)/2:((ly1||0)>0?ly1:ly2); if(s30>=5) Fc=Math.max(Fc,s30); }
       const F=fc.F||0, p=fc.pattern==='nohist'?'dead':fc.pattern;
-      for(const k of [p,'all']){
-        const o=P[k]; o.lm++; o.A+=A; if(info.price>0 && info.cost>0) o.Ap+=A; o.eV+=Math.abs(F-A); o.eC+=Math.abs(Fc-A); o.bV+=F-A; o.bC+=Fc-A;
+      for(const o of [P[p], P.all, G[gk]]){
+        o.lm++; o.A+=A; if(info.price>0 && info.cost>0) o.Ap+=A; o.eV+=Math.abs(F-A); o.eC+=Math.abs(Fc-A); o.bV+=F-A; o.bC+=Fc-A;
         if(A>0 && F<0.5) o.mV++; if(A>0 && Fc<0.5) o.mC++; o.skus.add(sku);
       }
       sp.lm++; sp.A+=A; sp.eV+=Math.abs(F-A); sp.eC+=Math.abs(Fc-A);
@@ -9697,15 +9845,15 @@ function v8BackTest_(store, supFilter){
       };
       const rv=sim(stV,ordV), rc=sim(stC,ordC); stV=rv.end; stC=rc.end;
       const mg=Math.max(0, info.price-info.cost);     // margin a unit (ex VAT); 0 when no cost or no price
-      for(const k of [p,'all']){
-        const o=P[k]; o.sV+=rv.short; o.sC+=rc.short; o.hV+=rv.held; o.hC+=rc.held; o.hVe+=rv.held*info.cost; o.hCe+=rc.held*info.cost;
+      for(const o of [P[p], P.all, G[gk]]){
+        o.sV+=rv.short; o.sC+=rc.short; o.hV+=rv.held; o.hC+=rc.held; o.hVe+=rv.held*info.cost; o.hCe+=rc.held*info.cost;
         o.lV+=rv.short*info.price; o.lC+=rc.short*info.price; if(info.cost>0) { o.gV+=rv.short*mg; o.gC+=rc.short*mg; }
         if(abc==='A'){ o.aLm++; if(rv.short>0.5) o.aOutV++; if(rc.short>0.5) o.aOutC++; }
       }
       sp.sV+=rv.short; sp.sC+=rc.short; sp.hVe+=rv.held*info.cost; sp.hCe+=rc.held*info.cost;
     }
   }
-  return {store, name, months:T.map(i=>keys[i]), P, S, lines:P.all.skus.size};
+  return {store, name, months:T.map(i=>keys[i]), P, G, S, lines:P.all.skus.size};
 }
 function v8ModelCheckText_(res, supFilter){
   const f=fmtInt, pc=(a,b)=>b>0?Math.round(a/b*100)+'%':'—', sg=(a,b)=>b>0?((a>=0?'+':'')+Math.round(a/b*100)+'%'):'—';
@@ -9723,6 +9871,14 @@ function v8ModelCheckText_(res, supFilter){
     t+=`\n══ ${r.name} ══\n`;
     if(r.error){ t+=`Not run: ${r.error}\n`; continue; }
     t+=`Months tested: ${r.months.map(k=>_MONTH_ABBR[+k.slice(5)-1]+' '+k.slice(2,4)).join(', ')} · ${f(r.lines)} lines with sales\n\n`;
+    if(r.G){
+      const m=r.months.length||6, gl={bb:'🍞 Bread & butter', season:'🎄 Seasonal', b:'B lines', rest:'The rest'};
+      t+=`By group (Bread & butter = the lines making half this store's sales; B = the next 30%)\n`;
+      t+=pad('Group',20)+lp('Lines',7)+lp('Sold',9)+lp('Short V8',10)+lp('Short now',11)+lp('Stock € V8',12)+lp('Stock € now',13)+lp('Lost €/mo V8',14)+lp('Lost €/mo now',15)+'\n';
+      for(const k of ['bb','season','b','rest']){ const o=r.G[k]; if(!o||!o.lm) continue;
+        t+=pad(gl[k],20)+lp(f(o.skus.size),7)+lp(f(o.A),9)+lp(pc(o.sV,o.A),10)+lp(pc(o.sC,o.A),11)+lp('€'+f(o.hVe/m),12)+lp('€'+f(o.hCe/m),13)+lp('€'+f(o.lV/m),14)+lp('€'+f(o.lC/m),15)+'\n'; }
+      t+='\n';
+    }
     t+=pad('Pattern',20)+lp('Lines',7)+lp('Sold',9)+lp('Err V8',8)+lp('Err now',9)+lp('Bias V8',9)+lp('Bias now',10)+lp('Missed V8',11)+lp('Missed now',12)+'\n';
     for(const k of ['fast','medium','slow','rare','new','dead','all']){
       const o=r.P[k]; if(!o.lm) continue;
@@ -10132,8 +10288,8 @@ function renderActionNow(rows){
     f.lines += 1;
     // V7.31 — every number on the card comes from THIS set (the lines in the order)
     if(!(r.SupplierCostPrice>0)) f.noCost++;
-    if(r.coverStatus==='Out of Stock'){ f.oos++; if(r.abcClass==='A') f.oosA++; f.lost+=estLostRevenue(r); }
-    else if(r.coverStatus==='Critical'){ f.crit++; if(r.abcClass==='A') f.critA++; f.lost+=estLostRevenue(r); }
+    if(r.coverStatus==='Out of Stock'){ f.oos++; if(r._grp==='bb') f.oosA++; f.lost+=estLostRevenue(r); }
+    else if(r.coverStatus==='Critical'){ f.crit++; if(r._grp==='bb') f.critA++; f.lost+=estLostRevenue(r); }
   }
 
   // Group by supplier
@@ -10147,11 +10303,11 @@ function renderActionNow(rows){
     const isAtRisk = r.coverStatus==='Out of Stock'||r.coverStatus==='Critical';
     const isActionable = (r.buy||0) > 0;
     if(r.coverStatus==='Out of Stock'){
-      if(isActionable){ s.oos++; if(r.abcClass==='A') s.oosA++; }
+      if(isActionable){ s.oos++; if(r._grp==='bb') s.oosA++; }
       s.lostRev+=estLostRevenue(r);
       s.minDays=0;
     } else if(r.coverStatus==='Critical'){
-      if(isActionable){ s.crit++; if(r.abcClass==='A') s.critA++; }
+      if(isActionable){ s.crit++; if(r._grp==='bb') s.critA++; }
       s.lostRev+=estLostRevenue(r);
       const d=r.daysOfCover||0;
       if(d<s.minDays) s.minDays=d;
@@ -10263,11 +10419,11 @@ function renderActionNow(rows){
     let problem;
     if(f.oos>0){
       problem = `<strong>${fmtInt(f.oos)} line${f.oos!==1?'s':''} out of stock</strong>`
-        + (f.oosA>0 ? ` (${fmtInt(f.oosA)} ${f.oosA!==1?'are':'is a'} top seller${f.oosA!==1?'s':''})` : '');
+        + (f.oosA>0 ? ` (${fmtInt(f.oosA)} 🍞 bread & butter)` : '');
       if(f.crit>0) problem += `, ${fmtInt(f.crit)} more about to run out`;
     } else if(f.crit>0){
       problem = `<strong>${fmtInt(f.crit)} line${f.crit!==1?'s':''} about to run out</strong>`
-        + (f.critA>0 ? ` (${fmtInt(f.critA)} ${f.critA!==1?'are':'is a'} top seller${f.critA!==1?'s':''})` : '');
+        + (f.critA>0 ? ` (${fmtInt(f.critA)} 🍞 bread & butter)` : '');
     } else if(f.lines>0){
       problem = `${fmtInt(f.lines)} line${f.lines!==1?'s':''} running low`;
     } else {
@@ -12440,13 +12596,14 @@ function showDiag(text, opt){
   ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
   const box=document.createElement('div');
   box.style.cssText='background:#fff;border-radius:12px;max-width:'+(opt.wide?'1000px':'580px')+';width:100%;max-height:'+(opt.wide?'90vh':'82vh')+';display:flex;flex-direction:column;box-shadow:0 12px 44px rgba(0,0,0,.35);overflow:hidden';
-  box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 15px;border-bottom:1px solid #e2e8f0"><strong style="font-size:14px;color:#0f172a">'+esc(opt.title||'🔍 SKU Diagnosis')+'</strong><div><button id="diagCopy" style="background:#1e3a8a;color:#fff;border:none;border-radius:6px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer;margin-right:8px">Copy</button><button id="diagClose" style="background:#e2e8f0;color:#0f172a;border:none;border-radius:6px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer">Close</button></div></div>';
+  box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 15px;border-bottom:1px solid #e2e8f0"><strong style="font-size:14px;color:#0f172a">'+esc(opt.title||'🔍 SKU Diagnosis')+'</strong><div>'+(opt.dl?'<button id="diagDl" style="background:#0f766e;color:#fff;border:none;border-radius:6px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer;margin-right:8px">'+esc(opt.dl.label)+'</button>':'')+'<button id="diagCopy" style="background:#1e3a8a;color:#fff;border:none;border-radius:6px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer;margin-right:8px">Copy</button><button id="diagClose" style="background:#e2e8f0;color:#0f172a;border:none;border-radius:6px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer">Close</button></div></div>';
   const ta=document.createElement('textarea'); ta.readOnly=true; ta.value=text;
   ta.rows=Math.max(6, Math.min(60, String(text).split('\n').length+1));   // fill the box up to its max height
   ta.style.cssText='flex:1;border:none;outline:none;padding:14px 16px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.55;resize:none;white-space:'+(opt.wide?'pre':'pre-wrap')+';overflow:auto;color:#0f172a;background:#fff';
   box.appendChild(ta); ov.appendChild(box); document.body.appendChild(ov);
   ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
   box.querySelector('#diagClose').onclick=()=>ov.remove();
+  if(opt.dl){ const b=box.querySelector('#diagDl'); if(b) b.onclick=()=>{ try{ opt.dl.fn(); }catch(e){ console.warn(e); } }; }
   box.querySelector('#diagCopy').onclick=()=>{ ta.select(); try{document.execCommand('copy');}catch(e){} const b=box.querySelector('#diagCopy'); b.textContent='Copied ✓'; setTimeout(()=>{b.textContent='Copy';},1300); };
   setTimeout(()=>{ ta.scrollTop=0; },0);
 }
@@ -12633,8 +12790,13 @@ const OS_PRESETS = {
   gap:    {sub:'Selling, but Arklow has none', label:'🚨 Arklow gap',              tip:'Selling now (or due to) but Arklow can’t ship it — Capel is covering'},
   similar:{sub:'We already hold something like it', label:'🔁 Similar in stock',      tip:'Another supplier’s product that does the same job (or the same barcode under another SKU) is already on the shelf'},
   decide: {sub:'Sold once, or pack too big', label:'🧐 Buyer decides',               tip:'V8 won’t order these by itself: lines out of stock that sold in only one month of the last 12, and lines whose pack or minimum is over 12 months of sales and over €30. Type a quantity to add one to the order.'},
-  v8add:  {sub:'Not on the current order', label:'🧠 V8 would add',                 tip:'Lines the V8 model would order that the current engine doesn’t. Type a quantity to add one to the order.'}
+  v8add:  {sub:'Not on the current order', label:'🧠 V8 would add',                 tip:'Lines the V8 model would order that the current engine doesn’t. Type a quantity to add one to the order.'},
+  bb:     {sub:'Half our sales — never out', label:'🍞 Bread & butter',             tip:'The lines that make the first half of this store’s sales (last 12 months, €). These must never be out of stock.'},
+  season: {sub:'In season now', label:'🎄 Seasonal',                               tip:'Seasonal lines whose season is on now (last year’s next 60 days well above normal) — build for it.'},
+  b:      {sub:'The next 30% of sales', label:'B lines',                           tip:'The lines that make the next 30% of this store’s sales.'},
+  rest:   {sub:'The last 20%, and no sales', label:'The rest',                     tip:'Everything else: the last 20% of this store’s sales. At Capel the shop keeps 1 of lines selling under once a month.'}
 };
+const OS_GROUP_KEYS=['bb','season','b','rest'];
 
 function osPresetRows(preset){
   const os=window._os; if(!os) return [];
@@ -12646,6 +12808,7 @@ function osPresetRows(preset){
   if(preset==='similar') return rows.filter(r=>simAltsFor(r).length>0);
   if(preset==='decide') return (os.extra&&os.extra.decide)||[];
   if(preset==='v8add')  return (os.extra&&os.extra.v8add)||[];
+  if(OS_GROUP_KEYS.includes(preset)) return osPresetRows('all').filter(r=>v8GrpOf_(r)===preset);   // V7.34 — one group
   if(preset==='all' && os.mode==='quick' && os.extra && os.extra.decide && os.extra.decide.length){
     const have=new Set(rows.map(r=>String(r.SKU)));
     return rows.concat(os.extra.decide.filter(r=>!have.has(String(r.SKU))));
@@ -12930,7 +13093,7 @@ function osSetMode(m){
   os.expanded=new Set(); os.focus=null;
   osRender(true);
 }
-function osQuickFilter(f){ const os=window._os; if(!os) return; os.preset = (f==='all'||f==='similar'||f==='decide'||f==='v8add')?f:'urgent'; osRender(); }
+function osQuickFilter(f){ const os=window._os; if(!os) return; os.preset = (f==='all'||f==='similar'||f==='decide'||f==='v8add'||OS_GROUP_KEYS.includes(f))?f:'urgent'; os.showRoutine=false; osRender(); }
 function osQuickWhy(sku){ const os=window._os; if(!os) return; sku=String(sku); os.expanded.has(sku)?os.expanded.delete(sku):os.expanded.add(sku); if(os.tri&&os.tri.tier.get(sku)==='routine'&&os.expanded.has(sku)) os.showRoutine=true; osRender(); }
 // ── V7.33 TRIAGE — Quick view, every supplier (Mark, 8 Nov: "375 critical products are too much to
 // have to think of every line … we need lots of informative info but easy on the eye").
@@ -13046,6 +13209,13 @@ function osQuickProgress_(){
   const n=os.tri.call.length, d=os.tri.call.filter(r=>os.seen&&os.seen.has(String(r.SKU))).length;
   el.textContent=`${fmtInt(d)} of ${fmtInt(n)} done`; el.classList.toggle('all', d===n && n>0);
 }
+// V7.34 — group badge on a line: only Bread & butter and Seasonal are marked (one meaning per mark)
+function osGrpBadge_(r){
+  const g=v8GrpOf_(r);
+  if(g==='bb') return `<span class="ql-grp bb" title="Bread & butter: one of the lines that make half of this store’s sales — never out">🍞 Bread & butter</span>`;
+  if(g==='season') return `<span class="ql-grp season" title="Seasonal, in season now">🎄 Seasonal</span>`;
+  return '';
+}
 function osQuickLineHtml(r){
   const os=window._os, f=fmtInt;
   const q=osQty(r), c=osUnitCost(r), edited=q!==(r.buy||0);
@@ -13062,7 +13232,7 @@ function osQuickLineHtml(r){
   return `<div class="ol-row ql-row${stock<=0?' oos':''}${tier?' t-'+tier:''}${os.seen&&os.seen.has(r.SKU)?' seen':''}" data-sku="${esc(r.SKU)}">
     <div class="ql-line" onclick="osFocusLine('${jsArg(r.SKU)}',event)">
       <div class="ql-what"><div class="ql-title" title="${esc(r.ItemTitle||'')}">${esc(r.ItemTitle||'')}</div>
-        <div class="ls-codes"><span>${esc(r.SKU)}</span>${ean?`<button tabindex="-1" class="ls-ean" title="Click to copy barcode" onclick="event.stopPropagation();osCopy(this,'${jsArg(ean)}')"><span class="ls-ean-n">${esc(ean)}</span><span class="ls-ean-i">⧉ copy</span></button>`:'<span class="ls-noean">no barcode</span>'}${star}</div>${osQuickChip_(r)}</div>
+        <div class="ls-codes"><span>${esc(r.SKU)}</span>${ean?`<button tabindex="-1" class="ls-ean" title="Click to copy barcode" onclick="event.stopPropagation();osCopy(this,'${jsArg(ean)}')"><span class="ls-ean-n">${esc(ean)}</span><span class="ls-ean-i">⧉ copy</span></button>`:'<span class="ls-noean">no barcode</span>'}${star}${osGrpBadge_(r)}</div>${osQuickChip_(r)}</div>
       ${osSpark_(r)}
       <div class="ls-n ls-s ${stock<=0?'bad':''}">${f(stock)}</div>
       <div class="ls-n ls-o ${oo>0?'info':'muted'}">${f(oo)}</div>
@@ -13518,7 +13688,7 @@ function osLineHtml(r){
     <div class="ol-line" onclick="osFocusLine('${jsArg(r.SKU)}',event)">
       ${osRankCell(r)}
       <div class="ls-what"><div class="ls-title">${esc(r.ItemTitle||'')}</div>
-        <div class="ls-codes"><span>${esc(r.SKU)}</span>${String(r.Barcode||'').trim()?`<button tabindex="-1" class="ls-ean" title="Click to copy barcode" onclick="event.stopPropagation();osCopy(this,'${jsArg(String(r.Barcode).trim())}')"><span class="ls-ean-n">${esc(String(r.Barcode).trim())}</span><span class="ls-ean-i">⧉ copy</span></button>`:'<span class="ls-noean">no barcode</span>'}</div>${osFlagChips(r)}</div>
+        <div class="ls-codes"><span>${esc(r.SKU)}</span>${String(r.Barcode||'').trim()?`<button tabindex="-1" class="ls-ean" title="Click to copy barcode" onclick="event.stopPropagation();osCopy(this,'${jsArg(String(r.Barcode).trim())}')"><span class="ls-ean-n">${esc(String(r.Barcode).trim())}</span><span class="ls-ean-i">⧉ copy</span></button>`:'<span class="ls-noean">no barcode</span>'}${osGrpBadge_(r)}</div>${osFlagChips(r)}</div>
       <div class="ls-n ls-s ${stock<=0?'bad':''}">${f(stock)}</div>
       <div class="ls-n ls-o ${oo>0?'info':'muted'}">${f(oo)}</div>
       <div class="ls-qty"><input class="ol-qty po-rev-qty${edited?' changed':''}" type="number" min="0" step="1" value="${q}" data-sku="${esc(r.SKU)}"
@@ -13758,7 +13928,7 @@ function osRender(rebuild){
     }
   }
 
-  const tabs=Object.keys(OS_PRESETS).filter(k=>(k!=='gap'||showGap)&&(k!=='similar'||counts.similar>0)&&(k!=='decide'||counts.decide>0)&&(k!=='v8add'||counts.v8add>0)).map(k=>{
+  const tabs=Object.keys(OS_PRESETS).filter(k=>!OS_GROUP_KEYS.includes(k)).filter(k=>(k!=='gap'||showGap)&&(k!=='similar'||counts.similar>0)&&(k!=='decide'||counts.decide>0)&&(k!=='v8add'||counts.v8add>0)).map(k=>{
     const capSel = k==='impact' ? ` <select onclick="event.stopPropagation()" onchange="window._os.cap=parseInt(this.value)||15;window._os.preset='impact';osRender()" class="os-cap">${[10,15,20,30].map(n=>`<option value="${n}"${n===os.cap?' selected':''}>${n}</option>`).join('')}</select>` : '';
     return `<button class="os-tab os-tab-${k}${os.preset===k?' active':''}" title="${esc(OS_PRESETS[k].tip)}" onclick="osSetPreset('${k}')">
       <span class="os-tab-top"><span class="os-tab-lbl">${OS_PRESETS[k].label}</span><span class="os-tab-n">${counts[k]}</span></span>
@@ -13824,12 +13994,13 @@ function osRender(rebuild){
   $('osSup').innerHTML=`${esc(disp)} ${code?`<span class="sc-code">${esc(code)}</span>`:''} <span class="os-ch">${state.channel==='capel'?'Capel Street':'Arklow'}</span>`;
   $('osHist').innerHTML=st.hist+osSupplierGrowthTxt(os.supplier);
   $('osStatus').className='sc-status '+st.tone; $('osStatus').textContent=st.label;
-  $('osTabs').innerHTML=tabs;
+  $('osTabs').innerHTML=tabs+`<div class="os-grp-row"><span class="oq-lbl">Group</span>`+OS_GROUP_KEYS.filter(k=>counts[k]>0||os.preset===k).map(k=>`<button class="oq-btn grp-${k}${os.preset===k?' on':''}" onclick="osSetPreset('${k}')" title="${esc(OS_PRESETS[k].tip)}">${OS_PRESETS[k].label} <b>${fmtInt(counts[k]||0)}</b></button>`).join('')+`</div>`;
   const quick=os.mode==='quick';
   document.querySelector('#poReviewOverlay .os-modal')?.classList.toggle('quick', quick);
   $('osModeSwitch').innerHTML=`<button tabindex="-1" class="${quick?'on':''}" onclick="osSetMode('quick')" title="Slim list: critical lines first, Tab straight down the quantities">⚡ Quick</button><button tabindex="-1" class="${quick?'':'on'}" onclick="osSetMode('detail')" title="Full view: reasons, Needs a look, sales by month">🔍 Detail</button>`;
-  const qExtra = (os.preset!=='urgent' && os.preset!=='all' && os.preset!=='similar' && os.preset!=='decide' && os.preset!=='v8add' && OS_PRESETS[os.preset]) ? `<button tabindex="-1" class="oq-btn on">${OS_PRESETS[os.preset].label} <b>${fmtInt(counts[os.preset]||0)}</b></button>` : '';
-  $('osQuickBtns').innerHTML=qExtra+`<button tabindex="-1" class="oq-btn${os.preset==='urgent'?' on':''}" onclick="osQuickFilter('urgent')">🔴 Critical <b>${fmtInt(counts.urgent||0)}</b></button><button tabindex="-1" class="oq-btn${os.preset==='all'?' on':''}" onclick="osQuickFilter('all')">All lines <b>${fmtInt(counts.all||0)}</b></button>`+(counts.similar?`<button tabindex="-1" class="oq-btn sim${os.preset==='similar'?' on':''}" onclick="osQuickFilter('similar')" title="Lines where we already hold a similar product">🔁 Similar in stock <b id="osSimN">${fmtInt(counts.similar)}</b></button>`:'')
+  const qExtra = (os.preset!=='all' && os.preset!=='similar' && os.preset!=='decide' && os.preset!=='v8add' && !OS_GROUP_KEYS.includes(os.preset) && OS_PRESETS[os.preset]) ? `<button tabindex="-1" class="oq-btn on">${OS_PRESETS[os.preset].label} <b>${fmtInt(counts[os.preset]||0)}</b></button>` : '';
+  $('osQuickBtns').innerHTML=qExtra+`<button tabindex="-1" class="oq-btn${os.preset==='all'?' on':''}" onclick="osQuickFilter('all')">All lines <b>${fmtInt(counts.all||0)}</b></button>`
+    +OS_GROUP_KEYS.filter(k=>counts[k]>0||os.preset===k).map(k=>`<button tabindex="-1" class="oq-btn grp-${k}${os.preset===k?' on':''}" onclick="osQuickFilter('${k}')" title="${esc(OS_PRESETS[k].tip)}">${OS_PRESETS[k].label} <b>${fmtInt(counts[k]||0)}</b></button>`).join('')+(counts.similar?`<button tabindex="-1" class="oq-btn sim${os.preset==='similar'?' on':''}" onclick="osQuickFilter('similar')" title="Lines where we already hold a similar product">🔁 Similar in stock <b id="osSimN">${fmtInt(counts.similar)}</b></button>`:'')
     +(counts.decide?`<button tabindex="-1" class="oq-btn v8d${os.preset==='decide'?' on':''}" onclick="osQuickFilter('decide')" title="${esc(OS_PRESETS.decide.tip)}">🧐 Buyer decides <b>${fmtInt(counts.decide)}</b></button>`:'')
     +(counts.v8add?`<button tabindex="-1" class="oq-btn v8a${os.preset==='v8add'?' on':''}" onclick="osQuickFilter('v8add')" title="${esc(OS_PRESETS.v8add.tip)}">🧠 V8 would add <b>${fmtInt(counts.v8add)}</b></button>`:'');
   const v8b=$('osV8'); if(v8b) v8b.innerHTML=osV8BarHtml_(os.supplier);
