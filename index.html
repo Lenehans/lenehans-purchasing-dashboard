@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.33.0 · QUICK TRIAGE</title>
+  <title>Lenehans Purchasing Dashboard · V7.33.1 · QUICK TRIAGE</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1389,7 +1389,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.33.0 · built 2026-11-08 · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
+  <div class="sub">V7.33.1 · built 2026-11-09 · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -8908,7 +8908,7 @@ const V8 = {
   SERVICE: {A:0.97, B:0.95, C:0.90, D:0.90},
   Z:       {A:1.88, B:1.645, C:1.28, D:1.28},
   SLOW_MONTHS: 3, MAX_MONTHS: 6, PACK_MONTHS: 12, PACK_EUR: 30,
-  FAST: 30, SLOW: 5, NEW_MONTHS: 6,
+  FAST: 30, SLOW: 5, NEW_MONTHS: 6, NEW_HOLD_MONTHS: 2,
   TREND_MIN_CAPEL: 0.7, TREND_MAX: 1.5,
 };
 function v8Sum_(a){ let s=0; for(const v of a) s+=v||0; return s; }
@@ -8979,10 +8979,17 @@ function v8Forecast_(x){
   // or sold in the last 30 days after nothing for 12 months
   if(total===0 && s30>0){ out.pattern='new'; out.basis.push('new30'); out.F=s30+extra; return out; }
   if(firstIdx>firstKnown && monthsSince<=V8.NEW_MONTHS){
-    let F=v8Sum_(rAll.slice(firstIdx))/Math.max(v8Sum_(wAll.slice(firstIdx)), monthsSince/4);
-    if(monthsSince<=1) F=Math.max(F,s30);
-    Object.assign(out,{pattern:'new', sinceUnits:v8Sum_(all.slice(firstIdx)), sinceMonths:monthsSince, firstIdx, F:F+extra});
-    out.basis.push('new'); return out;
+    // V7.33.1 (Model check, Ashtown, 9 Nov: new lines forecast at about twice what they sold) — a line
+    // that sold in its first month and nothing since isn't a new seller yet: it's treated like any line
+    // that sold once (buyer decides). Only a line that has sold in 2+ months, or only just started, is "new".
+    const sellM=all.slice(firstIdx).filter(v=>v>0).length;
+    if(sellM>=2 || monthsSince<=1){
+      let F=v8Sum_(rAll.slice(firstIdx))/Math.max(v8Sum_(wAll.slice(firstIdx)), monthsSince/4);
+      if(monthsSince<=1) F=Math.max(F,s30);
+      Object.assign(out,{pattern:'new', sinceUnits:v8Sum_(all.slice(firstIdx)), sinceMonths:monthsSince, sellMonths:sellM, firstIdx, F:F+extra});
+      out.basis.push('new'); return out;
+    }
+    out.newOnce={firstIdx, units:v8Sum_(all.slice(firstIdx)), quiet:monthsSince-1};
   }
   // seasonal overlay: a season-tagged line, or last year's next 60 days ≥ twice its usual two months
   const w60=x.lyW60||[], lyMonths=[0,1,2,3].filter(j=>w60[j]>0 && rh[j]>0).length;
@@ -9048,6 +9055,8 @@ function v8Hold_(fc, h){
     const q=v8Poisson_(d*W, p); r.poisson=q; r.rp=Math.max(0,q-1);
     if(fc.seasonal && fc.pattern==='slow' && s60!=null){
       r.out=Math.max(q, s60, 1); r.kind = s60>Math.max(q,1) ? 'season' : 'sure'; r.build = r.kind==='season';
+    } else if(fc.pattern==='new'){                  // V7.33.1 — a new line holds 2 months until it has a track record
+      r.out=Math.max(Math.ceil(V8.NEW_HOLD_MONTHS*F-1e-9), q, 1); r.kind='new2months';
     } else { r.out=Math.max(Math.ceil(V8.SLOW_MONTHS*F-1e-9), q, 1); r.kind='3months'; }
   }
   if(!r.build){ const cap=Math.max(1,Math.ceil(V8.MAX_MONTHS*F-1e-9)); if(r.out>cap){ r.out=cap; r.capped=true; } }
@@ -9059,7 +9068,9 @@ function v8Order_(fc, hold, o){
   const stock=Math.round(Number(o.stock)||0), inb=Math.max(0,Math.round(Number(o.inbound)||0)), pos=Math.max(0,stock)+inb;
   const res={pos, stock, inbound:inb, need:0, qty:0, flags:[]};
   if(stock<0) res.flags.push({k:'count', t:`Stock shows ${stock} — counted as 0, check the count`});
-  if(hold.kind==='soldonce' && pos<=0) res.flags.push({k:'once', decide:true, t:`Sold in only one month of the last 12 (${fc.total} in all) — not reordered automatically`});
+  if(hold.kind==='soldonce' && pos<=0) res.flags.push({k:'once', decide:true, t: fc.newOnce
+    ? `New line — sold ${fc.newOnce.units} in its first month, none since — not reordered automatically`
+    : `Sold in only one month of the last 12 (${fc.total} in all) — not reordered automatically`});
   if(hold.rp<0 || pos>hold.rp) return res;
   res.need=Math.max(0, hold.out-pos);
   if(!(res.need>0)) return res;
@@ -9449,6 +9460,7 @@ function v8SalesTxt_(r){
     case 'rare':
       if(fc.onlineOnly) return `Only sells as Capel online orders — about ${f(Math.round(fc.extra*12))} a year`;
       if(v.hold.kind==='season') return `Seasonal — sold in only ${fc.sold} of the last 12 months, but the next 60 days last year sold ${N(fc.ly60)}${v8GrowthTxt_(fc)}`;
+      if(fc.newOnce && fc.sold===1) return `New line — sold ${f(fc.newOnce.units)} in its first month (${v8MonthLbl_(v, fc.newOnce.firstIdx).split(' ')[0]}), none in the ${fc.newOnce.quiet===1?'month':fc.newOnce.quiet+' months'} since`;
       return `Sold in only ${fc.sold===1?'one':fc.sold} of the last 12 months (${f(fc.total)} in all)`;
   }
   if(fc.onlineOnly) return `Only sells as Capel online orders — about ${N(fc.F)} a month`;
@@ -9483,6 +9495,7 @@ function v8HoldTxt_(r){
     case 'soldonce': return 'not reordered automatically — your call';
     case 'none': return 'nothing to hold';
     case '3months': return `keep 3 months (${f(h.out)})${h.capped?'':''}${rpTxt}`;
+    case 'new2months': return `keep 2 months (${f(h.out)}) while it’s new${rpTxt}`;
     case 'sure': return `keep ${f(h.out)} — ${pct}% sure to last ${f(h.W)} days (delivery + next order)${rpTxt}`;
     case 'season': return `season coming — hold the next 60 days last year (${f(h.out)})${rpTxt}`;
     case 'cover': return `keep ${f(h.W+h.R)} days’ sales + ${f(h.ss||0)} safety (${pct}% sure not to run out) = ${f(h.out)}${h.capped?' (capped at 6 months)':''}${rpTxt}`;
@@ -9627,10 +9640,16 @@ function v8BackTest_(store, supFilter){
     const sku=String(r.SKU||'').trim(); if(!sku) continue;
     const sup=String(r.SupplierName||'');
     if(want && !sup.toLowerCase().includes(want)) continue;
-    if(!bySku.has(sku)) bySku.set(sku, {sup, cost:r.SupplierCostPrice||0});
+    if(!bySku.has(sku)){
+      // average selling price over 12 months in this store, ex VAT (else the list price)
+      const onU=(r.QtySold_Online_Arklow_365d||0)+(r.QtySold_Online_CapelStreet_365d||0), shU=r.QtySold_Shop_CapelStreet_365d||0;
+      const on=onU>0&&r.Revenue_Online_Total_365d>0?r.Revenue_Online_Total_365d/onU:0, sh=shU>0&&r.Revenue_Shop_CapelStreet_365d>0?r.Revenue_Shop_CapelStreet_365d/shU:0;
+      const inc=(store==='capel'?(sh||on):on)||r.RetailPrice||0;
+      bySku.set(sku, {sup, cost:r.SupplierCostPrice||0, price:inc/1.23});
+    }
   }
   const pats=['fast','medium','slow','rare','new','dead','all'];
-  const blank=()=>({lm:0, A:0, eV:0, eC:0, bV:0, bC:0, mV:0, mC:0, sV:0, sC:0, hV:0, hC:0, hVe:0, hCe:0, aLm:0, aOutV:0, aOutC:0, skus:new Set()});
+  const blank=()=>({lm:0, A:0, eV:0, eC:0, bV:0, bC:0, mV:0, mC:0, sV:0, sC:0, hV:0, hC:0, hVe:0, hCe:0, aLm:0, aOutV:0, aOutC:0, lV:0, lC:0, gV:0, gC:0, Ap:0, skus:new Set()});
   const P={}; pats.forEach(p=>P[p]=blank());
   const S=new Map();
   const loc = store==='capel' ? 0.7 : 1;
@@ -9656,7 +9675,7 @@ function v8BackTest_(store, supFilter){
       if((ly1||0)>0 || (ly2||0)>0){ const both=(ly1||0)>0&&(ly2||0)>0; Fc = both?(ly1+ly2)/2:((ly1||0)>0?ly1:ly2); if(s30>=5) Fc=Math.max(Fc,s30); }
       const F=fc.F||0, p=fc.pattern==='nohist'?'dead':fc.pattern;
       for(const k of [p,'all']){
-        const o=P[k]; o.lm++; o.A+=A; o.eV+=Math.abs(F-A); o.eC+=Math.abs(Fc-A); o.bV+=F-A; o.bC+=Fc-A;
+        const o=P[k]; o.lm++; o.A+=A; if(info.price>0 && info.cost>0) o.Ap+=A; o.eV+=Math.abs(F-A); o.eC+=Math.abs(Fc-A); o.bV+=F-A; o.bC+=Fc-A;
         if(A>0 && F<0.5) o.mV++; if(A>0 && Fc<0.5) o.mC++; o.skus.add(sku);
       }
       sp.lm++; sp.A+=A; sp.eV+=Math.abs(F-A); sp.eC+=Math.abs(Fc-A);
@@ -9677,8 +9696,10 @@ function v8BackTest_(store, supFilter){
         return {short:(a1-s1)+(a2-s2), end, held:((st+(st-s1))/2)*f + ((st1+end)/2)*(1-f)};
       };
       const rv=sim(stV,ordV), rc=sim(stC,ordC); stV=rv.end; stC=rc.end;
+      const mg=Math.max(0, info.price-info.cost);     // margin a unit (ex VAT); 0 when no cost or no price
       for(const k of [p,'all']){
         const o=P[k]; o.sV+=rv.short; o.sC+=rc.short; o.hV+=rv.held; o.hC+=rc.held; o.hVe+=rv.held*info.cost; o.hCe+=rc.held*info.cost;
+        o.lV+=rv.short*info.price; o.lC+=rc.short*info.price; if(info.cost>0) { o.gV+=rv.short*mg; o.gC+=rc.short*mg; }
         if(abc==='A'){ o.aLm++; if(rv.short>0.5) o.aOutV++; if(rc.short>0.5) o.aOutC++; }
       }
       sp.sV+=rv.short; sp.sC+=rc.short; sp.hVe+=rv.held*info.cost; sp.hCe+=rc.held*info.cost;
@@ -9708,11 +9729,11 @@ function v8ModelCheckText_(res, supFilter){
       t+=pad(lbl[k],20)+lp(f(o.skus.size),7)+lp(f(o.A),9)+lp(pc(o.eV,o.A),8)+lp(pc(o.eC,o.A),9)+lp(sg(o.bV,o.A),9)+lp(sg(o.bC,o.A),10)+lp(f(o.mV),11)+lp(f(o.mC),12)+'\n';
     }
     t+=`\nStock simulation\n`;
-    t+=pad('Pattern',20)+lp('Short V8',10)+lp('Short now',11)+lp('Stock € V8',12)+lp('Stock € now',13)+lp('A out V8',10)+lp('A out now',11)+'\n';
+    t+=pad('Pattern',20)+lp('Short V8',10)+lp('Short now',11)+lp('Stock € V8',12)+lp('Stock € now',13)+lp('A out V8',10)+lp('A out now',11)+lp('Lost €/mo V8',14)+lp('Lost €/mo now',15)+'\n';
     for(const k of ['fast','medium','slow','rare','new','dead','all']){
       const o=r.P[k]; if(!o.lm) continue;
       const m=r.months.length||6;
-      t+=pad(lbl[k],20)+lp(pc(o.sV,o.A),10)+lp(pc(o.sC,o.A),11)+lp('€'+f(o.hVe/m),12)+lp('€'+f(o.hCe/m),13)+lp(o.aLm?pc(o.aOutV,o.aLm):'—',10)+lp(o.aLm?pc(o.aOutC,o.aLm):'—',11)+'\n';
+      t+=pad(lbl[k],20)+lp(pc(o.sV,o.A),10)+lp(pc(o.sC,o.A),11)+lp('€'+f(o.hVe/m),12)+lp('€'+f(o.hCe/m),13)+lp(o.aLm?pc(o.aOutV,o.aLm):'—',10)+lp(o.aLm?pc(o.aOutC,o.aLm):'—',11)+lp('€'+f(o.lV/m),14)+lp('€'+f(o.lC/m),15)+'\n';
     }
     const sups=[...r.S.entries()].filter(([,s])=>s.A>0).sort((a,b)=>b[1].A-a[1].A).slice(0, supFilter?10:25);
     if(sups.length){
@@ -9723,6 +9744,10 @@ function v8ModelCheckText_(res, supFilter){
     const a=r.P.all;
     const better=a.eV<a.eC, fewerShort=a.sV<=a.sC;
     t+=`\nVerdict: V8 forecast error ${pc(a.eV,a.A)} vs ${pc(a.eC,a.A)} now (${better?'better':'WORSE'}); sales lost to running out ${pc(a.sV,a.A)} vs ${pc(a.sC,a.A)} (${fewerShort?'fewer':'MORE'}); average stock €${f(a.hVe/(r.months.length||6))} vs €${f(a.hCe/(r.months.length||6))}.\n`;
+    if(a.A>0 && a.Ap/a.A<0.5) t+=`Money: selling prices or cost prices are missing for most of these lines, so lost sales can’t be valued.\n`;
+    else { const m=r.months.length||6, dStock=(a.hVe-a.hCe)/m, carry=Math.abs(dStock)*0.25/12, dLost=(a.lC-a.lV)/m, dMargin=(a.gC-a.gV)/m;
+      t+=`Money: V8 holds €${f(Math.abs(dStock))} ${dStock>=0?'more':'less'} stock (about €${f(carry)} a month to carry, at 25% a year) and loses about €${f(Math.abs(dLost))} a month ${dLost>=0?'less':'MORE'} in sales ex VAT (€${f(Math.abs(dMargin))} a month ${dMargin>=0?'less':'more'} margin lost).`
+        + (dStock>=0 && dMargin>carry ? ` The extra stock pays for itself ${(dMargin/Math.max(1,carry)).toFixed(1)}× over.\n` : dStock>=0 ? ` The extra stock costs more to carry than the margin it saves.\n` : `\n`); }
   }
   t+=`\nSend this to Claude.`;
   return t;
