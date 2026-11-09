@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.34.0 · BREAD & BUTTER</title>
+  <title>Lenehans Purchasing Dashboard · V7.34.1 · BREAD & BUTTER</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1397,7 +1397,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.34.0 · built 2026-11-09 · 🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group · 🏪 Capel holds lean outside Bread & butter · 📦 stock to clear or move · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
+  <div class="sub">V7.34.1 · built 2026-11-09 · 🧪 Model check runs each supplier on its own order cycle · 🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group · 🏪 Capel holds lean outside Bread & butter · 📦 stock to clear or move · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -9800,14 +9800,22 @@ function v8BackTest_(store, supFilter){
   const S=new Map();
   const loc = store==='capel' ? 0.7 : 1;
   const W30=[1,0,0,0], W60=[1,1,0,0];
+  // V7.34.1 — day by day, each supplier on its own order cycle (buyer schedule) and lead time, as the live
+  // order uses; lines that first sold DURING the test are counted apart (no model can stock a line before
+  // its first sale — the buyer's first order covers it), so they don't read as Bread & butter shortages.
+  const L0={A:0, lV:0, lC:0, skus:new Set()};
+  const dim=k=>new Date(+k.slice(0,4), +k.slice(5), 0).getDate();
+  const fbR=num(document.getElementById('baseCoverDays')?.value)||21;
   for(const [sku, info] of bySku){
     const d=src.data[sku]; if(!d) continue;
     const series=keys.map((k,i)=>(i<vf || !src.cols.has(k)) ? null : (d[k]||0));
     if(!(v8Sum_(series.slice(Math.max(0,T[0]-12)))>0)) continue;
-    const L=(state.supplierLeadTimes&&state.supplierLeadTimes[info.sup]) || leadIn || 7, R=30, f=Math.min(1,L/30);
+    const L=(state.supplierLeadTimes&&state.supplierLeadTimes[info.sup]) || leadIn || 7;
+    let R=fbR; try{ R=cadenceReviewDays(getCadenceForSupplier(info.sup), fbR); }catch(e){}
+    R=Math.max(1, R||fbR);
     const tag=tags.has(normSku_(sku));
-    let stV=null, stC=null;
     const sp=S.get(info.sup)||{lm:0, A:0, eV:0, eC:0, sV:0, sC:0, hVe:0, hCe:0}; S.set(info.sup, sp);
+    const sv={oh:null, pipe:[]}, sc={oh:null, pipe:[]}; let day=0;
     for(const ti of T){
       const A=series[ti]; if(A==null) continue;
       const all=series.slice(0,ti), s30=series[ti-1]||0;
@@ -9822,38 +9830,51 @@ function v8BackTest_(store, supFilter){
       let Fc=s30;
       if((ly1||0)>0 || (ly2||0)>0){ const both=(ly1||0)>0&&(ly2||0)>0; Fc = both?(ly1+ly2)/2:((ly1||0)>0?ly1:ly2); if(s30>=5) Fc=Math.max(Fc,s30); }
       const F=fc.F||0, p=fc.pattern==='nohist'?'dead':fc.pattern;
-      for(const o of [P[p], P.all, G[gk]]){
-        o.lm++; o.A+=A; if(info.price>0 && info.cost>0) o.Ap+=A; o.eV+=Math.abs(F-A); o.eC+=Math.abs(Fc-A); o.bV+=F-A; o.bC+=Fc-A;
-        if(A>0 && F<0.5) o.mV++; if(A>0 && Fc<0.5) o.mC++; o.skus.add(sku);
+      const launch = !(v8Sum_(all)>0);                 // never sold before this month
+      if(!launch){
+        for(const o of [P[p], P.all, G[gk]]){
+          o.lm++; o.A+=A; if(info.price>0 && info.cost>0) o.Ap+=A; o.eV+=Math.abs(F-A); o.eC+=Math.abs(Fc-A); o.bV+=F-A; o.bC+=Fc-A;
+          if(A>0 && F<0.5) o.mV++; if(A>0 && Fc<0.5) o.mC++; o.skus.add(sku);
+        }
+        sp.lm++; sp.A+=A; sp.eV+=Math.abs(F-A); sp.eC+=Math.abs(Fc-A);
       }
-      sp.lm++; sp.A+=A; sp.eV+=Math.abs(F-A); sp.eC+=Math.abs(Fc-A);
-      // ── stock simulation (order at the start of the month, arrives after the lead time) ──
+      // ── the two ordering rules for this month (each re-plans at the start of the month) ──
       const pct=abc==='A'?0.75:abc==='B'?0.55:abc==='C'?0.35:0.2;
-      const tgtC=Math.ceil(Fc/30*(L+R+(L+R)*pct*1.25)*loc - 1e-9);
-      if(stV==null){ stV=stC=Math.max(0, series[ti-1]||0); }      // both start with last month's sales in stock
-      let ordV = (hold.rp>=0 && stV<=hold.rp) ? Math.max(0,hold.out-stV) : 0;
-      const rpDaysC=L+(L+R)*pct*1.25, coverNow = Fc>0 ? stC/(Fc/30) : (stC>0?9999:0);
-      let ordC = coverNow < rpDaysC + R*0.5 ? Math.max(0, tgtC-stC) : 0;   // Healthy lines aren't on the order
-      const lyEv=((ly1||0)+(ly2||0))>=10, rate=(lyEv?Math.max(s30,Fc):s30)/30;
-      const cover = rate>0 ? stC/rate : (stC>0?9999:0);
-      if(cover>90) ordC=0;
-      if(v8Sum_(all.slice(-12))===0) ordC=0;
-      if(stC<=0 && (ly1||0)>=10 && (ordC>0 || cover<=90)) ordC=Math.max(ordC, ly1);
-      const sim=(st, ord)=>{
-        const a1=A*f, s1=Math.min(st,a1), st1=st-s1+ord, a2=A-a1, s2=Math.min(st1,a2), end=st1-s2;
-        return {short:(a1-s1)+(a2-s2), end, held:((st+(st-s1))/2)*f + ((st1+end)/2)*(1-f)};
+      const tgtC=Math.ceil(Fc/30*(L+R+(L+R)*pct*1.25)*loc - 1e-9), rpDaysC=L+(L+R)*pct*1.25;
+      const lyEv=((ly1||0)+(ly2||0))>=10, rate=(lyEv?Math.max(s30,Fc):s30)/30, dead12=v8Sum_(all.slice(-12))===0;
+      const ordC=pos=>{
+        const coverNow = Fc>0 ? pos/(Fc/30) : (pos>0?9999:0);
+        let q = coverNow < rpDaysC + R*0.5 ? Math.max(0, tgtC-pos) : 0;   // Healthy lines aren't on the order
+        const cover = rate>0 ? pos/rate : (pos>0?9999:0);
+        if(cover>90) q=0; if(dead12) q=0;
+        if(pos<=0 && (ly1||0)>=10 && (q>0 || cover<=90)) q=Math.max(q, ly1);
+        return q;
       };
-      const rv=sim(stV,ordV), rc=sim(stC,ordC); stV=rv.end; stC=rc.end;
+      const ordV=pos=>(hold.rp>=0 && pos<=hold.rp) ? Math.max(0, hold.out-pos) : 0;
+      if(sv.oh==null){ sv.oh=sc.oh=Math.max(0, series[ti-1]||0); }   // both start with last month's sales in stock
+      const days=dim(keys[ti]), dd=A/days;
+      let shV=0, shC=0, hV=0, hC=0;
+      for(let k=0; k<days; k++, day++){
+        for(const st of [sv, sc]) if(st.pipe.length){ let arr=0; st.pipe=st.pipe.filter(o=>{ if(o.at<=day){ arr+=o.q; return false; } return true; }); st.oh+=arr; }
+        if(day===0 || Math.floor(day/R)!==Math.floor((day-1)/R)){      // order day
+          const pV=sv.oh+sv.pipe.reduce((a,o)=>a+o.q,0), qV=ordV(pV); if(qV>0) sv.pipe.push({at:day+L, q:qV});
+          const pC=sc.oh+sc.pipe.reduce((a,o)=>a+o.q,0), qC=ordC(pC); if(qC>0) sc.pipe.push({at:day+L, q:qC});
+        }
+        const a=Math.min(sv.oh, dd); shV+=dd-a; sv.oh-=a; hV+=sv.oh;
+        const c=Math.min(sc.oh, dd); shC+=dd-c; sc.oh-=c; hC+=sc.oh;
+      }
+      hV/=days; hC/=days;
+      if(launch){ L0.A+=A; L0.skus.add(sku); L0.lV+=shV*info.price; L0.lC+=shC*info.price; continue; }
       const mg=Math.max(0, info.price-info.cost);     // margin a unit (ex VAT); 0 when no cost or no price
       for(const o of [P[p], P.all, G[gk]]){
-        o.sV+=rv.short; o.sC+=rc.short; o.hV+=rv.held; o.hC+=rc.held; o.hVe+=rv.held*info.cost; o.hCe+=rc.held*info.cost;
-        o.lV+=rv.short*info.price; o.lC+=rc.short*info.price; if(info.cost>0) { o.gV+=rv.short*mg; o.gC+=rc.short*mg; }
-        if(abc==='A'){ o.aLm++; if(rv.short>0.5) o.aOutV++; if(rc.short>0.5) o.aOutC++; }
+        o.sV+=shV; o.sC+=shC; o.hV+=hV; o.hC+=hC; o.hVe+=hV*info.cost; o.hCe+=hC*info.cost;
+        o.lV+=shV*info.price; o.lC+=shC*info.price; if(info.cost>0) { o.gV+=shV*mg; o.gC+=shC*mg; }
+        if(abc==='A'){ o.aLm++; if(shV>0.5) o.aOutV++; if(shC>0.5) o.aOutC++; }
       }
-      sp.sV+=rv.short; sp.sC+=rc.short; sp.hVe+=rv.held*info.cost; sp.hCe+=rc.held*info.cost;
+      sp.sV+=shV; sp.sC+=shC; sp.hVe+=hV*info.cost; sp.hCe+=hC*info.cost;
     }
   }
-  return {store, name, months:T.map(i=>keys[i]), P, G, S, lines:P.all.skus.size};
+  return {store, name, months:T.map(i=>keys[i]), P, G, S, L0, lines:P.all.skus.size};
 }
 function v8ModelCheckText_(res, supFilter){
   const f=fmtInt, pc=(a,b)=>b>0?Math.round(a/b*100)+'%':'—', sg=(a,b)=>b>0?((a>=0?'+':'')+Math.round(a/b*100)+'%'):'—';
@@ -9863,8 +9884,9 @@ function v8ModelCheckText_(res, supFilter){
   t+=`Run ${new Date().toLocaleString('en-IE')} · dashboard ${String(document.title).split('·')[1]||''}\n\n`;
   t+=`How: for each of the last 6 complete months, each model forecasts the month using ONLY the\n`;
   t+=`months before it; we compare with what actually sold. Then each model "holds stock" through\n`;
-  t+=`those 6 months, both starting with one month's sales on the shelf (one order a month, the\n`;
-  t+=`supplier's lead time, packs ignored, trend 100%).\n`;
+  t+=`those 6 months day by day, both starting with one month's sales on the shelf, each supplier on its\n`;
+  t+=`own order cycle (buyer schedule) and lead time (packs ignored, trend 100%). Lines that first sold\n`;
+  t+=`during the test aren't counted (no model can stock a line before it first sells).\n`;
   t+=`Lower forecast error is better · bias + = over-forecast · "missed" = it sold but the model\n`;
   t+=`said 0 · "short" = sales lost to running out · "stock held" = average stock value.\n`;
   for(const r of res){
@@ -9877,6 +9899,7 @@ function v8ModelCheckText_(res, supFilter){
       t+=pad('Group',20)+lp('Lines',7)+lp('Sold',9)+lp('Short V8',10)+lp('Short now',11)+lp('Stock € V8',12)+lp('Stock € now',13)+lp('Lost €/mo V8',14)+lp('Lost €/mo now',15)+'\n';
       for(const k of ['bb','season','b','rest']){ const o=r.G[k]; if(!o||!o.lm) continue;
         t+=pad(gl[k],20)+lp(f(o.skus.size),7)+lp(f(o.A),9)+lp(pc(o.sV,o.A),10)+lp(pc(o.sC,o.A),11)+lp('€'+f(o.hVe/m),12)+lp('€'+f(o.hCe/m),13)+lp('€'+f(o.lV/m),14)+lp('€'+f(o.lC/m),15)+'\n'; }
+      if(r.L0 && r.L0.skus.size) t+=`Not counted: ${f(r.L0.skus.size)} lines first sold during these months (${f(r.L0.A)} units) — the buyer's first order covers a new line.\n`;
       t+='\n';
     }
     t+=pad('Pattern',20)+lp('Lines',7)+lp('Sold',9)+lp('Err V8',8)+lp('Err now',9)+lp('Bias V8',9)+lp('Bias now',10)+lp('Missed V8',11)+lp('Missed now',12)+'\n';
