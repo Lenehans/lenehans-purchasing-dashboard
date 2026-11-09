@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.34.2 · ORDER IN STEPS</title>
+  <title>Lenehans Purchasing Dashboard · V7.34.4 · ORDER IN STEPS</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1282,6 +1282,11 @@
 .ql-pop .qp-sw.ly{background:#f59e0b}
 .ql-pop .qp-sw.out{background:#fecaca;border:1.5px solid #dc2626}
 .qs-more-b b{font-weight:inherit}
+/* V7.34.3 — step labels always readable: steps size to their words, the search moves down if needed */
+.qs-step{flex:0 0 auto;min-width:0}
+.qs-step .qs-l{overflow:visible;text-overflow:clip}
+#osQuickBtns{flex:1 1 auto}
+
     .ql-showall{margin-top:10px;border:2px solid #1e3a5f;background:#fff;color:#1e3a5f;font-weight:800;border-radius:10px;padding:8px 16px;cursor:pointer}
     .ls-csrow{grid-column:3/8;grid-row:2;margin-top:-2px;background:#f3e8ff;border:1.5px solid #a855f7;color:#581c87;border-radius:8px;padding:4px 10px;font-size:13.5px;font-weight:700;text-align:center}
     .ls-csrow b{font-size:15px}
@@ -1445,7 +1450,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.34.2 · built 2026-11-09 · ⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest? · 🧪 Model check runs each supplier on its own order cycle · 🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group · 🏪 Capel holds lean outside Bread & butter · 📦 stock to clear or move · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
+  <div class="sub">V7.34.4 · built 2026-11-09 · 🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered · 🚚 spare stock in the other store flagged · ⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest? · 🧪 Model check runs each supplier on its own order cycle · 🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group · 🏪 Capel holds lean outside Bread & butter · 📦 stock to clear or move · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -4563,6 +4568,9 @@ const CATEGORY_RULES = [
   { id:'TARP_STORM',     label:'Storm Prep',      keywords:['tarpaulin','tarp','rope','bungee'],                                          seasonalProfile:'STORM_AUTUMN',       priority:72  },
   { id:'FIRE_HEAT',      label:'Fire / Heat',     keywords:['kindling','firelighter','fire lighters','logs','log basket',
                                                              'fireguard','fire guard','fire fender','fire screen'],                       seasonalProfile:'WINTER_FIRE',        priority:78  },
+  { id:'COOLING',        label:'Fans & cooling',  keywords:['desk fan','tower fan','pedestal fan','floor fan','stand fan','table fan','portable fan',
+                                                             'oscillating fan','box fan','clip fan','usb fan','mini fan','handheld fan','air cooler',
+                                                             'evaporative cooler','air circulator','cooling fan','misting fan'],              seasonalProfile:'SUMMER_COOLING',     priority:84  },
   { id:'HEATING',        label:'Heating',         keywords:['heater','electric fire','halogen heater','oil heater','fan heater',
                                                              'gas heater','hot water bottle','immersion heater','storage heater',
                                                              'electric stove','portable heater','patio heater'],                          seasonalProfile:'WINTER_HEAT',        priority:85  },
@@ -4586,6 +4594,7 @@ const SEASONAL_PROFILES = {
   CHRISTMAS:         { monthly:[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.3,1.7,2.5,2.0], note:'Christmas demand' },
   STORM_AUTUMN:      { monthly:[1.1,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.2,1.5,1.6,1.5], note:'Autumn/winter storm demand' },
   WINTER_FIRE:       { monthly:[1.6,1.2,1.0,1.0,1.0,1.0,1.0,1.0,1.3,1.6,1.8,1.8], note:'Cold season fire demand' },
+  SUMMER_COOLING:    { monthly:[0.2,0.2,0.3,0.5,1.0,2.2,2.6,2.0,0.6,0.3,0.2,0.2], note:'Summer cooling — fans sell May–Aug' },
   WINTER_HEAT:       { monthly:[2.0,1.5,1.0,0.8,0.5,0.5,0.5,0.5,1.0,1.8,2.2,2.3], note:'Winter heating demand — order May–Aug for autumn stock' }
 };
 
@@ -4601,7 +4610,7 @@ const WEATHER_RULES = {
     multiplier: 1.15,
     boost_class: '',
     categories: ['WEED_CONTROL','WATERING','BBQ','GARDEN_TOOLS','PATIO_CLEANING',
-                 'COMPOST','FERTILISER','SLUG_CONTROL','INSECT_CONTROL','PAINT']
+                 'COMPOST','FERTILISER','SLUG_CONTROL','INSECT_CONTROL','PAINT','COOLING']
   },
   cold_snap: {
     label: '🥶 Cold snap',
@@ -9006,10 +9015,55 @@ function v8Groups_(rows, capel){
 }
 // in season now: a seasonal line whose next 60 days last year were at least 1.5× a normal two months
 function v8InSeason_(fc, hold){
+  if(fc && !fc.offSeason && fc.pattern!=='dead' && fc.seasonNow!=null && fc.seasonNow>=1.5 && (fc.F||0)>0) return true;   // its season (tag / category) is on
   if(!fc || !fc.seasonal || fc.pattern==='dead') return false;
   if(hold && hold.build) return true;
   return fc.ly60!=null && fc.ly60>=Math.max(3, 3*(fc.avg||0));
 }
+// V7.34.3 — OUT OF SEASON (Mark, 9 Nov: "Why buy a fan in November?? is this not seasonal??"). A line in a
+// strongly seasonal category (its profile stays at half or less for the next 3 months — fans in winter,
+// heaters in early summer) whose own history doesn't show it selling now isn't reordered until its season
+// comes round; it goes to Buyer decides when it's out, and its rate is scaled to the season.
+function v8OffSeason_(fc, prof, m, lbl){
+  if(!prof || !fc || fc.pattern==='dead' || fc.pattern==='nohist') return null;
+  const at=k=>prof[((k%12)+12)%12]||1;
+  if(Math.max(at(m), at(m+1), at(m+2))>0.5) return null;
+  if(fc.ly60!=null && fc.ly60>=Math.max(1, fc.avg||0)) return null;          // it sold in these months last year (half its usual rate or more)
+  if((fc.s30raw!=null ? fc.s30raw : fc.s30||0)>=1) return null;              // it sold in the last 30 days — still selling
+  let ws=0, ps=0; (fc.hist||[]).forEach((v,j)=>{ if(v>0){ ws+=v; ps+=v*at(m-12+j); } });
+  const ratio=Math.max(0.05, Math.min(1, ((at(m)+at(m+1))/2)/(ws>0 ? ps/ws : 1)));
+  let back=null; for(let k=1;k<=12;k++){ if(Math.max(at(m+k), at(m+k+1), at(m+k+2))>0.5){ back=(m+k)%12; break; } }
+  return {ratio, back, lbl:lbl||'Seasonal'};
+}
+// V7.34.3 — "Surely there is one available in Arklow?" Spare stock in the other store (beyond 2 months of its
+// own sales) → transfer instead of buying (Arklow ↔ Capel moves once or twice a week).
+function v8TransferSpare_(r){
+  const capel=state.channel==='capel';
+  const other = capel ? (r.NetStock_Arklow||0) : (r.NetStock_CapelStreet||0);
+  if(!(other>0)) return null;
+  const rate = capel
+    ? Math.max(r.QtySold_Online_Total_30d||0, ((r.QtySold_Online_Arklow_365d||0)+(r.QtySold_Online_CapelStreet_365d||0))/12)
+    : Math.max((r.QtySold_Shop_CapelStreet_30d||0)+(r.QtySold_Online_CapelStreet_30d||0), ((r.QtySold_Shop_CapelStreet_365d||0)+(r.QtySold_Online_CapelStreet_365d||0))/12);
+  const spare=Math.floor(other-2*rate); if(spare<1) return null;
+  const from=capel?'Arklow':'Capel';
+  return {from, spare, other, t:`🚚 ${from} has ${fmtInt(other)} (${fmtInt(spare)} spare) — transfer instead of buying?`};
+}
+// V7.34.4 — the SeasonalMap tags (3,105 lines: Summer Jun–Aug, Winter Dec–Feb, Spring Mar–May, Autumn Sep–Nov,
+// Christmas Oct–Dec) say WHEN a line sells. V8 had used them only as yes/no; now their months drive in/out of season
+// too (the StayCool fan is tagged Summer). A product category's profile is used first, then the tag.
+function v8TagLabel_(months){
+  if(!months || !months.length) return '';
+  const k=months.slice().sort((a,b)=>a-b).join(',');
+  return {'6,7,8':'Summer', '1,2,12':'Winter', '3,4,5':'Spring', '9,10,11':'Autumn', '10,11,12':'Christmas'}[k] || 'Seasonal';
+}
+function v8TagProfile_(months){
+  if(!months || !months.length) return null;
+  const p=new Array(12).fill(0.3);
+  for(const m of months){ const i=m-1; p[(i+11)%12]=Math.max(p[(i+11)%12],1); p[(i+1)%12]=Math.max(p[(i+1)%12],1); }
+  for(const m of months) p[m-1]=2;
+  return p;
+}
+function v8SeasonProfile_(catProf, tagMonths){ return catProf || v8TagProfile_(tagMonths); }
 function v8GrpOf_(r){ return (r && (r._grpShow || r._grp)) || 'rest'; }
 function v8Sum_(a){ let s=0; for(const v of a) s+=v||0; return s; }
 // smallest k with P(Poisson(mean) ≤ k) ≥ p
@@ -9084,7 +9138,9 @@ function v8Forecast_(x){
     // that sold once (buyer decides). Only a line that has sold in 2+ months, or only just started, is "new".
     const sellM=all.slice(firstIdx).filter(v=>v>0).length;
     if(sellM>=2 || monthsSince<=1){
-      let F=v8Sum_(rAll.slice(firstIdx))/Math.max(v8Sum_(wAll.slice(firstIdx)), monthsSince/4);
+      // V7.34.3 — a new line out of stock after its launch can't more than double its rate (StayCool fan: 50 sold
+      // since July, out of stock since → had read as 40 a month)
+      let F=v8Sum_(rAll.slice(firstIdx))/Math.max(v8Sum_(wAll.slice(firstIdx)), monthsSince/2);
       if(monthsSince<=1) F=Math.max(F,s30);
       Object.assign(out,{pattern:'new', sinceUnits:v8Sum_(all.slice(firstIdx)), sinceMonths:monthsSince, sellMonths:sellM, firstIdx, F:F+extra});
       out.basis.push('new'); return out;
@@ -9137,6 +9193,7 @@ function v8Hold_(fc, h){
   const F=fc.F||0, g=fc.g||1;
   const r={rp:-1, out:0, W, L, R, p, abc, grp, kind:'none', build:false};
   if(fc.pattern==='dead' || fc.pattern==='nohist') return r;
+  if(fc.offSeason){ r.kind='offseason'; return r; }    // V7.34.3 — not reordered until its season comes round
   const s60=fc.ly60!=null ? Math.ceil(fc.ly60*g-1e-9) : null, s30=fc.ly30!=null ? Math.ceil(fc.ly30*g-1e-9) : null;
   r.s60=s60; r.s30=s30;
   if(fc.pattern==='rare'){
@@ -9174,6 +9231,7 @@ function v8Order_(fc, hold, o){
   const stock=Math.round(Number(o.stock)||0), inb=Math.max(0,Math.round(Number(o.inbound)||0)), pos=Math.max(0,stock)+inb;
   const res={pos, stock, inbound:inb, need:0, qty:0, flags:[]};
   if(stock<0) res.flags.push({k:'count', t:`Stock shows ${stock} — counted as 0, check the count`});
+  if(hold.kind==='offseason' && pos<=0) res.flags.push({k:'offseason', decide:true, t:`${fc.offSeason.lbl} line, out of season — not reordered until ${fc.offSeason.back!=null?_MONTH_ABBR[fc.offSeason.back]:'its season'}`});
   if(hold.kind==='soldonce' && pos<=0) res.flags.push({k:'once', decide:true, t: fc.newOnce
     ? `New line — sold ${fc.newOnce.units} in its first month, none since — not reordered automatically`
     : `Sold in only one month of the last 12 (${fc.total} in all) — not reordered automatically`});
@@ -9531,6 +9589,10 @@ function v8Inputs_(r, ctx){
     sold7:  capel ? (r.QtySold_Shop_CapelStreet_7d||0) : (r.QtySold_Online_Total_7d||0),
     seasonalTag: !!(ctx.tags && ctx.tags.has(normSku_(r.SKU))),
     weatherMult: r.weatherMult||1, lyW30:ctx.w30, lyW60:ctx.w60,
+    prof: v8SeasonProfile_((typeof SEASONAL_PROFILES!=='undefined' && r.seasonalProfile && r.seasonalProfile!=='NONE' && SEASONAL_PROFILES[r.seasonalProfile]) ? SEASONAL_PROFILES[r.seasonalProfile].monthly : null,
+                           ctx.tags ? ctx.tags.get(normSku_(r.SKU)) : null),
+    catLabel: (r.seasonalProfile && r.seasonalProfile!=='NONE' && r.categoryLabel) ? r.categoryLabel : v8TagLabel_(ctx.tags ? ctx.tags.get(normSku_(r.SKU)) : null),
+    month: new Date().getMonth(),
   };
 }
 function v8Plan_(r, ctx){
@@ -9538,6 +9600,8 @@ function v8Plan_(r, ctx){
   const x=v8Inputs_(r, ctx);
   const fc=v8Forecast_(x); if(fc.pattern==='nohist') return null;
   fc.gi=x.gi;
+  const off=v8OffSeason_(fc, x.prof, x.month, x.catLabel); if(off){ fc.offSeason=off; fc.F=(fc.F||0)*off.ratio; }
+  if(x.prof) fc.seasonNow=Math.max(x.prof[x.month], x.prof[(x.month+1)%12]);
   const hold=v8Hold_(fc, {abc:r.abcClass, leadDays:r.leadTimeDays, cycleDays:r.reviewDays, grp:r._grp||null, capel:ctx.capel});
   const stock=Math.round(r.stock||0);
   const ord=v8Order_(fc, hold, {stock, inbound:r.inboundPO||0, pack:r.packSize, moq:r.moq, cost:r.SupplierCostPrice||r.UnitCost||0});
@@ -9583,7 +9647,8 @@ function applyV8_(rows){
   for(const r of rows){
     r.v8=null; r._cur=null;
     if(ctx){ try{ r.v8=v8Plan_(r, ctx); }catch(e){ r.v8=null; state._v8.errors++; } }
-    if(r.v8){ const p=r.v8.fc.pattern; state._v8.patterns[p]=(state._v8.patterns[p]||0)+1; if(r.v8.season) r._grpShow='season'; }
+    if(r.v8){ const p=r.v8.fc.pattern; state._v8.patterns[p]=(state._v8.patterns[p]||0)+1; if(r.v8.season) r._grpShow='season';
+      if(r.v8.fc.offSeason){ r._grp='rest'; r._grpShow=null; } }      // V7.34.3 — out of season: not Bread & butter now
     const on=!!r.v8 && v8IsOn_(r.SupplierName);
     v8Swap_(r, on); if(on) state._v8.active++;
   }
@@ -9689,6 +9754,7 @@ function v8HoldTxt_(r){
     case '3months': return `keep 3 months (${f(h.out)})${h.capped?'':''}${rpTxt}`;
     case 'new2months': return `keep 2 months (${f(h.out)}) while it’s new${rpTxt}`;
     case 'shop1': return 'the shop keeps 1 — it sells less than once a month here';
+    case 'offseason': return `🍂 out of season (${v.fc.offSeason.lbl.toLowerCase()}) — not reordered until ${v.fc.offSeason.back!=null?_MONTH_ABBR[v.fc.offSeason.back]:'its season'}`;
     case 'shop': return `the shop keeps ${f(h.out)} — ${pct}% sure to last until the next delivery (${f(h.W)} days), at least 1½ months${rpTxt}`;
     case 'sure': return `keep ${f(h.out)} — ${pct}% sure to last ${f(h.W)} days (delivery + next order)${rpTxt}`;
     case 'season': return `season coming — hold the next 60 days last year (${f(h.out)})${rpTxt}`;
@@ -9723,6 +9789,7 @@ function v8Sentence_(r){
 function v8WhyShort_(r){
   const v=r.v8, fc=v.fc, h=v.hold, o=v.ord, f=fmtInt, N=v8Num_;
   let a;
+  if(h.kind==='offseason') return `🍂 out of season · not reordered until ${fc.offSeason.back!=null?_MONTH_ABBR[fc.offSeason.back]:'its season'}`;
   switch(fc.pattern){
     case 'dead': return 'no sales in 12 months';
     case 'rare': if(h.kind==='season'){ a=`📅 next 60 days last year <b>${f(h.out)}</b>`; break; }
@@ -9839,7 +9906,8 @@ function v8BackTest_(store, supFilter){
       const onU=(r.QtySold_Online_Arklow_365d||0)+(r.QtySold_Online_CapelStreet_365d||0), shU=r.QtySold_Shop_CapelStreet_365d||0;
       const on=onU>0&&r.Revenue_Online_Total_365d>0?r.Revenue_Online_Total_365d/onU:0, sh=shU>0&&r.Revenue_Shop_CapelStreet_365d>0?r.Revenue_Shop_CapelStreet_365d/shU:0;
       const inc=(store==='capel'?(sh||on):on)||r.RetailPrice||0;
-      bySku.set(sku, {sup, cost:r.SupplierCostPrice||0, price:inc/1.23});
+      let prof=null; try{ const cl=classifySkuName(r.ItemTitle||''); prof=v8SeasonProfile_(cl.seasonalProfile!=='NONE'?(SEASONAL_PROFILES[cl.seasonalProfile]||{}).monthly||null:null, tags.get(normSku_(sku))); }catch(e){}
+      bySku.set(sku, {sup, cost:r.SupplierCostPrice||0, price:inc/1.23, prof});
     }
   }
   const pats=['fast','medium','slow','rare','new','dead','all'];
@@ -9870,6 +9938,7 @@ function v8BackTest_(store, supFilter){
       const A=series[ti]; if(A==null) continue;
       const all=series.slice(0,ti), s30=series[ti-1]||0;
       const fc=v8Forecast_({all, sold30:s30, sold7:0, extraMonthly:0, g:1, seasonalTag:tag, weatherMult:1, lyW30:W30, lyW60:W60});
+      { const mi=+keys[ti].slice(5)-1, off=v8OffSeason_(fc, info.prof, mi); if(off){ fc.offSeason=off; fc.F=(fc.F||0)*off.ratio; } if(info.prof) fc.seasonNow=Math.max(info.prof[mi], info.prof[(mi+1)%12]); }
       const u6=v8Sum_(series.slice(Math.max(0,ti-6),ti));
       const abc = u6>=100?'A':u6>=20?'B':u6>=5?'C':'D';
       const grp=GR.map.get(sku)||'rest';
@@ -13126,7 +13195,7 @@ function osClassify(view){
     if(r.buyDriverKey==='lastyear') f.push(['season','📅 Raised by last year’s sales']);
     const v8a = r._v8Active && r.v8;
     if(v8a){
-      for(const fl of r.v8.ord.flags){ if(fl.k==='pack') f.push(['pack','📦 '+fl.t]); else if(fl.k==='once') f.push(['v8','🧐 Sold in only one month of 12 — your call']); }
+      for(const fl of r.v8.ord.flags){ if(fl.k==='pack') f.push(['pack','📦 '+fl.t]); else if(fl.k==='once') f.push(['v8','🧐 Sold in only one month of 12 — your call']); else if(fl.k==='offseason') f.push(['off','🍂 '+fl.t]); }
       if(r.v8.hold.build && sug>0) f.push(['season','📅 Building for the season']);
       if(r.v8.fc.pattern==='new' && sug>0) f.push(['v8','🆕 New line']);
       { const rc=(r.v8.fc.capped||[]).filter(c=>c.j>=9); if(rc.length && sug>0) f.push(['hot',`One-off month of ${fmtInt(rc[rc.length-1].v)} recently — check it’s real`]); }
@@ -13140,6 +13209,7 @@ function osClassify(view){
     if(r.buyUnrounded>0 && sug>=2*r.buyUnrounded && sug-r.buyUnrounded>=6) f.push(['pack',`📦 Pack size rounds ${fmtInt(r.buyUnrounded)} up to ${fmtInt(sug)}`]);
     if(rank && rev>0 && rank<=100 && (r.stock||0)<=0) f.push(['top','★ Top 100 seller, out of stock']);
     if(r._multiNoDefault) f.push(['sup','⚠ Also on another supplier']);
+    try{ const xf=v8TransferSpare_(r); if(xf && sug>0 && xf.spare>=Math.max(2, sug*0.5)) f.push(['xfer', xf.t]); }catch(e){}   // worth a transfer: 2+ spare, at least half the order
     if(r.AltCost>0 && c>0 && r.AltSupplier && r.AltSupplier!==r.SupplierName && r.AltCost<c*0.98) f.push(['sup',`💰 Cheaper at ${esc(r.AltSupplier.split(' - ')[0])}`]);
     if(!(c>0) && sug>0) f.push(['bad','No cost price']);
     if(f.length) flags.set(r.SKU,f);
@@ -13180,7 +13250,7 @@ function osQuickWhy(sku){ const os=window._os; if(!os) return; sku=String(sku); 
 // Piles are decided on the SUGGESTED quantity, so editing a line never moves it.
 const OS_QUICK_SECTIONS=[['oos','🔴 Out of stock'],['crit','🟠 Running out'],['low','🟡 Low'],['oth','🟢 Other suggested lines']];
 function osQuickSection_(r){ return (r.stock<=0||r.coverStatus==='Out of Stock')?0 : r.coverStatus==='Critical'?1 : r.coverStatus==='Low'?2 : 3; }
-const OS_TRIAGE_CHIP_ORDER=['bad','pack','v8','jump','hot','season','top','sup','money'];   // Customer Service and Similar have their own bars
+const OS_TRIAGE_CHIP_ORDER=['bad','off','xfer','pack','v8','jump','hot','season','top','sup','money'];   // Customer Service and Similar have their own bars
 const OS_GLANCE_EUR=40, OS_CALL_EUR=150, OS_SOFT_EUR=75;
 // Reasons that always need a person (customer request, wrong or negative stock, pack too big, sold once,
 // similar in stock, no cost, cheaper elsewhere, a one-off month) vs reasons that only matter when the money
