@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.34.4 · ORDER IN STEPS</title>
+  <title>Lenehans Purchasing Dashboard · V7.34.5 · ORDER IN STEPS</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1286,6 +1286,9 @@
 .qs-step{flex:0 0 auto;min-width:0}
 .qs-step .qs-l{overflow:visible;text-overflow:clip}
 #osQuickBtns{flex:1 1 auto}
+/* V7.34.5 — skipped step */
+.qs-step.skip{background:#f1f5f9;color:#94a3b8}
+.qs-step.done i{color:#166534}
 
     .ql-showall{margin-top:10px;border:2px solid #1e3a5f;background:#fff;color:#1e3a5f;font-weight:800;border-radius:10px;padding:8px 16px;cursor:pointer}
     .ls-csrow{grid-column:3/8;grid-row:2;margin-top:-2px;background:#f3e8ff;border:1.5px solid #a855f7;color:#581c87;border-radius:8px;padding:4px 10px;font-size:13.5px;font-weight:700;text-align:center}
@@ -1450,7 +1453,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.34.4 · built 2026-11-09 · 🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered · 🚚 spare stock in the other store flagged · ⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest? · 🧪 Model check runs each supplier on its own order cycle · 🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group · 🏪 Capel holds lean outside Bread & butter · 📦 stock to clear or move · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
+  <div class="sub">V7.34.5 · built 2026-11-09 · 📄 each step exports as its own PO (Bread & butter first, then Seasonal …) · 🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered · 🚚 spare stock in the other store flagged · ⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest? · 🧪 Model check runs each supplier on its own order cycle · 🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group · 🏪 Capel holds lean outside Bread & butter · 📦 stock to clear or move · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -13420,17 +13423,21 @@ function osGrpBadge_(r){
   return '';
 }
 // ── V7.34.2 STEPS (Mark, 9 Nov: "Order first 1. Bread & Butter 2. Seasonal 3. B Lines? 4. Want to look at the
-// rest? … Bread & butter >>>>>> Seasonal >>>>>> etc."). Quick walks the order in that sequence and builds ONE
-// order: every step's lines go on it (The rest as suggested, unless you leave it off).
-const OS_STEPS=[{k:'bb', n:1, lbl:'🍞 Bread & butter'},{k:'season', n:2, lbl:'🎄 Seasonal'},{k:'b', n:3, lbl:'B lines'},{k:'rest', n:4, lbl:'The rest', opt:true}];
+// rest? … Bread & butter >>>>>> Seasonal >>>>>> etc."). V7.34.5 (Mark, 9 Nov: "when you do the bread and butter it
+// should allow you to only export that — then the next … etc."): each step is exported on its own, as its own PO file.
+const OS_STEPS=[{k:'bb', n:1, lbl:'🍞 Bread & butter', short:'Bread & butter', slug:'bread_and_butter'},{k:'season', n:2, lbl:'🎄 Seasonal', short:'Seasonal', slug:'seasonal'},
+                {k:'b', n:3, lbl:'B lines', short:'B lines', slug:'b_lines'},{k:'rest', n:4, lbl:'The rest', short:'The rest', slug:'the_rest', opt:true}];
 function osIsStep_(k){ return OS_STEPS.some(s=>s.k===k); }
+function osStep_(k){ return OS_STEPS.find(s=>s.k===k)||null; }
 function osFirstStep_(){ for(const s of OS_STEPS) if(osPresetRows(s.k).length) return s.k; return 'all'; }
+function osStepRows_(k){ return osPresetRows(k); }                                  // the whole step, whatever the search
+function osStepQtyRows_(k){ return osStepRows_(k).filter(r=>osQty(r)>0); }
 function osStepBarHtml_(counts){
-  const os=window._os, cur=os.preset, done=os.stepDone||new Set(), f=fmtInt;
+  const os=window._os, cur=os.preset, ex=os.stepExported||new Set(), sk=os.stepSkipped||new Set(), f=fmtInt;
   const steps=OS_STEPS.map(s=>{
-    const n=counts[s.k]||0, st = cur===s.k ? 'on' : n===0 ? 'empty' : done.has(s.k) ? 'done' : 'todo';
-    const off = s.k==='rest' && os.restOff ? '<i>left off</i>' : '';
-    return `<button tabindex="-1" class="qs-step ${st}${s.opt?' opt':''}" onclick="osStepGo('${s.k}')" title="${esc(OS_PRESETS[s.k].tip)}"><span class="qs-n">${st==='done'?'✓':s.n}</span><span class="qs-l">${s.lbl}${s.opt?'?':''}</span><b>${f(n)}</b>${off}</button>`;
+    const n=counts[s.k]||0, st = cur===s.k ? 'on' : n===0 ? 'empty' : ex.has(s.k) ? 'done' : sk.has(s.k) ? 'skip' : 'todo';
+    const note = ex.has(s.k) ? '<i>exported</i>' : sk.has(s.k) ? '<i>skipped</i>' : '';
+    return `<button tabindex="-1" class="qs-step ${st}${s.opt?' opt':''}" onclick="osStepGo('${s.k}')" title="${esc(OS_PRESETS[s.k].tip)}"><span class="qs-n">${ex.has(s.k)?'✓':s.n}</span><span class="qs-l">${s.lbl}${s.opt?'?':''}</span><b>${f(n)}</b>${note}</button>`;
   }).join('');
   const more=[`<button tabindex="-1" class="qs-more-b${cur==='all'?' on':''}" onclick="osQuickFilter('all')" title="Every line in one list">All lines ${f(counts.all||0)}</button>`];
   if(counts.similar) more.push(`<button tabindex="-1" class="qs-more-b${cur==='similar'?' on':''}" onclick="osQuickFilter('similar')" title="${esc(OS_PRESETS.similar.tip)}">🔁 Similar in stock <b id="osSimN">${f(counts.similar)}</b></button>`);
@@ -13440,51 +13447,74 @@ function osStepBarHtml_(counts){
 }
 function osStepGo(k){
   const os=window._os; if(!os) return;
-  os.stepDone=os.stepDone||new Set();
-  const from=OS_STEPS.findIndex(s=>s.k===os.preset), to=OS_STEPS.findIndex(s=>s.k===k);
-  if(from>=0 && to>from) os.stepDone.add(os.preset);           // moving on ticks the step you leave
   os.preset=k; os.keep=null; os.showRoutine=false; os.search='';
   const qs=document.getElementById('osQSearch'); if(qs) qs.value='';
   osRender();
   try{ const sc=document.querySelector('#poReviewOverlay .po-review-body'); if(sc) sc.scrollTop=0; }catch(e){}
 }
+function osNextStep_(k){
+  const i=OS_STEPS.findIndex(s=>s.k===k);
+  for(let j=i+1;j<OS_STEPS.length;j++){ const n=osStepRows_(OS_STEPS[j].k).length; if(n) return {...OS_STEPS[j], n}; }
+  return null;
+}
 function osStepNext(){
   const os=window._os; if(!os) return;
-  const i=OS_STEPS.findIndex(s=>s.k===os.preset);
-  for(let j=i+1;j<OS_STEPS.length;j++) if(osPresetRows(OS_STEPS[j].k).length){ osStepGo(OS_STEPS[j].k); return; }
-  os.stepDone=os.stepDone||new Set(); if(i>=0) os.stepDone.add(os.preset); osRender();
+  const cur=os.preset, nx=osNextStep_(cur);
+  if(osIsStep_(cur) && !(os.stepExported&&os.stepExported.has(cur)) && !osStepQtyRows_(cur).length){ os.stepSkipped=os.stepSkipped||new Set(); os.stepSkipped.add(cur); }  // nothing to order there
+  if(nx) osStepGo(nx.k); else osRender();
 }
-function osRestDecide(how){
+// export ONE step as its own PO file
+function osStepExport(k){
+  const os=window._os; if(!os) return; k=k||os.preset; const s=osStep_(k); if(!s) return;
+  osExport(osStepRows_(k), s.slug);
+}
+function osStepSkip(k){
   const os=window._os; if(!os) return;
-  os.stepDone=os.stepDone||new Set(); if(osIsStep_(os.preset)) os.stepDone.add(os.preset);
-  os.restOff = how==='off';
-  if(how!=='off') os.stepDone.add('rest');
-  try{ logUsage('quick_rest_'+(how==='off'?'off':'as_suggested'), os.supplier); }catch(e){}
+  os.stepSkipped=os.stepSkipped||new Set(); os.stepSkipped.add(k);
+  try{ logUsage('quick_step_skipped', os.supplier+' · '+k); }catch(e){}
   osRender();
-  try{ const b=document.getElementById('osExportBtn'); if(b) b.focus(); }catch(e){}
 }
-// one order across the steps: every group's lines (The rest left off if chosen); other views export themselves
+// after an Export: tick the step it came from
+function osAfterExport_(slug){
+  const os=window._os; if(!os || os.mode!=='quick') return;
+  const s=OS_STEPS.find(x=>x.slug===slug) || (osIsStep_(os.preset) ? osStep_(os.preset) : null); if(!s) return;
+  os.stepExported=os.stepExported||new Set(); os.stepExported.add(s.k);
+  if(os.stepSkipped) os.stepSkipped.delete(s.k);
+  osRender();
+  try{ const go=document.querySelector('#osBody .qs-end .qs-go'); if(go) go.focus({preventScroll:true}); }catch(e){}
+}
+// Export / totals in a step = that step only; other views = what's on screen
 function osOrderRows_(){
   const os=window._os; if(!os) return [];
-  if(os.mode==='quick' && osIsStep_(os.preset)){ let rows=osPresetRows('all'); if(os.restOff) rows=rows.filter(r=>v8GrpOf_(r)!=='rest'); return rows; }
+  if(os.mode==='quick' && osIsStep_(os.preset)) return osStepRows_(os.preset);
   return osViewRows();
 }
 function osStepEndHtml_(view){
   const os=window._os, k=os&&os.preset; if(!os || os.mode!=='quick' || !osIsStep_(k)) return '';
   const f=fmtInt, val=a=>Math.round(a.reduce((s,r)=>s+osQty(r)*osUnitCost(r),0));
-  const i=OS_STEPS.findIndex(s=>s.k===k); let nx=null;
-  for(let j=i+1;j<OS_STEPS.length;j++){ const n=osPresetRows(OS_STEPS[j].k).length; if(n){ nx={...OS_STEPS[j], n}; break; } }
-  const here = view.length ? `✅ ${OS_STEPS[i].lbl}: ${f(view.length)} line${view.length!==1?'s':''} · €${f(val(view))}` : `${OS_STEPS[i].lbl}: nothing for this supplier`;
-  if(k==='rest' && os.restOff) return `<div class="qs-end off"><div class="qs-end-t">These ${f(view.length)} lines are <b>left off this order</b>.</div><div class="qs-end-b"><button tabindex="-1" class="qs-go2" onclick="osRestDecide('ok')">Put them back on the order</button></div></div>`;
-  if(nx && nx.k==='rest' && !(os.stepDone&&os.stepDone.has('rest')) && !os.restOff){
-    const rr=osPresetRows('rest');
-    return `<div class="qs-end"><div class="qs-end-t">${here}<br><b>Want to look at the rest?</b> ${f(rr.length)} slower lines · €${f(val(rr))} on this order. If you don’t, they go on as suggested.</div>
-      <div class="qs-end-b"><button tabindex="-1" class="qs-go" onclick="osStepGo('rest')">Yes, show me the rest ›</button><button tabindex="-1" class="qs-go2" onclick="osRestDecide('ok')">No — order them as suggested</button><button tabindex="-1" class="qs-go3" onclick="osRestDecide('off')">Leave them off this order</button></div></div>`;
+  const s=osStep_(k), q=osStepQtyRows_(k), done=os.stepExported&&os.stepExported.has(k), nx=osNextStep_(k);
+  const nxDone = nx && ((os.stepExported&&os.stepExported.has(nx.k)) || (os.stepSkipped&&os.stepSkipped.has(nx.k)));
+  // row 1: export this step
+  let head, btns=[];
+  if(!view.length && !q.length){ head=`${s.lbl}: nothing for this supplier.`; }
+  else if(done){ head=`📄 ${s.lbl} exported — ${f(q.length)} line${q.length!==1?'s':''} · €${f(val(q))}. Upload it to Linnworks as its own PO.`; }
+  else if(q.length){ head=`${s.lbl}: <b>${f(q.length)} line${q.length!==1?'s':''} · €${f(val(q))}</b> to order.`;
+    btns.push(`<button tabindex="-1" class="qs-go" onclick="osStepExport('${k}')">📄 Export ${s.short} · ${f(q.length)} line${q.length!==1?'s':''}</button>`); }
+  else { head=`${s.lbl}: nothing to order (every quantity is 0).`; }
+  // row 2: what's next
+  if(nx && nx.k==='rest' && !nxDone){
+    const rr=osStepQtyRows_('rest');
+    head+=`<br><b>Want to look at the rest?</b> ${f(osStepRows_('rest').length)} slower lines · €${f(val(rr))} as suggested.`;
+    btns.push(`<button tabindex="-1" class="${btns.length?'qs-go2':'qs-go'}" onclick="osStepGo('rest')">Yes, show me the rest ›</button>`);
+    if(rr.length) btns.push(`<button tabindex="-1" class="qs-go2" onclick="osStepExport('rest')">Export them as suggested · ${f(rr.length)}</button>`);
+    btns.push(`<button tabindex="-1" class="qs-go3" onclick="osStepSkip('rest')">Skip the rest</button>`);
+  } else if(nx && !(nx.k==='rest' && nxDone)){
+    btns.push(`<button tabindex="-1" class="${btns.length?'qs-go2':'qs-go'}" onclick="osStepNext()">Next: ${nx.lbl} · ${f(nx.n)} line${nx.n!==1?'s':''} ›</button>`);
+  } else {
+    const ex=[...(os.stepExported||[])].map(x=>osStep_(x).short);
+    head+=`<br><b>That’s every step.</b>${ex.length?` Exported: ${ex.join(', ')}.`:''} When they’re on Linnworks, press ✓ Mark ordered.`;
   }
-  if(nx && !(nx.k==='rest' && (os.restOff || (os.stepDone&&os.stepDone.has('rest')))))
-    return `<div class="qs-end"><div class="qs-end-t">${here}</div><div class="qs-end-b"><button tabindex="-1" class="qs-go" onclick="osStepNext()">Next: ${nx.lbl} · ${f(nx.n)} line${nx.n!==1?'s':''} ›</button></div></div>`;
-  const all=osOrderRows_().filter(r=>osQty(r)>0);
-  return `<div class="qs-end last"><div class="qs-end-t">${view.length?here+'<br>':''}<b>That’s the whole order: ${f(all.length)} line${all.length!==1?'s':''} · €${f(val(all))}</b>${os.restOff?' (the rest left off)':''}.</div><div class="qs-end-b"><button tabindex="-1" class="qs-go" onclick="osExport()">📄 Export ${f(all.length)} line${all.length!==1?'s':''}</button></div></div>`;
+  return `<div class="qs-end${done?' last':''}"><div class="qs-end-t">${head}</div>${btns.length?`<div class="qs-end-b">${btns.join('')}</div>`:''}</div>`;
 }
 
 function osQuickLineHtml(r){
@@ -14152,7 +14182,7 @@ function openOrderScreen(supplier, preset, opts){
   window._os={supplier:sup, mode, preset:preset||'now', cap:opts.cap||prevCap||15, search:'', keep:null, rows, expanded:new Set(), seen:new Set(), focus:null, showReady:false, bigShare:50, flags:new Map()};
   try{ window._os.extra=v8ExtraRows_(sup, rows); }catch(e){ window._os.extra={decide:[], v8add:[]}; }
   if((preset==='decide'||preset==='v8add') && !window._os.extra[preset].length) window._os.preset = mode==='quick'?'urgent':'now';
-  window._os.stepDone=new Set(); window._os.restOff=false;
+  window._os.stepExported=new Set(); window._os.stepSkipped=new Set();
   if(mode==='quick' && window._os.preset==='bb') window._os.preset=osFirstStep_();   // first step with lines
   try{ simIndexNow_(); }catch(e){}
   window._poEdits[sup]=window._poEdits[sup]||{};
@@ -14293,9 +14323,9 @@ function osUpdateTotals(){
   let lines=0, units=0, val=0, noCost=0;
   for(const r of view){ const q=osQty(r); if(q>0){ lines++; units+=q; val+=q*osUnitCost(r); if(!(osUnitCost(r)>0)) noCost++; } }
   const tEl=document.getElementById('osTotal');
-  if(tEl) tEl.innerHTML=`${stepMode?'Whole order':'This view'}: <span>€${fmtInt(Math.round(val))}</span> · ${fmtInt(lines)} line${lines!==1?'s':''} · ${fmtInt(units)} units${noCost?` <span class="sc-note">(${noCost} without a cost price)</span>`:''}`;
+  if(tEl) tEl.innerHTML=`${stepMode?osStep_(os.preset).lbl:'This view'}: <span>€${fmtInt(Math.round(val))}</span> · ${fmtInt(lines)} line${lines!==1?'s':''} · ${fmtInt(units)} units${noCost?` <span class="sc-note">(${noCost} without a cost price)</span>`:''}`;
   const b=document.getElementById('osExportBtn');
-  if(b){ b.textContent=`📄 Export ${fmtInt(lines)} line${lines!==1?'s':''}`; b.disabled=lines===0; }
+  if(b){ b.textContent=`📄 Export ${stepMode?osStep_(os.preset).short+' · ':''}${fmtInt(lines)} line${lines!==1?'s':''}`; b.disabled=lines===0; }
 }
 
 function osSetPreset(k){ const os=window._os; if(!os) return; os.preset=k; os.keep=null; const m=document.getElementById('osRefineMsg'); if(m) m.style.display='none'; osRender(); }
@@ -14322,10 +14352,10 @@ function osEditQty(inp, committed){
 }
 
 // Export exactly what's on screen (current view, edited quantities, qty > 0).
-function osExport(){
+function osExport(rowsIn, tagIn){   // V7.34.5 — a step exports itself (rowsIn, tagIn)
   const os=window._os; if(!os) return;
   if(!os.supplier){ alert('No supplier selected.'); return; }
-  const rows=osOrderRows_().map(r=>({...r, buy:osQty(r)})).filter(r=>r.buy>0);
+  const rows=(Array.isArray(rowsIn)?rowsIn:osOrderRows_()).map(r=>({...r, buy:osQty(r)})).filter(r=>r.buy>0);
   if(!rows.length){ alert('No lines with a quantity above 0 in this view.'); return; }
   const mode=document.getElementById('demandMode')?.value||'Seasonal';
   // V7.31.23 — EAN (barcode) added as the LAST column (Mark, 27 Oct). Every existing
@@ -14337,13 +14367,15 @@ function osExport(){
   }
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'}));
-  a.download=`PO_${os.supplier.replace(/[^a-z0-9]+/gi,'_')}_${osIsStep_(os.preset)&&os.mode==='quick'?'order':os.preset}_${mode}.csv`;
+  const tag = (typeof tagIn==='string' && tagIn) ? tagIn : (osIsStep_(os.preset)&&os.mode==='quick' ? osStep_(os.preset).slug : os.preset);
+  a.download=`PO_${os.supplier.replace(/[^a-z0-9]+/gi,'_')}_${tag}_${mode}.csv`;
   a.click(); URL.revokeObjectURL(a.href);
   try{ logUsage('order_export', os.supplier+' · '+os.preset+' · '+rows.length+' lines'); }catch(e){}
   // Exported lines are placed — drop their edits; keep edits for lines not yet exported
   rows.forEach(r=>{ delete window._poEdits[os.supplier][r.SKU]; });
   const b=document.getElementById('osDoneBtn');
   if(b){ b.classList.remove('secondary'); b.style.background='#16a34a'; b.textContent='✓ Mark ordered on PO sheet'; }
+  try{ osAfterExport_(tag); }catch(e){}
 }
 
 function osMarkOrdered(){
