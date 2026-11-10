@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.34.7 · ORDER IN STEPS</title>
+  <title>Lenehans Purchasing Dashboard · V7.34.8 · ORDER IN STEPS</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1304,6 +1304,10 @@
 .sc-gr.bb{background:#fffbeb}
 .sc-gr.bb .l{font-weight:800;color:#0f172a}
 .sc-gr.bb:hover{background:#fef3c7}
+/* V7.34.8 — card bands */
+.sc-band{grid-column:1/-1;font-size:13px;font-weight:800;letter-spacing:.02em;padding:6px 2px 0;color:#475569}
+.sc-band.done{color:#15803d}
+.sc-band.todo{color:#b91c1c;margin-top:6px}
 
     .ql-showall{margin-top:10px;border:2px solid #1e3a5f;background:#fff;color:#1e3a5f;font-weight:800;border-radius:10px;padding:8px 16px;cursor:pointer}
     .ls-csrow{grid-column:3/8;grid-row:2;margin-top:-2px;background:#f3e8ff;border:1.5px solid #a855f7;color:#581c87;border-radius:8px;padding:4px 10px;font-size:13.5px;font-weight:700;text-align:center}
@@ -1468,7 +1472,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.34.7 · built 2026-11-10 · 🏪 order screen never shows one store’s figures under the other’s name · 💶 dear slow lines hold less · 🗂 supplier cards split by Bread & butter / Seasonal / B / The rest · 📄 each step exports as its own PO (Bread & butter first, then Seasonal …) · 🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered · 🚚 spare stock in the other store flagged · ⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest? · 🧪 Model check runs each supplier on its own order cycle · 🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group · 🏪 Capel holds lean outside Bread & butter · 📦 stock to clear or move · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
+  <div class="sub">V7.34.8 · built 2026-11-10 · 🗂 supplier cards: done first, then most Bread & butter out · 🏪 order screen never shows one store’s figures under the other’s name · 💶 dear slow lines hold less · 🗂 supplier cards split by Bread & butter / Seasonal / B / The rest · 📄 each step exports as its own PO (Bread & butter first, then Seasonal …) · 🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered · 🚚 spare stock in the other store flagged · ⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest? · 🧪 Model check runs each supplier on its own order cycle · 🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group · 🏪 Capel holds lean outside Bread & butter · 📦 stock to clear or move · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -10656,14 +10660,22 @@ function renderActionNow(rows){
   // can see what's been done (Mark, 23 Oct). Name breaks ties so the order never jumps.
   const cardList=[...atRisk, ...lowOnly];
   cardList.forEach(s=>{ s._status=cardStatus(s.name); });
+  const _band=s=>{ const k=s._status&&s._status.key; return k==='ordered'?0 : k==='checked'?1 : 2; };
   cardList.sort((a,b)=>{
-    const z={oos:0,crit:0,lost:0};
+    const z={oos:0,crit:0,lost:0,oosA:0,critA:0};
     const fa=fullOrderBySupplier.get(a.name)||z, fb=fullOrderBySupplier.get(b.name)||z;
-    return ((fb.oos||0)-(fa.oos||0)) || ((fb.crit||0)-(fa.crit||0)) || ((fb.lost||0)-(fa.lost||0)) || String(a.name).localeCompare(String(b.name));
+    return (_band(a)-_band(b)) || ((fb.oosA||0)-(fa.oosA||0)) || ((fb.critA||0)-(fa.critA||0)) || ((fb.lost||0)-(fa.lost||0))
+      || ((fb.oos||0)-(fa.oos||0)) || String(a.name).localeCompare(String(b.name));
   });
+  // a small heading where the done suppliers end and the to-do ones start
+  const _firstTodo=cardList.findIndex(s=>_band(s)===2), _nDone=cardList.filter(s=>_band(s)<2).length;
 
   let html=`<div class="sc-grid">`;
-  for(const s of cardList) html+=makeCard(s);
+  cardList.forEach((s,i)=>{
+    if(i===0 && _nDone) html+=`<div class="sc-band done">✓ Done this cycle · ${fmtInt(_nDone)} supplier${_nDone!==1?'s':''}</div>`;
+    if(i===_firstTodo && _firstTodo>=0) html+=`<div class="sc-band todo">To do · most 🍞 Bread & butter out of stock first</div>`;
+    html+=makeCard(s);
+  });
   html+=`</div>`;
   if(!cardList.length){
     html='<div style="color:#16a34a;font-size:13px;padding:8px;font-weight:600">✓ None of your top 500 SKUs are at risk right now.</div>';
