@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.34.6 · ORDER IN STEPS</title>
+  <title>Lenehans Purchasing Dashboard · V7.34.7 · ORDER IN STEPS</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1468,7 +1468,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.34.6 · built 2026-11-10 · 🗂 supplier cards split by Bread & butter / Seasonal / B / The rest · 📄 each step exports as its own PO (Bread & butter first, then Seasonal …) · 🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered · 🚚 spare stock in the other store flagged · ⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest? · 🧪 Model check runs each supplier on its own order cycle · 🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group · 🏪 Capel holds lean outside Bread & butter · 📦 stock to clear or move · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
+  <div class="sub">V7.34.7 · built 2026-11-10 · 🏪 order screen never shows one store’s figures under the other’s name · 💶 dear slow lines hold less · 🗂 supplier cards split by Bread & butter / Seasonal / B / The rest · 📄 each step exports as its own PO (Bread & butter first, then Seasonal …) · 🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered · 🚚 spare stock in the other store flagged · ⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest? · 🧪 Model check runs each supplier on its own order cycle · 🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group · 🏪 Capel holds lean outside Bread & butter · 📦 stock to clear or move · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -9082,6 +9082,8 @@ function v8TagProfile_(months){
   return p;
 }
 function v8SeasonProfile_(catProf, tagMonths){ return catProf || v8TagProfile_(tagMonths); }
+// V7.34.7 — a slow line that's dear to hold keeps less (Zinsser 5L at €57: 3 months was 20 tins)
+function v8SlowMonths_(cost){ const c=Number(cost)||0; return c>30 ? 1.5 : c>10 ? 2 : V8.SLOW_MONTHS; }
 function v8GrpOf_(r){ return (r && (r._grpShow || r._grp)) || 'rest'; }
 function v8Sum_(a){ let s=0; for(const v of a) s+=v||0; return s; }
 // smallest k with P(Poisson(mean) ≤ k) ≥ p
@@ -9112,7 +9114,7 @@ function v8Forecast_(x){
     for(let i=Math.max(0,N-12); i<N-1; i++){           // never the newest known month — nothing after it yet
       const v=all[i]; if(!(v>capM && v>=capM+3)) continue;
       const a=i>0?all[i-1]:null, b=all[i+1];
-      if((a==null||a<v/3) && b!=null && b<v/3){ rAll[i]=capM; capped.push({j:i-(N-12), v, to:capM}); }
+      if((a==null||a<=v/3) && b!=null && b<=v/3){ rAll[i]=capM; capped.push({j:i-(N-12), v, to:capM}); }   // V7.34.7 — ≤: 3 then 9 then 0 is still a one-off
     }
   }
   const rh=hist.map((v,j)=>v==null?null:rAll[N-12+j]), rHave=rh.filter(v=>v!=null);
@@ -9132,7 +9134,8 @@ function v8Forecast_(x){
   const mean=rTotal/nEff, avg=mean+extra;
   const sigma=Math.sqrt(rHave.reduce((a,v)=>a+(v-rTotal/n)*(v-rTotal/n),0)/Math.max(1,n-1));
   const last3=v8Sum_(rHave.slice(-3)), w3=v8Sum_(wHave.slice(-3)), c3=wHave.slice(-3).length;
-  const last3Rate = c3 ? last3*c3/Math.max(w3, c3/4) : last3;   // last 3 months' sales, scaled to the days it was in stock
+  const last3Rate = c3 ? last3*c3/Math.max(w3, c3/2) : last3;   // last 3 months' sales, scaled to the days it was in stock (V7.34.7: at most doubled)
+  const sold3 = rHave.slice(-3).filter(v=>v>0).length;
   const lyOf=w=>{ if(!w) return null; let s=0; for(let j=0;j<w.length;j++){ if(!(w[j]>0)) continue; if(rh[j]==null) return null; s+=w[j]*rh[j]; } return s+extra*v8Sum_(w); };
   const ly30=lyOf(x.lyW30), ly60=lyOf(x.lyW60);
   Object.assign(out,{total, rTotal, sold, avg, sigma, capM, capped, last3, last3Rate, ly30, ly60, med, oosMonths, oosWrong, nEff});
@@ -9184,7 +9187,7 @@ function v8Forecast_(x){
       out.basis.push('season'); if(F===rec && rec>lyF) out.basis.push('recent'); else if(F===live && live>lyF) out.basis.push('live');
     } else {
       out.basis.push('year');
-      if(last3>=3 && last3Rate/3+extra>=1.5*F){ F=last3Rate/3+extra; out.basis.push('recent'); }
+      if(last3>=3 && sold3>=2 && last3Rate/3+extra>=1.5*F){ F=last3Rate/3+extra; out.basis.push('recent'); }   // V7.34.7 — needs 2 selling months of the 3
       if(ly60!=null && ly60>=4 && ly60/2*g>=1.5*F){ F=ly60/2*g; out.basis.push('ly'); }
     }
     out.F=F; return out;
@@ -9237,8 +9240,9 @@ function v8Hold_(fc, h){
     } else if(shop){                                 // V7.34 — shop, 1–5 a month: enough to last until the next delivery
       r.out=Math.max(q, Math.ceil(1.5*F-1e-9), 1); r.kind='shop';   // (at least 1½ months, so it isn't 1 or 2 on every PO)
     } else if(fc.pattern==='new'){                  // V7.33.1 — a new line holds 2 months until it has a track record
-      r.out=Math.max(Math.ceil(V8.NEW_HOLD_MONTHS*F-1e-9), q, 1); r.kind='new2months';
-    } else { r.out=Math.max(Math.ceil(V8.SLOW_MONTHS*F-1e-9), q, 1); r.kind='3months'; }
+      const m=Math.min(V8.NEW_HOLD_MONTHS, v8SlowMonths_(h.cost)); r.months=m;
+      r.out=Math.max(Math.ceil(m*F-1e-9), q, 1); r.kind='new2months';
+    } else { const m=v8SlowMonths_(h.cost); r.months=m; r.out=Math.max(Math.ceil(m*F-1e-9), q, 1); r.kind='3months'; }
   }
   if(!r.build){ const cap=Math.max(1,Math.ceil(V8.MAX_MONTHS*F-1e-9)); if(r.out>cap){ r.out=cap; r.capped=true; } }
   if(r.rp>=r.out) r.rp=r.out-1;
@@ -9620,7 +9624,7 @@ function v8Plan_(r, ctx){
   fc.gi=x.gi;
   const off=v8OffSeason_(fc, x.prof, x.month, x.catLabel); if(off){ fc.offSeason=off; fc.F=(fc.F||0)*off.ratio; }
   if(x.prof) fc.seasonNow=Math.max(x.prof[x.month], x.prof[(x.month+1)%12]);
-  const hold=v8Hold_(fc, {abc:r.abcClass, leadDays:r.leadTimeDays, cycleDays:r.reviewDays, grp:r._grp||null, capel:ctx.capel});
+  const hold=v8Hold_(fc, {abc:r.abcClass, leadDays:r.leadTimeDays, cycleDays:r.reviewDays, grp:r._grp||null, capel:ctx.capel, cost:r.SupplierCostPrice||r.UnitCost||0});
   const stock=Math.round(r.stock||0);
   const ord=v8Order_(fc, hold, {stock, inbound:r.inboundPO||0, pack:r.packSize, moq:r.moq, cost:r.SupplierCostPrice||r.UnitCost||0});
   return {fc, hold, ord, status:v8Status_(fc, hold, ord, stock), decide:ord.flags.some(f=>f.decide), keys:ctx.keys, season:v8InSeason_(fc, hold)};
@@ -9769,8 +9773,8 @@ function v8HoldTxt_(r){
     case 'keep1': return 'keep 1 on the shelf';
     case 'soldonce': return 'not reordered automatically — your call';
     case 'none': return 'nothing to hold';
-    case '3months': return `keep 3 months (${f(h.out)})${h.capped?'':''}${rpTxt}`;
-    case 'new2months': return `keep 2 months (${f(h.out)}) while it’s new${rpTxt}`;
+    case '3months': return `keep ${h.months&&h.months!==3?String(h.months).replace('.5','½'):'3'} months (${f(h.out)})${h.months&&h.months<3?' — a dear line, so less':''}${rpTxt}`;
+    case 'new2months': return `keep ${h.months&&h.months<2?'1½':'2'} months (${f(h.out)}) while it’s new${rpTxt}`;
     case 'shop1': return 'the shop keeps 1 — it sells less than once a month here';
     case 'offseason': return `🍂 out of season (${v.fc.offSeason.lbl.toLowerCase()}) — not reordered until ${v.fc.offSeason.back!=null?_MONTH_ABBR[v.fc.offSeason.back]:'its season'}`;
     case 'shop': return `the shop keeps ${f(h.out)} — ${pct}% sure to last until the next delivery (${f(h.W)} days), at least 1½ months${rpTxt}`;
@@ -9960,7 +9964,7 @@ function v8BackTest_(store, supFilter){
       const u6=v8Sum_(series.slice(Math.max(0,ti-6),ti));
       const abc = u6>=100?'A':u6>=20?'B':u6>=5?'C':'D';
       const grp=GR.map.get(sku)||'rest';
-      const hold=v8Hold_(fc, {abc, leadDays:L, cycleDays:R, grp, capel:store==='capel'});
+      const hold=v8Hold_(fc, {abc, leadDays:L, cycleDays:R, grp, capel:store==='capel', cost:info.cost});
       const gk=v8InSeason_(fc, hold) ? 'season' : grp;
       // current engine, replayed
       const ly1=ti-12>=0?series[ti-12]:null, ly2=ti-11>=0?series[ti-11]:null;
@@ -10152,7 +10156,10 @@ function getFilteredRows(){
 }
 
 async function recompute(){
+  const _seq=(state._recSeq=(state._recSeq||0)+1), _ch=state.channel;   // V7.34.7 — which store this run is for
+  state._recomputing=true;
   const rows = state.governedRows;
+  if(!rows || !rows.length){ state._recomputing=false; state._rowsChannel=_ch; }
   if(!rows || !rows.length){ state.computedRows=[]; render(); return; }
   selectMonthlyForChannel_();
   try{ state.lyGrowth = buildLyGrowth_(rows); }catch(e){ state.lyGrowth = null; }
@@ -10202,7 +10209,8 @@ async function recompute(){
     deduped.push(r);
   }
 
-  state.computedRows = deduped;
+  if(_seq!==state._recSeq || _ch!==state.channel){ console.log('[recompute] dropped — a newer one is running'); return; }   // V7.34.7
+  state.computedRows = deduped; state._rowsChannel=_ch; state._recomputing=false;
   if(!state._seasonalTagsRequested){ state._seasonalTagsRequested = true; loadSeasonalTags(); }
   applySeasonalRescue_ && (function(){ try{ applySeasonalRescue_(deduped); }catch(e){ console.warn('seasonal rescue skipped:', e); } })();
   try{ applyV8_(deduped); }catch(e){ console.warn('V8 model skipped:', e); }
@@ -14195,6 +14203,13 @@ function osCopy(btn, text){
 function openOrderScreen(supplier, preset, opts){
   opts=opts||{};
   if(!supplier){ alert('Select a supplier first — orders are always built for one supplier.'); return; }
+  // V7.34.7 — the store was just switched and its figures are still being worked out: wait, then open
+  if(state._recomputing || (state._rowsChannel && state._rowsChannel!==state.channel)){
+    osWaitToast_(`Working out ${state.channel==='capel'?'Capel Street':'Arklow'}’s figures…`);
+    const t0=Date.now(), again=()=>{ if(!(state._recomputing || (state._rowsChannel && state._rowsChannel!==state.channel))){ osWaitToast_(null); openOrderScreen(supplier, preset, opts); }
+      else if(Date.now()-t0<30000) setTimeout(again, 200); else { osWaitToast_(null); state._recomputing=false; state._rowsChannel=state.channel; } };   // never stuck
+    setTimeout(again, 200); return;
+  }
   try{ logUsage('order_screen', supplier+' · '+(preset||'now')); }catch(e){}
   const rows=osCanonicalRows(supplier);
   const sup = rows.length ? rows[0].SupplierName : supplier;
@@ -14406,6 +14421,12 @@ function osExport(rowsIn, tagIn){   // V7.34.5 — a step exports itself (rowsIn
   try{ osAfterExport_(tag); }catch(e){}
 }
 
+function osWaitToast_(msg){
+  let el=document.getElementById('osWaitToast');
+  if(!msg){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement('div'); el.id='osWaitToast'; el.style.cssText='position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:100001;background:#1e293b;color:#fff;padding:10px 18px;border-radius:10px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.25)'; document.body.appendChild(el); }
+  el.textContent='⏳ '+msg;
+}
 function osMarkOrdered(){
   const os=window._os; if(!os) return;
   if(!confirm(`Mark ${os.supplier} as DONE for ${currentMonthLabel()} (${state.channel==='capel'?'Capel Street':'Arklow'}) on the PO Status sheet?`)) return;
@@ -15186,7 +15207,7 @@ function goToSupplier(supplierName, channel){
         : 'Stock basis: NetStock_Arklow · Demand: Magento online orders';
       const poBtn = document.getElementById('poExportBtn');
       if(poBtn) poBtn.textContent = isCapel ? 'Export PO (Capel Street)' : 'Export PO';
-      if(state.rawRows.length) recompute();
+      if(state.rawRows.length) recompute().then(()=>{ try{ render(); }catch(e){} });
     }
   }
   // Switch to Buying tab
