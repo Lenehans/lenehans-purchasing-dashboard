@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.34.5 · ORDER IN STEPS</title>
+  <title>Lenehans Purchasing Dashboard · V7.34.6 · ORDER IN STEPS</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1289,6 +1289,21 @@
 /* V7.34.5 — skipped step */
 .qs-step.skip{background:#f1f5f9;color:#94a3b8}
 .qs-step.done i{color:#166534}
+/* V7.34.6 — supplier card: the order by group */
+.sc-grp{display:flex;flex-direction:column;gap:2px;margin:2px 0 4px}
+.sc-gh,.sc-gr{display:grid;grid-template-columns:1fr 28px 30px 62px;align-items:center;column-gap:5px}
+.sc-gh{font-size:10.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.03em;padding:0 5px}
+.sc-gh span:not(:first-child){text-align:right}
+.sc-gr{border:0;background:none;font:inherit;font-size:13px;color:#334155;text-align:left;padding:4px 5px;border-radius:7px;cursor:pointer}
+.sc-gr:hover{background:#f1f5f9}
+.sc-gr .l{white-space:normal;line-height:1.25}
+.sc-gr .n{text-align:right;font-variant-numeric:tabular-nums;color:#94a3b8}
+.sc-gr .n.out{color:#dc2626;font-weight:800}
+.sc-gr .n.low{color:#d97706;font-weight:700}
+.sc-gr .n.v{color:#0f172a;font-weight:700}
+.sc-gr.bb{background:#fffbeb}
+.sc-gr.bb .l{font-weight:800;color:#0f172a}
+.sc-gr.bb:hover{background:#fef3c7}
 
     .ql-showall{margin-top:10px;border:2px solid #1e3a5f;background:#fff;color:#1e3a5f;font-weight:800;border-radius:10px;padding:8px 16px;cursor:pointer}
     .ls-csrow{grid-column:3/8;grid-row:2;margin-top:-2px;background:#f3e8ff;border:1.5px solid #a855f7;color:#581c87;border-radius:8px;padding:4px 10px;font-size:13.5px;font-weight:700;text-align:center}
@@ -1453,7 +1468,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.34.5 · built 2026-11-09 · 📄 each step exports as its own PO (Bread & butter first, then Seasonal …) · 🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered · 🚚 spare stock in the other store flagged · ⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest? · 🧪 Model check runs each supplier on its own order cycle · 🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group · 🏪 Capel holds lean outside Bread & butter · 📦 stock to clear or move · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
+  <div class="sub">V7.34.6 · built 2026-11-10 · 🗂 supplier cards split by Bread & butter / Seasonal / B / The rest · 📄 each step exports as its own PO (Bread & butter first, then Seasonal …) · 🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered · 🚚 spare stock in the other store flagged · ⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest? · 🧪 Model check runs each supplier on its own order cycle · 🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group · 🏪 Capel holds lean outside Bread & butter · 📦 stock to clear or move · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -10435,6 +10450,8 @@ function renderActionNow(rows){
     if(!(r.SupplierCostPrice>0)) f.noCost++;
     if(r.coverStatus==='Out of Stock'){ f.oos++; if(r._grp==='bb') f.oosA++; f.lost+=estLostRevenue(r); }
     else if(r.coverStatus==='Critical'){ f.crit++; if(r._grp==='bb') f.critA++; f.lost+=estLostRevenue(r); }
+    { const gk=(typeof v8GrpOf_==='function')?v8GrpOf_(r):'rest'; f.g=f.g||{}; const gg=f.g[gk]||(f.g[gk]={lines:0,value:0,oos:0,crit:0,lost:0});
+      gg.lines++; gg.value+=_lv; if(r.coverStatus==='Out of Stock'){ gg.oos++; gg.lost+=estLostRevenue(r); } else if(r.coverStatus==='Critical'){ gg.crit++; gg.lost+=estLostRevenue(r); } }
   }
 
   // Group by supplier
@@ -10575,9 +10592,20 @@ function renderActionNow(rows){
       problem = 'Nothing needs ordering right now';
     }
 
+    // V7.34.6 — the order by group: what's missing (out / low) and what it costs, Bread & butter first
+    let grpTbl='';
+    if(f.g && f.lines>0){
+      const gl={bb:'🍞 Bread & butter', season:'🎄 Seasonal', b:'B lines', rest:'The rest'};
+      const sup=s.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const rowsG=['bb','season','b','rest'].filter(k=>f.g[k]&&f.g[k].lines).map(k=>{ const g=f.g[k];
+        return `<button class="sc-gr ${k}" onclick="event.stopPropagation();openOrderScreen('${sup}','${k}')" title="Open the order at ${gl[k]}">`
+          +`<span class="l">${gl[k]}</span><span class="n${g.oos?' out':''}">${g.oos?fmtInt(g.oos):'–'}</span><span class="n${g.crit?' low':''}">${g.crit?fmtInt(g.crit):'–'}</span><span class="n v">€${fmtInt(Math.round(g.value))}</span></button>`; }).join('');
+      grpTbl=`<div class="sc-grp"><div class="sc-gh"><span></span><span>Out</span><span>Low</span><span>Order</span></div>${rowsG}</div>`;
+    }
     // Line 4 — cost of waiting
+    const bbLost=(f.g&&f.g.bb)?f.g.bb.lost:0;
     const lostLine = f.lost>=10
-      ? `<div class="sc-lost" title="Daily sales of the out-of-stock and critical lines × the days they'll be empty before an order placed today arrives (supplier lead time). Sales value inc-VAT, not profit.">Losing about €${fmtInt(roundEuro(f.lost))} of sales until the order arrives</div>`
+      ? `<div class="sc-lost" title="Daily sales of the out-of-stock and critical lines × the days they'll be empty before an order placed today arrives (supplier lead time). Sales value inc-VAT, not profit.">Losing about €${fmtInt(roundEuro(f.lost))} of sales until the order arrives${bbLost>=10?` — €${fmtInt(roundEuro(bbLost))} of it 🍞 bread & butter`:''}</div>`
       : '';
 
     // Line 5 — the fix
@@ -10593,7 +10621,7 @@ function renderActionNow(rows){
         + `<div class="sc-wait" title="These lines will still be above their reorder point on the next scheduled order day">Can wait until ${esc(nd)}: €${fmtInt(Math.round(f.waitValue))} · ${fmtInt(f.waitLines)} line${f.waitLines!==1?'s':''}</div>`
         + `</div>`;
     } else if(f.lines>0){
-      fixLine = `<div class="sc-fix"><span class="sc-fix-lbl">Order now:</span> <span class="sc-fix-val">€${fmtInt(Math.round(f.value))}</span> · ${fmtInt(f.lines)} line${f.lines!==1?'s':''}${costNote}</div>`;
+      fixLine = `<div class="sc-fix"><span class="sc-fix-lbl">Whole order:</span> <span class="sc-fix-val">€${fmtInt(Math.round(f.value))}</span> · ${fmtInt(f.lines)} line${f.lines!==1?'s':''}${costNote}</div>`;
     }
 
     const btnLabel = (st.key==='ordered'||st.key==='checked') ? (f.lines>0?'View order':'View lines') : 'Build order';
@@ -10605,7 +10633,7 @@ function renderActionNow(rows){
         <span class="sc-status ${tone}">${esc(st.label)}</span>
       </div>
       <div class="sc-hist">${histLine}</div>
-      <div class="sc-problem">${problem}</div>
+      ${grpTbl || `<div class="sc-problem">${problem}</div>`}
       ${lostLine}
       ${fixLine}
       <div class="sc-actions" onclick="event.stopPropagation()">
