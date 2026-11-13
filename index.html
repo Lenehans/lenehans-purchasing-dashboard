@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.34.8 · ORDER IN STEPS</title>
+  <title>Lenehans Purchasing Dashboard · V7.34.9 · ORDER IN STEPS</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1309,6 +1309,13 @@
 .sc-band.done{color:#15803d}
 .sc-band.todo{color:#b91c1c;margin-top:6px}
 
+/* V7.34.9 — header: version + What's new (was a long change list) */
+header .sub .hdr-new{display:inline-block;position:relative}
+header .sub .hdr-new summary{display:inline;cursor:pointer;color:#93c5fd;list-style:none;font-weight:600}
+header .sub .hdr-new summary::-webkit-details-marker{display:none}
+header .sub .hdr-new summary:hover{color:#bfdbfe;text-decoration:underline}
+header .sub .hdr-new ul{position:absolute;top:22px;left:0;z-index:2000;margin:0;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px 16px 10px 30px;width:min(560px,86vw);max-height:60vh;overflow:auto;color:#cbd5e1;font-size:12.5px;line-height:1.6;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+header .sub .hdr-new li{margin:1px 0}
     .ql-showall{margin-top:10px;border:2px solid #1e3a5f;background:#fff;color:#1e3a5f;font-weight:800;border-radius:10px;padding:8px 16px;cursor:pointer}
     .ls-csrow{grid-column:3/8;grid-row:2;margin-top:-2px;background:#f3e8ff;border:1.5px solid #a855f7;color:#581c87;border-radius:8px;padding:4px 10px;font-size:13.5px;font-weight:700;text-align:center}
     .ls-csrow b{font-size:15px}
@@ -1472,7 +1479,7 @@
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.34.8 · built 2026-11-10 · 🗂 supplier cards: done first, then most Bread & butter out · 🏪 order screen never shows one store’s figures under the other’s name · 💶 dear slow lines hold less · 🗂 supplier cards split by Bread & butter / Seasonal / B / The rest · 📄 each step exports as its own PO (Bread & butter first, then Seasonal …) · 🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered · 🚚 spare stock in the other store flagged · ⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest? · 🧪 Model check runs each supplier on its own order cycle · 🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group · 🏪 Capel holds lean outside Bread & butter · 📦 stock to clear or move · 🆕 new lines need a second month of sales before they’re stocked · 🧪 Model check shows € lost and carry cost · ⚡ Quick sorts every order into Your call / Quick glance / Routine · 12-month sales line on every row · ⚠ wrong stock figures flagged · 🧠 V8 ordering model LIVE for every supplier, both stores · 🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out) · ⛔ stock-out log with 18 months of history · 🧪 Model check · 🧐 Buyer decides · 🔁 Similar in stock · ⚡ Quick view</div>
+  <div class="sub">V7.34.9 · built 2026-11-12 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -10096,6 +10103,10 @@ function v8TrendHeader_(sup){
   const who=gi.basis==='supplier'?'this supplier':'whole store';
   return ` · <b class="os-growth" title="V8: this store's sales vs the same months a year earlier, complete months only. Online never below 100%; Capel between 70% and 150%.">Trend vs last year: ${pct>=0?'+':''}${pct}% (${who}, ${esc(gi.label)})${used!==pct?` → using ${used>=0?'+':''}${used}%`:''}</b>`;
 }
+
+// V7.34.9 — close the header "What's new" list on a click elsewhere or Esc
+document.addEventListener('click', function(e){ var d=document.querySelector('header .hdr-new[open]'); if(d && !d.contains(e.target)) d.removeAttribute('open'); });
+document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ var d=document.querySelector('header .hdr-new[open]'); if(d) d.removeAttribute('open'); } });
 
 // ─── ORDER THIS CYCLE? (V7.31.1) ─────────────────────────────────────────────
 // For every line in an order: if we wait until this supplier's NEXT scheduled order
