@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.34.9 · ORDER IN STEPS</title>
+  <title>Lenehans Purchasing Dashboard · V7.34.10 · ORDER IN STEPS</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1479,7 +1479,7 @@ header .sub .hdr-new li{margin:1px 0}
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.34.9 · built 2026-11-12 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
+  <div class="sub">V7.34.10 · built 2026-11-13 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -10108,6 +10108,28 @@ function v8TrendHeader_(sup){
 document.addEventListener('click', function(e){ var d=document.querySelector('header .hdr-new[open]'); if(d && !d.contains(e.target)) d.removeAttribute('open'); });
 document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ var d=document.querySelector('header .hdr-new[open]'); if(d) d.removeAttribute('open'); } });
 
+// V7.34.10 — the Home banner turns red with the reason when the data can't load (it used to sit at 70%).
+// homeLoadError_(null) puts it back to the normal yellow "loading" look for the next try.
+function homeLoadError_(msg){
+  var b=document.getElementById('homeLoadBanner'); if(!b) return;
+  var sp=b.querySelector('.home-spin'), l=document.getElementById('homeLoadLabel'), p=document.getElementById('homeLoadPct'), tip=b.lastElementChild;
+  if(!b.dataset.css) b.dataset.css=b.style.cssText;
+  if(tip && !tip.dataset.txt) tip.dataset.txt=tip.textContent;
+  if(msg==null){
+    b.style.cssText=b.dataset.css; if(!(state.computedRows&&state.computedRows.length)) b.style.display='flex';
+    if(sp) sp.style.display=''; if(l) l.style.whiteSpace='nowrap'; if(tip) tip.textContent=tip.dataset.txt; if(b.children[1]) b.children[1].style.display='block'; b.classList.remove('hl-err');
+    return;
+  }
+  if(state.computedRows && state.computedRows.length) return;      // data already on screen — keep it, the pill/status shows the error
+  b.classList.add('hl-err');
+  b.style.background='#fee2e2'; b.style.borderColor='#fca5a5'; b.style.color='#991b1b'; b.style.display='block';
+  if(b.children[1]) b.children[1].style.display='none';      // the progress bar
+  if(sp) sp.style.display='none';
+  if(l){ l.textContent='❌ '+String(msg).replace(/^❌\s*/,''); l.style.whiteSpace='normal'; }
+  if(p) p.textContent='';
+  if(tip) tip.textContent=/QUERYDATA_MASTER/.test(msg) ? 'Nothing is wrong with the dashboard itself — it needs the data sheet filled. Press ↻ Refresh once the sync has run.' : 'Press ↻ Refresh to try again.';
+}
+
 // ─── ORDER THIS CYCLE? (V7.31.1) ─────────────────────────────────────────────
 // For every line in an order: if we wait until this supplier's NEXT scheduled order
 // day, will it already have dropped past its reorder point (lead + safety)? If yes it
@@ -12213,6 +12235,7 @@ async function loadFromUrl(){
     setLoadMeta('',false);
   }
 
+  homeLoadError_(null);
   setLoadProgress(5, 'Fetching data…');
   setLoadingState(true);
   try{
@@ -12229,6 +12252,8 @@ async function loadFromUrl(){
     if(/text\/html|application\/html/.test(ct)||/^\s*<!doctype html/i.test(text)||/^\s*<html/i.test(text))
       throw new Error('URL returned HTML instead of CSV — the sheet may not be set to "Anyone with the link can view"');
     const parsedRaw=parseCSV(text);
+    if(parsedRaw.length<100 || !Object.prototype.hasOwnProperty.call(parsedRaw[0]||{},'SKU'))
+      throw new Error('No product data — the QUERYDATA_MASTER tab is '+(parsedRaw.length?'nearly empty ('+parsedRaw.length+' rows)':'empty')+', so the Linnworks sync didn’t finish writing. In Apps Script run fetchLinnworksData, then press ↻ Refresh.');
     const secs=((performance.now()-started)/1000).toFixed(1);
     setLoadMeta(`QueryData fetched in ${secs}s.`,false);
     setLoadProgress(70, 'Computing rows…');
@@ -12247,6 +12272,7 @@ async function loadFromUrl(){
     if(err.name==='AbortError') msg='❌ Load timed out after 20 seconds — the sheet may be too large or unavailable.';
     if(window.location.protocol==='file:') msg+=' Try opening this file in Chrome/Edge directly (not via a web viewer).';
     setStatus(msg,true);
+    homeLoadError_(msg);
   }finally{setLoadingState(false);}
 }
 
