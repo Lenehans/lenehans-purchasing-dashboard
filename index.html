@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.34.10 · ORDER IN STEPS</title>
+  <title>Lenehans Purchasing Dashboard · V7.34.13 · ORDER IN STEPS</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1316,6 +1316,28 @@ header .sub .hdr-new summary::-webkit-details-marker{display:none}
 header .sub .hdr-new summary:hover{color:#bfdbfe;text-decoration:underline}
 header .sub .hdr-new ul{position:absolute;top:22px;left:0;z-index:2000;margin:0;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px 16px 10px 30px;width:min(560px,86vw);max-height:60vh;overflow:auto;color:#cbd5e1;font-size:12.5px;line-height:1.6;box-shadow:0 10px 30px rgba(0,0,0,.35)}
 header .sub .hdr-new li{margin:1px 0}
+/* V7.34.12 — one Export, pick the groups */
+.po-review-ftr{position:relative}
+.xp-pop{position:absolute;right:14px;bottom:calc(100% + 8px);z-index:60;width:min(440px,92vw);background:#fff;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 14px 40px rgba(15,23,42,.25);padding:14px 16px;font-size:14px;color:#0f172a;text-align:left}
+.xp-pop.xp-fixed{position:fixed;bottom:80px;right:24px}
+.xp-h{font-weight:800;font-size:15px;margin-bottom:8px}
+.xp-row{display:grid;grid-template-columns:22px 1fr auto 70px;align-items:center;gap:8px;padding:7px 4px;border-radius:8px;cursor:pointer}
+.xp-row:hover{background:#f1f5f9}
+.xp-row.off{color:#94a3b8;cursor:default}
+.xp-row.off:hover{background:none}
+.xp-row input{width:17px;height:17px;margin:0}
+.xp-l{font-weight:700}
+.xp-tag{font-style:normal;font-weight:600;font-size:11px;color:#64748b;background:#f1f5f9;border-radius:6px;padding:1px 6px;margin-left:6px}
+.xp-n{font-size:13px;color:#475569;white-space:nowrap}
+.xp-v{font-weight:800;text-align:right;white-space:nowrap}
+.xp-q{font-size:12px;margin:6px 4px 10px}
+.xp-q a{color:#1d4ed8}
+.xp-b{display:flex;justify-content:flex-end;gap:8px}
+.xp-go{background:#16a34a;color:#fff;border:0;border-radius:8px;padding:9px 16px;font-weight:800;font-size:14px;cursor:pointer}
+.xp-go:disabled{background:#cbd5e1;cursor:default}
+/* V7.34.13 — partner products */
+.lf.lf-rel{background:#fef2f2;color:#991b1b;border-color:#fecaca;font-weight:700}
+.brief-intel-pill.rel{background:#fef2f2;color:#991b1b;border-color:#fecaca;font-weight:700}
     .ql-showall{margin-top:10px;border:2px solid #1e3a5f;background:#fff;color:#1e3a5f;font-weight:800;border-radius:10px;padding:8px 16px;cursor:pointer}
     .ls-csrow{grid-column:3/8;grid-row:2;margin-top:-2px;background:#f3e8ff;border:1.5px solid #a855f7;color:#581c87;border-radius:8px;padding:4px 10px;font-size:13.5px;font-weight:700;text-align:center}
     .ls-csrow b{font-size:15px}
@@ -1479,7 +1501,7 @@ header .sub .hdr-new li{margin:1px 0}
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.34.10 · built 2026-11-13 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
+  <div class="sub">V7.34.13 · built 2026-11-16 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -6235,6 +6257,7 @@ function renderBriefing(){
   const csGapTotal=allSuppliers.reduce((t,s)=>t+(s.csGapSkus||0),0);
   let intel='';
   if(overstockedVal>=500) intel+=`<span class="brief-intel-pill green" onclick="openWorkbench()">💰 €${fmtInt(overstockedVal)} tied in 120d+ stock — push to promotions</span>`;
+  try{ const RS=relSummary_(); if(RS.n) intel+=`<span class="brief-intel-pill rel" onclick="relReport()" title="Products we sell here whose partner (what they need, or what customers buy with them) is out here">🔗 ${fmtInt(RS.n)} partner product${RS.n!==1?'s':''} out — e.g. ${esc(relShort_(RS.items[0].xb.title,34))} (${fmtInt(RS.items[0].users.length)} need${RS.items[0].users.length!==1?'':'s'} it)</span>`; }catch(e){}
   try{ const CL=v8ClearSummary_(state.computedRows||[]); if(CL.eur>=500) intel+=`<span class="brief-intel-pill amber" onclick="v8ClearReport()" title="In stock here, no sales here in the last 12 months — move, give time (new) or clear">📦 €${fmtInt(CL.eur)} with no sales here in 12 months — clear or move</span>`; }catch(e){}
   if(csGapTotal>0) intel+=`<span class="brief-intel-pill purple" onclick="openWorkbench()">🏪 ${csGapTotal} SKU${csGapTotal!==1?'s':''} selling at CS but no AK reorder</span>`;
   const intelRow=document.getElementById('briefIntelRow');
@@ -7102,8 +7125,11 @@ async function renderUsageStats(){
   let rows;
   try{ rows=await fetchCSV(USAGE_LOG_URL,'UsageLog'); }
   catch(e){ el.innerHTML='<div style="color:#dc2626;font-size:12px">Could not read the UsageLog tab: '+esc(e.message)+'. Check the tab exists in the PO Status sheet and the sheet is shared for CSV export.</div>'; return; }
+  if(rows && rows.length && !Array.isArray(rows[0]) && typeof rows[0]==='object'){   // V7.34.11 — named columns → plain lists
+    const keys=Object.keys(rows[0]); rows=[keys].concat(rows.map(o=>keys.map(k=>o[k])));
+  }
   if(!rows||rows.length<2){ el.innerHTML='<div class="ei-empty">UsageLog is empty — no events logged yet.</div>'; return; }
-  const h=rows[0].map(x=>String(x||'').trim().toLowerCase());
+  const h=rows[0].map(x=>String(x||'').replace(/^\ufeff/,'').trim().toLowerCase());
   const iT=h.indexOf('time'), iU=h.indexOf('user'), iE=h.indexOf('event'), iD=h.indexOf('detail');
   if(iT<0||iU<0||iE<0){ el.innerHTML='<div style="color:#dc2626;font-size:12px">UsageLog columns not recognised (need Time, User, Event, Detail).</div>'; return; }
   const now=Date.now(), DAY=86400000, cutoff=now-30*DAY, cutoff7=now-7*DAY;
@@ -10130,6 +10156,181 @@ function homeLoadError_(msg){
   if(tip) tip.textContent=/QUERYDATA_MASTER/.test(msg) ? 'Nothing is wrong with the dashboard itself — it needs the data sheet filled. Press ↻ Refresh once the sync has run.' : 'Press ↻ Refresh to try again.';
 }
 
+// ══ V7.34.13 — PARTNER PRODUCTS: "needs" / "bought with" ═══════════════════════════════════════════════
+// Mark, 16 Nov: "I ordered TP_1928-68 and the dashboard should have flagged that we needed 1928-70. We ended
+// up selling 50 in Capel Street as a result and nothing in Arklow. Build a rule for related or necessary products."
+// (TP_1928-68 = Dynasty compact gas stove: 132 in Arklow. 1928-70 = GoSystem bayonet gas, pack of 4: 0 in Arklow,
+//  nothing on order — so every stove sold online went out without gas, and only Capel had any.)
+//
+// Two lists, both tabs in the data sheet:
+//   RELATED          (gid 1731100004) — the buyers' own list: SKU · Needs SKU · Type (needs / with / both) · Note.
+//                    Always counts. Add a row whenever you spot a pair.
+//   BOUGHT_TOGETHER  (gid 1731100005) — from Linnworks every Monday (BoughtTogether.gs): products in the same
+//                    online order or Capel till sale over 12 months. A pair counts when at least 20% of a
+//                    product's orders (and at least 4) also had the partner.
+// THE RULE — a product we can sell here (in stock, or on this order) whose partner is out, or under 2 weeks of
+// stock counting what's on order, in THIS store:
+//   • order screen: the product goes to 🧐 Your call with "🔗 Needs … — Arklow 0, none on order" (who sells it, €)
+//     and the partner, when it's on an order, gets "🔗 Needed for … — 132 in stock, sells 109 a month";
+//   • Buying Brief: "🔗 N partner products out" → the list, each with what needs it and who sells it.
+// Nothing is ordered automatically — it's a flag, so a person decides.
+const RELATED_URL = 'https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=1731100004';
+const BOUGHT_URL  = 'https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=1731100005';
+const REL = {MIN_SHARE:0.2, MIN_TOGETHER:4, LOW_DAYS:14, MIN_A_MONTH:1};
+
+const relKey_ = s => normSku_(String(s==null?'':s).replace(/^'+/,''));
+function relCol_(r, ...names){
+  for(const key of Object.keys(r||{})){ const k=key.replace(/^﻿/,'').trim().toLowerCase(); if(names.includes(k)) return String(r[key]==null?'':r[key]).trim(); }
+  return '';
+}
+// both lists → A → [{b, kind:'needs'|'with', share, t, n, note, src}]  and  B → [A, …]
+function relParse_(relRows, btRows){
+  const fw=new Map(), bw=new Map();
+  const add=(a,b,o)=>{
+    a=relKey_(a); b=relKey_(b); if(!a || !b || a===b) return;
+    const L=fw.get(a)||[]; const ex=L.find(x=>x.b===b);
+    if(ex){ if(o.src==='list'){ ex.kind=o.kind; ex.note=o.note||ex.note; ex.src='list'; } else { ex.t=o.t; ex.n=o.n; ex.share=Math.max(ex.share||0,o.share); ex.data=true; } return; }
+    L.push(Object.assign({b}, o, {data:o.src==='orders'})); fw.set(a,L);
+    const M=bw.get(b)||[]; if(!M.includes(a)) M.push(a); bw.set(b,M);
+  };
+  let list=0, orders=0;
+  for(const r of relRows||[]){
+    const a=relCol_(r,'sku'), b=relCol_(r,'needs sku','goes with sku','partner sku','with sku'), type=(relCol_(r,'type')||'needs').toLowerCase(), note=relCol_(r,'note');
+    if(!a || !b) continue;
+    const kind = /^(with|goes|bought)/.test(type) ? 'with' : 'needs';
+    add(a, b, {kind, share:1, t:0, n:0, note, src:'list'}); list++;
+    if(/^(both|pair|each)/.test(type)) add(b, a, {kind:'with', share:1, t:0, n:0, note, src:'list'});
+  }
+  for(const r of btRows||[]){
+    const t=+relCol_(r,'together')||0, n=+relCol_(r,'orders with sku')||0, share=n>0?t/n:0;
+    if(t>=REL.MIN_TOGETHER && share>=REL.MIN_SHARE){ add(relCol_(r,'sku'), relCol_(r,'with sku'), {kind:'with', share, t, n, note:'', src:'orders'}); orders++; }
+  }
+  const upd=(btRows&&btRows.length) ? (Object.keys(btRows[0]).find(k=>/^Updated /.test(k))||'').replace(/^Updated\s*/,'') : '';
+  return {fw, bw, list, orders, updated:upd};
+}
+// every product from every supplier (the order screen only holds one supplier): stock, on order, sales, who sells it
+function relCatalogue_(parsedRaw){
+  const by=new Map();
+  const n=v=>{ const x=parseFloat(String(v==null?'':v).replace(/[^0-9.\-]/g,'')); return isFinite(x)?x:0; };
+  const P=(r,a,b)=>n(r[a]!=null&&r[a]!==''?r[a]:r[b]);
+  for(const r of parsedRaw||[]){
+    const k=relKey_(r.SKU); if(!k) continue;
+    let x=by.get(k);
+    if(!x){
+      x={sku:String(r.SKU).trim().replace(/^'+/,''), title:String(r.ItemTitle||'').trim(), sups:new Map(),
+         ak:P(r,'NSk_AK','NetStock_Arklow'), cs:P(r,'NSk_CS','NetStock_CapelStreet'),
+         ooAk:P(r,'OOQty_AK','OnOrderQty_Arklow'), ooCs:P(r,'OOQty_CS','OnOrderQty_CapelStreet'),
+         on30:P(r,'QSold_On30','QtySold_Online_Total_30d'),
+         cs30:P(r,'QSold_OnCS30','QtySold_Online_CapelStreet_30d')+P(r,'QSold_ShCS30','QtySold_Shop_CapelStreet_30d'),
+         on365:P(r,'QSold_OnAK365','QtySold_Online_Arklow_365d')+P(r,'QSold_OnCS365','QtySold_Online_CapelStreet_365d'),
+         cs365:P(r,'QSold_ShCS365','QtySold_Shop_CapelStreet_365d')+P(r,'QSold_OnCS365','QtySold_Online_CapelStreet_365d')};
+      by.set(k,x);
+    }
+    const sup=String(r.SupplierName||'').trim(); if(sup && !x.sups.has(sup)) x.sups.set(sup, n(r.SupplierCostPrice));
+  }
+  return by;
+}
+// one product in THIS store: stock, on order, a month's sales, days covered, and out / low / ok
+function relHere_(x){
+  const capel=state.channel==='capel';
+  const st=capel?x.cs:x.ak, oo=capel?x.ooCs:x.ooAk, other=capel?x.ak:x.cs;
+  const m=Math.max(capel?x.cs30:x.on30, (capel?x.cs365:x.on365)/12);
+  const days = m>0 ? (Math.max(0,st)+Math.max(0,oo))/(m/30) : (st+oo>0 ? 9999 : 0);
+  const k = (st<=0 && oo<=0) ? 'out' : (m>0 && days<REL.LOW_DAYS) ? (st<=0?'outOO':'low') : 'ok';
+  return {st, oo, other, m, days, k, store:capel?'Capel':'Arklow', otherStore:capel?'Arklow':'Capel'};
+}
+function relShort_(t, n){ t=String(t||''); n=n||42; return t.length>n ? t.slice(0,n-1).trim()+'…' : t; }
+function relStateTxt_(h){
+  const f=fmtInt;
+  const where = h.k==='out' ? `${h.store} ${f(Math.max(0,h.st))}, none on order` : h.k==='outOO' ? `${h.store} ${f(Math.max(0,h.st))}, only ${f(h.oo)} on order` : `${h.store} ${f(h.st)} left${h.oo>0?` + ${f(h.oo)} on order`:''}`;
+  return where + (h.m>0 ? ` · sells ${h.m>=10?f(h.m):Math.round(h.m*10)/10} a month` : '') + (h.other>0 ? ` · ${h.otherStore} has ${f(h.other)}` : '');
+}
+function relSupTxt_(x){
+  const L=[...x.sups.entries()].sort((a,b)=>(a[1]||1e9)-(b[1]||1e9)).map(([s,c])=>`${esc(s.split(' - ')[0])}${c>0?' €'+(Math.round(c*100)/100).toFixed(2):''}`);
+  return L.length ? 'from '+L.join(' or ') : '';
+}
+// is the product sellable here? (in stock, or being ordered now) and selling
+function relLive_(xa, qty){
+  const h=relHere_(xa);
+  return (h.st>0 || qty>0) && (h.m>=REL.MIN_A_MONTH || qty>0) ? h : null;
+}
+// order-screen flags for one line r: [['rel', text], …]
+function relFlags_(r){
+  const R=state.rel, C=state.relCat; if(!R || !C) return [];
+  const k=relKey_(r.SKU), out=[], xa=C.get(k);
+  const qty = (typeof osQty==='function' && window._os) ? osQty(r) : (r.buy||0);
+  const onThisOrder = sku => { try{ const x=osFindRow_(sku); return !!(x && osQty(x)>0); }catch(e){ return false; } };
+  // 1. this product needs a partner that's short here
+  const L=R.fw.get(k);
+  if(L && xa && relLive_(xa, qty)){
+    for(const l of L){
+      const xb=C.get(l.b); if(!xb) continue;
+      const hb=relHere_(xb); if(hb.k==='ok') continue;
+      if(hb.m<=0 && l.kind!=='needs') continue;                     // a bought-with partner that never sells here: skip
+      if(onThisOrder(xb.sku)) continue;                              // being ordered right now
+      const why = l.kind==='needs' ? '🔗 Needs' : `🔗 ${Math.round(l.share*100)}% buy it with`;
+      out.push(['rel', `${why} ${esc(relShort_(xb.title))} (${esc(xb.sku)}) — ${relStateTxt_(hb)}${xb.sups.size?' · '+relSupTxt_(xb):''}`]);
+    }
+  }
+  // 2. this product IS a partner that's short here, and something we sell needs it
+  const A=R.bw.get(k);
+  if(A && xa){
+    const hb=relHere_(xa);
+    if(hb.k!=='ok'){
+      const users=A.map(a=>{ const x=C.get(a); const h=x&&relLive_(x,0); return h?{x,h,l:(R.fw.get(a)||[]).find(z=>z.b===k)}:null; }).filter(Boolean).sort((p,q)=>q.h.m-p.h.m);
+      if(users.length){
+        const u=users[0], f=fmtInt;
+        out.push(['rel', `🔗 Needed for ${esc(relShort_(u.x.title,36))} (${esc(u.x.sku)}) — ${f(u.h.st)} in stock, sells ${f(u.h.m)} a month${u.l&&u.l.kind!=='needs'?` · ${Math.round(u.l.share*100)}% buy this with it`:''}${users.length>1?` · +${users.length-1} more`:''}`]);
+      }
+    }
+  }
+  return out;
+}
+// Buying Brief: partners out in this store while what needs them is on the shelf
+function relSummary_(){
+  const R=state.rel, C=state.relCat, by=new Map(); if(!R || !C) return {n:0, items:[]};
+  for(const [a,L] of R.fw){
+    const xa=C.get(a); if(!xa) continue; const ha=relLive_(xa,0); if(!ha) continue;
+    for(const l of L){
+      const xb=C.get(l.b); if(!xb) continue; const hb=relHere_(xb);
+      if(hb.k==='ok' || (hb.m<=0 && l.kind!=='needs')) continue;
+      let it=by.get(l.b); if(!it){ it={xb, hb, users:[], score:0}; by.set(l.b,it); }
+      it.users.push({xa, ha, l}); it.score += ha.m*(l.kind==='needs'?1:l.share) + hb.m;
+    }
+  }
+  const items=[...by.values()].sort((p,q)=>(p.hb.k==='out'?0:1)-(q.hb.k==='out'?0:1) || q.score-p.score);
+  return {n:items.length, out:items.filter(i=>i.hb.k==='out').length, items};
+}
+window.relReport=function(){
+  const S=relSummary_(), f=fmtInt, R=state.rel||{list:0, orders:0, updated:''}, store=state.channel==='capel'?'Capel Street':'Arklow (online)';
+  const pad=(s,n)=>{ s=String(s); return s.length>=n?s.slice(0,n):s+' '.repeat(n-s.length); }, lp=(s,n)=>{ s=String(s); return s.length>=n?s:' '.repeat(n-s.length)+s; };
+  const lab={out:'OUT', outOO:'out (on order)', low:'low'};
+  let t=`🔗 PARTNER PRODUCTS OUT — ${store}\n${new Date().toLocaleString('en-IE')}\n\n`;
+  t+=`Products we sell here whose partner (what they need, or what customers buy with them) is out or under ${REL.LOW_DAYS} days here.\n`;
+  t+=`From ${f(R.list)} pairs on the RELATED tab and ${f(R.orders)} from Linnworks orders${R.updated?' ('+R.updated+')':' (the weekly bought-together run hasn’t filled BOUGHT_TOGETHER yet)'}.\n\n`;
+  if(!S.n) t+='Nothing missing right now.\n';
+  for(const it of S.items.slice(0,60)){
+    const b=it.xb, h=it.hb;
+    t+=`${pad(b.sku,14)}${pad(b.title,48)}${pad(lab[h.k],16)}${lp(f(Math.max(0,h.st)),5)} here${lp(f(h.oo),6)} on order${lp(h.m>=10?f(h.m):Math.round(h.m*10)/10,7)}/mo   ${[...b.sups.entries()].map(([s,c])=>s.split(' - ')[0]+(c>0?' €'+c.toFixed(2):'')).join(' · ')}\n`;
+    for(const u of it.users.sort((p,q)=>q.ha.m-p.ha.m).slice(0,4)) t+=`      ↳ needed for ${pad(u.xa.sku,14)}${pad(u.xa.title,44)}${lp(f(u.ha.st),6)} in stock, sells ${f(u.ha.m)}/mo${u.l.kind==='needs'?'  (on the RELATED list)':`  (${Math.round(u.l.share*100)}% of its orders had this)`}\n`;
+    if(it.users.length>4) t+=`      ↳ +${it.users.length-4} more\n`;
+  }
+  t+=`\nAdd a pair: a row on the RELATED tab of the data sheet (SKU · Needs SKU · Type needs/with/both · Note).`;
+  showDiag(t, {wide:true, title:'🔗 Partner products out', dl:{label:'⬇ All lines (CSV)', fn:()=>v8Csv_('partner_products_'+(state.channel==='capel'?'capel':'arklow'),
+    ['Partner SKU','Partner','Status','Stock here','On order here','Sells a month here','Suppliers','Needed for SKU','Needed for','Its stock here','It sells a month','Link'],
+    S.items.flatMap(it=>it.users.map(u=>[it.xb.sku, it.xb.title, lab[it.hb.k], Math.max(0,it.hb.st), it.hb.oo, Math.round(it.hb.m*10)/10, [...it.xb.sups.keys()].join(' / '), u.xa.sku, u.xa.title, u.ha.st, Math.round(u.ha.m*10)/10, u.l.kind==='needs'?'RELATED list':Math.round(u.l.share*100)+'% bought together'])))}});
+  try{ logUsage('partner_report', state.channel); }catch(e){}
+  return S;
+};
+function relLoad_(){
+  return Promise.allSettled([fetchCSV(RELATED_URL,'Related'), fetchCSV(BOUGHT_URL,'Bought together')]).then(([a,b])=>{
+    state.rel=relParse_(a.status==='fulfilled'?a.value:[], b.status==='fulfilled'?b.value:[]);
+    console.log('[Partners]', state.rel.list, 'from RELATED ·', state.rel.orders, 'from orders', state.rel.updated||'');
+    try{ if(window._os) osRender(); }catch(e){}
+    try{ renderBriefing(); }catch(e){}
+  });
+}
+
 // ─── ORDER THIS CYCLE? (V7.31.1) ─────────────────────────────────────────────
 // For every line in an order: if we wait until this supplier's NEXT scheduled order
 // day, will it already have dropped past its reorder point (lead + safety)? If yes it
@@ -12123,6 +12324,7 @@ async function loadGovernanceFeeds(){
   fetchCSV(STOCKOUT_MONTHS_URL, 'Stock-out history')
     .then(rows=>{ state.stockoutMonths=v8ParseStockoutMonths_(rows); console.log('[Stock-out history]', state.stockoutMonths.by.size, 'lines', state.stockoutMonths.until?'up to '+state.stockoutMonths.until:''); if(state.stockoutMonths.by.size) scheduleRecompute('stock-out history'); })
     .catch(e=>{ state.stockoutMonths=null; console.warn('[Stock-out history] unavailable:', e.message); });
+  try{ relLoad_(); }catch(e){}   // V7.34.13 partner products: RELATED + BOUGHT_TOGETHER tabs
   fetchCSV(STOCKOUT_DAILY_URL, 'Stock-out daily')
     .then(rows=>{ state.stockoutDaily=rows; try{ renderBriefing(); }catch(e){} })
     .catch(e=>{ state.stockoutDaily=null; });
@@ -12167,7 +12369,8 @@ async function processRawRows(parsedRaw, sourceName){
   if(normalised.length===0){setStatus('❌ No rows found in CSV.',true);return;}
 
   state.rawRows=normalised;
-  try{ simReset_(parsedRaw); }catch(e){}   // V7.31.32 similar-in-stock catalogue (every supplier)
+  try{ simReset_(parsedRaw); }catch(e){}
+  try{ state.relCat=relCatalogue_(parsedRaw); }catch(e){ state.relCat=null; }   // V7.34.13 partner products — every supplier   // V7.31.32 similar-in-stock catalogue (every supplier)
   const withCS=mergeCSIntoRows([...normalised],getChannelCSLines());
   const governed=applyGovernance(withCS);
   state.governedRows=governed;
@@ -13297,7 +13500,8 @@ function osClassify(view){
     if(r.buyUnrounded>0 && sug>=2*r.buyUnrounded && sug-r.buyUnrounded>=6) f.push(['pack',`📦 Pack size rounds ${fmtInt(r.buyUnrounded)} up to ${fmtInt(sug)}`]);
     if(rank && rev>0 && rank<=100 && (r.stock||0)<=0) f.push(['top','★ Top 100 seller, out of stock']);
     if(r._multiNoDefault) f.push(['sup','⚠ Also on another supplier']);
-    try{ const xf=v8TransferSpare_(r); if(xf && sug>0 && xf.spare>=Math.max(2, sug*0.5)) f.push(['xfer', xf.t]); }catch(e){}   // worth a transfer: 2+ spare, at least half the order
+    try{ const xf=v8TransferSpare_(r); if(xf && sug>0 && xf.spare>=Math.max(2, sug*0.5)) f.push(['xfer', xf.t]); }catch(e){}
+    try{ for(const x of relFlags_(r)) f.push(x); }catch(e){}   // V7.34.13 partner out here → always a person's call   // worth a transfer: 2+ spare, at least half the order
     if(r.AltCost>0 && c>0 && r.AltSupplier && r.AltSupplier!==r.SupplierName && r.AltCost<c*0.98) f.push(['sup',`💰 Cheaper at ${esc(r.AltSupplier.split(' - ')[0])}`]);
     if(!(c>0) && sug>0) f.push(['bad','No cost price']);
     if(f.length) flags.set(r.SKU,f);
@@ -13338,7 +13542,7 @@ function osQuickWhy(sku){ const os=window._os; if(!os) return; sku=String(sku); 
 // Piles are decided on the SUGGESTED quantity, so editing a line never moves it.
 const OS_QUICK_SECTIONS=[['oos','🔴 Out of stock'],['crit','🟠 Running out'],['low','🟡 Low'],['oth','🟢 Other suggested lines']];
 function osQuickSection_(r){ return (r.stock<=0||r.coverStatus==='Out of Stock')?0 : r.coverStatus==='Critical'?1 : r.coverStatus==='Low'?2 : 3; }
-const OS_TRIAGE_CHIP_ORDER=['bad','off','xfer','pack','v8','jump','hot','season','top','sup','money'];   // Customer Service and Similar have their own bars
+const OS_TRIAGE_CHIP_ORDER=['bad','rel','off','xfer','pack','v8','jump','hot','season','top','sup','money'];   // V7.34.13 'rel' = partner product out   // Customer Service and Similar have their own bars
 const OS_GLANCE_EUR=40, OS_CALL_EUR=150, OS_SOFT_EUR=75;
 // Reasons that always need a person (customer request, wrong or negative stock, pack too big, sold once,
 // similar in stock, no cost, cheaper elsewhere, a one-off month) vs reasons that only matter when the money
@@ -13518,11 +13722,11 @@ function osFirstStep_(){ for(const s of OS_STEPS) if(osPresetRows(s.k).length) r
 function osStepRows_(k){ return osPresetRows(k); }                                  // the whole step, whatever the search
 function osStepQtyRows_(k){ return osStepRows_(k).filter(r=>osQty(r)>0); }
 function osStepBarHtml_(counts){
-  const os=window._os, cur=os.preset, ex=os.stepExported||new Set(), sk=os.stepSkipped||new Set(), f=fmtInt;
+  const os=window._os, cur=os.preset, ex=os.stepExported||new Set(), sk=os.stepSkipped||new Set(), sn=os.stepSeen||new Set(), f=fmtInt;
   const steps=OS_STEPS.map(s=>{
-    const n=counts[s.k]||0, st = cur===s.k ? 'on' : n===0 ? 'empty' : ex.has(s.k) ? 'done' : sk.has(s.k) ? 'skip' : 'todo';
-    const note = ex.has(s.k) ? '<i>exported</i>' : sk.has(s.k) ? '<i>skipped</i>' : '';
-    return `<button tabindex="-1" class="qs-step ${st}${s.opt?' opt':''}" onclick="osStepGo('${s.k}')" title="${esc(OS_PRESETS[s.k].tip)}"><span class="qs-n">${ex.has(s.k)?'✓':s.n}</span><span class="qs-l">${s.lbl}${s.opt?'?':''}</span><b>${f(n)}</b>${note}</button>`;
+    const n=counts[s.k]||0, st = cur===s.k ? 'on' : n===0 ? 'empty' : (ex.has(s.k)||sn.has(s.k)) ? 'done' : sk.has(s.k) ? 'skip' : 'todo';
+    const note = ex.has(s.k) ? '<i>exported</i>' : sk.has(s.k) ? '<i>skipped</i>' : sn.has(s.k) ? '<i>checked</i>' : '';
+    return `<button tabindex="-1" class="qs-step ${st}${s.opt?' opt':''}" onclick="osStepGo('${s.k}')" title="${esc(OS_PRESETS[s.k].tip)}"><span class="qs-n">${(ex.has(s.k)||sn.has(s.k))?'✓':s.n}</span><span class="qs-l">${s.lbl}${s.opt?'?':''}</span><b>${f(n)}</b>${note}</button>`;
   }).join('');
   const more=[`<button tabindex="-1" class="qs-more-b${cur==='all'?' on':''}" onclick="osQuickFilter('all')" title="Every line in one list">All lines ${f(counts.all||0)}</button>`];
   if(counts.similar) more.push(`<button tabindex="-1" class="qs-more-b${cur==='similar'?' on':''}" onclick="osQuickFilter('similar')" title="${esc(OS_PRESETS.similar.tip)}">🔁 Similar in stock <b id="osSimN">${f(counts.similar)}</b></button>`);
@@ -13546,11 +13750,13 @@ function osStepNext(){
   const os=window._os; if(!os) return;
   const cur=os.preset, nx=osNextStep_(cur);
   if(osIsStep_(cur) && !(os.stepExported&&os.stepExported.has(cur)) && !osStepQtyRows_(cur).length){ os.stepSkipped=os.stepSkipped||new Set(); os.stepSkipped.add(cur); }  // nothing to order there
+  else if(osIsStep_(cur)){ os.stepSeen=os.stepSeen||new Set(); os.stepSeen.add(cur); }                                                   // V7.34.12 — checked, goes in the one export
   if(nx) osStepGo(nx.k); else osRender();
 }
 // export ONE step as its own PO file
 function osStepExport(k){
   const os=window._os; if(!os) return; k=k||os.preset; const s=osStep_(k); if(!s) return;
+  os._exportKeys=[k];
   osExport(osStepRows_(k), s.slug);
 }
 function osStepSkip(k){
@@ -13562,9 +13768,11 @@ function osStepSkip(k){
 // after an Export: tick the step it came from
 function osAfterExport_(slug){
   const os=window._os; if(!os || os.mode!=='quick') return;
-  const s=OS_STEPS.find(x=>x.slug===slug) || (osIsStep_(os.preset) ? osStep_(os.preset) : null); if(!s) return;
-  os.stepExported=os.stepExported||new Set(); os.stepExported.add(s.k);
-  if(os.stepSkipped) os.stepSkipped.delete(s.k);
+  const keys=os._exportKeys; os._exportKeys=null;
+  const ks = keys && keys.length ? keys : (()=>{ const s=OS_STEPS.find(x=>x.slug===slug) || (osIsStep_(os.preset) ? osStep_(os.preset) : null); return s?[s.k]:[]; })();
+  if(!ks.length) return;
+  os.stepExported=os.stepExported||new Set();
+  ks.forEach(k=>{ os.stepExported.add(k); if(os.stepSkipped) os.stepSkipped.delete(k); });
   osRender();
   try{ const go=document.querySelector('#osBody .qs-end .qs-go'); if(go) go.focus({preventScroll:true}); }catch(e){}
 }
@@ -13576,32 +13784,92 @@ function osOrderRows_(){
 }
 function osStepEndHtml_(view){
   const os=window._os, k=os&&os.preset; if(!os || os.mode!=='quick' || !osIsStep_(k)) return '';
-  const f=fmtInt, val=a=>Math.round(a.reduce((s,r)=>s+osQty(r)*osUnitCost(r),0));
-  const s=osStep_(k), q=osStepQtyRows_(k), done=os.stepExported&&os.stepExported.has(k), nx=osNextStep_(k);
-  const nxDone = nx && ((os.stepExported&&os.stepExported.has(nx.k)) || (os.stepSkipped&&os.stepSkipped.has(nx.k)));
-  // row 1: export this step
-  let head, btns=[];
-  if(!view.length && !q.length){ head=`${s.lbl}: nothing for this supplier.`; }
-  else if(done){ head=`📄 ${s.lbl} exported — ${f(q.length)} line${q.length!==1?'s':''} · €${f(val(q))}. Upload it to Linnworks as its own PO.`; }
-  else if(q.length){ head=`${s.lbl}: <b>${f(q.length)} line${q.length!==1?'s':''} · €${f(val(q))}</b> to order.`;
-    btns.push(`<button tabindex="-1" class="qs-go" onclick="osStepExport('${k}')">📄 Export ${s.short} · ${f(q.length)} line${q.length!==1?'s':''}</button>`); }
-  else { head=`${s.lbl}: nothing to order (every quantity is 0).`; }
-  // row 2: what's next
+  const f=fmtInt, val=a=>Math.round(a.reduce((s,r)=>s+osQty(r)*osUnitCost(r),0)), L=n=>`${f(n)} line${n!==1?'s':''}`;
+  const ex=os.stepExported||new Set(), sk=os.stepSkipped||new Set();
+  const s=osStep_(k), q=osStepQtyRows_(k), done=ex.has(k), nx=osNextStep_(k);
+  const nxDone = nx && (ex.has(nx.k) || sk.has(nx.k));
+  const anyQty = OS_STEPS.some(x=>osStepQtyRows_(x.k).length);
+  let head, btns=[], last=false;
+  if(!view.length && !q.length) head=`${s.lbl}: nothing for this supplier.`;
+  else if(done) head=`📄 ${s.lbl} exported — ${L(q.length)} · €${f(val(q))}.`;
+  else if(q.length) head=`${s.lbl}: <b>${L(q.length)} · €${f(val(q))}</b> to order.`;
+  else head=`${s.lbl}: nothing to order (every quantity is 0).`;
   if(nx && nx.k==='rest' && !nxDone){
     const rr=osStepQtyRows_('rest');
     head+=`<br><b>Want to look at the rest?</b> ${f(osStepRows_('rest').length)} slower lines · €${f(val(rr))} as suggested.`;
-    btns.push(`<button tabindex="-1" class="${btns.length?'qs-go2':'qs-go'}" onclick="osStepGo('rest')">Yes, show me the rest ›</button>`);
-    if(rr.length) btns.push(`<button tabindex="-1" class="qs-go2" onclick="osStepExport('rest')">Export them as suggested · ${f(rr.length)}</button>`);
+    btns.push(`<button tabindex="-1" class="qs-go" onclick="osStepGo('rest')">Yes, show me the rest ›</button>`);
     btns.push(`<button tabindex="-1" class="qs-go3" onclick="osStepSkip('rest')">Skip the rest</button>`);
   } else if(nx && !(nx.k==='rest' && nxDone)){
-    btns.push(`<button tabindex="-1" class="${btns.length?'qs-go2':'qs-go'}" onclick="osStepNext()">Next: ${nx.lbl} · ${f(nx.n)} line${nx.n!==1?'s':''} ›</button>`);
+    btns.push(`<button tabindex="-1" class="qs-go" onclick="osStepNext()">Next: ${nx.lbl} · ${L(nx.n)} ›</button>`);
   } else {
-    const ex=[...(os.stepExported||[])].map(x=>osStep_(x).short);
-    head+=`<br><b>That’s every step.</b>${ex.length?` Exported: ${ex.join(', ')}.`:''} When they’re on Linnworks, press ✓ Mark ordered.`;
+    last=true;
+    const left=OS_STEPS.filter(x=>!ex.has(x.k) && !sk.has(x.k)).map(x=>({x, q:osStepQtyRows_(x.k)})).filter(g=>g.q.length);
+    const exd=OS_STEPS.filter(x=>ex.has(x.k)).map(x=>x.short);
+    if(left.length){
+      const all=left.flatMap(g=>g.q);
+      head+=`<br><b>That’s every step.</b> Ready: ${left.map(g=>`${g.x.short} ${f(g.q.length)}`).join(' · ')} — <b>${L(all.length)} · €${f(val(all))}</b> in one PO file.${exd.length?` (Already exported: ${exd.join(', ')}.)`:''}`;
+      btns.push(`<button tabindex="-1" class="qs-go" onclick="osExportPickOpen()">📄 Export the order…</button>`);
+    } else head+=`<br><b>That’s every step.</b>${exd.length?` Exported: ${exd.join(', ')}.`:''} When it’s on Linnworks, press ✓ Mark ordered.`;
   }
-  return `<div class="qs-end${done?' last':''}"><div class="qs-end-t">${head}</div>${btns.length?`<div class="qs-end-b">${btns.join('')}</div>`:''}</div>`;
+  if(!last && anyQty) btns.push(`<button tabindex="-1" class="qs-go2" onclick="osExportPickOpen()" title="Pick which groups go in the file — one PO">📄 Export now…</button>`);
+  return `<div class="qs-end${done||last?' last':''}"><div class="qs-end-t">${head}</div>${btns.length?`<div class="qs-end-b">${btns.join('')}</div>`:''}</div>`;
 }
 
+
+// ── V7.34.12 (Mark, 13 Nov: "need to be able to export all or some otherwise we have multiple export files"):
+// ONE Export for the whole order. Tick the groups you want → one PO file. Starts with every group that has
+// something to order ticked, except a group you skipped or already exported (so nothing goes on Linnworks twice).
+function osPickMode_(){ const os=window._os; return !!(os && os.mode==='quick' && osIsStep_(os.preset)); }   // All lines / a search / Detail: Export = what's on screen, as before
+function osExportBtnClick(){ if(osPickMode_()) osExportPickOpen(); else osExport(); }
+function osExportDefault_(){
+  const os=window._os, ex=os.stepExported||new Set(), sk=os.stepSkipped||new Set();
+  return new Set(OS_STEPS.filter(s=>osStepQtyRows_(s.k).length && !ex.has(s.k) && !sk.has(s.k)).map(s=>s.k));
+}
+function osExportPickOpen(){
+  const os=window._os; if(!os) return;
+  if(!osPickMode_()){ osExport(); return; }
+  os.exportPick=osExportDefault_();
+  osExportPickRender_();
+  try{ logUsage('export_picker', os.supplier); }catch(e){}
+}
+function osExportPickClose(){ const el=document.getElementById('osExpPick'); if(el) el.remove(); const os=window._os; if(os) os.exportPick=null; }
+function osExportPickToggle(k){ const os=window._os; if(!os||!os.exportPick) return; os.exportPick.has(k)?os.exportPick.delete(k):os.exportPick.add(k); osExportPickRender_(); }
+function osExportPickAll(on){ const os=window._os; if(!os||!os.exportPick) return; os.exportPick=new Set(on?OS_STEPS.filter(s=>osStepQtyRows_(s.k).length).map(s=>s.k):[]); osExportPickRender_(); }
+function osExportPickRender_(){
+  const os=window._os; if(!os||!os.exportPick) return;
+  const f=fmtInt, ex=os.stepExported||new Set(), sk=os.stepSkipped||new Set();
+  const val=a=>Math.round(a.reduce((t,r)=>t+osQty(r)*osUnitCost(r),0));
+  let n=0, v=0;
+  const rowsH=OS_STEPS.map(s=>{
+    const q=osStepQtyRows_(s.k), has=q.length>0, on=has && os.exportPick.has(s.k);
+    if(on){ n+=q.length; v+=val(q); }
+    const tag = ex.has(s.k)?'<i class="xp-tag">already exported</i>' : sk.has(s.k)?'<i class="xp-tag">skipped</i>' : '';
+    return `<label class="xp-row${has?'':' off'}"><input type="checkbox" ${on?'checked':''} ${has?'':'disabled'} onchange="osExportPickToggle('${s.k}')"><span class="xp-l">${s.lbl}${tag}</span><span class="xp-n">${has?`${f(q.length)} line${q.length!==1?'s':''}`:'nothing to order'}</span><span class="xp-v">${has?'€'+f(val(q)):''}</span></label>`;
+  }).join('');
+  let el=document.getElementById('osExpPick');
+  if(!el){
+    el=document.createElement('div'); el.id='osExpPick'; el.className='xp-pop';
+    const host=document.querySelector('#poReviewOverlay .po-review-ftr'); (host||document.body).appendChild(el);
+    if(!host) el.classList.add('xp-fixed');
+  }
+  el.innerHTML=`<div class="xp-h">📄 Export one PO file with…</div>${rowsH}
+    <div class="xp-q"><a href="#" onclick="osExportPickAll(true);return false">Tick all</a> · <a href="#" onclick="osExportPickAll(false);return false">Untick all</a></div>
+    <div class="xp-b"><button class="secondary" onclick="osExportPickClose()">Cancel</button><button class="xp-go" ${n?'':'disabled'} onclick="osExportPicked()">📄 Export ${f(n)} line${n!==1?'s':''} · €${f(v)}</button></div>`;
+  const go=el.querySelector('.xp-go'); if(go && !go.disabled) try{ go.focus({preventScroll:true}); }catch(e){}
+}
+function osExportPicked(){
+  const os=window._os; if(!os||!os.exportPick) return;
+  const keys=OS_STEPS.map(s=>s.k).filter(k=>os.exportPick.has(k) && osStepQtyRows_(k).length); if(!keys.length) return;
+  const withQty=OS_STEPS.map(s=>s.k).filter(k=>osStepQtyRows_(k).length);
+  const slug = keys.length===withQty.length ? 'whole_order' : keys.map(k=>osStep_(k).slug).join('+');
+  const seen=new Set(), rows=[];
+  keys.forEach(k=>osStepRows_(k).forEach(r=>{ const id=String(r.SKU); if(!seen.has(id)){ seen.add(id); rows.push(r); } }));
+  osExportPickClose();
+  os._exportKeys=keys;
+  osExport(rows, slug);
+}
+document.addEventListener('keydown', function(e){ if(e.key==='Escape' && document.getElementById('osExpPick')){ e.stopPropagation(); osExportPickClose(); } }, true);
+document.addEventListener('mousedown', function(e){ const el=document.getElementById('osExpPick'); if(el && !el.contains(e.target) && !(e.target.closest && e.target.closest('#osExportBtn'))) osExportPickClose(); });
 function osQuickLineHtml(r){
   const os=window._os, f=fmtInt;
   const q=osQty(r), c=osUnitCost(r), edited=q!==(r.buy||0);
@@ -14379,7 +14647,7 @@ function osRender(rebuild){
           <button class="secondary" onclick="osClose()">Close</button>
           <button class="ai-btn" id="aiBriefBtn" onclick="generateAIBrief()">✦ AI Brief</button>
           <button class="secondary" id="osDoneBtn" onclick="osMarkOrdered()" title="Mark this supplier DONE on the PO Status sheet for this month">✓ Mark ordered</button>
-          <button id="osExportBtn" onclick="osExport()">📄 Export PO</button>
+          <button id="osExportBtn" onclick="osExportBtnClick()">📄 Export PO</button>
         </div>
       </div>
     </div>`);
@@ -14417,7 +14685,8 @@ function osUpdateTotals(){
   const tEl=document.getElementById('osTotal');
   if(tEl) tEl.innerHTML=`${stepMode?osStep_(os.preset).lbl:'This view'}: <span>€${fmtInt(Math.round(val))}</span> · ${fmtInt(lines)} line${lines!==1?'s':''} · ${fmtInt(units)} units${noCost?` <span class="sc-note">(${noCost} without a cost price)</span>`:''}`;
   const b=document.getElementById('osExportBtn');
-  if(b){ b.textContent=`📄 Export ${stepMode?osStep_(os.preset).short+' · ':''}${fmtInt(lines)} line${lines!==1?'s':''}`; b.disabled=lines===0; }
+  if(b){ if(typeof osPickMode_==='function' && osPickMode_()){ const all=osPresetRows('all').filter(r=>osQty(r)>0).length, N=[...osExportDefault_()].reduce((t,k)=>t+osStepQtyRows_(k).length,0); b.textContent=N?`📄 Export ▾ · ${fmtInt(N)} line${N!==1?'s':''}`:'📄 Export ▾'; b.disabled=all===0; b.title='Pick which groups go in the PO file — one file for the whole order'; }
+         else { b.textContent=`📄 Export ${fmtInt(lines)} line${lines!==1?'s':''}`; b.disabled=lines===0; b.title=''; } }
 }
 
 function osSetPreset(k){ const os=window._os; if(!os) return; os.preset=k; os.keep=null; const m=document.getElementById('osRefineMsg'); if(m) m.style.display='none'; osRender(); }
