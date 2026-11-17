@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.34.14 · ORDER IN STEPS</title>
+  <title>Lenehans Purchasing Dashboard · V7.34.15 · ORDER IN STEPS</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1501,7 +1501,7 @@ header .sub .hdr-new li{margin:1px 0}
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.34.14 · built 2026-11-17 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
+  <div class="sub">V7.34.15 · built 2026-11-17 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -10200,6 +10200,24 @@ window.csMetReport=function(){
   return S;
 };
 
+// ══ V7.34.15 — when is the next order due? (Mark, 17 Nov: Unichem "Last ordered 14 Nov · orders every 2 weeks" showed
+// OVERDUE 1 DAY.) The schedule's order days are fixed calendar days (fortnightly = the 1st and 3rd Monday of the month,
+// weekly = every Monday …). Ordered on Fri 14 Nov, the next scheduled day was Mon 16 Nov — two days later — so the card
+// called it overdue on the 17th. An order now counts for the scheduled day it was placed for: the next order is due on
+// the first scheduled day at least half a cycle after the order (fortnightly 7 days, weekly 3½, twice a week 2, monthly 15).
+// The order day itself and the Team page's "do today" list are unchanged.
+function nextDueAfterOrder_(cadence, lastDate){
+  const cyc=cadenceReviewDays(cadence, 0);
+  if(!cyc) return nextScheduledOrderDay(cadence, lastDate);
+  const from=new Date(lastDate); from.setHours(0,0,0,0);
+  const d=new Date(from); d.setDate(d.getDate()+1);
+  for(let i=0;i<80;i++){
+    if(shouldFireToday(cadence, d) && Math.round((d-from)/86400000) >= cyc/2) return new Date(d);
+    d.setDate(d.getDate()+1);
+  }
+  return null;
+}
+
 // ══ V7.34.13 — PARTNER PRODUCTS: "needs" / "bought with" ═══════════════════════════════════════════════
 // Mark, 16 Nov: "I ordered TP_1928-68 and the dashboard should have flagged that we needed 1928-70. We ended
 // up selling 50 in Capel Street as a result and nothing in Arklow. Build a rule for related or necessary products."
@@ -13215,7 +13233,7 @@ function supplierOrderStatus(name){
   let cadence=null; try{ cadence=getCadenceForSupplier(name); }catch(e){}
   const lastDone = poSt ? (poSt.isDone ? poSt : (poSt.history&&poSt.history[0]) || null) : null;
   const lastDate = lastDone ? parsePODate(lastDone.date, lastDone.month) : null;
-  const nextDue  = (cadence && lastDate) ? nextScheduledOrderDay(cadence, lastDate) : null;
+  const nextDue  = (cadence && lastDate) ? nextDueAfterOrder_(cadence, lastDate) : null;   // V7.34.15 — an early order counts for its slot
   const checkedNow = !!(poSt && !poSt.isDone && poSt.isChecked && _nm(poSt.month)===_nm(currentMonthLabel()));
   let key, label;
   if(checkedNow){ key='checked'; label='CHECKED'; }
