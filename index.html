@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.34.13 · ORDER IN STEPS</title>
+  <title>Lenehans Purchasing Dashboard · V7.34.14 · ORDER IN STEPS</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1501,7 +1501,7 @@ header .sub .hdr-new li{margin:1px 0}
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.34.13 · built 2026-11-16 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
+  <div class="sub">V7.34.14 · built 2026-11-17 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -6257,6 +6257,7 @@ function renderBriefing(){
   const csGapTotal=allSuppliers.reduce((t,s)=>t+(s.csGapSkus||0),0);
   let intel='';
   if(overstockedVal>=500) intel+=`<span class="brief-intel-pill green" onclick="openWorkbench()">💰 €${fmtInt(overstockedVal)} tied in 120d+ stock — push to promotions</span>`;
+  try{ const CM=csMetSummary_(); if(CM.n) intel+=`<span class="brief-intel-pill green" onclick="csMetReport()" title="Customer Service asked for these, and this store now holds at least that many — they no longer force an order. Take them off the Shared_QuickAdds tab.">✓ ${fmtInt(CM.n)} Customer Service request${CM.n!==1?'s':''} already in stock — clear ${CM.n!==1?'them':'it'} from the CS sheet</span>`; }catch(e){}
   try{ const RS=relSummary_(); if(RS.n) intel+=`<span class="brief-intel-pill rel" onclick="relReport()" title="Products we sell here whose partner (what they need, or what customers buy with them) is out here">🔗 ${fmtInt(RS.n)} partner product${RS.n!==1?'s':''} out — e.g. ${esc(relShort_(RS.items[0].xb.title,34))} (${fmtInt(RS.items[0].users.length)} need${RS.items[0].users.length!==1?'':'s'} it)</span>`; }catch(e){}
   try{ const CL=v8ClearSummary_(state.computedRows||[]); if(CL.eur>=500) intel+=`<span class="brief-intel-pill amber" onclick="v8ClearReport()" title="In stock here, no sales here in the last 12 months — move, give time (new) or clear">📦 €${fmtInt(CL.eur)} with no sales here in 12 months — clear or move</span>`; }catch(e){}
   if(csGapTotal>0) intel+=`<span class="brief-intel-pill purple" onclick="openWorkbench()">🏪 ${csGapTotal} SKU${csGapTotal!==1?'s':''} selling at CS but no AK reorder</span>`;
@@ -6755,6 +6756,8 @@ function parseCSFeed(rows){
 
     if(!sku || !supplier) continue;
     if(active === 'no' || active === 'false' || active === '0') continue;
+    // V7.34.14 — what the buyers actually type in Active: discontinued / not available / unknown sku / done / received … = off ("out of stock" stays on)
+    if(/(done|complete|received|removed|cancel|discontinu|not available|unavailable|unknown sku|delisted|no longer)/.test(active) || /^in stock/.test(active)) continue;
     if(expires){
       const expDate = new Date(expires);
       if(!isNaN(expDate) && expDate < today) continue;
@@ -6918,10 +6921,11 @@ function parsePOFeed(rows){
 function channelMatchesLine(lineChannel, activeChannel){
   // lineChannel from sheet: 'arklow', 'capel street', 'both'
   // activeChannel: 'arklow' or 'capel'
-  const lc = (lineChannel||'arklow').toLowerCase();
-  if(lc==='both') return true;
-  if(activeChannel==='capel') return lc.includes('capel');
-  return lc==='arklow' || lc==='' ;
+  // V7.34.14 — the sheet holds "arklow", "ark", "àrklow", "arklow/capel st", "Capel St", "capel street "…
+  const lc = String(lineChannel||'arklow').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  if(lc==='both' || lc==='all') return true;
+  if(activeChannel==='capel') return /capel|^cs$/.test(lc);
+  return lc==='' || /ark|^ak$|online/.test(lc);
 }
 
 function getChannelCSLines(){
@@ -6975,6 +6979,14 @@ function mergeCSIntoRows(rows, csLines){
     if(skuIndex.has(key)){
       // Attach CS info to existing row
       const existing = skuIndex.get(key);
+      // V7.34.14 (Mark, 17 Nov) — the stock came in: this store already holds what Customer Service asked for, so
+      // the request is met. No floor, no purple bar; it goes on the Brief's "clear from the CS sheet" list instead.
+      const _st = state.channel==='capel' ? (existing.NetStock_CapelStreet||0) : (existing.NetStock_Arklow||0);
+      if(cs.qty>0 && _st>=cs.qty){
+        existing._csMet = {qty:Math.max(cs.qty, (existing._csMet&&existing._csMet.qty)||0), stock:_st, reason:cs.reason||''};
+        (state.csMet=state.csMet||[]).push({sku:cs.sku, supplier:cs.supplier, qty:cs.qty, reason:cs.reason||'', channel:cs.channel||'', stock:_st, title:existing.ItemTitle||'', supplierName:existing.SupplierName||''});
+        continue;
+      }
       existing._csRequired = true;
       existing._csQtyFloor = Math.max(existing._csQtyFloor, cs.qty);
       existing._csReason = cs.reason || existing._csReason;
@@ -10156,6 +10168,38 @@ function homeLoadError_(msg){
   if(tip) tip.textContent=/QUERYDATA_MASTER/.test(msg) ? 'Nothing is wrong with the dashboard itself — it needs the data sheet filled. Press ↻ Refresh once the sync has run.' : 'Press ↻ Refresh to try again.';
 }
 
+// ══ V7.34.14 — Customer Service requests (Mark, 17 Nov: "why is the dashboard showing customer service requires x
+// when they have stock because we got them in. i.e we have removed them from the CS request sheet") ═════════════
+// Two faults: (1) CS lines were applied ONCE, at load, for the store open then — switching store kept the first
+// store's requests and never applied the other's; (2) a request stayed a floor after the stock came in.
+// Now every recalculation clears the CS marks and re-applies THIS store's lines from the sheet, and a request is
+// "met" (no floor, no bar) when this store's stock is at or above the quantity asked for.
+function applyChannelCS_(){
+  if(!state.rawRows || !state.rawRows.length || !Array.isArray(state.csLines)) return;
+  for(const r of state.rawRows){ r._csRequired=false; r._csQtyFloor=0; r._csReason=''; r._csExpires=''; r._csMet=null; }
+  state.csMet=[];
+  state.governedRows=applyGovernance(mergeCSIntoRows([...state.rawRows], getChannelCSLines()));
+  state._csFor=state.channel;
+}
+function csMetSummary_(){
+  const L=(state.csMet||[]).filter(x=>x && state._csFor===state.channel);
+  return {n:L.length, lines:L};
+}
+window.csMetReport=function(){
+  const S=csMetSummary_(), f=fmtInt, store=state.channel==='capel'?'Capel Street':'Arklow';
+  const pad=(s,n)=>{ s=String(s); return s.length>=n?s.slice(0,n):s+' '.repeat(n-s.length); }, lp=(s,n)=>{ s=String(s); return s.length>=n?s:' '.repeat(n-s.length)+s; };
+  let t=`✓ CUSTOMER SERVICE REQUESTS ALREADY IN STOCK — ${store}\n${new Date().toLocaleString('en-IE')}\n\n`;
+  t+=`${f(S.n)} line${S.n!==1?'s':''} on the Shared_QuickAdds tab (PO Status workbook) where ${store} now holds at least the quantity asked for.\n`;
+  t+=`They no longer force an order or show the purple bar. Delete the rows (or type "done" in Active) to keep the sheet clean.\n\n`;
+  t+=pad('SKU',16)+pad('Product',46)+lp('Asked',6)+lp('In stock',10)+'  '+pad('By',10)+'Supplier on the sheet\n';
+  for(const x of S.lines.slice().sort((a,b)=>String(a.supplier).localeCompare(String(b.supplier))||String(a.sku).localeCompare(String(b.sku))))
+    t+=pad(x.sku,16)+pad(x.title,46)+lp(f(x.qty),6)+lp(f(x.stock),10)+'  '+pad(x.reason,10)+x.supplier+'\n';
+  showDiag(t, {wide:true, title:'✓ Customer Service requests already in stock', dl:{label:'⬇ All lines (CSV)', fn:()=>v8Csv_('cs_requests_in_stock_'+(state.channel==='capel'?'capel':'arklow'),
+    ['SKU','Product','Supplier on the sheet','Asked for','In stock now','Requested by','Channel on the sheet'], S.lines.map(x=>[x.sku, x.title, x.supplier, x.qty, x.stock, x.reason, x.channel]))}});
+  try{ logUsage('cs_met_report', state.channel); }catch(e){}
+  return S;
+};
+
 // ══ V7.34.13 — PARTNER PRODUCTS: "needs" / "bought with" ═══════════════════════════════════════════════
 // Mark, 16 Nov: "I ordered TP_1928-68 and the dashboard should have flagged that we needed 1928-70. We ended
 // up selling 50 in Capel Street as a result and nothing in Arklow. Build a rule for related or necessary products."
@@ -10396,6 +10440,7 @@ function getFilteredRows(){
 async function recompute(){
   const _seq=(state._recSeq=(state._recSeq||0)+1), _ch=state.channel;   // V7.34.7 — which store this run is for
   state._recomputing=true;
+  try{ applyChannelCS_(); }catch(e){ console.warn('CS lines for this store skipped:', e); }   // V7.34.14 — this store's CS lines, every time
   const rows = state.governedRows;
   if(!rows || !rows.length){ state._recomputing=false; state._rowsChannel=_ch; }
   if(!rows || !rows.length){ state.computedRows=[]; render(); return; }
