@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.34.15 · ORDER IN STEPS</title>
+  <title>Lenehans Purchasing Dashboard · V7.35.0 · EMAIL DESIGNER</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1338,6 +1338,38 @@ header .sub .hdr-new li{margin:1px 0}
 /* V7.34.13 — partner products */
 .lf.lf-rel{background:#fef2f2;color:#991b1b;border-color:#fecaca;font-weight:700}
 .brief-intel-pill.rel{background:#fef2f2;color:#991b1b;border-color:#fecaca;font-weight:700}
+/* V7.35.0 — email designer */
+.ed-panel{margin-top:14px;border:2px solid #002538;border-radius:12px;background:#fff;padding:14px 16px}
+.ed-h{font-size:15px;font-weight:800;color:#002538;margin-bottom:8px}
+.ed-h span{font-size:12px;font-weight:500;color:#5B6B73;margin-left:6px}
+.ed-form{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.ed-form label,.ed-edit label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:700;color:#475569;flex:1 1 220px}
+.ed-form input,.ed-edit input,.ed-edit textarea{font:inherit;font-size:13px;font-weight:400;padding:7px 9px;border:1.5px solid #cbd5e1;border-radius:7px;color:#0f172a;box-sizing:border-box;width:100%}
+.ed-go{padding:9px 16px;background:#002538;color:#fff;border:0;border-radius:8px;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap}
+.ed-go:hover{background:#0b3a52}
+.ed-note{font-size:12px;color:#5B6B73;margin-top:8px}
+.ed-warn{font-size:12px;color:#92400e;background:#fef3c7;border:1px solid #fcd34d;border-radius:7px;padding:7px 9px;margin-bottom:8px;line-height:1.5}
+.ed-grid{display:grid;grid-template-columns:minmax(300px,1fr) 640px;gap:16px;margin-top:12px;align-items:start}
+@media (max-width:1180px){.ed-grid{grid-template-columns:1fr}}
+.ed-edit{display:flex;flex-direction:column;gap:8px;min-width:0}
+.ed-edit label{flex:none}
+.ed-2{display:flex;gap:8px}
+.ed-2 label{flex:1 1 0}
+.ed-lbl{font-size:11px;font-weight:800;color:#475569;margin-top:4px}
+.ed-p{display:grid;grid-template-columns:22px 1.2fr 1fr auto 24px 24px 24px;gap:5px;align-items:center}
+.ed-p input{padding:5px 7px;font-size:12px}
+.ed-p.noimg .ed-p-img{border-color:#f59e0b;background:#fffbeb}
+.ed-p-n{font-size:12px;font-weight:800;color:#002538;text-align:center}
+.ed-p-pr{font-size:12px;font-weight:700;white-space:nowrap}.ed-p-pr s{color:#94a3b8;font-weight:400}
+.ed-p button{width:24px;height:26px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;padding:0;line-height:24px}
+.ed-p button:hover{background:#f1f5f9}
+.ed-src{font-size:11px;color:#64748b}
+.ed-prev{display:flex;flex-direction:column;gap:6px}
+.ed-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px}
+.ed-bar span{flex:1;color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:120px}
+.ed-bar button{padding:6px 11px;border:1px solid #002538;background:#fff;color:#002538;border-radius:7px;font-weight:700;font-size:12px;cursor:pointer}
+.ed-bar button:first-of-type{background:#002538;color:#fff}
+#edFrame{width:640px;max-width:100%;height:900px;border:1px solid #cbd5e1;border-radius:8px;background:#F3F6F7}
     .ql-showall{margin-top:10px;border:2px solid #1e3a5f;background:#fff;color:#1e3a5f;font-weight:800;border-radius:10px;padding:8px 16px;cursor:pointer}
     .ls-csrow{grid-column:3/8;grid-row:2;margin-top:-2px;background:#f3e8ff;border:1.5px solid #a855f7;color:#581c87;border-radius:8px;padding:4px 10px;font-size:13.5px;font-weight:700;text-align:center}
     .ls-csrow b{font-size:15px}
@@ -1501,7 +1533,7 @@ header .sub .hdr-new li{margin:1px 0}
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.34.15 · built 2026-11-17 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
+  <div class="sub">V7.35.0 · built 2026-11-18 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>🎨 Email tab: after checking a campaign, Design this email builds it in the Lenehans house style — pictures, links and live prices from Klaviyo, words in the style of your best-opening campaigns, ready to paste into Klaviyo</li><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -2776,6 +2808,7 @@ https://www.lenehans.ie/...html	1080286	€9.99	5.99	SAVE	40%
       });
 
       eiReady = true;
+      window._eiCampsPub = eiCamps; window._eiStPub = eiStMap;   // V7.35.0 — the email designer writes in the style of the best-opening campaigns
       var sc = Object.keys(eiStMap).length;
       eiSetLoadStep('📦 Cross-referencing with stock data…', 85);
       setStatus('✅ Synced — ' + eiCamps.length + ' campaigns · ' + sc + ' with performance stats · Loading 12-month sales history…', 'ok');
@@ -7538,7 +7571,7 @@ function runCampaignCheck(){
       const prof=SEASONAL_PROFILES[seasonProf]; if(prof&&prof.monthly) seasonMult=prof.monthly[thisM]||1; }catch(e){}
     const hist=histBySku.get(skuTok)||[];
     const histQty=hist.reduce((a,h)=>a+h.qty,0), histRev=hist.reduce((a,h)=>a+h.rev,0);
-    items.push({row, sku:skuTok, title:row.ItemTitle||'', promo, rrp, cost, marginPct, belowCost,
+    items.push({row, sku:skuTok, title:row.ItemTitle||'', promo, rrp, cost, marginPct, belowCost, url:((line.match(/https?:\/\/[^\s"'<>]+/)||[''])[0]),
       ak, cs, stock, cover, sold30, seasonMult, seasonProf, hist, histQty, histRev});
   }
 
@@ -7610,6 +7643,7 @@ function runCampaignCheck(){
     </table></div>
     ${unmatched.length?`<div style="font-size:11px;color:#94a3b8;margin-top:8px">Not matched to a SKU: ${esc(unmatched.slice(0,4).join(' · '))}${unmatched.length>4?' …':''}</div>`:''}
     ${(window._eiCampProdState!=='cached')?`<div style="font-size:11px;color:#b45309;margin-top:6px">⚠ Past-email history not loaded — hit <b>Sync Klaviyo</b> to include which campaigns sold these before.</div>`:''}`;
+  try{ window._ccItems=items; edAfterCheck_(out); }catch(e){ console.warn('email designer:', e); }   // V7.35.0
 }
 
 // ── ARKLOW GAP PO — "give me an order NOW" ───────────────────────────────────
@@ -10391,6 +10425,269 @@ function relLoad_(){
     try{ if(window._os) osRender(); }catch(e){}
     try{ renderBriefing(); }catch(e){}
   });
+}
+
+// ══ V7.35.0 — EMAIL DESIGNER (Mark, 18 Nov: "When putting these into the email tab we get 68 out of 100 and stats
+// relating to sales. Can the dashboard not design an email looking at our previous designs.") ═══════════════════════
+// After ✉️ Check this campaign, 🎨 Design this email builds the email in the Lenehans house style, taken from our own
+// Klaviyo sends (e.g. "Cold snap? We've got a few ideas…", 17 Nov 2026): the Lenehans header banner, the slate link bar
+// (Christmas · New In Stock · On Sale), a headline + "Hey {first name}" intro + navy button, a navy feature block with a
+// red Shop now pill, white product cards with now/was prices, and the navy footer with the address and Klaviyo's
+// unsubscribe / preferences tags. Ready to paste into Klaviyo (Templates → Create → HTML), or download.
+//   • Pictures, links and the website's live price come from Klaviyo's own product events (Ordered / Viewed Product)
+//     through the web app's product_meta action (EmailDesigner.gs). Any picture can be pasted in by hand.
+//   • The words come from the AI brief action, in the style of our best-opening past campaigns; every word is editable.
+//   • Out-of-stock lines are left out; a website price that doesn't match the email is flagged before sending.
+const ED = {
+  LOGO:'https://cdn.klaviyomail.com/company/RpgXNK/images/81bff76c-dd5d-46f2-9e41-d7a7dd298db5.png',
+  NAVY:'#002538', SLATE:'#3B5664', RED:'#C3022B', INK:'#222222', MUTE:'#5B6B73', CREAM:'#F8F5EC', BG:'#F3F6F7',
+  NAV:[['Christmas','https://www.lenehans.ie/christmas-decorations-giftware.html'],['New In Stock','https://www.lenehans.ie/just-in.html'],['On Sale','https://www.lenehans.ie/sale.html',true]],
+  FOOT:[['Home','https://www.lenehans.ie/'],['Shop','https://www.lenehans.ie/'],['Blog','https://www.lenehans.ie/blog'],['About','https://www.lenehans.ie/about-us']],
+  SOCIAL:[['Twitter','https://twitter.com/lenehansdiy','x_twitter'],['Facebook','https://www.facebook.com/Lenehans.ie/','facebook'],['Instagram','https://www.instagram.com/lenehanshardware/','instagram'],['YouTube','https://www.youtube.com/c/lenehansie','youtube']],
+  META_KEY:'lenehans_ed_meta_v1', META_DAYS:7
+};
+const edEsc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const edEur = n => '€'+(Math.round((+n||0)*100)/100).toFixed(2);
+// shop names are long ("CarPlan Ice Scraper – Quick, Comfortable and Built to Last"): keep the part before the strap line
+function edShortName_(t){
+  let s=String(t||'').replace(/\s+/g,' ').trim();
+  const cut=s.search(/\s[–|]\s|\s-\s(?=[A-Z][a-z])|\sI\s(?=[A-Z])/);
+  if(cut>12) s=s.slice(0,cut);
+  return s.length>70 ? s.slice(0,68).replace(/\s+\S*$/,'')+'…' : s;
+}
+// ── the panel under the Campaign Checker result ──
+function edAfterCheck_(out){
+  const items=window._ccItems||[]; if(!items.length) return;
+  const keep=items.filter(i=>i.stock>0).length, oos=items.length-keep;
+  const theme=(window._ed&&window._ed.theme)||'';
+  out.insertAdjacentHTML('beforeend', `<div class="ed-panel" id="edPanel">
+    <div class="ed-h">🎨 Design this email <span>in the Lenehans house style — header, link bar, product cards, footer — ready for Klaviyo</span></div>
+    <div class="ed-form">
+      <label>What's it about? <input id="edTheme" value="${edEsc(theme)}" placeholder="e.g. Cold snap — beat the chill · Dark evenings · Stocking fillers"></label>
+      <label>Main button goes to <input id="edLink" value="${edEsc((window._ed&&window._ed.link)||'https://www.lenehans.ie/sale.html')}"></label>
+      <button class="ed-go" onclick="edDesign()">🎨 Design the email · ${keep} product${keep!==1?'s':''}</button>
+    </div>
+    ${oos?`<div class="ed-note">${oos} out-of-stock line${oos!==1?'s are':' is'} left out of the design.</div>`:''}
+    <div id="edOut"></div></div>`);
+}
+// ── pictures, links and the live website price (Klaviyo product events, via the web app) ──
+function edMetaCache_(){ try{ return JSON.parse(localStorage.getItem(ED.META_KEY)||'{}')||{}; }catch(e){ return {}; } }
+function edMetaSave_(c){ try{ localStorage.setItem(ED.META_KEY, JSON.stringify(c)); }catch(e){} }
+async function edMeta_(skus){
+  const cache=edMetaCache_(), now=Date.now(), res={}, err={msg:''};
+  let live=null;
+  try{
+    const r=await fetch(PO_UPDATER_URL+'?action=product_meta&skus='+encodeURIComponent(skus.join(',')));
+    const j=await r.json();
+    if(j && j.products) live=j.products; else err.msg=(j&&j.error)||'the web app has no product_meta action yet';
+  }catch(e){ err.msg='the web app has no product_meta action yet'; }
+  for(const s of skus){
+    const L=live&&live[s], C=cache[s];
+    if(L && (L.image||L.url)){ res[s]=L; cache[s]=Object.assign({}, L, {at:now}); }
+    else if(C && now-(C.at||0) < ED.META_DAYS*864e5){ res[s]=Object.assign({}, C, {cached:true, finalPrice:null}); }   // a cached price is not live
+    else res[s]=L||{};
+  }
+  edMetaSave_(cache);
+  return {meta:res, live:!!live, err:err.msg};
+}
+// ── the words: AI in our voice, from our best-opening campaigns; a plain fallback if it can't be reached ──
+function edBestCampaigns_(){
+  const C=window._eiCampsPub||[], S=window._eiStPub||{};
+  return C.filter(c=>S[c.id] && S[c.id].open_rate!=null).sort((a,b)=>S[b.id].open_rate-S[a.id].open_rate).slice(0,10).map(c=>`${c.name} — ${S[c.id].open_rate}% opened`);
+}
+function edFallbackCopy_(theme, prods){
+  const pct=prods.map(p=>p.was>p.now?Math.floor((1-p.now/p.was)*100):0), top=Math.max(0,...pct);
+  const head=theme ? theme.split(/[—–\-:]/)[0].trim() : 'This Week’s Deals';
+  return { subject: theme ? `${head} 👉 up to ${top}% off` : `Up to ${top}% off — ${prods.length} of our favourites`,
+    preheader: `${prods.slice(0,3).map(p=>edShortName_(p.name)).join(', ')} and more — while stocks last.`,
+    headline: head.length>34 ? head.slice(0,34) : head,
+    intro: `We've picked ${prods.length} favourites at lower prices${top?`, with up to ${top}% off`:''}. Grab yours while stocks last.`,
+    cta: 'Shop the deals', ai:false };
+}
+async function edCopy_(theme, prods){
+  const best=edBestCampaigns_();
+  const list=prods.map(p=>`- ${edShortName_(p.name)} — now ${edEur(p.now)}${p.was>p.now?` (was ${edEur(p.was)})`:''}`).join('\n');
+  const prompt=`You write the marketing emails for Lenehans.ie, a 160-year-old Irish hardware and DIY shop on Capel Street, Dublin.
+Our voice: warm, friendly, short and a little playful; Irish English; euro prices; never pushy. A recent email of ours:
+headline "Beat the Cold Snap"; intro "Cold hands? Cold feet? Feeling the chill everywhere? We've got a few ways to beat the cold snap, from heated throws to cosy little essentials. 👉 Warm Up Here"; button "Shop the Sale".
+${best.length?`Our best-opening past campaigns (name — open rate):\n${best.join('\n')}\n`:''}
+This email is about: ${theme||'(no theme given — find the common thread in the products)'}
+Products:
+${list}
+Reply with ONLY a JSON object, no other text:
+{"subject":"under 50 characters, at most one emoji","preheader":"under 90 characters, adds to the subject","headline":"under 32 characters","intro":"two short sentences, under 230 characters, no greeting (the email already says Hey <name>)","cta":"2 to 4 words"}`;
+  try{
+    const r=await fetch(PO_UPDATER_URL+'?action=ai_brief&prompt='+encodeURIComponent(prompt));
+    const d=await r.json(); if(d.error) throw new Error(d.error);
+    const txt=((d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('')||'').trim();
+    const j=JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}')+1));
+    if(!j.subject || !j.headline || !j.intro) throw new Error('incomplete');
+    return {subject:String(j.subject), preheader:String(j.preheader||''), headline:String(j.headline), intro:String(j.intro), cta:String(j.cta||'Shop the Sale'), ai:true};
+  }catch(e){ console.warn('email words — using the plain version:', e.message); return edFallbackCopy_(theme, prods); }
+}
+// ── build ──
+window.edDesign = async function(){
+  const items=(window._ccItems||[]).filter(i=>i.stock>0); const box=document.getElementById('edOut'); if(!box) return;
+  if(!items.length){ box.innerHTML='<div class="ed-note">Nothing in stock to design with.</div>'; return; }
+  const theme=(document.getElementById('edTheme')||{}).value||'', link=((document.getElementById('edLink')||{}).value||'').trim()||'https://www.lenehans.ie/sale.html';
+  box.innerHTML='<div class="ed-note">⏳ Getting the pictures and writing the words…</div>';
+  try{ logUsage('email_design', items.length+' products'); }catch(e){}
+  const M=await edMeta_(items.map(i=>i.sku));
+  const prods=items.map(i=>{ const m=M.meta[i.sku]||{};
+    const was=i.rrp>i.promo+0.004 ? i.rrp : 0, now=i.promo||i.rrp||m.finalPrice||m.price||0;
+    return {sku:i.sku, name:edShortName_(m.name||i.title), url:i.url||m.url||'', img:m.image||'', now, was,
+            webPrice:(m.finalPrice!=null?m.finalPrice:null), webAt:m.viewedAt||'', stock:i.stock, imgFrom:m.image?(m.cached?'saved':'klaviyo'):''}; });
+  const copy=await edCopy_(theme, prods);
+  window._ed={theme, link, prods, copy, metaErr:M.err, metaLive:M.live};
+  edRender_();
+};
+function edPriceWarnings_(){
+  const P=(window._ed||{}).prods||[];
+  const day=d=>{ const t=new Date(d); return isNaN(t)?'':t.toLocaleDateString('en-IE',{day:'numeric',month:'short'})+(t.toDateString()===new Date().toDateString()?' (today)':''); };
+  // the price comes from the last time someone opened the product page, so say when that was
+  return P.filter(p=>p.webPrice!=null && Math.abs(p.webPrice-p.now)>0.009).map(p=>`${edEsc(p.name)}: the website showed <b>${edEur(p.webPrice)}</b>${p.webAt?` when last viewed, ${day(p.webAt)}`:''}; the email says <b>${edEur(p.now)}</b> — check the price in Magento before sending`);
+}
+function edRender_(){
+  const E=window._ed, box=document.getElementById('edOut'); if(!E||!box) return;
+  const noImg=E.prods.filter(p=>!p.img).length, warn=edPriceWarnings_();
+  const f=(id,lbl,val,ta)=>`<label>${lbl}${ta?`<textarea id="${id}" rows="3" oninput="edSet('${id}',this.value)">${edEsc(val)}</textarea>`:`<input id="${id}" value="${edEsc(val)}" oninput="edSet('${id}',this.value)">`}</label>`;
+  const rows=E.prods.map((p,i)=>`<div class="ed-p${p.img?'':' noimg'}">
+      <span class="ed-p-n">${i===0?'⭐':i+1}</span>
+      <input value="${edEsc(p.name)}" oninput="edSetP(${i},'name',this.value)" title="Name shown in the email">
+      <input class="ed-p-img" value="${edEsc(p.img)}" placeholder="picture URL — right-click the photo on lenehans.ie → Copy image address" oninput="edSetP(${i},'img',this.value)">
+      <span class="ed-p-pr">${edEur(p.now)}${p.was?` <s>${edEur(p.was)}</s>`:''}</span>
+      <button tabindex="-1" title="Move up" onclick="edMove(${i},-1)">↑</button><button tabindex="-1" title="Move down" onclick="edMove(${i},1)">↓</button><button tabindex="-1" title="Leave out" onclick="edDrop(${i})">✕</button></div>`).join('');
+  box.innerHTML=`<div class="ed-grid">
+    <div class="ed-edit">
+      ${!E.metaLive?`<div class="ed-warn">Pictures: ${edEsc(E.metaErr||'not reachable')}. Add <b>EmailDesigner.gs</b> to the web app once (see the note in the file) — until then, paste each picture's address below.</div>`:''}
+      ${noImg?`<div class="ed-warn">${noImg} product${noImg!==1?'s have':' has'} no picture yet — paste ${noImg!==1?'their addresses':'its address'} below.</div>`:''}
+      ${warn.length?`<div class="ed-warn"><b>Prices to fix before sending:</b><br>${warn.join('<br>')}</div>`:''}
+      ${f('edSubject','Subject line',E.copy.subject)}${f('edPre','Preview text',E.copy.preheader)}
+      ${f('edHead','Headline',E.copy.headline)}${f('edIntro','Intro (after “Hey {first name},”)',E.copy.intro,true)}
+      <div class="ed-2">${f('edCta','Button',E.copy.cta)}<label>Button link<input id="edLink2" value="${edEsc(E.link)}" oninput="edSet('edLink2',this.value)"></label></div>
+      <div class="ed-lbl">Products — ⭐ is the big feature; the rest go two to a row (an odd one out gets a wide card)</div>${rows}
+      <div class="ed-src">${E.copy.ai?'Words by AI in the style of your best-opening campaigns — change anything.':'Words: the plain version (the AI couldn’t be reached) — change anything.'}</div>
+    </div>
+    <div class="ed-prev">
+      <div class="ed-bar"><b>Preview</b><span>${edEsc(E.copy.subject)}</span>
+        <button onclick="edCopyHtml(this)">📋 Copy HTML</button><button onclick="edDownload()">⬇ Download .html</button><button onclick="edDesign()" title="Fetch pictures again and write new words">🔄 New words</button></div>
+      <iframe id="edFrame" title="Email preview"></iframe>
+      <div class="ed-src">In Klaviyo: Templates → Create template → HTML → paste. Subject and preview text go on the campaign.</div>
+    </div></div>`;
+  edPreview_();
+}
+window.edSet=function(id,v){ const E=window._ed; if(!E) return;
+  const k={edSubject:'subject',edPre:'preheader',edHead:'headline',edIntro:'intro',edCta:'cta'}[id];
+  if(k) E.copy[k]=v; else if(id==='edLink2') E.link=v;
+  clearTimeout(E._t); E._t=setTimeout(edPreview_, 250); };
+window.edSetP=function(i,k,v){ const E=window._ed; if(!E||!E.prods[i]) return; E.prods[i][k]=v;
+  if(k==='img' && /^https?:\/\//.test(v)){ const c=edMetaCache_(), s=E.prods[i].sku; c[s]=Object.assign({}, c[s]||{}, {sku:s, image:v.trim(), at:Date.now()}); edMetaSave_(c); }   // remembered for next time
+  clearTimeout(E._t); E._t=setTimeout(edPreview_, 300); };
+window.edMove=function(i,d){ const E=window._ed; if(!E) return; const j=i+d; if(j<0||j>=E.prods.length) return; const t=E.prods[i]; E.prods[i]=E.prods[j]; E.prods[j]=t; edRender_(); };
+window.edDrop=function(i){ const E=window._ed; if(!E) return; E.prods.splice(i,1); edRender_(); };
+function edPreview_(){
+  const fr=document.getElementById('edFrame'); if(!fr||!window._ed) return;
+  fr.srcdoc=edHtml_(window._ed, true);
+}
+window.edCopyHtml=function(btn){
+  const html=edHtml_(window._ed,false);
+  const done=()=>{ if(btn){ const t=btn.textContent; btn.textContent='Copied ✓'; setTimeout(()=>{btn.textContent=t;},1500); } };
+  try{ navigator.clipboard.writeText(html).then(done, ()=>{ edClip_(html); done(); }); }catch(e){ edClip_(html); done(); }
+  try{ logUsage('email_design_copy', (window._ed.prods||[]).length+' products'); }catch(e){}
+};
+function edClip_(t){ const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(e){} ta.remove(); }
+window.edDownload=function(){
+  const E=window._ed; if(!E) return;
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([edHtml_(E,false)],{type:'text/html;charset=utf-8'}));
+  a.download='email_'+(E.copy.headline||'lenehans').toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,40)+'_'+new Date().toISOString().slice(0,10)+'.html';
+  a.click(); try{ URL.revokeObjectURL(a.href); }catch(e){}
+};
+// ── the email itself: table layout, inline styles, 600px, stacks on phones ──
+function edHtml_(E, preview){
+  const F='Helvetica,Arial,sans-serif', P="'Poppins','Helvetica Neue',Helvetica,Arial,sans-serif";
+  const first = preview ? 'there' : "{{ first_name|default:'there' }}";
+  const unsub = preview ? '<a href="#" style="color:#000;text-decoration:underline">Unsubscribe</a>' : "{% unsubscribe 'Unsubscribe' %}";
+  const prefs = preview ? '<a href="#" style="color:#000;text-decoration:underline">Manage Preferences</a>' : "{% manage_preferences 'Manage Preferences' %}";
+  const webv  = preview ? '<a href="#" style="color:#5B6B73">View it in your browser</a>' : "{% web_view 'View it in your browser' %}";
+  const btn=(txt,href,bg,size)=>`<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td align="center" bgcolor="${bg}" style="border-radius:22px;background:${bg}"><a href="${edEsc(href)}" target="_blank" style="display:inline-block;padding:${size==='lg'?'14px 30px':'10px 26px'};font-family:${size==='lg'?P:F};font-size:${size==='lg'?'22px':'16px'};font-weight:${size==='lg'?'400':'700'};color:#ffffff;text-decoration:none;border-radius:22px">${edEsc(txt)}</a></td></tr></table>`;
+  const save=p=>p.was>p.now ? Math.floor((1-p.now/p.was)*100) : 0;
+  const price=(p,dark)=>`<span style="font-family:${F};font-size:${dark?'26px':'22px'};font-weight:700;color:${dark?'#ffffff':ED.INK}">${edEur(p.now)}</span>${p.was>p.now?` <span style="font-family:${F};font-size:15px;color:${dark?'#B0DBC1':ED.MUTE};text-decoration:line-through">${edEur(p.was)}</span>`:''}`;
+  const badge=p=>save(p)>=5 ? `<span style="display:inline-block;background:${ED.RED};color:#fff;font-family:${F};font-size:12px;font-weight:700;letter-spacing:.04em;padding:4px 10px;border-radius:12px">SAVE ${save(p)}%</span>` : '';
+  const img=(p,w)=> p.img ? `<a href="${edEsc(p.url)}" target="_blank"><img src="${edEsc(p.img)}" width="${w}" alt="${edEsc(p.name)}" style="display:block;width:100%;max-width:${w}px;height:auto;border:0;margin:0 auto"></a>`
+                           : `<div style="width:100%;height:${Math.round(w*0.75)}px;background:#e5e9eb;color:#5B6B73;font-family:${F};font-size:13px;line-height:${Math.round(w*0.75)}px;text-align:center">picture</div>`;
+  const P0=E.prods[0], rest=E.prods.slice(1);
+  const feature = P0 ? `<tr><td bgcolor="${ED.NAVY}" style="background:${ED.NAVY};padding:0">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td class="col2 fpad" width="300" valign="middle" style="width:300px;padding:24px 12px 24px 24px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#ffffff" style="background:#ffffff;border-radius:10px;padding:12px">${img(P0,252)}</td></tr></table></td>
+        <td class="col2 fpad" width="300" valign="middle" style="width:300px;padding:24px 24px 24px 12px;font-family:${F};color:#ffffff">
+          ${badge(P0)}
+          <div style="font-family:${F};font-size:24px;line-height:32px;color:#ffffff;margin:10px 0 12px">${edEsc(P0.name)}</div>
+          <div style="margin:0 0 18px">${price(P0,true)}</div>
+          ${btn('Shop now',P0.url,ED.RED,'md')}
+        </td></tr></table></td></tr>` : '';
+  const card=p=>`<td class="col2" width="50%" valign="top" style="width:50%;padding:8px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${ED.NAVY}"><tr><td align="center" style="padding:16px 14px 18px;font-family:${F}">
+        ${img(p,236)}
+        <div style="font-family:${F};font-size:16px;line-height:22px;font-weight:700;color:${ED.NAVY};margin:14px 0 8px;min-height:44px">${edEsc(p.name)}</div>
+        <div style="margin:0 0 8px">${price(p,false)}</div>
+        <div style="margin:0 0 12px;min-height:22px">${badge(p)}</div>
+        ${btn('Shop now',p.url,ED.RED,'md')}
+      </td></tr></table></td>`;
+  const wide=p=>`<td style="padding:8px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${ED.NAVY}"><tr>
+        <td class="col2 fpad" width="45%" valign="middle" style="width:45%;padding:16px">${img(p,230)}</td>
+        <td class="col2 fpad" width="55%" valign="middle" align="center" style="width:55%;padding:16px 18px;font-family:${F}">
+          <div style="font-family:${F};font-size:18px;line-height:25px;font-weight:700;color:${ED.NAVY};margin:0 0 10px">${edEsc(p.name)}</div>
+          <div style="margin:0 0 8px">${price(p,false)}</div>
+          ${badge(p)?`<div style="margin:0 0 12px">${badge(p)}</div>`:''}
+          ${btn('Shop now',p.url,ED.RED,'md')}
+        </td></tr></table></td>`;
+  let grid='';
+  for(let i=0;i<rest.length;i+=2) grid+=`<tr><td style="padding:0 16px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>${rest[i+1]?card(rest[i])+card(rest[i+1]):wide(rest[i])}</tr></table></td></tr>`;
+  const nav=ED.NAV.map(([t,h,red])=>`<td align="center" style="padding:8px 4px"><a href="${h}" target="_blank" style="display:inline-block;font-family:${F};font-size:14px;color:#ffffff;text-decoration:none;${red?`background:${ED.RED};border-radius:12px;padding:2px 10px`:''}">${t}</a></td>`).join('');
+  const foot=ED.FOOT.map(([t,h])=>`<td align="center" style="padding:6px 10px"><a href="${h}" target="_blank" style="font-family:${P};font-size:13px;font-weight:600;color:#ffffff;text-decoration:none">${t}</a></td>`).join('');
+  const soc=ED.SOCIAL.map(([t,h,ic])=>`<td style="padding:0 6px"><a href="${h}" target="_blank"><img src="https://cdn.klaviyomail.com/assets/email/buttons/black/${ic}_96.png" width="24" height="24" alt="${t}" style="display:block;border:0"></a></td>`).join('');
+  return `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="x-apple-disable-message-reformatting">
+<title>${edEsc(E.copy.subject)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;padding:0;-webkit-text-size-adjust:100%}
+  img{-ms-interpolation-mode:bicubic}
+  @media only screen and (max-width:620px){
+    .wrap{width:100% !important}
+    .col2{display:block !important;width:100% !important;box-sizing:border-box}
+    .pad{padding-left:18px !important;padding-right:18px !important}
+    .fpad{padding:18px 20px !important}
+  }
+</style></head>
+<body style="margin:0;padding:0;background:${ED.BG}">
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all">${edEsc(E.copy.preheader)}&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${ED.BG}" style="background:${ED.BG}"><tr><td align="center" style="padding:12px 0 24px">
+<table role="presentation" class="wrap" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background:#ffffff">
+  <tr><td align="center" style="padding:6px 0;font-family:${F};font-size:11px;color:${ED.MUTE};background:${ED.BG}">${webv}</td></tr>
+  <tr><td style="padding:0"><a href="https://www.lenehans.ie/" target="_blank"><img src="${ED.LOGO}" width="600" alt="Lenehans.ie — Hardware for Generations" style="display:block;width:100%;max-width:600px;height:auto;border:0"></a></td></tr>
+  <tr><td bgcolor="${ED.SLATE}" style="background:${ED.SLATE};padding:2px 8px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>${nav}</tr></table></td></tr>
+  <tr><td class="pad" align="center" style="padding:30px 48px 10px;font-family:${F}">
+    <h1 style="margin:0 0 12px;font-family:${F};font-size:28px;line-height:34px;font-weight:700;color:${ED.NAVY}">${edEsc(E.copy.headline)}</h1>
+    <p style="margin:0;font-family:${F};font-size:17px;line-height:27px;color:${ED.INK}">Hey ${first}, ${edEsc(E.copy.intro)}</p>
+  </td></tr>
+  <tr><td align="center" style="padding:18px 0 26px">${btn(E.copy.cta||'Shop the Sale',E.link,ED.NAVY,'lg')}</td></tr>
+  ${feature}
+  <tr><td style="height:12px;line-height:12px;font-size:0">&nbsp;</td></tr>
+  ${grid}
+  <tr><td bgcolor="${ED.CREAM}" align="center" style="background:${ED.CREAM};padding:26px 24px;font-family:${F}">
+    <div style="font-family:${F};font-size:18px;line-height:26px;color:${ED.NAVY};margin:0 0 14px">Plenty more in store, online and on Capel Street.</div>
+    ${btn(E.copy.cta||'Shop the Sale',E.link,ED.NAVY,'md')}
+  </td></tr>
+  <tr><td bgcolor="${ED.NAVY}" align="center" style="background:${ED.NAVY};padding:18px 24px">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>${foot}</tr></table>
+  </td></tr>
+  <tr><td align="center" style="padding:18px 24px 8px"><table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>${soc}</tr></table></td></tr>
+  <tr><td align="center" style="padding:6px 24px 22px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:21px;color:${ED.INK}">
+    124-125 Capel Street Dublin, Dublin 1 D01 XV52<br>&copy; ${new Date().getFullYear()} | All rights reserved. | ${unsub} | ${prefs}
+  </td></tr>
+</table></td></tr></table>
+</body></html>`;
 }
 
 // ─── ORDER THIS CYCLE? (V7.31.1) ─────────────────────────────────────────────
