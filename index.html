@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.35.0 · EMAIL DESIGNER</title>
+  <title>Lenehans Purchasing Dashboard · V7.35.1 · SEND TO KLAVIYO</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1370,6 +1370,22 @@ header .sub .hdr-new li{margin:1px 0}
 .ed-bar button{padding:6px 11px;border:1px solid #002538;background:#fff;color:#002538;border-radius:7px;font-weight:700;font-size:12px;cursor:pointer}
 .ed-bar button:first-of-type{background:#002538;color:#fff}
 #edFrame{width:640px;max-width:100%;height:900px;border:1px solid #cbd5e1;border-radius:8px;background:#F3F6F7}
+/* V7.35.1 — Send to Klaviyo as draft */
+.ed-kl{border:1.5px solid #002538;border-radius:10px;background:#f8fafc;padding:10px 12px;font-size:12px;color:#0f172a;line-height:1.5;display:flex;flex-direction:column;gap:7px}
+.ed-kl-h{font-size:13px;font-weight:800;color:#002538}
+.ed-kl-f{display:flex;gap:8px;flex-wrap:wrap}
+.ed-kl-f label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:700;color:#475569;flex:1 1 200px}
+.ed-kl-f input,.ed-kl-f select{font:inherit;font-size:13px;font-weight:400;padding:6px 8px;border:1.5px solid #cbd5e1;border-radius:7px;color:#0f172a;background:#fff;box-sizing:border-box;width:100%}
+.ed-kl-meta{color:#475569}
+.ed-kl-note{color:#5B6B73;font-size:11px}
+.ed-kl .ed-warn{margin:0}
+.ed-kl-btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ed-kl-btns .ed-go{text-decoration:none;display:inline-block}
+.ed-kl-btns .ed-go:disabled{opacity:.6;cursor:wait}
+.ed-kl-x{padding:8px 12px;border:1px solid #002538;background:#fff;color:#002538;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;text-decoration:none;display:inline-block}
+.ed-kl-ok{border-color:#16a34a;background:#f0fdf4}
+.ed-kl-part{border-color:#f59e0b;background:#fffbeb}
+.ed-kl-bad{border-color:#dc2626;background:#fef2f2}
     .ql-showall{margin-top:10px;border:2px solid #1e3a5f;background:#fff;color:#1e3a5f;font-weight:800;border-radius:10px;padding:8px 16px;cursor:pointer}
     .ls-csrow{grid-column:3/8;grid-row:2;margin-top:-2px;background:#f3e8ff;border:1.5px solid #a855f7;color:#581c87;border-radius:8px;padding:4px 10px;font-size:13.5px;font-weight:700;text-align:center}
     .ls-csrow b{font-size:15px}
@@ -1533,7 +1549,7 @@ header .sub .hdr-new li{margin:1px 0}
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.35.0 · built 2026-11-18 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>🎨 Email tab: after checking a campaign, Design this email builds it in the Lenehans house style — pictures, links and live prices from Klaviyo, words in the style of your best-opening campaigns, ready to paste into Klaviyo</li><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
+  <div class="sub">V7.35.1 · built 2026-11-18 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>📤 Email designer: Send to Klaviyo as draft — the email goes into Klaviyo as a draft campaign with your usual audience and sender; nothing is sent until you press Send there</li><li>🎨 Email tab: after checking a campaign, Design this email builds it in the Lenehans house style — pictures, links and live prices from Klaviyo, words in the style of your best-opening campaigns, ready to paste into Klaviyo</li><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -10570,9 +10586,10 @@ function edRender_(){
     </div>
     <div class="ed-prev">
       <div class="ed-bar"><b>Preview</b><span>${edEsc(E.copy.subject)}</span>
-        <button onclick="edCopyHtml(this)">📋 Copy HTML</button><button onclick="edDownload()">⬇ Download .html</button><button onclick="edDesign()" title="Fetch pictures again and write new words">🔄 New words</button></div>
+        <button onclick="edKlOpen()" title="Makes a draft campaign in Klaviyo with this email — nothing is sent">📤 Send to Klaviyo as draft</button><button onclick="edCopyHtml(this)">📋 Copy HTML</button><button onclick="edDownload()">⬇ Download .html</button><button onclick="edDesign()" title="Fetch pictures again and write new words">🔄 New words</button></div>
+      <div id="edKl"></div>
       <iframe id="edFrame" title="Email preview"></iframe>
-      <div class="ed-src">In Klaviyo: Templates → Create template → HTML → paste. Subject and preview text go on the campaign.</div>
+      <div class="ed-src">📤 makes a Klaviyo draft with your usual audience and sender — you check it and press Send in Klaviyo. Or 📋 Copy HTML → Klaviyo → Templates → Create template → HTML.</div>
     </div></div>`;
   edPreview_();
 }
@@ -10595,6 +10612,57 @@ window.edCopyHtml=function(btn){
   try{ navigator.clipboard.writeText(html).then(done, ()=>{ edClip_(html); done(); }); }catch(e){ edClip_(html); done(); }
   try{ logUsage('email_design_copy', (window._ed.prods||[]).length+' products'); }catch(e){}
 };
+// ── V7.35.1 — 📤 Send to Klaviyo as draft (Mark, 18 Nov: "How can we push this email into Klaviyo - seamlessly") ──
+// The web app (the Send to Klaviyo part of Code.gs, doPost) makes the template and a DRAFT campaign with the usual
+// audience and sender. Nothing is scheduled or sent from the dashboard: the draft opens in Klaviyo for a last look.
+const ED_AUD=[['main','Everyone on our email list (the usual)','everyone on our email list'],['non_openers','Didn’t open the last campaign (resend)','people who didn’t open the last campaign']];
+window.edKlOpen=function(fresh){
+  const E=window._ed, box=document.getElementById('edKl'); if(!E||!box) return;
+  if(!fresh && box.dataset.open==='1' && !box.dataset.done){ box.innerHTML=''; box.dataset.open=''; return; }   // the bar button toggles
+  const warn=edPriceWarnings_().length, noImg=E.prods.filter(p=>!p.img).length;
+  box.dataset.open='1'; delete box.dataset.done;
+  box.innerHTML=`<div class="ed-kl">
+    <div class="ed-kl-h">📤 Make a draft campaign in Klaviyo</div>
+    <div class="ed-kl-f"><label>Campaign name<input id="edKlName" value="${edEsc(E.klName||E.copy.headline||E.copy.subject)}"></label>
+    <label>Audience<select id="edKlAud">${ED_AUD.map(([k,l])=>`<option value="${k}"${(E.klAud||'main')===k?' selected':''}>${l}</option>`).join('')}</select></label></div>
+    <div class="ed-kl-meta">From <b>Lenehans.ie</b> · sales@lenehans.ie · subject “${edEsc(E.copy.subject)}” · sends in each person’s local time · UTM tracking on</div>
+    ${warn?`<div class="ed-warn">⚠ ${warn} price${warn!==1?'s':''} above still to check in Magento — fine to send the draft now and fix ${warn!==1?'them':'it'} before you schedule.</div>`:''}
+    ${noImg?`<div class="ed-warn">⚠ ${noImg} product${noImg!==1?'s have':' has'} no picture yet.</div>`:''}
+    <div class="ed-kl-note">Nothing is sent. Klaviyo gets a draft; you check it there and press Schedule or Send yourself.</div>
+    <div class="ed-kl-btns"><button class="ed-go" id="edKlGo" onclick="edKlPush()">📤 Make the draft</button><button class="ed-kl-x" onclick="edKlOpen()">Cancel</button></div>
+  </div>`;
+};
+window.edKlPush=async function(){
+  const E=window._ed, box=document.getElementById('edKl'), go=document.getElementById('edKlGo'); if(!E||!box) return;
+  if(go && go.disabled) return;
+  const name=((document.getElementById('edKlName')||{}).value||'').trim()||E.copy.headline||E.copy.subject;
+  const aud=(document.getElementById('edKlAud')||{}).value||'main';
+  E.klName=name; E.klAud=aud;
+  if(go){ go.disabled=true; go.textContent='⏳ Sending to Klaviyo…'; }
+  let j=null, err='';
+  try{
+    const r=await fetch(PO_UPDATER_URL,{method:'POST', body:JSON.stringify({action:'klaviyo_push', name, audience:aud,
+      subject:E.copy.subject, preview:E.copy.preheader, html:edHtml_(E,false), user:(typeof usageUser==='function'?usageUser():'')||''})});
+    const t=await r.text();
+    try{ j=JSON.parse(t); }catch(e){ err='nopost'; }   // Apps Script's "Script function not found: doPost" page
+  }catch(e){ err='nopost'; }                           // …or that page without CORS headers: the fetch itself fails
+  try{ logUsage('email_klaviyo_push', (j&&j.ok?(j.partial?'template only':'draft'):'failed')+' · '+name); }catch(e){}
+  box.dataset.done='1';
+  box.innerHTML=edKlResult_(j, err, name);
+};
+function edKlResult_(j, err, name){
+  if(err==='nopost' || (j && !j.ok && /Unknown action/i.test(j.error||'')))
+    return `<div class="ed-kl ed-kl-bad"><div><b>The web app didn’t take the Send to Klaviyo request.</b> If you haven’t yet, paste the updated Code.gs into the web app (it adds <b>doPost</b>), then Deploy → Manage deployments → ✏️ → Version: New version → Deploy. If you have, check the connection and try again. Meanwhile: 📋 Copy HTML → Klaviyo → Templates → Create template → HTML.</div>
+      <div class="ed-kl-btns"><button class="ed-kl-x" onclick="edKlOpen(true)">Try again</button></div></div>`;
+  if(!j || !j.ok) return `<div class="ed-kl ed-kl-bad"><div><b>Klaviyo didn’t take it.</b> ${edEsc((j&&j.error)||err||'Unknown error')}${j&&j.hint?`<br>${edEsc(j.hint)}`:''}</div>
+      <div class="ed-kl-btns"><button class="ed-kl-x" onclick="edKlOpen(true)">Try again</button></div></div>`;
+  if(j.partial) return `<div class="ed-kl ed-kl-part"><div><b>The email is in Klaviyo as a template</b>, but the campaign couldn’t be made: ${edEsc(j.error||'')}${j.hint?`<br>${edEsc(j.hint)}`:''}<br>To finish: Klaviyo → Campaigns → Create campaign → Email → choose the template “${edEsc(j.templateName||name)}”.</div>
+      <div class="ed-kl-btns"><a class="ed-go" href="${edEsc(j.templateUrl)}" target="_blank" rel="noopener">Open the template ↗</a></div></div>`;
+  const A=ED_AUD.find(a=>a[0]===((window._ed||{}).klAud||'main'))||ED_AUD[0];
+  return `<div class="ed-kl ed-kl-ok"><div><b>✓ Draft made in Klaviyo:</b> “${edEsc(j.campaignName||name)}”, to <span title="Klaviyo segment: ${edEsc(j.audience||'')}">${A[2]}</span>, from ${edEsc(j.from||'')}. Nothing has been sent.</div>
+      <div class="ed-kl-btns"><a class="ed-go" href="${edEsc(j.campaignUrl)}" target="_blank" rel="noopener">Open the draft in Klaviyo ↗</a><a class="ed-kl-x" href="${edEsc(j.templateUrl)}" target="_blank" rel="noopener">Edit the email there ↗</a><button class="ed-kl-x" onclick="edKlOpen(true)" title="Makes another, separate draft — delete the old one in Klaviyo">Send again as a new draft</button></div>
+      <div class="ed-kl-note">Changes made here from now on won’t reach that draft — edit it in Klaviyo, or send again as a new draft.</div></div>`;
+}
 function edClip_(t){ const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(e){} ta.remove(); }
 window.edDownload=function(){
   const E=window._ed; if(!E) return;
