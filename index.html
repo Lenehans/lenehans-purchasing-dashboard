@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.40.1 · CAPEL SHARE MENU</title>
+  <title>Lenehans Purchasing Dashboard · V7.41.0 · CAPEL COVERING</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1230,6 +1230,9 @@
 .ql-grp{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:700;line-height:17px;vertical-align:middle;white-space:nowrap}
 .ql-grp.bb{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
 .ql-grp.season{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.ql-grp.capel{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+.oq-btn.grp-capel.on{background:#b91c1c;border-color:#b91c1c;color:#fff}
+.os-capel-ban{margin:8px 0 2px;padding:9px 12px;border-radius:9px;background:#fef2f2;border:1px solid #fecaca;color:#7f1d1d;font-size:13px;line-height:1.45}
 .oq-btn.grp-bb.on{background:#92400e;border-color:#92400e;color:#fff}
 .oq-btn.grp-season.on{background:#166534;border-color:#166534;color:#fff}
 .os-grp-row{grid-column:1/-1;display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px}
@@ -1592,7 +1595,7 @@ header .sub .hdr-new li{margin:1px 0}
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.40.1 · built 2026-11-19 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>🏠 Home: four main cards in one row, 🧰 Tools as a strip across the page</li><li>🏠 Home: 📍 Capel share has its own card beside Purchasing, with today's % · 🚨 Urgent PO moved into the Capel share page · 📋 Supplier price list and 🔎 Where are we for… moved under Tools</li><li>📉 Capel share: a year of daily history rebuilt from Linnworks orders, trendline over the last 60 days, progress measured from 18 Nov · 🔭 Get ahead shows what Capel actually shipped in the same 30 days last year (CAPEL_SHARE_LY)</li><li>📍 Ship from Arklow is now the Capel share dashboard: today's % with the change on yesterday, progress to the 5% target, a daily chart with trendline and the date 5% is reached at this rate · 🗓 day by day: what moved the share (Arklow out / low / not stocked / had stock), the lines behind it and what to do now (send from Capel, order, check routing) · 🔭 get ahead: lines that sold online in the same 30 days last year that Arklow won't cover, with send/order quantities</li><li>📉 Ship from Arklow: day-by-day Capel share chart against the 5% line (CAPEL_SHARE_LOG, written each morning by CapelShareLog.gs) · 🚚 how many lines a Capel → Arklow transfer fixes on its own</li><li>📍 Ship from Arklow tab: % of online units shipped from Capel Street against a 5% target, the trend, and every line Capel ships sorted by why (not in Arklow / Arklow out / Arklow low / routing) with a suggested Arklow quantity, what Capel can send back, lines rising at Capel, and Build order per supplier</li><li>🏷 Email designer: the offer drawn onto the big in-use pictures — price, was-price, SAVE roundel and an optional label (price tag, roundel or banner), always today’s price, saved to Klaviyo when the email goes</li><li>🖼 Email designer, new look: big in-use pictures, products grouped by the job they do, honest sales &amp; stock tags (Only 10 left · 200+ sold in 30 days), “You save €x”, a stocking-fillers strip, dark mode and Gmail Promotions-tab markup · pictures from the Klaviyo image library · 🪄 no in-use picture? the AI (your OpenAI key, or Google Gemini) makes one for you to approve · 🪶 heavy pictures made lighter</li><li>📤 Email designer: Send to Klaviyo as draft — the email goes into Klaviyo as a draft campaign with your usual audience and sender; nothing is sent until you press Send there</li><li>🎨 Email tab: after checking a campaign, Design this email builds it in the Lenehans house style — pictures, links and live prices from Klaviyo, words in the style of your best-opening campaigns, ready to paste into Klaviyo</li><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
+  <div class="sub">V7.41.0 · built 2026-11-19 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>📍 Order screen step 3 “Capel covering” (after Seasonal): B lines and slower lines Capel is shipping online because Arklow is out, low or doesn’t stock them, or Capel shipped in these 30 days last year — with what fixing them does to the Capel share · 📍 tag on Bread & butter and Seasonal lines Capel is covering · “All Capel-covered lines” replaces the Arklow gap view · supplier cards show the Capel covering row</li><li>🏠 Home: four main cards in one row, 🧰 Tools as a strip across the page</li><li>🏠 Home: 📍 Capel share has its own card beside Purchasing, with today's % · 🚨 Urgent PO moved into the Capel share page · 📋 Supplier price list and 🔎 Where are we for… moved under Tools</li><li>📉 Capel share: a year of daily history rebuilt from Linnworks orders, trendline over the last 60 days, progress measured from 18 Nov · 🔭 Get ahead shows what Capel actually shipped in the same 30 days last year (CAPEL_SHARE_LY)</li><li>📍 Ship from Arklow is now the Capel share dashboard: today's % with the change on yesterday, progress to the 5% target, a daily chart with trendline and the date 5% is reached at this rate · 🗓 day by day: what moved the share (Arklow out / low / not stocked / had stock), the lines behind it and what to do now (send from Capel, order, check routing) · 🔭 get ahead: lines that sold online in the same 30 days last year that Arklow won't cover, with send/order quantities</li><li>📉 Ship from Arklow: day-by-day Capel share chart against the 5% line (CAPEL_SHARE_LOG, written each morning by CapelShareLog.gs) · 🚚 how many lines a Capel → Arklow transfer fixes on its own</li><li>📍 Ship from Arklow tab: % of online units shipped from Capel Street against a 5% target, the trend, and every line Capel ships sorted by why (not in Arklow / Arklow out / Arklow low / routing) with a suggested Arklow quantity, what Capel can send back, lines rising at Capel, and Build order per supplier</li><li>🏷 Email designer: the offer drawn onto the big in-use pictures — price, was-price, SAVE roundel and an optional label (price tag, roundel or banner), always today’s price, saved to Klaviyo when the email goes</li><li>🖼 Email designer, new look: big in-use pictures, products grouped by the job they do, honest sales &amp; stock tags (Only 10 left · 200+ sold in 30 days), “You save €x”, a stocking-fillers strip, dark mode and Gmail Promotions-tab markup · pictures from the Klaviyo image library · 🪄 no in-use picture? the AI (your OpenAI key, or Google Gemini) makes one for you to approve · 🪶 heavy pictures made lighter</li><li>📤 Email designer: Send to Klaviyo as draft — the email goes into Klaviyo as a draft campaign with your usual audience and sender; nothing is sent until you press Send there</li><li>🎨 Email tab: after checking a campaign, Design this email builds it in the Lenehans house style — pictures, links and live prices from Klaviyo, words in the style of your best-opening campaigns, ready to paste into Klaviyo</li><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -7758,8 +7761,8 @@ function openArklowGapPO(supplierName){
   if(!sups.length){ alert('No supplier matching "'+supplierName+'". Try the code (e.g. LYN001) or part of the name.'); return; }
   const exact=sups.find(n=>n.toLowerCase()===q) || sups.find(n=>n.toLowerCase().startsWith(q)) || sups[0];
   try{ logUsage('arklow_gap_po', exact); }catch(e){}
-  const gapN=osCanonicalRows(exact).filter(r=>isArklowGapLine(r)).length;
-  if(!gapN){ alert(exact+": nothing selling or due that Arklow can't cover. No urgent gap right now."); return; }
+  const gapN=osCanonicalRows(exact).filter(r=>!!r._capel).length;
+  if(!gapN){ alert(exact+": Capel isn't covering any of this supplier's lines right now — Arklow has them."); return; }
   openOrderScreen(exact, 'gap');
 }
 
@@ -9833,6 +9836,24 @@ function v8Swap_(r, on){
   try{ r.reason=v8Sentence_(r); }catch(e){}
   r._v8Active=true;
 }
+// V7.41.0 — why Capel is covering this line online (Arklow channel only), or null
+//   never — Capel shipped it online in the last 30 days and Arklow doesn't stock it
+//   out   — Capel shipped it, Arklow is out      ·  low — Capel shipped it, Arklow has under 14 days of online sales
+//   ly    — Capel shipped it in the same 30 days last year and Arklow (stock + on order) won't cover last year's online sales
+function capelCoverReason_(r){
+  if(state.channel==='capel' || !r) return null;
+  const cs30=r.QtySold_Online_CapelStreet_30d||0, ak=r.NetStock_Arklow||0, oo=r.OnOrderQty_Arklow||0;
+  if(cs30>0){
+    if((r.QtySold_Online_Arklow_365d||0)<=0 && ak<=0) return 'never';
+    if(ak<=0) return 'out';
+    const daily=Math.max(r.QtySold_Online_Total_30d||0, (r.QtySold_Online_Total_180d||0)/6)/30;
+    if(daily>0 && ak/daily<14) return 'low';
+  }
+  const LY=(typeof _saLY!=='undefined' && _saLY) ? _saLY.by.get(normSku_(r.SKU)) : null;
+  if(LY && LY.cs>0 && ak+oo < LY.cs+LY.ak) return 'ly';
+  return null;
+}
+const CAPEL_COVER_WHY={never:'Capel shipped it online — Arklow doesn’t stock it', out:'Capel shipped it online — Arklow is out', low:'Capel shipped it online — Arklow is low', ly:'Capel shipped it in these 30 days last year — Arklow won’t cover it'};
 // recompute(): after the seasonal rescue, before the default-supplier rule
 function applyV8_(rows){
   const rd=v8Ready_();
@@ -9847,6 +9868,9 @@ function applyV8_(rows){
     if(ctx){ try{ r.v8=v8Plan_(r, ctx); }catch(e){ r.v8=null; state._v8.errors++; } }
     if(r.v8){ const p=r.v8.fc.pattern; state._v8.patterns[p]=(state._v8.patterns[p]||0)+1; if(r.v8.season) r._grpShow='season';
       if(r.v8.fc.offSeason){ r._grp='rest'; r._grpShow=null; } }      // V7.34.3 — out of season: not Bread & butter now
+    // V7.41.0 — 📍 Capel covering: Capel is shipping this online (or did in these 30 days last year) and Arklow can't.
+    // Bread & butter and Seasonal keep their own step (with a 📍 tag); B lines and the rest move up into step 3.
+    try{ r._capel=capelCoverReason_(r); if(r._capel && !r._grpShow && (r._grp==='b' || r._grp==='rest')) r._grpShow='capel'; }catch(e){ r._capel=null; }
     const on=!!r.v8 && v8IsOn_(r.SupplierName);
     v8Swap_(r, on); if(on) state._v8.active++;
   }
@@ -11708,9 +11732,9 @@ function renderActionNow(rows){
     // V7.34.6 — the order by group: what's missing (out / low) and what it costs, Bread & butter first
     let grpTbl='';
     if(f.g && f.lines>0){
-      const gl={bb:'🍞 Bread & butter', season:'🎄 Seasonal', b:'B lines', rest:'The rest'};
+      const gl={bb:'🍞 Bread & butter', season:'🎄 Seasonal', capel:'📍 Capel covering', b:'B lines', rest:'The rest'};
       const sup=s.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      const rowsG=['bb','season','b','rest'].filter(k=>f.g[k]&&f.g[k].lines).map(k=>{ const g=f.g[k];
+      const rowsG=['bb','season','capel','b','rest'].filter(k=>f.g[k]&&f.g[k].lines).map(k=>{ const g=f.g[k];
         return `<button class="sc-gr ${k}" onclick="event.stopPropagation();openOrderScreen('${sup}','${k}')" title="Open the order at ${gl[k]}">`
           +`<span class="l">${gl[k]}</span><span class="n${g.oos?' out':''}">${g.oos?fmtInt(g.oos):'–'}</span><span class="n${g.crit?' low':''}">${g.crit?fmtInt(g.crit):'–'}</span><span class="n v">€${fmtInt(Math.round(g.value))}</span></button>`; }).join('');
       grpTbl=`<div class="sc-grp"><div class="sc-gh"><span></span><span>Out</span><span>Low</span><span>Order</span></div>${rowsG}</div>`;
@@ -13571,6 +13595,7 @@ function bindEvents(){
     if(state.computedRows && state.computedRows.length){
       homeSetLinks(true);
       try{ homeCapelShareStat_(); }catch(e){ console.warn('home Capel share:',e); }
+      try{ if(typeof saLoadLog_==='function') saLoadLog_(); }catch(e){}
       try{ renderSeasonalBrief(); }catch(e){ console.error('seasonal brief:',e); }
       clearInterval(homeReadyPoll);
     }
@@ -14089,16 +14114,17 @@ const OS_PRESETS = {
   all:    {sub:'Everything suggested', label:'📋 All lines',                   tip:'Every line in this supplier’s order'},
   urgent: {sub:'Out of stock or nearly', label:'🔴 Out of stock & critical',  tip:'Out of stock, or already below the reorder point'},
   impact: {sub:'Biggest effect, fewest lines', label:'⚡ Top impact',               tip:'Fewest lines, biggest effect — ranked by lost-sales risk, value and urgency'},
-  gap:    {sub:'Selling, but Arklow has none', label:'🚨 Arklow gap',              tip:'Selling now (or due to) but Arklow can’t ship it — Capel is covering'},
+  gap:    {sub:'Every line Capel is covering', label:'📍 All Capel-covered lines', tip:'Every line of this supplier Capel is shipping online because Arklow can’t (out, low or not stocked), or did in these 30 days last year — including Bread & butter and Seasonal ones'},
   similar:{sub:'We already hold something like it', label:'🔁 Similar in stock',      tip:'Another supplier’s product that does the same job (or the same barcode under another SKU) is already on the shelf'},
   decide: {sub:'Sold once, or pack too big', label:'🧐 Buyer decides',               tip:'V8 won’t order these by itself: lines out of stock that sold in only one month of the last 12, and lines whose pack or minimum is over 12 months of sales and over €30. Type a quantity to add one to the order.'},
   v8add:  {sub:'Not on the current order', label:'🧠 V8 would add',                 tip:'Lines the V8 model would order that the current engine doesn’t. Type a quantity to add one to the order.'},
   bb:     {sub:'Half our sales — never out', label:'🍞 Bread & butter',             tip:'The lines that make the first half of this store’s sales (last 12 months, €). These must never be out of stock.'},
   season: {sub:'In season now', label:'🎄 Seasonal',                               tip:'Seasonal lines whose season is on now (last year’s next 60 days well above normal) — build for it.'},
+  capel:  {sub:'Capel is shipping these online', label:'📍 Capel covering',          tip:'B lines and slower lines Capel Street is shipping online because Arklow is out, low or doesn’t stock them (or Capel did in these 30 days last year). Get them into Arklow — target: under 5% of online shipped from Capel. Bread & butter and Seasonal ones stay in their own step with a 📍 tag.'},
   b:      {sub:'The next 30% of sales', label:'B lines',                           tip:'The lines that make the next 30% of this store’s sales.'},
   rest:   {sub:'The last 20%, and no sales', label:'The rest',                     tip:'Everything else: the last 20% of this store’s sales. At Capel the shop keeps 1 of lines selling under once a month.'}
 };
-const OS_GROUP_KEYS=['bb','season','b','rest'];
+const OS_GROUP_KEYS=['bb','season','capel','b','rest'];
 
 function osPresetRows(preset){
   const os=window._os; if(!os) return [];
@@ -14106,7 +14132,7 @@ function osPresetRows(preset){
   const urgentish=r=>(r.stock<=0||r.coverStatus==='Out of Stock'||r.coverStatus==='Critical');
   if(preset==='now')    return rows.filter(r=>r._orderNow!==false);
   if(preset==='urgent') return rows.filter(urgentish);
-  if(preset==='gap')    return rows.filter(r=>isArklowGapLine(r));
+  if(preset==='gap')    return rows.filter(r=>!!r._capel);                         // V7.41.0 — every line Capel is covering
   if(preset==='similar') return rows.filter(r=>simAltsFor(r).length>0);
   if(preset==='decide') return (os.extra&&os.extra.decide)||[];
   if(preset==='v8add')  return (os.extra&&os.extra.v8add)||[];
@@ -14576,15 +14602,28 @@ function osQuickProgress_(){
 // V7.34 — group badge on a line: only Bread & butter and Seasonal are marked (one meaning per mark)
 function osGrpBadge_(r){
   const g=v8GrpOf_(r);
-  if(g==='bb') return `<span class="ql-grp bb" title="Bread & butter: one of the lines that make half of this store’s sales — never out">🍞 Bread & butter</span>`;
-  if(g==='season') return `<span class="ql-grp season" title="Seasonal, in season now">🎄 Seasonal</span>`;
-  return '';
+  const cap = r && r._capel ? `<span class="ql-grp capel" title="${esc(CAPEL_COVER_WHY[r._capel]||'Capel is covering this line online')} — get it into Arklow (target: under 5% of online from Capel)">📍 ${r._capel==='ly'?'Capel last year':'Capel covering'}</span>` : '';
+  if(g==='bb') return `<span class="ql-grp bb" title="Bread & butter: one of the lines that make half of this store’s sales — never out">🍞 Bread & butter</span>`+cap;
+  if(g==='season') return `<span class="ql-grp season" title="Seasonal, in season now">🎄 Seasonal</span>`+cap;
+  return cap;
+}
+// V7.41.0 — banner on the Capel covering step: what these lines do to the Capel share
+function osCapelBanner_(){
+  const os=window._os; if(!os || state.channel==='capel' || (os.preset!=='capel' && os.preset!=='gap')) return '';
+  const rows=osPresetRows(os.preset); if(!rows.length) return '';
+  let cs=0, ak=0; const seen=new Set();
+  for(const r of state.rawRows||[]){ const k=normSku_(r.SKU); if(!k||seen.has(k)) continue; seen.add(k); cs+=r.QtySold_Online_CapelStreet_30d||0; ak+=r.QtySold_Online_Arklow_30d||0; }
+  const u=rows.reduce((t,r)=>t+(r.QtySold_Online_CapelStreet_30d||0),0), tot=cs+ak;
+  const now=tot?cs/tot*100:0, after=tot?(cs-u)/tot*100:0, ly=rows.filter(r=>r._capel==='ly').length;
+  const spare=rows.filter(r=>{ try{ return !!v8TransferSpare_(r); }catch(e){ return false; } }).length;
+  return `<div class="os-capel-ban">📍 <b>Capel is shipping these online because Arklow can’t.</b> ${fmtInt(rows.length)} line${rows.length!==1?'s':''} · ${fmtInt(u)} Capel online units in the last 30 days${u>0?` — getting them into Arklow takes the Capel share from ${now.toFixed(1)}% to ${after.toFixed(1)}% (<b>−${(now-after).toFixed(2)} pts</b>; target under 5%)`:''}.${ly?` ${fmtInt(ly)} more Capel shipped in these 30 days last year — get ahead of them.`:''}${spare?` 🚚 ${fmtInt(spare)} can come from Capel’s spare stock instead of buying.`:''}</div>`;
 }
 // ── V7.34.2 STEPS (Mark, 9 Nov: "Order first 1. Bread & Butter 2. Seasonal 3. B Lines? 4. Want to look at the
 // rest? … Bread & butter >>>>>> Seasonal >>>>>> etc."). V7.34.5 (Mark, 9 Nov: "when you do the bread and butter it
 // should allow you to only export that — then the next … etc."): each step is exported on its own, as its own PO file.
 const OS_STEPS=[{k:'bb', n:1, lbl:'🍞 Bread & butter', short:'Bread & butter', slug:'bread_and_butter'},{k:'season', n:2, lbl:'🎄 Seasonal', short:'Seasonal', slug:'seasonal'},
-                {k:'b', n:3, lbl:'B lines', short:'B lines', slug:'b_lines'},{k:'rest', n:4, lbl:'The rest', short:'The rest', slug:'the_rest', opt:true}];
+                {k:'capel', n:3, lbl:'📍 Capel covering', short:'Capel covering', slug:'capel_covering'},
+                {k:'b', n:4, lbl:'B lines', short:'B lines', slug:'b_lines'},{k:'rest', n:5, lbl:'The rest', short:'The rest', slug:'the_rest', opt:true}];
 function osIsStep_(k){ return OS_STEPS.some(s=>s.k===k); }
 function osStep_(k){ return OS_STEPS.find(s=>s.k===k)||null; }
 function osFirstStep_(){ for(const s of OS_STEPS) if(osPresetRows(s.k).length) return s.k; return 'all'; }
@@ -15537,6 +15576,7 @@ function osRender(rebuild){
     +(counts.decide?`<button tabindex="-1" class="oq-btn v8d${os.preset==='decide'?' on':''}" onclick="osQuickFilter('decide')" title="${esc(OS_PRESETS.decide.tip)}">🧐 Buyer decides <b>${fmtInt(counts.decide)}</b></button>`:'')
     +(counts.v8add?`<button tabindex="-1" class="oq-btn v8a${os.preset==='v8add'?' on':''}" onclick="osQuickFilter('v8add')" title="${esc(OS_PRESETS.v8add.tip)}">🧠 V8 would add <b>${fmtInt(counts.v8add)}</b></button>`:'');
   if(os.mode==='quick') $('osQuickBtns').innerHTML=qExtra+osStepBarHtml_(counts);   // V7.34.2 — the steps
+  { const cb=osCapelBanner_(); if(cb) $('osQuickBtns').insertAdjacentHTML('beforeend', cb); }
   const v8b=$('osV8'); if(v8b) v8b.innerHTML=osV8BarHtml_(os.supplier);
   $('osBody').innerHTML=body;
   osFitProductCol(view);
@@ -16462,6 +16502,7 @@ function saLoadLog_(){
       cause:String(r['Cause']||'').trim()
     })).filter(x=>x.d && x.sku);
     if(L.status!=='fulfilled') console.warn('[Capel share log] unavailable:', L.reason&&L.reason.message);
+    if(_saLY && typeof scheduleRecompute==='function') scheduleRecompute('Capel last year');   // V7.41.0 — feeds 📍 Capel covering
     done();
   });
 }
