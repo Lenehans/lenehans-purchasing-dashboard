@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.37.1 · OFFER PICTURES</title>
+  <title>Lenehans Purchasing Dashboard · V7.41.1 · CAPEL COVERING</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1230,6 +1230,9 @@
 .ql-grp{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:700;line-height:17px;vertical-align:middle;white-space:nowrap}
 .ql-grp.bb{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
 .ql-grp.season{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.ql-grp.capel{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+.oq-btn.grp-capel.on{background:#b91c1c;border-color:#b91c1c;color:#fff}
+.os-capel-ban{margin:8px 0 2px;padding:9px 12px;border-radius:9px;background:#fef2f2;border:1px solid #fecaca;color:#7f1d1d;font-size:13px;line-height:1.45}
 .oq-btn.grp-bb.on{background:#92400e;border-color:#92400e;color:#fff}
 .oq-btn.grp-season.on{background:#166534;border-color:#166534;color:#fff}
 .os-grp-row{grid-column:1/-1;display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px}
@@ -1592,7 +1595,7 @@ header .sub .hdr-new li{margin:1px 0}
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.37.1 · built 2026-11-20 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>🐞 Email designer: the small pictures in the email now follow the picture chosen in the editor (↻ Another, a pasted picture, an AI picture or “Product photo instead”)</li><li>🏷 Email designer: the offer drawn onto the big in-use pictures — price, was-price, SAVE roundel and an optional label (price tag, roundel or banner), always today’s price, saved to Klaviyo when the email goes</li><li>🖼 Email designer, new look: big in-use pictures, products grouped by the job they do, honest sales &amp; stock tags (Only 10 left · 200+ sold in 30 days), “You save €x”, a stocking-fillers strip, dark mode and Gmail Promotions-tab markup · pictures from the Klaviyo image library · 🪄 no in-use picture? the AI (your OpenAI key, or Google Gemini) makes one for you to approve · 🪶 heavy pictures made lighter</li><li>📤 Email designer: Send to Klaviyo as draft — the email goes into Klaviyo as a draft campaign with your usual audience and sender; nothing is sent until you press Send there</li><li>🎨 Email tab: after checking a campaign, Design this email builds it in the Lenehans house style — pictures, links and live prices from Klaviyo, words in the style of your best-opening campaigns, ready to paste into Klaviyo</li><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
+  <div class="sub">V7.41.1 · built 2026-11-20 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>🐞 Email designer: the small pictures in the email now follow the picture chosen in the editor (↻ Another, a pasted picture, an AI picture or “Product photo instead”)</li><li>📍 Order screen step 3 “Capel covering” (after Seasonal): B lines and slower lines Capel is shipping online because Arklow is out, low or doesn’t stock them, or Capel shipped in these 30 days last year — with what fixing them does to the Capel share · 📍 tag on Bread & butter and Seasonal lines Capel is covering · “All Capel-covered lines” replaces the Arklow gap view · supplier cards show the Capel covering row</li><li>🏠 Home: four main cards in one row, 🧰 Tools as a strip across the page</li><li>🏠 Home: 📍 Capel share has its own card beside Purchasing, with today's % · 🚨 Urgent PO moved into the Capel share page · 📋 Supplier price list and 🔎 Where are we for… moved under Tools</li><li>📉 Capel share: a year of daily history rebuilt from Linnworks orders, trendline over the last 60 days, progress measured from 18 Nov · 🔭 Get ahead shows what Capel actually shipped in the same 30 days last year (CAPEL_SHARE_LY)</li><li>📍 Ship from Arklow is now the Capel share dashboard: today's % with the change on yesterday, progress to the 5% target, a daily chart with trendline and the date 5% is reached at this rate · 🗓 day by day: what moved the share (Arklow out / low / not stocked / had stock), the lines behind it and what to do now (send from Capel, order, check routing) · 🔭 get ahead: lines that sold online in the same 30 days last year that Arklow won't cover, with send/order quantities</li><li>📉 Ship from Arklow: day-by-day Capel share chart against the 5% line (CAPEL_SHARE_LOG, written each morning by CapelShareLog.gs) · 🚚 how many lines a Capel → Arklow transfer fixes on its own</li><li>📍 Ship from Arklow tab: % of online units shipped from Capel Street against a 5% target, the trend, and every line Capel ships sorted by why (not in Arklow / Arklow out / Arklow low / routing) with a suggested Arklow quantity, what Capel can send back, lines rising at Capel, and Build order per supplier</li><li>🏷 Email designer: the offer drawn onto the big in-use pictures — price, was-price, SAVE roundel and an optional label (price tag, roundel or banner), always today’s price, saved to Klaviyo when the email goes</li><li>🖼 Email designer, new look: big in-use pictures, products grouped by the job they do, honest sales &amp; stock tags (Only 10 left · 200+ sold in 30 days), “You save €x”, a stocking-fillers strip, dark mode and Gmail Promotions-tab markup · pictures from the Klaviyo image library · 🪄 no in-use picture? the AI (your OpenAI key, or Google Gemini) makes one for you to approve · 🪶 heavy pictures made lighter</li><li>📤 Email designer: Send to Klaviyo as draft — the email goes into Klaviyo as a draft campaign with your usual audience and sender; nothing is sent until you press Send there</li><li>🎨 Email tab: after checking a campaign, Design this email builds it in the Lenehans house style — pictures, links and live prices from Klaviyo, words in the style of your best-opening campaigns, ready to paste into Klaviyo</li><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -1607,6 +1610,7 @@ header .sub .hdr-new li{margin:1px 0}
   <div class="tab-bar" style="display:none">
     <button class="tab-btn active" data-tab="home">🏠 Home</button>
     <button class="tab-btn" data-tab="buying">📦 Buying</button>
+    <button class="tab-btn" data-tab="shiparklow">📍 Capel share</button>
     <button class="tab-btn" data-tab="team">👥 Team</button>
     <button class="tab-btn" data-tab="alerts" id="alertsTabBtn">⚡ Alerts</button>
     <button class="tab-btn" data-tab="clearstock">🏷️ Clear Stock</button>
@@ -1618,6 +1622,8 @@ header .sub .hdr-new li{margin:1px 0}
     <button class="tab-btn" data-tab="margincalc">🧮 Margin Calc</button>
     <button class="tab-btn" data-tab="pricereview">💶 Price Review</button>
     <button class="tab-btn" data-tab="barcodes">🏷️ Barcodes</button>
+    <button class="tab-btn" data-tab="pricelist">📋 Price list → order</button>
+    <button class="tab-btn" data-tab="whereare">🔎 Where are we for…</button>
     <button class="tab-btn" data-tab="deliveries" style="display:none">🚚 Deliveries</button>
     <div id="weatherChip" style="display:none;margin-left:auto;align-self:center;
       padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;
@@ -1643,7 +1649,7 @@ header .sub .hdr-new li{margin:1px 0}
         <div style="display:block;width:100%;font-size:11px;font-weight:500;margin-top:10px;opacity:.85">The menu opens automatically when it's ready — usually 20-40 seconds on first open.</div>
       </div>
 
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px">
 
         <!-- 1. Purchasing -->
         <div style="border:1px solid #e2e8f0;border-radius:14px;padding:18px;background:#fff">
@@ -1655,6 +1661,16 @@ header .sub .hdr-new li{margin:1px 0}
             <button class="home-link" data-goto="team">👥 Team &amp; Schedule</button>
             <button class="home-link" data-goto="clearstock">🏷️ Clear Stock</button>
             <button class="home-link" data-goto="noos">⭐ Never OOS</button>
+          </div>
+        </div>
+
+        <!-- 1b. Capel share (V7.40.0 — its own card beside Purchasing) -->
+        <div style="border:1.5px solid #fecaca;border-radius:14px;padding:18px;background:#fff">
+          <div style="font-size:15px;font-weight:800;color:#b91c1c;margin-bottom:2px">📍 Capel share</div>
+          <div style="font-size:12px;color:#94a3b8;margin-bottom:10px">Online orders shipped from Capel Street · target under 5%</div>
+          <div id="homeCapelShare" style="font-size:26px;font-weight:800;color:#94a3b8;margin-bottom:10px;line-height:1.1">—<div style="font-size:11px;font-weight:600;color:#94a3b8">loading…</div></div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <button class="home-link" data-goto="shiparklow">📍 Ship from Arklow</button>
           </div>
         </div>
 
@@ -1677,59 +1693,26 @@ header .sub .hdr-new li{margin:1px 0}
           </div>
         </div>
 
-        <!-- 4. Tools -->
-        <div style="border:1px solid #e2e8f0;border-radius:14px;padding:18px;background:#fff">
-          <div style="font-size:15px;font-weight:800;color:#b45309;margin-bottom:2px">🧰 Tools</div>
-          <div style="font-size:12px;color:#94a3b8;margin-bottom:14px">Calculators &amp; utilities</div>
-          <div style="display:flex;flex-direction:column;gap:7px">
-            <button class="home-link" data-goto="margincalc">🧮 Margin Calculator</button>
-            <button class="home-link" data-goto="barcodes">🏷️ Barcode Generator</button>
-            <button class="home-link" data-goto="pricereview">💶 Price Review</button>
-            <button class="home-link" data-goto="movein">🏠 Move-In</button>
-          </div>
+      </div>
+      <!-- 4. Tools — full width under the four main cards (V7.40.1) -->
+      <div style="margin-top:18px;border:1px solid #e2e8f0;border-radius:14px;padding:16px 18px;background:#fff">
+        <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px">
+          <div style="font-size:15px;font-weight:800;color:#b45309">🧰 Tools</div>
+          <div style="font-size:12px;color:#94a3b8">Calculators &amp; utilities</div>
         </div>
-
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">
+          <button class="home-link" style="justify-content:center;white-space:nowrap" data-goto="margincalc">🧮 Margin Calculator</button>
+          <button class="home-link" style="justify-content:center;white-space:nowrap" data-goto="barcodes">🏷️ Barcode Generator</button>
+          <button class="home-link" style="justify-content:center;white-space:nowrap" data-goto="pricereview">💶 Price Review</button>
+          <button class="home-link" style="justify-content:center;white-space:nowrap" data-goto="movein">🏠 Move-In</button>
+          <button class="home-link" style="justify-content:center;white-space:nowrap" data-goto="pricelist">📋 Price list → order</button>
+          <button class="home-link" style="justify-content:center;white-space:nowrap" data-goto="whereare">🔎 Where are we for…?</button>
+        </div>
       </div>
       <div style="margin-top:20px;font-size:12px;color:#94a3b8">Tip: the full tab bar is always along the top if you prefer to jump straight there.</div>
 
-      <div style="margin-top:22px;margin-bottom:18px;border:2px solid #dc2626;border-radius:14px;padding:16px 18px;background:#fff">
-        <div style="font-size:15px;font-weight:800;color:#991b1b;margin-bottom:2px">🚨 Urgent PO — what's selling that Arklow can't ship?</div>
-        <div style="font-size:12px;color:#64748b;margin-bottom:12px">Type a supplier. Finds products <b>sold in the last 7 days</b> that Arklow is <b>out of</b> (so Capel Street is shipping them instead) and builds the order — all rules applied. No thinking required.</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <input id="gapSupplierBox" type="text" placeholder="e.g. Donal Lynch or LYN001" onkeydown="if(event.key==='Enter')openArklowGapPO(this.value)"
-            style="flex:1;min-width:220px;padding:9px 13px;border:1.5px solid #fca5a5;border-radius:9px;font-size:14px;outline:none"
-            onfocus="this.style.borderColor='#dc2626'" onblur="this.style.borderColor='#fca5a5'">
-          <button onclick="openArklowGapPO(document.getElementById('gapSupplierBox').value)" style="padding:9px 18px;background:#dc2626;color:#fff;border:none;border-radius:9px;font-weight:800;font-size:14px;cursor:pointer">🚨 Build order now</button>
-        </div>
-      </div>
 
-      <div style="margin-bottom:18px;border:2px solid #0f766e;border-radius:14px;padding:16px 18px;background:#fff">
-        <div style="font-size:15px;font-weight:800;color:#115e59;margin-bottom:2px">📋 Supplier price list → order</div>
-        <div style="font-size:12px;color:#64748b;margin-bottom:10px">Paste a supplier's product list (any layout — codes, sizes, pack, EAN barcodes). It matches each line to <b>our stock by EAN</b>, shows stock &amp; sales, and suggests an order rounded to the supplier's pack size. Lines we don't stock are flagged as range gaps.</div>
-        <textarea id="slPaste" rows="5" placeholder="Paste the list here — e.g.
-Fine Sea Salt drum	SSFCTDP63	350g	6	238	34	7	5011289 002499	05011289 002512"
-          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #99f6e4;border-radius:9px;font-size:12px;font-family:monospace;resize:vertical"></textarea>
-        <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
-          <button onclick="runSupplierList()" style="padding:8px 16px;background:#0f766e;color:#fff;border:none;border-radius:8px;font-weight:800;font-size:13px;cursor:pointer">▶ Match &amp; suggest order</button>
-          <button id="slPoBtn" onclick="openSupplierListPO()" style="display:none;padding:8px 14px;background:#1e40af;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">📦 Open as PO</button>
-          <button onclick="document.getElementById('slPaste').value='';document.getElementById('slResult').innerHTML='';document.getElementById('slPoBtn').style.display='none'" style="padding:8px 12px;background:#fff;border:1px solid #cbd5e1;border-radius:8px;font-size:12px;cursor:pointer">Clear</button>
-          <label style="font-size:12px;color:#475569;margin-left:6px">Cover target <input id="slCoverDays" type="number" value="30" min="7" max="120" style="width:52px"> days</label>
-        </div>
-        <div id="slResult" style="margin-top:12px"></div>
-      </div>
 
-      <div style="margin-bottom:18px;border:1px solid #e2e8f0;border-radius:14px;padding:16px 18px;background:#fff">
-        <div style="font-size:15px;font-weight:800;color:#1e293b;margin-bottom:2px">🔎 Ask: "Where are we for…?"</div>
-        <div style="font-size:12px;color:#94a3b8;margin-bottom:12px">Type a product type — e.g. floor paint, slug pellets, de-icer — for a stock &amp; demand picture and what to order.</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <input id="catIntelBox" type="text" placeholder="floor paint" onkeydown="if(event.key==='Enter')runCategoryIntel()"
-            style="flex:1;min-width:220px;padding:9px 13px;border:1.5px solid #cbd5e1;border-radius:9px;font-size:14px;outline:none"
-            onfocus="this.style.borderColor='#1e40af'" onblur="this.style.borderColor='#cbd5e1'">
-          <button onclick="runCategoryIntel()" style="padding:9px 18px;background:#1e40af;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer">Analyse</button>
-          <button onclick="runEmergencyReady()" title="Gov.ie 'Be Emergency Ready' household checklist — stock check across every category at once" style="padding:9px 14px;background:#b91c1c;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer">🛟 Emergency Ready check</button>
-        </div>
-        <div id="catIntelResult" style="margin-top:14px"></div>
-      </div>
 
       <div id="seasonalBrief" style="margin-bottom:18px"></div>
     </div>
@@ -2153,6 +2136,60 @@ Fine Sea Salt drum	SSFCTDP63	350g	6	238	34	7	5011289 002499	05011289 002512"
       </div>
     </div>
   </div><!-- /tab-noos -->
+
+  <div class="tab-panel" id="tab-shiparklow">
+    <div style="padding:16px 0 8px">
+      <h2 style="font-size:18px;font-weight:800;color:#1e3a5f;margin:0 0 4px">📍 Ship from Arklow — Capel Street's share of online orders</h2>
+      <p style="font-size:13px;color:#64748b;margin:0 0 14px">Target: under 5% of online units shipped from Capel Street. Every line Capel shipped online is sorted by <b>why</b> — not stocked in Arklow, Arklow out, Arklow low, or Arklow had stock (a routing question). Click a group to see its lines.</p>
+      <div style="margin-bottom:16px;border:2px solid #dc2626;border-radius:14px;padding:16px 18px;background:#fff">
+        <div style="font-size:15px;font-weight:800;color:#991b1b;margin-bottom:2px">🚨 Urgent PO — what's selling that Arklow can't ship? <span style="font-weight:600;color:#64748b;font-size:12px">(one supplier, last 7 days)</span></div>
+        <div style="font-size:12px;color:#64748b;margin-bottom:12px">Type a supplier. Finds products <b>sold in the last 7 days</b> that Arklow is <b>out of</b> (so Capel Street is shipping them instead) and builds the order — all rules applied. No thinking required.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="gapSupplierBox" type="text" placeholder="e.g. Donal Lynch or LYN001" onkeydown="if(event.key==='Enter')openArklowGapPO(this.value)"
+            style="flex:1;min-width:220px;padding:9px 13px;border:1.5px solid #fca5a5;border-radius:9px;font-size:14px;outline:none"
+            onfocus="this.style.borderColor='#dc2626'" onblur="this.style.borderColor='#fca5a5'">
+          <button onclick="openArklowGapPO(document.getElementById('gapSupplierBox').value)" style="padding:9px 18px;background:#dc2626;color:#fff;border:none;border-radius:9px;font-weight:800;font-size:14px;cursor:pointer">🚨 Build order now</button>
+        </div>
+      </div>
+      <div id="saBody"><div style="color:#94a3b8;font-size:13px;padding:16px">Loading…</div></div>
+    </div>
+  </div><!-- /tab-shiparklow -->
+
+  <div class="tab-panel" id="tab-pricelist">
+    <div style="padding:16px 0 8px;max-width:1100px">
+      <div style="margin-bottom:18px;border:2px solid #0f766e;border-radius:14px;padding:16px 18px;background:#fff">
+        <div style="font-size:15px;font-weight:800;color:#115e59;margin-bottom:2px">📋 Supplier price list → order</div>
+        <div style="font-size:12px;color:#64748b;margin-bottom:10px">Paste a supplier's product list (any layout — codes, sizes, pack, EAN barcodes). It matches each line to <b>our stock by EAN</b>, shows stock &amp; sales, and suggests an order rounded to the supplier's pack size. Lines we don't stock are flagged as range gaps.</div>
+        <textarea id="slPaste" rows="5" placeholder="Paste the list here — e.g.
+Fine Sea Salt drum	SSFCTDP63	350g	6	238	34	7	5011289 002499	05011289 002512"
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #99f6e4;border-radius:9px;font-size:12px;font-family:monospace;resize:vertical"></textarea>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
+          <button onclick="runSupplierList()" style="padding:8px 16px;background:#0f766e;color:#fff;border:none;border-radius:8px;font-weight:800;font-size:13px;cursor:pointer">▶ Match &amp; suggest order</button>
+          <button id="slPoBtn" onclick="openSupplierListPO()" style="display:none;padding:8px 14px;background:#1e40af;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">📦 Open as PO</button>
+          <button onclick="document.getElementById('slPaste').value='';document.getElementById('slResult').innerHTML='';document.getElementById('slPoBtn').style.display='none'" style="padding:8px 12px;background:#fff;border:1px solid #cbd5e1;border-radius:8px;font-size:12px;cursor:pointer">Clear</button>
+          <label style="font-size:12px;color:#475569;margin-left:6px">Cover target <input id="slCoverDays" type="number" value="30" min="7" max="120" style="width:52px"> days</label>
+        </div>
+        <div id="slResult" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </div><!-- /tab-pricelist -->
+
+  <div class="tab-panel" id="tab-whereare">
+    <div style="padding:16px 0 8px;max-width:1100px">
+      <div style="margin-bottom:18px;border:1px solid #e2e8f0;border-radius:14px;padding:16px 18px;background:#fff">
+        <div style="font-size:15px;font-weight:800;color:#1e293b;margin-bottom:2px">🔎 Ask: "Where are we for…?"</div>
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:12px">Type a product type — e.g. floor paint, slug pellets, de-icer — for a stock &amp; demand picture and what to order.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="catIntelBox" type="text" placeholder="floor paint" onkeydown="if(event.key==='Enter')runCategoryIntel()"
+            style="flex:1;min-width:220px;padding:9px 13px;border:1.5px solid #cbd5e1;border-radius:9px;font-size:14px;outline:none"
+            onfocus="this.style.borderColor='#1e40af'" onblur="this.style.borderColor='#cbd5e1'">
+          <button onclick="runCategoryIntel()" style="padding:9px 18px;background:#1e40af;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer">Analyse</button>
+          <button onclick="runEmergencyReady()" title="Gov.ie 'Be Emergency Ready' household checklist — stock check across every category at once" style="padding:9px 14px;background:#b91c1c;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer">🛟 Emergency Ready check</button>
+        </div>
+        <div id="catIntelResult" style="margin-top:14px"></div>
+      </div>
+    </div>
+  </div><!-- /tab-whereare -->
 
   <!-- TAB 6: Deliveries -->
   <div class="tab-panel" id="tab-deliveries">
@@ -7724,8 +7761,8 @@ function openArklowGapPO(supplierName){
   if(!sups.length){ alert('No supplier matching "'+supplierName+'". Try the code (e.g. LYN001) or part of the name.'); return; }
   const exact=sups.find(n=>n.toLowerCase()===q) || sups.find(n=>n.toLowerCase().startsWith(q)) || sups[0];
   try{ logUsage('arklow_gap_po', exact); }catch(e){}
-  const gapN=osCanonicalRows(exact).filter(r=>isArklowGapLine(r)).length;
-  if(!gapN){ alert(exact+": nothing selling or due that Arklow can't cover. No urgent gap right now."); return; }
+  const gapN=osCanonicalRows(exact).filter(r=>!!r._capel).length;
+  if(!gapN){ alert(exact+": Capel isn't covering any of this supplier's lines right now — Arklow has them."); return; }
   openOrderScreen(exact, 'gap');
 }
 
@@ -9799,6 +9836,24 @@ function v8Swap_(r, on){
   try{ r.reason=v8Sentence_(r); }catch(e){}
   r._v8Active=true;
 }
+// V7.41.0 — why Capel is covering this line online (Arklow channel only), or null
+//   never — Capel shipped it online in the last 30 days and Arklow doesn't stock it
+//   out   — Capel shipped it, Arklow is out      ·  low — Capel shipped it, Arklow has under 14 days of online sales
+//   ly    — Capel shipped it in the same 30 days last year and Arklow (stock + on order) won't cover last year's online sales
+function capelCoverReason_(r){
+  if(state.channel==='capel' || !r) return null;
+  const cs30=r.QtySold_Online_CapelStreet_30d||0, ak=r.NetStock_Arklow||0, oo=r.OnOrderQty_Arklow||0;
+  if(cs30>0){
+    if((r.QtySold_Online_Arklow_365d||0)<=0 && ak<=0) return 'never';
+    if(ak<=0) return 'out';
+    const daily=Math.max(r.QtySold_Online_Total_30d||0, (r.QtySold_Online_Total_180d||0)/6)/30;
+    if(daily>0 && ak/daily<14) return 'low';
+  }
+  const LY=(typeof _saLY!=='undefined' && _saLY) ? _saLY.by.get(normSku_(r.SKU)) : null;
+  if(LY && LY.cs>0 && ak+oo < LY.cs+LY.ak) return 'ly';
+  return null;
+}
+const CAPEL_COVER_WHY={never:'Capel shipped it online — Arklow doesn’t stock it', out:'Capel shipped it online — Arklow is out', low:'Capel shipped it online — Arklow is low', ly:'Capel shipped it in these 30 days last year — Arklow won’t cover it'};
 // recompute(): after the seasonal rescue, before the default-supplier rule
 function applyV8_(rows){
   const rd=v8Ready_();
@@ -9813,6 +9868,9 @@ function applyV8_(rows){
     if(ctx){ try{ r.v8=v8Plan_(r, ctx); }catch(e){ r.v8=null; state._v8.errors++; } }
     if(r.v8){ const p=r.v8.fc.pattern; state._v8.patterns[p]=(state._v8.patterns[p]||0)+1; if(r.v8.season) r._grpShow='season';
       if(r.v8.fc.offSeason){ r._grp='rest'; r._grpShow=null; } }      // V7.34.3 — out of season: not Bread & butter now
+    // V7.41.0 — 📍 Capel covering: Capel is shipping this online (or did in these 30 days last year) and Arklow can't.
+    // Bread & butter and Seasonal keep their own step (with a 📍 tag); B lines and the rest move up into step 3.
+    try{ r._capel=capelCoverReason_(r); if(r._capel && !r._grpShow && (r._grp==='b' || r._grp==='rest')) r._grpShow='capel'; }catch(e){ r._capel=null; }
     const on=!!r.v8 && v8IsOn_(r.SupplierName);
     v8Swap_(r, on); if(on) state._v8.active++;
   }
@@ -11295,6 +11353,7 @@ async function recompute(){
   render();
   if(document.getElementById('tab-clearstock')?.classList.contains('active')) renderClearStock();
   if(document.getElementById('tab-noos')?.classList.contains('active')) renderNOOS();
+  if(document.getElementById('tab-shiparklow')?.classList.contains('active')) renderShipArklow();
   // Refresh email intelligence when buying data reloads
   try {
     var eiTab = document.getElementById('tab-email');
@@ -11673,9 +11732,9 @@ function renderActionNow(rows){
     // V7.34.6 — the order by group: what's missing (out / low) and what it costs, Bread & butter first
     let grpTbl='';
     if(f.g && f.lines>0){
-      const gl={bb:'🍞 Bread & butter', season:'🎄 Seasonal', b:'B lines', rest:'The rest'};
+      const gl={bb:'🍞 Bread & butter', season:'🎄 Seasonal', capel:'📍 Capel covering', b:'B lines', rest:'The rest'};
       const sup=s.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      const rowsG=['bb','season','b','rest'].filter(k=>f.g[k]&&f.g[k].lines).map(k=>{ const g=f.g[k];
+      const rowsG=['bb','season','capel','b','rest'].filter(k=>f.g[k]&&f.g[k].lines).map(k=>{ const g=f.g[k];
         return `<button class="sc-gr ${k}" onclick="event.stopPropagation();openOrderScreen('${sup}','${k}')" title="Open the order at ${gl[k]}">`
           +`<span class="l">${gl[k]}</span><span class="n${g.oos?' out':''}">${g.oos?fmtInt(g.oos):'–'}</span><span class="n${g.crit?' low':''}">${g.crit?fmtInt(g.crit):'–'}</span><span class="n v">€${fmtInt(Math.round(g.value))}</span></button>`; }).join('');
       grpTbl=`<div class="sc-grp"><div class="sc-gh"><span></span><span>Out</span><span>Low</span><span>Order</span></div>${rowsG}</div>`;
@@ -13496,6 +13555,7 @@ function bindEvents(){
       if(btn.dataset.tab==='clearstock') renderClearStock();
       if(btn.dataset.tab==='transfers')  renderTransfers();
       if(btn.dataset.tab==='noos')       renderNOOS();
+      if(btn.dataset.tab==='shiparklow') renderShipArklow();
       if(btn.dataset.tab==='team')       renderTeam();
       if(btn.dataset.tab==='deliveries') renderDeliveries();
       if(btn.dataset.tab==='email')      eiOnTabOpen();
@@ -13534,6 +13594,8 @@ function bindEvents(){
   const homeReadyPoll=setInterval(()=>{
     if(state.computedRows && state.computedRows.length){
       homeSetLinks(true);
+      try{ homeCapelShareStat_(); }catch(e){ console.warn('home Capel share:',e); }
+      try{ if(typeof saLoadLog_==='function') saLoadLog_(); }catch(e){}
       try{ renderSeasonalBrief(); }catch(e){ console.error('seasonal brief:',e); }
       clearInterval(homeReadyPoll);
     }
@@ -14052,16 +14114,17 @@ const OS_PRESETS = {
   all:    {sub:'Everything suggested', label:'📋 All lines',                   tip:'Every line in this supplier’s order'},
   urgent: {sub:'Out of stock or nearly', label:'🔴 Out of stock & critical',  tip:'Out of stock, or already below the reorder point'},
   impact: {sub:'Biggest effect, fewest lines', label:'⚡ Top impact',               tip:'Fewest lines, biggest effect — ranked by lost-sales risk, value and urgency'},
-  gap:    {sub:'Selling, but Arklow has none', label:'🚨 Arklow gap',              tip:'Selling now (or due to) but Arklow can’t ship it — Capel is covering'},
+  gap:    {sub:'Every line Capel is covering', label:'📍 All Capel-covered lines', tip:'Every line of this supplier Capel is shipping online because Arklow can’t (out, low or not stocked), or did in these 30 days last year — including Bread & butter and Seasonal ones'},
   similar:{sub:'We already hold something like it', label:'🔁 Similar in stock',      tip:'Another supplier’s product that does the same job (or the same barcode under another SKU) is already on the shelf'},
   decide: {sub:'Sold once, or pack too big', label:'🧐 Buyer decides',               tip:'V8 won’t order these by itself: lines out of stock that sold in only one month of the last 12, and lines whose pack or minimum is over 12 months of sales and over €30. Type a quantity to add one to the order.'},
   v8add:  {sub:'Not on the current order', label:'🧠 V8 would add',                 tip:'Lines the V8 model would order that the current engine doesn’t. Type a quantity to add one to the order.'},
   bb:     {sub:'Half our sales — never out', label:'🍞 Bread & butter',             tip:'The lines that make the first half of this store’s sales (last 12 months, €). These must never be out of stock.'},
   season: {sub:'In season now', label:'🎄 Seasonal',                               tip:'Seasonal lines whose season is on now (last year’s next 60 days well above normal) — build for it.'},
+  capel:  {sub:'Capel is shipping these online', label:'📍 Capel covering',          tip:'B lines and slower lines Capel Street is shipping online because Arklow is out, low or doesn’t stock them (or Capel did in these 30 days last year). Get them into Arklow — target: under 5% of online shipped from Capel. Bread & butter and Seasonal ones stay in their own step with a 📍 tag.'},
   b:      {sub:'The next 30% of sales', label:'B lines',                           tip:'The lines that make the next 30% of this store’s sales.'},
   rest:   {sub:'The last 20%, and no sales', label:'The rest',                     tip:'Everything else: the last 20% of this store’s sales. At Capel the shop keeps 1 of lines selling under once a month.'}
 };
-const OS_GROUP_KEYS=['bb','season','b','rest'];
+const OS_GROUP_KEYS=['bb','season','capel','b','rest'];
 
 function osPresetRows(preset){
   const os=window._os; if(!os) return [];
@@ -14069,7 +14132,7 @@ function osPresetRows(preset){
   const urgentish=r=>(r.stock<=0||r.coverStatus==='Out of Stock'||r.coverStatus==='Critical');
   if(preset==='now')    return rows.filter(r=>r._orderNow!==false);
   if(preset==='urgent') return rows.filter(urgentish);
-  if(preset==='gap')    return rows.filter(r=>isArklowGapLine(r));
+  if(preset==='gap')    return rows.filter(r=>!!r._capel);                         // V7.41.0 — every line Capel is covering
   if(preset==='similar') return rows.filter(r=>simAltsFor(r).length>0);
   if(preset==='decide') return (os.extra&&os.extra.decide)||[];
   if(preset==='v8add')  return (os.extra&&os.extra.v8add)||[];
@@ -14539,15 +14602,28 @@ function osQuickProgress_(){
 // V7.34 — group badge on a line: only Bread & butter and Seasonal are marked (one meaning per mark)
 function osGrpBadge_(r){
   const g=v8GrpOf_(r);
-  if(g==='bb') return `<span class="ql-grp bb" title="Bread & butter: one of the lines that make half of this store’s sales — never out">🍞 Bread & butter</span>`;
-  if(g==='season') return `<span class="ql-grp season" title="Seasonal, in season now">🎄 Seasonal</span>`;
-  return '';
+  const cap = r && r._capel ? `<span class="ql-grp capel" title="${esc(CAPEL_COVER_WHY[r._capel]||'Capel is covering this line online')} — get it into Arklow (target: under 5% of online from Capel)">📍 ${r._capel==='ly'?'Capel last year':'Capel covering'}</span>` : '';
+  if(g==='bb') return `<span class="ql-grp bb" title="Bread & butter: one of the lines that make half of this store’s sales — never out">🍞 Bread & butter</span>`+cap;
+  if(g==='season') return `<span class="ql-grp season" title="Seasonal, in season now">🎄 Seasonal</span>`+cap;
+  return cap;
+}
+// V7.41.0 — banner on the Capel covering step: what these lines do to the Capel share
+function osCapelBanner_(){
+  const os=window._os; if(!os || state.channel==='capel' || (os.preset!=='capel' && os.preset!=='gap')) return '';
+  const rows=osPresetRows(os.preset); if(!rows.length) return '';
+  let cs=0, ak=0; const seen=new Set();
+  for(const r of state.rawRows||[]){ const k=normSku_(r.SKU); if(!k||seen.has(k)) continue; seen.add(k); cs+=r.QtySold_Online_CapelStreet_30d||0; ak+=r.QtySold_Online_Arklow_30d||0; }
+  const u=rows.reduce((t,r)=>t+(r.QtySold_Online_CapelStreet_30d||0),0), tot=cs+ak;
+  const now=tot?cs/tot*100:0, after=tot?(cs-u)/tot*100:0, ly=rows.filter(r=>r._capel==='ly').length;
+  const spare=rows.filter(r=>{ try{ return !!v8TransferSpare_(r); }catch(e){ return false; } }).length;
+  return `<div class="os-capel-ban">📍 <b>Capel is shipping these online because Arklow can’t.</b> ${fmtInt(rows.length)} line${rows.length!==1?'s':''} · ${fmtInt(u)} Capel online units in the last 30 days${u>0?` — getting them into Arklow takes the Capel share from ${now.toFixed(1)}% to ${after.toFixed(1)}% (<b>−${(now-after).toFixed(2)} pts</b>; target under 5%)`:''}.${ly?` ${fmtInt(ly)} more Capel shipped in these 30 days last year — get ahead of them.`:''}${spare?` 🚚 ${fmtInt(spare)} can come from Capel’s spare stock instead of buying.`:''}</div>`;
 }
 // ── V7.34.2 STEPS (Mark, 9 Nov: "Order first 1. Bread & Butter 2. Seasonal 3. B Lines? 4. Want to look at the
 // rest? … Bread & butter >>>>>> Seasonal >>>>>> etc."). V7.34.5 (Mark, 9 Nov: "when you do the bread and butter it
 // should allow you to only export that — then the next … etc."): each step is exported on its own, as its own PO file.
 const OS_STEPS=[{k:'bb', n:1, lbl:'🍞 Bread & butter', short:'Bread & butter', slug:'bread_and_butter'},{k:'season', n:2, lbl:'🎄 Seasonal', short:'Seasonal', slug:'seasonal'},
-                {k:'b', n:3, lbl:'B lines', short:'B lines', slug:'b_lines'},{k:'rest', n:4, lbl:'The rest', short:'The rest', slug:'the_rest', opt:true}];
+                {k:'capel', n:3, lbl:'📍 Capel covering', short:'Capel covering', slug:'capel_covering'},
+                {k:'b', n:4, lbl:'B lines', short:'B lines', slug:'b_lines'},{k:'rest', n:5, lbl:'The rest', short:'The rest', slug:'the_rest', opt:true}];
 function osIsStep_(k){ return OS_STEPS.some(s=>s.k===k); }
 function osStep_(k){ return OS_STEPS.find(s=>s.k===k)||null; }
 function osFirstStep_(){ for(const s of OS_STEPS) if(osPresetRows(s.k).length) return s.k; return 'all'; }
@@ -15500,6 +15576,7 @@ function osRender(rebuild){
     +(counts.decide?`<button tabindex="-1" class="oq-btn v8d${os.preset==='decide'?' on':''}" onclick="osQuickFilter('decide')" title="${esc(OS_PRESETS.decide.tip)}">🧐 Buyer decides <b>${fmtInt(counts.decide)}</b></button>`:'')
     +(counts.v8add?`<button tabindex="-1" class="oq-btn v8a${os.preset==='v8add'?' on':''}" onclick="osQuickFilter('v8add')" title="${esc(OS_PRESETS.v8add.tip)}">🧠 V8 would add <b>${fmtInt(counts.v8add)}</b></button>`:'');
   if(os.mode==='quick') $('osQuickBtns').innerHTML=qExtra+osStepBarHtml_(counts);   // V7.34.2 — the steps
+  { const cb=osCapelBanner_(); if(cb) $('osQuickBtns').insertAdjacentHTML('beforeend', cb); }
   const v8b=$('osV8'); if(v8b) v8b.innerHTML=osV8BarHtml_(os.supplier);
   $('osBody').innerHTML=body;
   osFitProductCol(view);
@@ -16373,6 +16450,470 @@ function goToSupplier(supplierName, channel){
 }
 
 // ─── NEVER OUT OF STOCK TAB ──────────────────────────────────────────────────
+// ─── V7.38.0 — SHIP FROM ARKLOW (Mark, 18 Nov 2026: "We are sending out too much from Capel Street
+// online … identify trends and get these products into Arklow. We have to reduce it to <5%") ─────────
+// Measures the share of ONLINE units that ship from Capel Street (QSold_OnCS vs QSold_OnAK), tracks it
+// against a 5% target, and lists the lines causing it, grouped by WHY Capel is shipping them:
+//   1 Not stocked in Arklow   — sells online, but never shipped from Arklow in 12 months → range it in Arklow
+//   2 Arklow out now          — Arklow empty, Capel covering → order (or send back from Capel if it has spare)
+//   3 Arklow running low      — Arklow has a little, under 2 weeks of online sales → top up before it runs out
+//   4 Arklow had stock        — Arklow in stock all month by the stock-out log, Capel still shipped → check routing
+// The feed has one row per SKU per supplier, so every figure here is counted once per SKU.
+const SA_TARGET = 5;
+// V7.39.0 — Capel share dashboard (Mark, 19 Nov 2026: "a dashboard showing current sales sent as a % through
+// Capel Street, with a trendline · where we are in our target · for each day what caused the % increase or
+// flatline and what remedies could be done immediately · what sold out of CS online in the next 30 days last
+// year and what we need to do to get ahead of the curve").
+// Daily figures come from CapelShareLog.gs V2 (tabs created 18–19 Nov 2026 with fixed ids):
+const CAPEL_SHARE_LOG_URL = 'https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=1731100006';
+const CAPEL_SHARE_DRV_URL = 'https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=1731100007';
+const CAPEL_SHARE_LY_URL  = 'https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=1731100010';  // V7.39.1 — what Capel actually shipped online, same 30 days last year (CapelShareLog.gs V3)
+const SA_FLAT = 0.1;          // a day's change smaller than this (in points) counts as flat
+const SA_BASE_DATE = '2026-11-18';   // the day the <5% target was set — progress is measured from here
+const SA_FIT_DAYS = 60;              // the trendline uses the last 60 days of the log
+let _saLY = null;
+let _saLog = null, _saDrv = null, _saLogAsked = false, _saDaySups = [], _saAheadSups = [], _saAheadOnly = true;
+const SA_CAUSE = {
+  akout:   {lbl:'Arklow out',            col:'#dc2626'},
+  aklow:   {lbl:'Arklow running low',    col:'#d97706'},
+  never:   {lbl:'Not stocked in Arklow', col:'#7c3aed'},
+  routing: {lbl:'Arklow had stock',      col:'#2563eb'}
+};
+function saNum_(v){ const x=parseFloat(v); return isNaN(x)?null:x; }
+function saDayDiff_(a,b){ return Math.round((Date.UTC(+b.slice(0,4),+b.slice(5,7)-1,+b.slice(8,10))-Date.UTC(+a.slice(0,4),+a.slice(5,7)-1,+a.slice(8,10)))/86400000); }
+function saFmtDate_(d){ const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; const dt=new Date(Date.UTC(+d.slice(0,4),+d.slice(5,7)-1,+d.slice(8,10))); return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dt.getUTCDay()]+' '+(+d.slice(8,10))+' '+M[+d.slice(5,7)-1]; }
+function saSigned_(v,dp){ if(v==null) return '—'; const s=dp?Math.abs(v).toFixed(dp):fmtInt(Math.abs(v)); return (v>0?'+':(v<0?'−':''))+s; }
+
+function saLoadLog_(){
+  if(_saLogAsked) return; _saLogAsked = true;
+  const done=()=>{ try{ saRenderLive_(); }catch(e){ console.warn('[Capel share] render', e); } };
+  Promise.allSettled([fetchCSV(CAPEL_SHARE_LOG_URL,'Capel share log'), fetchCSV(CAPEL_SHARE_DRV_URL,'Capel share drivers'), fetchCSV(CAPEL_SHARE_LY_URL,'Capel last year')]).then(([L,D,Y])=>{
+    const ly=new Map(); let win='';
+    for(const r of ((Y.status==='fulfilled'&&Y.value)||[])){ const k=normSku_(String(r['SKU']||'').replace(/^'+/,'')); const c=saNum_(r['Capel online same 30 days last year'])||0; if(k&&c>0){ ly.set(k,{cs:c, ak:saNum_(r['Arklow online same 30 days last year'])||0}); if(!win) win=String(r['Window']||''); } }
+    _saLY = ly.size ? {by:ly, win} : null;
+    _saLog = ((L.status==='fulfilled'&&L.value)||[]).map(r=>({
+      d:String(r['Date']||'').trim(), p:saNum_(r['Capel share 30d %']), cs:saNum_(r['Capel online units 30d'])||0, ak:saNum_(r['Arklow online units 30d'])||0,
+      dp:saNum_(r['Change in share (pts)']), dcs:saNum_(r['Capel units change']), dak:saNum_(r['Arklow units change']),
+      c:{akout:saNum_(r['Capel change: Arklow out']), aklow:saNum_(r['Capel change: Arklow low']), never:saNum_(r['Capel change: never in Arklow']), routing:saNum_(r['Capel change: Arklow had stock'])}
+    })).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x.d) && x.p!=null).sort((a,b)=>a.d<b.d?-1:1);
+    _saDrv = ((D.status==='fulfilled'&&D.value)||[]).map(r=>({
+      d:String(r['Date']||'').trim(), sku:String(r['SKU']||'').replace(/^'+/,'').trim(), item:String(r['Item']||''), sup:String(r['Supplier']||''),
+      ch:saNum_(r['Capel change'])||0, cs:saNum_(r['Capel online 30d'])||0, akY:saNum_(r['Arklow stock yesterday']), akT:saNum_(r['Arklow stock today']),
+      cause:String(r['Cause']||'').trim()
+    })).filter(x=>x.d && x.sku);
+    if(L.status!=='fulfilled') console.warn('[Capel share log] unavailable:', L.reason&&L.reason.message);
+    if(_saLY && typeof scheduleRecompute==='function') scheduleRecompute('Capel last year');   // V7.41.0 — feeds 📍 Capel covering
+    done();
+  });
+}
+function saRenderLive_(){
+  const set=(id,f)=>{ const el=document.getElementById(id); if(el) el.innerHTML=f(); };
+  set('saHead', saHeadHtml_); set('saTrend', saTrendHtml_); set('saDays', saDaysHtml_); set('saAhead', saAheadHtml_);
+}
+
+// ── least-squares trend over the daily log: slope in points per day ──
+function saTrendFit_(){
+  const A=_saLog||[]; if(A.length<3) return null;
+  const lastD=A[A.length-1].d, L=A.filter(r=>saDayDiff_(r.d,lastD)<SA_FIT_DAYS); if(L.length<3) return null;
+  const x=L.map(r=>saDayDiff_(A[0].d,r.d)), y=L.map(r=>r.p), n=L.length;
+  const mx=x.reduce((a,b)=>a+b,0)/n, my=y.reduce((a,b)=>a+b,0)/n;
+  let sxy=0,sxx=0; for(let i=0;i<n;i++){ sxy+=(x[i]-mx)*(y[i]-my); sxx+=(x[i]-mx)**2; }
+  if(!sxx) return null;
+  const b=sxy/sxx, a=my-b*mx, lastX=x[n-1], fitNow=a+b*lastX;
+  const daysTo = b<0 ? Math.ceil((fitNow-SA_TARGET)/(-b)) : null;
+  return {a,b,lastX,fitNow,daysTo,n,x0:x[0]};
+}
+
+function saHeadHtml_(){
+  if(!_saCache) return '';
+  const {T}=_saCache, L=_saLog||[];
+  const now=saPct_(T.cs30,T.ak30), tot=T.cs30+T.ak30, allowed=Math.floor(tot*SA_TARGET/100), over=Math.max(0,T.cs30-allowed);
+  const last=L.length?L[L.length-1]:null, base=L.find(r=>r.d>=SA_BASE_DATE)||(L.length?L[0]:null);
+  const yAgo=last?L.find(r=>Math.abs(saDayDiff_(r.d,last.d)-365)<=3):null;
+  const col=now<=SA_TARGET?'#047857':(now<=SA_TARGET*2?'#b45309':'#b91c1c');
+  const tile=(lbl,val,sub,c,extra)=>`<div style="flex:1;min-width:200px;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:12px 14px"><div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em">${lbl}</div><div style="font-size:28px;font-weight:800;color:${c||'#1e3a5f'};margin-top:2px;line-height:1.15">${val}</div><div style="font-size:12px;color:#64748b;margin-top:3px;line-height:1.45">${sub}</div>${extra||''}</div>`;
+  // 1 · now
+  let dayTxt='';
+  if(last && last.dp!=null){ const v=last.dp; dayTxt=`${saFmtDate_(last.d)}: <b style="color:${v>=SA_FLAT?'#b91c1c':(v<=-SA_FLAT?'#047857':'#475569')}">${saSigned_(v,2)} pts</b> on the day before (${Math.abs(v)<SA_FLAT?'flat':(v>0?'up':'down')})`; }
+  // 2 · target progress (from the first logged day)
+  let prog='', progSub='';
+  if(base){
+    const span=base.p-SA_TARGET, done=span>0?Math.max(0,Math.min(1,(base.p-now)/span)):1;
+    prog=`<div style="margin-top:8px;height:10px;background:#f1f5f9;border-radius:999px;overflow:hidden"><div style="width:${(done*100).toFixed(0)}%;height:100%;background:${done>=1?'#047857':'#2563eb'}"></div></div>`;
+    progSub=`${(done*100).toFixed(0)}% of the way from ${base.p.toFixed(1)}% (${saFmtDate_(base.d)}) to ${SA_TARGET}% · ${over>0?`<b>${fmtInt(over)}</b> Capel units a month too many`:'✓ on target'}`;
+  }
+  // 3 · trend
+  const fit=saTrendFit_();
+  let trendVal, trendSub;
+  if(fit){
+    const wk=fit.b*7;
+    trendVal = Math.abs(wk)<0.05 ? '→ flat' : (wk<0?'⬇ ':'⬆ ')+Math.abs(wk).toFixed(2)+' pts/wk';
+    if(fit.daysTo!=null){ const ld=L[L.length-1].d, dt=new Date(+ld.slice(0,4), +ld.slice(5,7)-1, +ld.slice(8,10)+fit.daysTo); trendSub=`At this rate ${SA_TARGET}% is reached around <b>${dt.getDate()} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.getMonth()]} ${dt.getFullYear()}</b> (${fmtInt(fit.daysTo)} days). Trend over the last ${fit.n} days.${yAgo?` A year ago: ${yAgo.p.toFixed(1)}%.`:''}`; }
+    else trendSub=`Not falling — no date for ${SA_TARGET}% at this rate. Trend over the last ${fit.n} days.${yAgo?` A year ago: ${yAgo.p.toFixed(1)}%.`:''}`;
+  } else {
+    const p6=saPct_(T.cs180-T.cs30,T.ak180-T.ak30), p12=saPct_(T.cs365-T.cs180,T.ak365-T.ak180);
+    trendVal = now<p6-0.5?'⬇ improving':(now>p6+0.5?'⬆ worse':'→ flat');
+    trendSub=`Months 7–12: ${p12.toFixed(1)}% → months 2–6: ${p6.toFixed(1)}% → last 30 days: ${now.toFixed(1)}%. The daily trendline needs 3+ logged days (${L.length} so far).`;
+  }
+  return `<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+    ${tile('Online units shipped from Capel · last 30 days', now.toFixed(2)+'%', `${fmtInt(T.cs30)} of ${fmtInt(tot)} online units${dayTxt?'<br>'+dayTxt:''}`, col)}
+    ${tile('Target · under '+SA_TARGET+'%', base?`${(now-SA_TARGET).toFixed(1)} pts to go`:'&lt; '+SA_TARGET+'%', progSub||`Capel can ship ${fmtInt(allowed)} a month — ${fmtInt(over)} too many`, '#1e3a5f', prog)}
+    ${tile('Trend', trendVal, trendSub, fit&&fit.b<0?'#047857':'#1e3a5f')}
+  </div>`;
+}
+
+function saTrendHtml_(){
+  const head='<div style="font-weight:800;color:#1e3a5f;margin-bottom:6px">📉 Capel share, day by day <span style="font-weight:500;color:#64748b;font-size:12px">(rolling 30 days · dots = each morning · dashed red = trendline · green = 5% target)</span></div>';
+  if(_saLog==null) return head+'<div style="color:#94a3b8;font-size:12px">Loading the daily log…</div>';
+  const L=_saLog;
+  if(L.length<2) return head+`<div style="color:#64748b;font-size:12px">${L.length?`The log started ${saFmtDate_(L[0].d)} at <b>${L[0].p.toFixed(2)}%</b>. The chart appears from the second day.`:'Nothing logged yet — run setupCapelShareLog in Apps Script.'}</div>`;
+  const fit=saTrendFit_();
+  const lastX=saDayDiff_(L[0].d,L[L.length-1].d);
+  const projX = fit && fit.daysTo!=null && fit.daysTo<=120 ? lastX+fit.daysTo : lastX;
+  const maxX=Math.max(1,projX);
+  const W=680,H=200,pl=36,pr=12,pt=12,pb=26;
+  const maxP=Math.max(SA_TARGET+2, ...L.map(r=>r.p))*1.08, minP=0;
+  const X=d=>pl+d*(W-pl-pr)/maxX, Y=v=>pt+(H-pt-pb)*(1-(v-minP)/(maxP-minP));
+  const pts=L.map(r=>[X(saDayDiff_(L[0].d,r.d)),Y(r.p)]);
+  const ticks=[0,SA_TARGET,Math.round(maxP*0.5),Math.floor(maxP)].filter((v,i,a)=>a.indexOf(v)===i&&v<=maxP);
+  let trend='';
+  if(fit){
+ trend+=`<line x1="${X(fit.x0)}" y1="${Y(fit.a+fit.b*fit.x0)}" x2="${X(lastX)}" y2="${Y(fit.a+fit.b*lastX)}" stroke="#b91c1c" stroke-width="1.5" stroke-dasharray="6 4" opacity=".7"/>`;
+    if(projX>lastX) trend+=`<line x1="${X(lastX)}" y1="${Y(fit.fitNow)}" x2="${X(projX)}" y2="${Y(SA_TARGET)}" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2 4"/><circle cx="${X(projX)}" cy="${Y(SA_TARGET)}" r="4" fill="#047857"/>`;
+  }
+  const addDays=(d,n)=>{ const t=new Date(Date.UTC(+d.slice(0,4),+d.slice(5,7)-1,+d.slice(8,10))+n*86400000); return t.toISOString().slice(0,10); };
+  const xl=[0,Math.round(lastX/2),lastX].filter((v,i,a)=>a.indexOf(v)===i).map(v=>[v,addDays(L[0].d,v)]);
+  if(projX>lastX) xl.push([projX,addDays(L[0].d,projX)]);
+  const lp=L[L.length-1];
+  return head+`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">
+    ${ticks.map(t=>`<line x1="${pl}" x2="${W-pr}" y1="${Y(t)}" y2="${Y(t)}" stroke="#f1f5f9"/><text x="${pl-5}" y="${Y(t)+4}" font-size="10" fill="#94a3b8" text-anchor="end">${t}%</text>`).join('')}
+    <line x1="${pl}" x2="${W-pr}" y1="${Y(SA_TARGET)}" y2="${Y(SA_TARGET)}" stroke="#047857" stroke-dasharray="5 4" stroke-width="1.5"/>
+    ${trend}
+    <polyline points="${pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="none" stroke="#b91c1c" stroke-width="${pts.length>60?1.5:2.5}" stroke-linejoin="round"/>
+    ${(()=>{ const bi=L.findIndex(r=>r.d>=SA_BASE_DATE); if(bi<=0) return ''; const bx=X(saDayDiff_(L[0].d,L[bi].d)); return `<line x1="${bx}" x2="${bx}" y1="${pt}" y2="${H-pb}" stroke="#cbd5e1" stroke-dasharray="3 3"/><text x="${bx-4}" y="${pt+10}" font-size="10" fill="#64748b" text-anchor="end">target set</text>`; })()}
+    ${pts.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${i===pts.length-1?4:(pts.length>60?1.2:2.5)}" fill="#b91c1c"><title>${L[i].d}: ${L[i].p.toFixed(2)}%</title></circle>`).join('')}
+    <text x="${Math.min(pts[pts.length-1][0]+6,W-pr-44)}" y="${pts[pts.length-1][1]-8}" font-size="11" font-weight="700" fill="#b91c1c">${lp.p.toFixed(2)}%</text>
+    ${xl.map(([v,d],i)=>`<text x="${X(v)}" y="${H-7}" font-size="10" fill="${v>lastX?'#047857':'#94a3b8'}" text-anchor="${v===0?'start':(v===maxX?'end':'middle')}">${saFmtDate_(d).slice(4)}${maxX>200?' '+d.slice(2,4):''}</text>`).join('')}
+  </svg>
+  ${(()=>{ const b0=L.find(r=>r.d>=SA_BASE_DATE)||L[0]; return `<div style="font-size:12px;color:#475569">Since ${saFmtDate_(b0.d)}: ${b0.p.toFixed(2)}% → ${lp.p.toFixed(2)}% (<b style="color:${lp.p<=b0.p?'#047857':'#b91c1c'}">${saSigned_(lp.p-b0.p,2)} pts</b>)${fit?` · trendline = last ${fit.n} days`:' · trendline from the 3rd day'}${L[0].d<SA_BASE_DATE?` · history from ${saFmtDate_(L[0].d)} ${L[0].d.slice(0,4)} rebuilt from Linnworks orders`:''}.</div>`; })()}`;
+}
+
+// what to do about a line TODAY (from today's stock, not the day it moved)
+function saRemedy_(sku){
+  const l=_saCache && _saCache.idx.get(normSku_(sku));
+  if(!l) return {t:'Look at this line — not in today\'s feed', c:'#64748b'};
+  if(l.cls===4) return {t:`Arklow has ${fmtInt(l.akStock)} — ask why Capel shipped (routing / click & collect)`, c:'#2563eb'};
+  const rest=Math.max(0,l.buy-l.send);
+  if(l.cls===1) return l.send>0 ? {t:`Send ${fmtInt(l.send)} from Capel and set it up in Arklow${rest>0?` · order ${fmtInt(rest)}`:''}`, c:'#7c3aed'} : {t:`Add to Arklow's range — order ${fmtInt(l.buy||1)}`, c:'#7c3aed'};
+  if(l.send>0) return {t:`Send ${fmtInt(l.send)} from Capel today${rest>0?` · order ${fmtInt(rest)}`:''}`, c:'#6d28d9'};
+  if(l.buy>0) return {t:`Order ${fmtInt(l.buy)} for Arklow${l.akOO>0?` (${fmtInt(l.akOO)} already on order)`:''}`, c:'#dc2626'};
+  if(l.akOO>0) return {t:`${fmtInt(l.akOO)} on order for Arklow — chase the delivery`, c:'#b45309'};
+  return {t:'Arklow now covered', c:'#047857'};
+}
+
+function saDaysHtml_(){
+  const head='<div style="font-weight:800;color:#1e3a5f;font-size:15px;margin-bottom:4px">🗓 Day by day — what moved it, and what to do now</div><div style="font-size:12px;color:#64748b;margin-bottom:10px">The 30-day figure changes each morning: yesterday\'s Capel online orders come in and the orders from 31 days ago drop out. Up = Capel shipped more yesterday than a month ago. Remedies use <b>today\'s</b> stock.</div>';
+  if(_saLog==null) return head+'<div style="color:#94a3b8;font-size:12px">Loading…</div>';
+  const days=(_saLog||[]).filter(r=>r.dp!=null).slice().reverse().slice(0,14);
+  if(!days.length) return head+'<div style="color:#64748b;font-size:12px">The first day-on-day comparison appears after the second morning of the log.</div>';
+  _saDaySups=[];
+  return head+days.map((r,di)=>{
+    const v=r.dp, verdict=Math.abs(v)<SA_FLAT?['→ Flat','#475569','#f8fafc']:(v>0?['⬆ Up','#b91c1c','#fef2f2']:['⬇ Down','#047857','#f0fdf4']);
+    const c=r.c, chip=(k)=>c[k]==null?'':`<span style="display:inline-block;margin:2px 4px 2px 0;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:${SA_CAUSE[k].col}14;color:${SA_CAUSE[k].col}">${SA_CAUSE[k].lbl} ${saSigned_(c[k])}</span>`;
+    const run=(c.akout||0)+(c.aklow||0);
+    const parts=[];
+    if(run) parts.push(`Arklow running out ${run>0?'added':'took off'} <b>${fmtInt(Math.abs(run))}</b> (out ${saSigned_(c.akout)}, low ${saSigned_(c.aklow)})`);
+    if(c.never) parts.push(`lines not stocked in Arklow ${saSigned_(c.never)}`);
+    if(c.routing) parts.push(`lines where Arklow had stock ${saSigned_(c.routing)}${c.routing<0?' (mostly month-old Capel orders dropping out)':''}`);
+    const ups=(_saDrv||[]).filter(x=>x.d===r.d && x.ch>0).sort((a,b)=>b.ch-a.ch);
+    const top=ups.slice(0,8), more=ups.slice(8);
+    const sm=new Map(); for(const x of ups){ if(x.cause==='routing') continue; const l=_saCache&&_saCache.idx.get(normSku_(x.sku)); const s=(l&&l.supFirst)||x.sup; if(!s) continue; sm.set(s,(sm.get(s)||0)+x.ch); }
+    const sups=[...sm.entries()].sort((a,b)=>b[1]-a[1]).slice(0,4);
+    const supBtns=sups.map(([s,u])=>{ const i=_saDaySups.push(s)-1; return `<button onclick="openArklowGapPO(_saDaySups[${i}])" style="font-size:11px;padding:3px 9px;border:none;background:#dc2626;color:#fff;border-radius:6px;cursor:pointer;font-weight:700;margin:2px 4px 2px 0">🚨 ${esc(s.length>28?s.slice(0,28)+'…':s)} (+${fmtInt(u)})</button>`; }).join('');
+    const row=x=>{ const l=_saCache&&_saCache.idx.get(normSku_(x.sku)); const rm=saRemedy_(x.sku); const cz=SA_CAUSE[x.cause]||{lbl:x.cause,col:'#64748b'};
+      return `<tr style="border-top:1px solid #f1f5f9"><td style="padding:5px 6px 5px 0;vertical-align:top"><b style="color:#b91c1c">+${fmtInt(x.ch)}</b></td>
+        <td style="padding:5px 6px;vertical-align:top">${esc((l&&l.title)||x.item||x.sku)}<div style="font-size:11px;color:#94a3b8">${esc(x.sku)} · ${fmtInt(x.cs)} from Capel in 30 days</div></td>
+        <td style="padding:5px 6px;vertical-align:top;white-space:nowrap"><span style="color:${cz.col};font-weight:700;font-size:11px">${cz.lbl}</span><div style="font-size:11px;color:#64748b">Arklow ${x.akY==null?'?':fmtInt(x.akY)} → ${x.akT==null?'?':fmtInt(x.akT)}</div></td>
+        <td style="padding:5px 0 5px 6px;vertical-align:top;color:${rm.c};font-weight:700;font-size:12px">${rm.t}</td></tr>`; };
+    return `<div style="background:#fff;border:1.5px solid #e2e8f0;border-left:5px solid ${verdict[1]};border-radius:12px;padding:12px 14px;margin-bottom:10px">
+      <div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap">
+        <div style="font-weight:800;color:#1e3a5f;font-size:14px">${saFmtDate_(r.d)}</div>
+        <div style="font-weight:800;color:${verdict[1]};background:${verdict[2]};padding:1px 10px;border-radius:999px;font-size:13px">${verdict[0]} ${saSigned_(v,2)} pts</div>
+        <div style="font-size:13px;color:#334155">${r.p.toFixed(2)}% · Capel ${saSigned_(r.dcs)} units, Arklow ${saSigned_(r.dak)} units (30-day totals)</div>
+      </div>
+      <div style="font-size:12px;color:#475569;margin:6px 0 4px">${parts.length?parts.join(' · ')+'.':'No change in Capel units.'}${Math.abs(v)<SA_FLAT&&run>0?' <b>Flat, but Arklow stock-outs are still pushing orders to Capel — fix the lines below to make it fall.</b>':''}</div>
+      <div>${['akout','aklow','never','routing'].map(chip).join('')}</div>
+      ${top.length?`<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:6px"><thead><tr style="color:#64748b;font-size:11px;text-align:left"><th style="padding:2px 6px 2px 0">Capel</th><th style="padding:2px 6px">Line</th><th style="padding:2px 6px">Why</th><th style="padding:2px 0 2px 6px">Fix now</th></tr></thead><tbody>${top.map(row).join('')}</tbody></table>
+        ${more.length?`<details style="margin-top:4px"><summary style="cursor:pointer;font-size:12px;color:#2563eb;font-weight:700">${fmtInt(more.length)} more lines rose this day</summary><table style="width:100%;border-collapse:collapse;font-size:12px">${more.map(row).join('')}</table></details>`:''}`:(di===0&&!(_saDrv||[]).some(x=>x.d===r.d)?'<div style="font-size:12px;color:#94a3b8">Line detail for this day isn\'t in the drivers tab.</div>':'')}
+      ${supBtns?`<div style="margin-top:8px;font-size:11px;color:#64748b">Build Arklow orders for the suppliers behind it: ${supBtns}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ── get ahead: the same 30 days last year (online, both stores) vs Arklow stock now ──
+function saLyWeights_(){
+  const w={}, t=new Date(), base=Date.UTC(t.getFullYear(),t.getMonth(),t.getDate())-365*86400000;
+  for(let i=0;i<30;i++){ const d=new Date(base+i*86400000), y=d.getUTCFullYear(), m=d.getUTCMonth()+1, k=`${y}_${String(m).padStart(2,'0')}`, dim=new Date(Date.UTC(y,m,0)).getUTCDate(); w[k]=(w[k]||0)+1/dim; }
+  const a=new Date(base), b=new Date(base+29*86400000), M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return {w, label:`${a.getUTCDate()} ${M[a.getUTCMonth()]} – ${b.getUTCDate()} ${M[b.getUTCMonth()]} ${b.getUTCFullYear()}`};
+}
+function saMonthlyOnline_(){
+  const md=(state.monthlyOnline&&state.monthlyOnline.data) || (state.monthlySource!=='shop' ? state.monthlyData : null);
+  if(!md || !Object.keys(md).length) return null;
+  if(!saMonthlyOnline_._idx || saMonthlyOnline_._src!==md){ const m=new Map(); for(const k in md) m.set(normSku_(k), md[k]); saMonthlyOnline_._idx=m; saMonthlyOnline_._src=md; }
+  return saMonthlyOnline_._idx;
+}
+function saAheadHtml_(){
+  const A=_saCache&&_saCache.ahead;
+  const head=`<div style="font-weight:800;color:#1e3a5f;font-size:15px;margin-bottom:4px">🔭 Get ahead — the next 30 days, from last year</div>`;
+  if(!A) return head+'<div style="color:#64748b;font-size:12px">The monthly online history isn\'t loaded yet — this fills in once it is.</div>';
+  const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0);
+  const LYm=_saLY&&_saLY.by, lyCs=x=>LYm?((LYm.get(normSku_(x.sku))||{}).cs||0):0;
+  const capel=LYm ? A.list.filter(x=>lyCs(x)>0) : A.list.filter(x=>x.cs365>0);
+  let lyTot=0, lyLines=0, lyCovered=0, lyCoveredU=0; const shortSet=new Set(A.list.map(x=>normSku_(x.sku)));
+  if(LYm) for(const [k,v] of LYm){ lyTot+=v.cs; lyLines++; if(!shortSet.has(k)){ lyCovered++; lyCoveredU+=v.cs; } }
+  const show=(_saAheadOnly?capel:A.list).slice().sort((a,b)=>LYm&&_saAheadOnly?(lyCs(b)-lyCs(a)||b.ly30-a.ly30):b.ly30-a.ly30);
+  const sm=new Map(); for(const x of show){ const e=sm.get(x.supFirst)||{s:x.supFirst,n:0,u:0}; e.n++; e.u+=x.order; sm.set(x.supFirst,e); }
+  const sups=[...sm.values()].filter(e=>e.u>0).sort((a,b)=>b.u-a.u).slice(0,10); _saAheadSups=sups.map(e=>e.s);
+  const tile=(v,l,c)=>`<div style="flex:1;min-width:150px;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;padding:8px 12px"><div style="font-size:22px;font-weight:800;color:${c}">${v}</div><div style="font-size:12px;color:#475569">${l}</div></div>`;
+  return head+`<div style="font-size:12px;color:#64748b;margin-bottom:10px">Online sales of each line in <b>${A.label}</b> (both stores, from the monthly history) against what Arklow holds now, stock + on order. Last year is the floor — online is up, so never plan below it. When Arklow runs short, these orders go out of Capel.</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      ${tile(fmtInt(A.list.length),`lines Arklow won't cover at last year's pace — ${fmtInt(Math.round(sum(A.list,x=>x.need)))} units short`,'#b91c1c')}
+      ${LYm?tile(fmtInt(lyTot),`online units Capel actually shipped in these 30 days last year, on ${fmtInt(lyLines)} lines. ${fmtInt(lyCovered)} of those lines (${fmtInt(lyCoveredU)} units) Arklow now covers`,'#b45309'):''}
+      ${tile(fmtInt(capel.length),LYm?`lines Capel shipped in these 30 days last year that Arklow is <b>still short of</b> — the ones that will push the share up`:`of them Capel has already shipped online in the last 12 months — <b>the ones that will push the share up</b>`,'#b45309')}
+      ${tile(fmtInt(sum(A.list,x=>x.send)),`units Capel can send now (beyond 3 months of its till sales) · ${fmtInt(A.list.filter(x=>x.send>=x.need).length)} lines fully covered`,'#6d28d9')}
+      ${tile(fmtInt(sum(A.list,x=>x.order)),`units to order for Arklow after transfers`,'#dc2626')}
+    </div>
+    ${sups.length?`<div style="font-size:12px;color:#64748b;margin-bottom:8px">Order for Arklow now: ${sups.map((e,i)=>`<button onclick="openArklowGapPO(_saAheadSups[${i}])" style="font-size:11px;padding:3px 9px;border:none;background:#dc2626;color:#fff;border-radius:6px;cursor:pointer;font-weight:700;margin:2px 4px 2px 0">🚨 ${esc(e.s.length>28?e.s.slice(0,28)+'…':e.s)} (${fmtInt(e.n)} lines)</button>`).join('')}<div style="font-size:11px;color:#94a3b8">Build order opens the supplier's order screen with the usual ordering rules; check last year's quantities there.</div></div>`:''}
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap">
+      <button onclick="_saAheadOnly=true;document.getElementById('saAhead').innerHTML=saAheadHtml_()" style="padding:4px 11px;border:1.5px solid ${_saAheadOnly?'#2563eb':'#cbd5e1'};background:${_saAheadOnly?'#eff6ff':'#fff'};border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">${LYm?'Capel shipped these last year':'Capel already ships these'} (${fmtInt(capel.length)})</button>
+      <button onclick="_saAheadOnly=false;document.getElementById('saAhead').innerHTML=saAheadHtml_()" style="padding:4px 11px;border:1.5px solid ${!_saAheadOnly?'#2563eb':'#cbd5e1'};background:${!_saAheadOnly?'#eff6ff':'#fff'};border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">All short lines (${fmtInt(A.list.length)})</button>
+      <button onclick="exportSaAhead()" style="padding:4px 12px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-left:auto">⬇ Export CSV</button>
+    </div>
+    <div style="overflow:auto;max-height:520px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff"><table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead style="position:sticky;top:0;background:#f8fafc"><tr style="color:#475569;font-size:11px;text-transform:uppercase;letter-spacing:.03em">
+        <th style="padding:6px 8px;text-align:left">Line</th><th style="padding:6px 8px;text-align:right">Online, same 30 days last year</th><th style="padding:6px 8px;text-align:right">Arklow stock + on order</th><th style="padding:6px 8px;text-align:right">Days it lasts</th><th style="padding:6px 8px;text-align:right">Capel stock</th>${LYm?'<th style="padding:6px 8px;text-align:right">Capel shipped, same 30 days last year</th>':''}<th style="padding:6px 8px;text-align:right">Capel shipped online, 12m</th><th style="padding:6px 8px;text-align:left">Do now</th></tr></thead>
+      <tbody>${show.slice(0,150).map(x=>`<tr style="border-top:1px solid #f1f5f9">
+        <td style="padding:5px 8px">${esc(x.title)}<div style="font-size:11px;color:#94a3b8">${esc(x.sku)} · ${esc(x.supFirst)}</div></td>
+        <td style="padding:5px 8px;text-align:right;font-weight:800">${fmtInt(Math.round(x.ly30))}</td>
+        <td style="padding:5px 8px;text-align:right;color:${x.akStock<=0?'#dc2626':'#1e3a5f'};font-weight:700">${fmtInt(Math.max(0,x.akStock))}${x.akOO>0?` <span style="color:#047857;font-weight:500">+${fmtInt(x.akOO)}</span>`:''}</td>
+        <td style="padding:5px 8px;text-align:right;color:${x.days<7?'#dc2626':(x.days<14?'#d97706':'#475569')};font-weight:700">${x.days<1?'out now':fmtInt(x.days)}</td>
+        <td style="padding:5px 8px;text-align:right">${fmtInt(x.csStock)}</td>
+        ${LYm?`<td style="padding:5px 8px;text-align:right">${lyCs(x)>0?`<b style="color:#b91c1c">${fmtInt(lyCs(x))}</b>`:'—'}</td>`:''}
+        <td style="padding:5px 8px;text-align:right">${x.cs365>0?`<b style="color:#b45309">${fmtInt(x.cs365)}</b>`:'—'}</td>
+        <td style="padding:5px 8px;white-space:nowrap">${x.send>0?`<b style="color:#6d28d9">Send ${fmtInt(x.send)} from Capel</b>${x.order>0?'<br>':''}`:''}${x.order>0?`<b style="color:#dc2626">Order ${fmtInt(x.order)}</b>`:''}</td></tr>`).join('')}</tbody></table></div>
+    ${show.length>150?`<div style="font-size:11px;color:#94a3b8;margin-top:4px">Showing the 150 biggest of ${fmtInt(show.length)} — export for all.</div>`:''}
+    <div style="font-size:11px;color:#94a3b8;margin-top:6px">Short = last year's online units in these 30 days − Arklow stock − Arklow on order. "Send from Capel" keeps 3 months of Capel's own till sales. Orders rounded to pack size. ${LYm?`"Capel shipped, same 30 days last year" = Magento orders that went out of Capel in ${esc(_saLY.win)}, straight from Linnworks.`:`What Capel shipped last year loads once CapelShareLog.gs V3 has run; until then "Capel shipped online, 12m" shows the lines Capel has been covering.`}</div>`;
+}
+function exportSaAhead(){
+  const A=_saCache&&_saCache.ahead; if(!A) return;
+  const q=s=>`"${String(s==null?'':s).replace(/"/g,'""')}"`;
+  const out=[['SKU','EAN','Item','Supplier','Online same 30 days last year','Arklow stock','Arklow on order','Days it lasts','Capel stock','Capel shipped online 12m','Capel shipped same 30 days last year','Short','Send from Capel','Order for Arklow'].join(',')];
+  const LYm=_saLY&&_saLY.by;
+  for(const x of A.list.slice().sort((a,b)=>b.ly30-a.ly30)) out.push([q(x.sku),q(x.ean),q(x.title),q(x.sup),Math.round(x.ly30),x.akStock,x.akOO,x.days<1?0:Math.round(x.days),x.csStock,x.cs365,LYm?((LYm.get(normSku_(x.sku))||{}).cs||0):'',Math.round(x.need),x.send,x.order].join(','));
+  const blob=new Blob([out.join('\n')],{type:'text/csv'}), a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='get_ahead_arklow_'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+  try{ logUsage('shiparklow_ahead_export',''); }catch(e){}
+}
+
+const SA_COVER_DAYS = 56;     // suggested Arklow stock = 8 weeks of online sales (same basis as Never OOS)
+let _saCache = null, _saFilter = 'all', _saSearch = '', _saSups = [];
+function saShowSupplier_(i){ _saSearch=_saSups[i]||''; _saFilter='all'; const b=document.getElementById('saSearch'); if(b) b.value=_saSearch; saRenderTable_(); document.getElementById('saTable')?.scrollIntoView({behavior:'smooth'}); }
+
+function saBuild_(){
+  const rows = state.rawRows || [];
+  const by = new Map();
+  for(const r of rows){
+    const k = normSku_(r.SKU); if(!k) continue;
+    const e = by.get(k);
+    if(!e){ by.set(k, {r, sups:new Set([r.SupplierName||''])}); }
+    else e.sups.add(r.SupplierName||'');
+  }
+  const T = {cs30:0, ak30:0, cs180:0, ak180:0, cs365:0, ak365:0, csRev30:0, akRev30:0};
+  const lines = [];
+  const MO = saMonthlyOnline_(), LYW = MO ? saLyWeights_() : null, ahead = [];
+  for(const [k, {r, sups}] of by){
+    const cs30=r.QtySold_Online_CapelStreet_30d||0, ak30=r.QtySold_Online_Arklow_30d||0;
+    const cs180=r.QtySold_Online_CapelStreet_180d||0, ak180=r.QtySold_Online_Arklow_180d||0;
+    const cs365=r.QtySold_Online_CapelStreet_365d||0, ak365=r.QtySold_Online_Arklow_365d||0;
+    T.cs30+=cs30; T.ak30+=ak30; T.cs180+=cs180; T.ak180+=ak180; T.cs365+=cs365; T.ak365+=ak365;
+    T.csRev30+=r.Revenue_Online_CapelStreet_30d||0;
+    T.akRev30+=Math.max(0,(r.Revenue_Online_Total_30d||0));
+    const akStock=r.NetStock_Arklow||0, csStock=r.NetStock_CapelStreet||0, akOO=r.OnOrderQty_Arklow||0;
+    // Capel can send back to Arklow what it holds beyond 3 months of its own till sales (slow-seller rule)
+    const spareCS=Math.max(0, Math.floor(csStock - Math.max(1,Math.ceil((r.QtySold_Shop_CapelStreet_365d||0)/4))));
+    if(MO){                                                   // get ahead: same 30 days last year vs Arklow now
+      const m=MO.get(k); let ly30=0;
+      if(m) for(const mk in LYW.w) ly30+=(m[mk]||0)*LYW.w[mk];
+      const need=Math.ceil(ly30)-Math.max(0,akStock)-akOO;
+      if(ly30>=2 && need>0){
+        const pk=Math.max(1,r.SupplierPackSize||1), send=Math.min(spareCS,need);
+        let order=need-send; if(order>0) order=Math.ceil(order/pk)*pk;
+        ahead.push({sku:r.SKU, ean:r.Barcode||'', title:r.ItemTitle||'', sup:[...sups].filter(Boolean).join(' / '), supFirst:r.SupplierName||'—',
+          ly30, need, akStock, akOO, csStock, cs365, cs30, send, order, days: Math.max(0,akStock+akOO)/(ly30/30)});
+      }
+    }
+    if(cs180<=0 && cs30<=0) continue;                       // Capel hasn't shipped it online in 6 months
+    // online demand a month (both stores): the higher of the last 30 days and the 6-month average
+    const onMonth=Math.max(cs30+ak30, (cs180+ak180)/6);
+    const daily=onMonth/30;
+    let out30=null;
+    try{ const so=v8StockoutFor_(r.SKU,{capel:false,keys:[]}); if(so) out30=Math.round((1-so.inStock30)*30); }catch(e){}
+    const akCoverDays = daily>0 ? akStock/daily : 999;
+    let cls, why;
+    if(ak365<=0 && akStock<=0){ cls=1; why='Never shipped from Arklow in 12 months — every online order goes to Capel. Range it in Arklow.'; }
+    else if(akStock<=0){ cls=2; why='Arklow is out — Capel is shipping these online orders.'; }
+    else if(akCoverDays<14 || (out30!=null && out30>0)){ cls=3; why = (out30>0 ? `Arklow was out ${out30} of the last 30 days` : 'Arklow is low') + ` — only ${Math.round(akCoverDays)} days left. Top up so it doesn't run out again.`; }
+    else { cls=4; why='Arklow had stock all month, but Capel still shipped. Check Linnworks fulfilment rules (e.g. whole order sent from Capel when another line is short, or click & collect).'; }
+    const target=Math.ceil(daily*SA_COVER_DAYS);
+    const pack=Math.max(1,r.SupplierPackSize||1);
+    let buy=Math.max(0,target-akStock-akOO); if(buy>0) buy=Math.ceil(buy/pack)*pack;
+    if(cls===4) buy=0;
+    // Capel can send back to Arklow what it holds beyond 3 months of its own till sales (slow-seller rule)
+    const spare=spareCS;
+    const send=Math.min(spare, Math.max(0,target-akStock-akOO));
+    const prevMonthly=(cs180-cs30)/5;                       // Capel online a month, months 2–6
+    const rising = cs30>=3 && cs30 >= 1.5*Math.max(0.5,prevMonthly);
+    lines.push({sku:r.SKU, ean:r.Barcode||'', title:r.ItemTitle||'', sup:[...sups].filter(Boolean).join(' / '), supFirst:r.SupplierName||'',
+      cs30, ak30, cs365, ak365, share30: (cs30+ak30)>0 ? cs30/(cs30+ak30)*100 : 0,
+      akStock, akOO, csStock, out30, onMonth, akCoverDays, cls, why, buy, send, rising, prevMonthly});
+  }
+  lines.sort((a,b)=>b.cs30-a.cs30 || b.cs365-a.cs365);
+  const idx=new Map(); for(const l of lines) idx.set(normSku_(l.sku), l);
+  return {T, lines, idx, ahead: MO ? {list:ahead, label:LYW.label} : null};
+}
+
+// Home card figure: live share of online units shipped from Capel (each SKU once)
+function homeCapelShareStat_(){
+  const el=document.getElementById('homeCapelShare'); if(!el || !state.rawRows || !state.rawRows.length) return;
+  const seen=new Set(); let cs=0, ak=0;
+  for(const r of state.rawRows){ const k=normSku_(r.SKU); if(!k||seen.has(k)) continue; seen.add(k); cs+=r.QtySold_Online_CapelStreet_30d||0; ak+=r.QtySold_Online_Arklow_30d||0; }
+  const p=(cs+ak)>0?cs/(cs+ak)*100:0, c=p<=SA_TARGET?'#047857':(p<=SA_TARGET*2?'#b45309':'#b91c1c');
+  el.style.color=c;
+  el.innerHTML=`${p.toFixed(1)}%<div style="font-size:11px;font-weight:600;color:#64748b;margin-top:3px">${fmtInt(cs)} of ${fmtInt(cs+ak)} online units, last 30 days · ${p<=SA_TARGET?'✓ on target':(p-SA_TARGET).toFixed(1)+' pts to go'}</div>`;
+}
+function saPct_(a,b){ return (a+b)>0 ? a/(a+b)*100 : 0; }
+
+function renderShipArklow(){
+  const host=document.getElementById('saBody'); if(!host) return;
+  if(!state.rawRows || !state.rawRows.length){ host.innerHTML='<div style="color:#94a3b8;padding:16px">Data is still loading…</div>'; return; }
+  _saCache = saBuild_();
+  const {T, lines} = _saCache;
+  const p30=saPct_(T.cs30,T.ak30), p6=saPct_(T.cs180-T.cs30, T.ak180-T.ak30), p12=saPct_(T.cs365-T.cs180, T.ak365-T.ak180);
+  const pRev=saPct_(T.csRev30,T.akRev30);
+  const tot30=T.cs30+T.ak30, allowed=Math.floor(tot30*SA_TARGET/100), over=Math.max(0,T.cs30-allowed);
+  const grp=c=>lines.filter(l=>l.cls===c && l.cs30>0);
+  const sum=(a,f)=>a.reduce((s,l)=>s+f(l),0);
+  const g=[1,2,3,4].map(c=>{ const a=grp(c); return {c, n:a.length, u:sum(a,l=>l.cs30)}; });
+  const fixable=g[0].u+g[1].u+g[2].u;
+  const after=saPct_(T.cs30-fixable, T.ak30+fixable);
+  const col=p30<=SA_TARGET?'#047857':(p30<=SA_TARGET*2?'#b45309':'#b91c1c');
+  const tile=(lbl,val,sub,c)=>`<div style="min-width:170px;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:12px 14px"><div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em">${lbl}</div><div style="font-size:26px;font-weight:800;color:${c||'#1e3a5f'};margin-top:2px">${val}</div><div style="font-size:12px;color:#64748b;margin-top:2px">${sub}</div></div>`;
+  const trendWord = p30<p6-0.5 ? '⬇ improving' : (p30>p6+0.5 ? '⬆ getting worse' : '→ flat');
+  const names={1:'🏷 Not stocked in Arklow',2:'⛔ Arklow out now',3:'⚠ Arklow running low',4:'🔀 Arklow had stock'};
+  const acts={1:'Range it in Arklow',2:'Order for Arklow / send from Capel',3:'Top up Arklow',4:'Check Linnworks routing'};
+  const card=x=>`<button onclick="_saFilter='${x.c}';saRenderTable_()" style="flex:1;min-width:190px;text-align:left;background:${_saFilter==String(x.c)?'#eff6ff':'#fff'};border:1.5px solid ${_saFilter==String(x.c)?'#2563eb':'#e2e8f0'};border-radius:12px;padding:10px 12px;cursor:pointer">
+      <div style="font-size:13px;font-weight:800;color:#1e3a5f">${names[x.c]}</div>
+      <div style="font-size:20px;font-weight:800;color:#b91c1c;margin-top:2px">${fmtInt(x.u)} <span style="font-size:12px;color:#64748b;font-weight:600">units · ${fmtInt(x.n)} lines</span></div>
+      <div style="font-size:12px;color:#475569">${T.cs30?Math.round(x.u/T.cs30*100):0}% of Capel's online units · <b>${acts[x.c]}</b></div></button>`;
+  // supplier roll-up (lines 1–3: the ones Arklow stocking fixes)
+  const sm=new Map();
+  for(const l of lines){ if(l.cs30<=0 || l.cls===4) continue; const s=l.supFirst||'—'; const e=sm.get(s)||{s,u:0,n:0,buy:0}; e.u+=l.cs30; e.n++; e.buy+=l.buy; sm.set(s,e); }
+  const sups=[...sm.values()].sort((a,b)=>b.u-a.u).slice(0,15);
+  _saSups=sups.map(x=>x.s);
+  const rising=lines.filter(l=>l.rising).slice(0,12);
+  // transfers Capel → Arklow (groups 1–3, lines Capel shipped in 30 days)
+  const xf=lines.filter(l=>l.cs30>0 && l.cls!==4 && l.send>0);
+  const xfNeed=l=>Math.max(0,Math.ceil(l.onMonth/30*SA_COVER_DAYS)-l.akStock-l.akOO);
+  const xfFull=xf.filter(l=>l.send>=xfNeed(l)), xfU=sum(xf,l=>l.cs30), xfFullU=sum(xfFull,l=>l.cs30), xfUnits=sum(xf,l=>l.send);
+  const xfAfter=saPct_(T.cs30-xfFullU, T.ak30+xfFullU);
+  saLoadLog_();
+  const sec=(id,inner,bg)=>`<div id="${id}" style="background:${bg||'#f8fafc'};border:1.5px solid #e2e8f0;border-radius:14px;padding:14px 16px;margin-bottom:16px">${inner}</div>`;
+  host.innerHTML=`
+    <div id="saHead">${saHeadHtml_()}</div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px">
+      <div id="saTrend" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:12px">${saTrendHtml_()}</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+      ${tile('If Arklow stocked groups 1–3', after.toFixed(1)+'%', `${fmtInt(fixable)} Capel units a month back to Arklow — see the groups below`, after<=SA_TARGET?'#047857':'#b45309')}
+      <button onclick="_saFilter='send';saRenderTable_();document.getElementById('saTable')?.scrollIntoView({behavior:'smooth'})" style="text-align:left;background:#faf5ff;border:1.5px solid #ddd6fe;border-radius:12px;padding:12px;cursor:pointer">
+        <div style="font-weight:800;color:#6d28d9">🚚 Transfer from Capel → Arklow</div>
+        <div style="font-size:26px;font-weight:800;color:#6d28d9;margin-top:4px">${fmtInt(xf.length)} <span style="font-size:13px;font-weight:600">lines</span></div>
+        <div style="font-size:12px;color:#475569;line-height:1.5">Capel has spare (beyond 3 months of its own till sales) on lines it's shipping online — ${fmtInt(xfUnits)} units to send.<br><b>${fmtInt(xfFull.length)}</b> fully fixed by the transfer alone (8 weeks' cover), covering ${fmtInt(xfFullU)} of Capel's ${fmtInt(T.cs30)} online units → share ${xfAfter.toFixed(1)}%. The rest still need an order.</div>
+        <div style="font-size:12px;color:#6d28d9;font-weight:700;margin-top:6px">Show the list →</div>
+      </button>
+      </div>
+    </div>
+    ${sec('saDays', saDaysHtml_())}
+    ${sec('saAhead', saAheadHtml_())}
+    <div style="font-weight:800;color:#1e3a5f;font-size:15px;margin:4px 0 8px">📍 Every line Capel ships online now — sorted by why</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">${g.map(card).join('')}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:12px">
+        <div style="font-weight:800;color:#1e3a5f;margin-bottom:6px">Suppliers behind it <span style="font-weight:500;color:#64748b;font-size:12px">(groups 1–3, Capel online units in 30 days)</span></div>
+        <table style="width:100%;font-size:12px;border-collapse:collapse">${sups.map((s,i)=>`<tr style="border-top:1px solid #f1f5f9"><td style="padding:4px 0">${esc(s.s)}</td><td style="text-align:right;font-weight:700;color:#b91c1c">${fmtInt(s.u)}</td><td style="text-align:right;color:#64748b">${fmtInt(s.n)} lines</td><td style="text-align:right;white-space:nowrap"><button onclick="saShowSupplier_(${i})" style="font-size:11px;padding:2px 8px;border:1px solid #cbd5e1;background:#fff;border-radius:6px;cursor:pointer">Show</button> <button onclick="openArklowGapPO(_saSups[${i}])" style="font-size:11px;padding:2px 8px;border:none;background:#dc2626;color:#fff;border-radius:6px;cursor:pointer;font-weight:700">🚨 Build order</button></td></tr>`).join('')}</table>
+      </div>
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:12px">
+        <div style="font-weight:800;color:#1e3a5f;margin-bottom:6px">📈 Rising at Capel <span style="font-weight:500;color:#64748b;font-size:12px">(Capel online last 30 days ≥ 1½× its usual month — get these into Arklow first)</span></div>
+        ${rising.length?`<table style="width:100%;font-size:12px;border-collapse:collapse">${rising.map(l=>`<tr style="border-top:1px solid #f1f5f9"><td style="padding:4px 0">${esc(l.title.substring(0,46))}<div style="color:#94a3b8;font-size:11px">${esc(l.sku)}</div></td><td style="text-align:right;white-space:nowrap"><b style="color:#b91c1c">${fmtInt(l.cs30)}</b> <span style="color:#64748b">vs ${l.prevMonthly.toFixed(1)}/mo</span></td><td style="text-align:right;color:#64748b;white-space:nowrap">AK ${fmtInt(l.akStock)}</td></tr>`).join('')}</table>`:'<div style="color:#94a3b8;font-size:12px">Nothing rising sharply.</div>'}
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+      <button onclick="_saFilter='all';saRenderTable_()" style="padding:5px 12px;border:1.5px solid #cbd5e1;background:#fff;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">All groups</button>
+      <button onclick="_saFilter='rising';saRenderTable_()" style="padding:5px 12px;border:1.5px solid #cbd5e1;background:#fff;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">📈 Rising only</button>
+      <button onclick="_saFilter='send';saRenderTable_()" style="padding:5px 12px;border:1.5px solid #cbd5e1;background:#fff;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🚚 Capel can send back</button>
+      <input id="saSearch" placeholder="Filter by SKU, item or supplier" value="${esc(_saSearch)}" oninput="_saSearch=this.value;saRenderTable_()" style="flex:1;min-width:200px;padding:6px 10px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:13px">
+      <button onclick="exportShipArklow()" style="padding:6px 14px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">⬇ Export CSV</button>
+    </div>
+    <div id="saTable"></div>
+    <div style="font-size:11px;color:#94a3b8;margin-top:10px">Online units only (Magento orders by the location that shipped them). Each SKU counted once. Suggested Arklow qty = 8 weeks of online sales (higher of last 30 days and 6-month average) − Arklow stock − Arklow on order, rounded to pack size. "Capel can send" = Capel stock above 3 months of its own till sales. Days out from the stock-out log.</div>`;
+  saRenderTable_();
+}
+
+function saVisible_(){
+  if(!_saCache) return [];
+  const q=_saSearch.trim().toLowerCase();
+  return _saCache.lines.filter(l=>{
+    if(_saFilter==='rising' && !l.rising) return false;
+    if(_saFilter==='send' && !(l.send>0 && l.cls!==4)) return false;
+    if(/^[1-4]$/.test(_saFilter) && String(l.cls)!==_saFilter) return false;
+    if(q && !(l.sku.toLowerCase().includes(q)||l.title.toLowerCase().includes(q)||l.sup.toLowerCase().includes(q)||l.ean.includes(q))) return false;
+    return true;
+  });
+}
+
+function saRenderTable_(){
+  const el=document.getElementById('saTable'); if(!el) return;
+  const v=saVisible_(), show=v.slice(0,300);
+  const badge={1:['#7c3aed','Not in Arklow'],2:['#dc2626','Arklow out'],3:['#d97706','Arklow low'],4:['#2563eb','Routing']};
+  const th='padding:6px 8px;text-align:left;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.03em;border-bottom:2px solid #e2e8f0;white-space:nowrap';
+  const td='padding:6px 8px;border-bottom:1px solid #f1f5f9;vertical-align:top';
+  el.innerHTML = `<div style="font-size:12px;color:#64748b;margin-bottom:4px">${fmtInt(v.length)} lines · ${fmtInt(v.reduce((s,l)=>s+l.cs30,0))} Capel online units in 30 days${v.length>300?' · showing the top 300 (export for all)':''}</div>
+  <div style="overflow:auto;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff"><table style="width:100%;border-collapse:collapse;font-size:12px">
+  <thead><tr><th style="${th}">Why</th><th style="${th}">SKU · EAN</th><th style="${th}">Item</th><th style="${th};text-align:right">Capel online 30d</th><th style="${th};text-align:right">Arklow online 30d</th><th style="${th};text-align:right">Capel share</th><th style="${th};text-align:right">Arklow stock</th><th style="${th};text-align:right">Capel stock</th><th style="${th};text-align:right">Suggested for Arklow</th></tr></thead>
+  <tbody>${show.map(l=>{ const b=badge[l.cls]; return `<tr>
+    <td style="${td}"><span style="display:inline-block;padding:2px 7px;border-radius:999px;background:${b[0]}1a;color:${b[0]};font-weight:700;font-size:11px;white-space:nowrap">${b[1]}</span>${l.rising?'<div style="font-size:11px;color:#b91c1c;font-weight:700;margin-top:2px">📈 rising</div>':''}</td>
+    <td style="${td};white-space:nowrap"><b>${esc(l.sku)}</b>${l.ean?`<div style="color:#64748b">${esc(l.ean)} <button onclick="navigator.clipboard.writeText('${esc(l.ean)}')" title="Copy EAN" style="font-size:10px;padding:0 4px;border:1px solid #cbd5e1;background:#fff;border-radius:4px;cursor:pointer">📋</button></div>`:''}</td>
+    <td style="${td}">${esc(l.title)}<div style="color:#94a3b8;font-size:11px">${esc(l.sup)}</div><div style="color:#475569;font-size:11px;margin-top:2px">${esc(l.why)}</div></td>
+    <td style="${td};text-align:right;font-weight:800;color:#b91c1c">${fmtInt(l.cs30)}<div style="font-weight:500;color:#94a3b8;font-size:11px">${fmtInt(l.cs365)} in 12m</div></td>
+    <td style="${td};text-align:right">${fmtInt(l.ak30)}</td>
+    <td style="${td};text-align:right">${Math.round(l.share30)}%</td>
+    <td style="${td};text-align:right;font-weight:700;color:${l.akStock<=0?'#dc2626':'#1e3a5f'}">${fmtInt(l.akStock)}${l.akOO>0?`<div style="font-weight:500;color:#047857;font-size:11px">+${fmtInt(l.akOO)} on order</div>`:''}${l.out30>0?`<div style="font-weight:500;color:#d97706;font-size:11px">out ${l.out30}d of 30</div>`:''}</td>
+    <td style="${td};text-align:right">${fmtInt(l.csStock)}</td>
+    <td style="${td};text-align:right;white-space:nowrap">${l.cls===4?'<span style="color:#2563eb">check routing</span>':(l.buy>0?`<b>Order ${fmtInt(l.buy)}</b>`:'<span style="color:#047857">covered</span>')}${l.send>0&&l.cls!==4?`<div style="color:#7c3aed;font-size:11px;font-weight:700">or send ${fmtInt(l.send)} from Capel</div>`:''}</td>
+  </tr>`; }).join('')}</tbody></table></div>`;
+}
+
+function exportShipArklow(){
+  if(!_saCache){ renderShipArklow(); if(!_saCache) return; }
+  const names={1:'Not stocked in Arklow',2:'Arklow out now',3:'Arklow running low',4:'Arklow had stock - check routing'};
+  const q=s=>`"${String(s==null?'':s).replace(/"/g,'""')}"`;
+  const out=[['Group','SKU','EAN','Item','Suppliers','Capel online 30d','Arklow online 30d','Capel share 30d %','Capel online 12m','Arklow online 12m','Arklow stock','Arklow on order','Capel stock','Arklow days out (30)','Rising','Suggested Arklow order','Capel can send','Why'].join(',')];
+  for(const l of saVisible_()) out.push([q(names[l.cls]),q(l.sku),q(l.ean),q(l.title),q(l.sup),l.cs30,l.ak30,Math.round(l.share30),l.cs365,l.ak365,l.akStock,l.akOO,l.csStock,l.out30==null?'':l.out30,l.rising?'Yes':'',l.buy,l.send,q(l.why)].join(','));
+  const blob=new Blob([out.join('\n')],{type:'text/csv'}), a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='ship_from_arklow_'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+  try{ logUsage('shiparklow_export', _saFilter); }catch(e){}
+}
+
 function renderNOOS(){
   const threshold = parseInt(document.getElementById('noosThreshold')?.value||50,10);
   const el = id => document.getElementById(id);
