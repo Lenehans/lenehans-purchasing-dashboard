@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.42.0 · EMAIL BLOCKS</title>
+  <title>Lenehans Purchasing Dashboard · V7.43.0 · FOLLOW-UP EMAILS</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1464,6 +1464,55 @@ header .sub .hdr-new li{margin:1px 0}
 .ed-saved-r span{flex:1;color:#64748b;min-width:160px}
 .ed-sm.ed-del{border-color:#b91c1c;color:#b91c1c}
 .ed-sm.ed-del.ed-sure{background:#b91c1c;color:#fff}
+.ed-r.big{border-color:#93c5fd}
+.ed-dots{margin-left:4px;width:28px;height:26px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;border-radius:6px;cursor:pointer;font-size:16px;font-weight:800;line-height:20px;padding:0;flex:none}
+.ed-dots:hover{background:#f1f5f9}
+.ed-r2 button.ed-sz,.ed-r2 button.ed-bsw{width:auto;height:24px;padding:0 8px;line-height:22px;font-size:11px}
+.ed-bsw,.ed-secsw{display:inline-flex;align-items:center;gap:5px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.ed-secsw{padding:3px 8px;height:24px}
+.ed-bsw::before,.ed-secsw::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--c);border:1px solid rgba(0,0,0,.28);flex:none}
+.ed-sec-h .ed-secsw{margin-left:0}
+.ed-sec[style*="--secbg"]{box-shadow:inset 6px 0 0 var(--secbg)}
+.ed-cc{display:inline-flex;align-items:center;gap:4px}
+.ed-edit .ed-cc input[type=color],.ed-mn .ed-cc input[type=color]{width:30px;height:26px;padding:1px 2px;cursor:pointer;flex:none;border:1px solid #cbd5e1;border-radius:6px;background:#fff}
+.ed-edit input.ed-hex,.ed-mn input.ed-hex{width:80px;padding:4px 6px;font:12px ui-monospace,Menlo,Consolas,monospace;text-transform:uppercase;border:1.5px solid #cbd5e1;border-radius:6px;box-sizing:border-box}
+input.ed-hex.bad{border-color:#dc2626!important;background:#fef2f2}
+.ed-btns{align-items:center;gap:12px;font-size:12px}
+.ed-btns>b{color:#475569;font-size:11px}
+.ed-edit .ed-btns .ed-ovcc{flex-direction:row;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#475569;display:inline-flex}
+.ed-undo{display:inline-flex;gap:4px}
+.ed-sm.ed-rev.ed-sure{background:#b91c1c;color:#fff;border-color:#b91c1c}
+.ed-mn{position:fixed;z-index:10050;min-width:230px;max-width:320px;max-height:80vh;overflow:auto;background:#fff;border:1px solid #cbd5e1;border-radius:10px;box-shadow:0 12px 32px rgba(15,23,42,.22);padding:6px;font-size:13px;color:#0f172a}
+.ed-mn-t{font-weight:800;color:#002538;padding:6px 8px 6px;font-size:12px;border-bottom:1px solid #e2e8f0;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ed-mn-h{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#64748b;padding:6px 8px 2px}
+.ed-mn-i{display:flex;align-items:center;gap:6px;width:100%;text-align:left;border:0;background:none;padding:6px 8px;border-radius:6px;font:inherit;color:inherit;cursor:pointer}
+.ed-mn-i:hover:not([disabled]),.ed-mn-i:focus-visible{background:#eef3f6;outline:none}
+.ed-mn-i[disabled]{color:#94a3b8;cursor:default}
+.ed-mn-ck{width:14px;color:#16a34a;font-weight:800;flex:none}
+.ed-mn-sep{height:1px;background:#e2e8f0;margin:4px 2px}
+.ed-mn-col{padding:6px 8px;display:flex;flex-direction:column;gap:7px}
+.ed-mn-lbl{font-weight:700}
+.ed-cp-sw{display:flex;flex-wrap:wrap;gap:6px}
+.ed-cp-sw button{width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.28);cursor:pointer;padding:0}
+.ed-cp-sw button:hover{transform:scale(1.12)}
+.ed-cp-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ed-fu{margin-top:10px;border:1.5px solid #c4b5fd;border-radius:10px;background:#fff;padding:8px 10px;font-size:12px;color:#334155;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ed-fu>b,.ed-fu-h>b{color:#5b21b6}
+.ed-fu>span{color:#64748b;flex:1;min-width:200px}
+.ed-fu-open{flex-direction:column;align-items:stretch}
+.ed-fu-h{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ed-fu-h>span{flex:1;color:#64748b;min-width:200px}
+.ed-fu-f select{font:inherit;font-size:12px;padding:3px 6px;border:1.5px solid #cbd5e1;border-radius:6px;margin-left:4px}
+.ed-fu-g{display:flex;flex-direction:column;gap:4px}
+.ed-fu-gh{font-size:11px;font-weight:800;color:#475569;text-transform:uppercase;letter-spacing:.06em}
+.ed-fu-r{display:flex;flex-direction:row;gap:8px;align-items:center;justify-content:flex-start;text-align:left;flex-wrap:wrap;padding:5px 7px;border:1px solid #e2e8f0;border-radius:7px;cursor:pointer;font-size:12px;font-weight:400}
+.ed-fu-r input{width:auto;margin:0;flex:none}
+.ed-fu-f label{display:inline-flex;flex-direction:row;align-items:center;gap:4px;font-size:12px}
+.ed-fu-f select{width:auto}
+.ed-fu-r b{color:#0f172a}
+.ed-fu-r span{color:#64748b}
+.ed-fu-st{font-size:12px;color:#334155}
+.ed-fu-n{background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:7px 9px;color:#3b0764;line-height:1.5}
     .ql-showall{margin-top:10px;border:2px solid #1e3a5f;background:#fff;color:#1e3a5f;font-weight:800;border-radius:10px;padding:8px 16px;cursor:pointer}
     .ls-csrow{grid-column:3/8;grid-row:2;margin-top:-2px;background:#f3e8ff;border:1.5px solid #a855f7;color:#581c87;border-radius:8px;padding:4px 10px;font-size:13.5px;font-weight:700;text-align:center}
     .ls-csrow b{font-size:15px}
@@ -1627,7 +1676,7 @@ header .sub .hdr-new li{margin:1px 0}
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.42.0 · built 2026-11-20 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>⠿ Email designer: move blocks — drag a product onto another, into any section, the strip, a new section or onto the ⭐ star (they swap); drag whole sections, or ↑ Up / ↓ Down; the product ↑ ↓ arrows now carry on into the next section · + Add a section</li><li>💾 Email designer: saves as you go — 📂 Saved email designs on the Email tab (up to 20 on this computer): open one to carry on, 📌 keep a copy of a version before trying something, delete · 🔄 New words keeps the old design</li><li>🎨 Email designer: colours for the offer on the pictures — Navy &amp; red, Yellow &amp; black, Black &amp; yellow, Red &amp; black, White &amp; red or your own, for the whole email or just one picture</li><li>🐞 Email designer: the small pictures in the email now follow the picture chosen in the editor (↻ Another, a pasted picture, an AI picture or “Product photo instead”)</li><li>📍 Order screen step 3 “Capel covering” (after Seasonal): B lines and slower lines Capel is shipping online because Arklow is out, low or doesn’t stock them, or Capel shipped in these 30 days last year — with what fixing them does to the Capel share · 📍 tag on Bread & butter and Seasonal lines Capel is covering · “All Capel-covered lines” replaces the Arklow gap view · supplier cards show the Capel covering row</li><li>🏠 Home: four main cards in one row, 🧰 Tools as a strip across the page</li><li>🏠 Home: 📍 Capel share has its own card beside Purchasing, with today's % · 🚨 Urgent PO moved into the Capel share page · 📋 Supplier price list and 🔎 Where are we for… moved under Tools</li><li>📉 Capel share: a year of daily history rebuilt from Linnworks orders, trendline over the last 60 days, progress measured from 18 Nov · 🔭 Get ahead shows what Capel actually shipped in the same 30 days last year (CAPEL_SHARE_LY)</li><li>📍 Ship from Arklow is now the Capel share dashboard: today's % with the change on yesterday, progress to the 5% target, a daily chart with trendline and the date 5% is reached at this rate · 🗓 day by day: what moved the share (Arklow out / low / not stocked / had stock), the lines behind it and what to do now (send from Capel, order, check routing) · 🔭 get ahead: lines that sold online in the same 30 days last year that Arklow won't cover, with send/order quantities</li><li>📉 Ship from Arklow: day-by-day Capel share chart against the 5% line (CAPEL_SHARE_LOG, written each morning by CapelShareLog.gs) · 🚚 how many lines a Capel → Arklow transfer fixes on its own</li><li>📍 Ship from Arklow tab: % of online units shipped from Capel Street against a 5% target, the trend, and every line Capel ships sorted by why (not in Arklow / Arklow out / Arklow low / routing) with a suggested Arklow quantity, what Capel can send back, lines rising at Capel, and Build order per supplier</li><li>🏷 Email designer: the offer drawn onto the big in-use pictures — price, was-price, SAVE roundel and an optional label (price tag, roundel or banner), always today’s price, saved to Klaviyo when the email goes</li><li>🖼 Email designer, new look: big in-use pictures, products grouped by the job they do, honest sales &amp; stock tags (Only 10 left · 200+ sold in 30 days), “You save €x”, a stocking-fillers strip, dark mode and Gmail Promotions-tab markup · pictures from the Klaviyo image library · 🪄 no in-use picture? the AI (your OpenAI key, or Google Gemini) makes one for you to approve · 🪶 heavy pictures made lighter</li><li>📤 Email designer: Send to Klaviyo as draft — the email goes into Klaviyo as a draft campaign with your usual audience and sender; nothing is sent until you press Send there</li><li>🎨 Email tab: after checking a campaign, Design this email builds it in the Lenehans house style — pictures, links and live prices from Klaviyo, words in the style of your best-opening campaigns, ready to paste into Klaviyo</li><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
+  <div class="sub">V7.43.0 · built 2026-11-21 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>🔁 Email tab: Follow-up email — pick the emails sent in the last few days (from Klaviyo, or 📂 saved designs); their products come back with the same pictures, anything sold out since is left out, and the catch-up is laid out like the Monday “pick-me-up”, every product a big picture with Shop now</li><li>🖱 Email designer: right-click a product or a section (or ⋯) — make it the star, move it, big picture or small row, include the offer in the image, button colour, background colour, add or remove a section</li><li>🎨 Email designer: every button its own colour (or all at once), every section and the strip its own background, and a hex box beside every colour (e.g. #FFD200)</li><li>↶ Email designer: Undo / Redo (Ctrl+Z / Ctrl+Y) and ⟲ Revert to how the design started · 🏷 Include offer in image on every block, product photos too</li><li>⠿ Email designer: move blocks — drag a product onto another, into any section, the strip, a new section or onto the ⭐ star (they swap); drag whole sections, or ↑ Up / ↓ Down; the product ↑ ↓ arrows now carry on into the next section · + Add a section</li><li>💾 Email designer: saves as you go — 📂 Saved email designs on the Email tab (up to 20 on this computer): open one to carry on, 📌 keep a copy of a version before trying something, delete · 🔄 New words keeps the old design</li><li>🎨 Email designer: colours for the offer on the pictures — Navy &amp; red, Yellow &amp; black, Black &amp; yellow, Red &amp; black, White &amp; red or your own, for the whole email or just one picture</li><li>🐞 Email designer: the small pictures in the email now follow the picture chosen in the editor (↻ Another, a pasted picture, an AI picture or “Product photo instead”)</li><li>📍 Order screen step 3 “Capel covering” (after Seasonal): B lines and slower lines Capel is shipping online because Arklow is out, low or doesn’t stock them, or Capel shipped in these 30 days last year — with what fixing them does to the Capel share · 📍 tag on Bread & butter and Seasonal lines Capel is covering · “All Capel-covered lines” replaces the Arklow gap view · supplier cards show the Capel covering row</li><li>🏠 Home: four main cards in one row, 🧰 Tools as a strip across the page</li><li>🏠 Home: 📍 Capel share has its own card beside Purchasing, with today's % · 🚨 Urgent PO moved into the Capel share page · 📋 Supplier price list and 🔎 Where are we for… moved under Tools</li><li>📉 Capel share: a year of daily history rebuilt from Linnworks orders, trendline over the last 60 days, progress measured from 18 Nov · 🔭 Get ahead shows what Capel actually shipped in the same 30 days last year (CAPEL_SHARE_LY)</li><li>📍 Ship from Arklow is now the Capel share dashboard: today's % with the change on yesterday, progress to the 5% target, a daily chart with trendline and the date 5% is reached at this rate · 🗓 day by day: what moved the share (Arklow out / low / not stocked / had stock), the lines behind it and what to do now (send from Capel, order, check routing) · 🔭 get ahead: lines that sold online in the same 30 days last year that Arklow won't cover, with send/order quantities</li><li>📉 Ship from Arklow: day-by-day Capel share chart against the 5% line (CAPEL_SHARE_LOG, written each morning by CapelShareLog.gs) · 🚚 how many lines a Capel → Arklow transfer fixes on its own</li><li>📍 Ship from Arklow tab: % of online units shipped from Capel Street against a 5% target, the trend, and every line Capel ships sorted by why (not in Arklow / Arklow out / Arklow low / routing) with a suggested Arklow quantity, what Capel can send back, lines rising at Capel, and Build order per supplier</li><li>🏷 Email designer: the offer drawn onto the big in-use pictures — price, was-price, SAVE roundel and an optional label (price tag, roundel or banner), always today’s price, saved to Klaviyo when the email goes</li><li>🖼 Email designer, new look: big in-use pictures, products grouped by the job they do, honest sales &amp; stock tags (Only 10 left · 200+ sold in 30 days), “You save €x”, a stocking-fillers strip, dark mode and Gmail Promotions-tab markup · pictures from the Klaviyo image library · 🪄 no in-use picture? the AI (your OpenAI key, or Google Gemini) makes one for you to approve · 🪶 heavy pictures made lighter</li><li>📤 Email designer: Send to Klaviyo as draft — the email goes into Klaviyo as a draft campaign with your usual audience and sender; nothing is sent until you press Send there</li><li>🎨 Email tab: after checking a campaign, Design this email builds it in the Lenehans house style — pictures, links and live prices from Klaviyo, words in the style of your best-opening campaigns, ready to paste into Klaviyo</li><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -2414,6 +2463,7 @@ https://www.lenehans.ie/...html	1080286	€9.99	5.99	SAVE	40%
             <span style="font-size:11px;color:#7c3aed">Tip: check each draft separately, then compare the verdicts.</span>
           </div>
           <div id="edSavedBar"></div>
+          <div id="edFollowBar"></div>
           <div id="ccResult" style="margin-top:12px"></div>
         </div>
 
@@ -10795,31 +10845,6 @@ function edPriceWarnings_(){
 const edKB_ = b => Math.round((+b||0)/1024);
 const edHeavy_ = p => p.inuse && (+p.inuseSize||0) > ED.HEAVY_KB*1024;
 function edWhere_(E, sku){ if(sku===E.hero) return 'star'; const k=E.sections.findIndex(s=>s.skus.includes(sku)); return k>=0?'s'+k:'more'; }
-function edRowHtml_(E, p, i, parts){
-  const where=edWhere_(E, p.sku), tag=edTag_(p), big=parts.secs.some(s=>s.items[0]===p)||parts.hero===p;
-  const thumb=(big&&p.inuse?edBigSrc_(E,p,true):p.inuse)||p.img;
-  const ovLine = big && p.inuse && E.ovOn ? `<label class="ed-ovc"><input type="checkbox" ${edOvWant_(p)?'checked':''} onchange="edOvToggle(${i})"> 🏷 Offer on this picture</label>${edOvWant_(p)?`<select class="ed-ovp" onchange="edOvPick(${i},this.value)" title="Colours of the offer on this picture">${edOvColOpts_(p.ovCol,true)}</select>${edOvSw_(edOvCols_(E,p))}`:''}${edOvOn_(E,p)&&p.ov&&p.ov.key===edOvKey_(E,p)?(p.ov.busy?' <span>⏳ adding the offer…</span>':p.ov.err?` <span class="ed-bad">offer not added: ${edEsc(p.ov.err)}</span>`:''):''}${!edOvWant_(p)&&p.inuseFrom==='library'?' <span class="ed-ovh">(off: team pictures usually have the offer already)</span>':''}` : '';
-  const opts=[['star','⭐ Star (top of the email)']].concat(parts.secs.map(s=>['s'+s.k, `Section ${s.k+1}: ${s.title||s.eyebrow||'untitled'}`]), [['more','More deals strip']], E.sections.length<ED.MAX_SECTIONS?[['new','+ New section']]:[]);
-  const src={library:'from the Klaviyo library', ai:'AI picture (approved)', pasted:'pasted address'}[p.inuseFrom]||'';
-  const light=p._light==='busy'?' · ⏳ making a lighter copy…':(p._light&&p._light.startsWith('err:'))?` · <span class="ed-bad">${edEsc(p._light.slice(4))}</span>`:'';
-  const pic = p.inuse
-    ? `📷 In-use picture <b>${src}</b>${edHeavy_(p)?` · <span class="ed-bad">⚠ ${edKB_(p.inuseSize)} KB, slow on phones</span> <button class="ed-sm" onclick="edLighter(${i})">🪶 Make a lighter copy</button>`:''}${light}
-       ${(p.lib||[]).length>1?`<button class="ed-sm" onclick="edPicNext(${i})" title="${(p.lib||[]).length} pictures in the library for this product">↻ Another</button>`:''}<button class="ed-sm" onclick="edPicNone(${i})" title="Use the plain product photo instead">Product photo instead</button>`
-    : `📷 <b>No in-use picture</b> <button class="ed-sm ed-mk" onclick="edAiOpen(${i})"${p.img||p.inuse?'':' disabled title="Needs a product photo first"'}>🪄 Make one</button>
-       ${(p.lib||[]).length?`<button class="ed-sm" onclick="edPicNext(${i})">↻ Library picture</button>`:''}<input class="ed-paste" placeholder="…or paste a picture address" oninput="edPicPaste(${i},this.value)">`;
-  return `<div class="ed-r${p.inuse?'':' noin'}" data-sku="${edEsc(p.sku)}">
-    <span class="ed-grip" draggable="true" data-drag="p:${edEsc(p.sku)}" title="${where==='star'?'Drag onto another product to swap it with the star':'Drag to move: onto another product, into any section, the strip, or onto the ⭐ star'}">⠿</span>
-    ${thumb?`<img class="ed-th" data-th="${edEsc(p.sku)}" src="${edEsc(thumb)}" alt="">`:`<div class="ed-th ed-th0">no photo</div>`}
-    <div class="ed-rm">
-      <div class="ed-r1"><input value="${edEsc(p.name)}" oninput="edSetP(${i},'name',this.value)" title="Name shown in the email"><span class="ed-p-pr">${edEur(p.now)}${p.was?` <s>${edEur(p.was)}</s>`:''}</span></div>
-      <div class="ed-r2">${tag?`<button class="ed-tag ${tag.kind}${(p.noTag||!E.showTags)?' off':''}" onclick="edTagToggle(${i})" title="Worked out from our sales and stock. Click to hide or show it for this product.">${edEsc(tag.txt)}</button>`:''}
-        <select onchange="edMoveTo(${i},this.value)"${where==='star'?' disabled title="Pick ⭐ on another product to swap"':''}>${opts.map(([v,l])=>`<option value="${v}"${v===where?' selected':''}>${edEsc(l)}</option>`).join('')}</select>
-        ${where==='star'?'':`<button tabindex="-1" title="Move up" onclick="edNudge(${i},-1)">↑</button><button tabindex="-1" title="Move down" onclick="edNudge(${i},1)">↓</button>`}<button tabindex="-1" title="Leave out" onclick="edDrop(${i})">✕</button></div>
-      <div class="ed-r3">${pic}</div>${ovLine?`<div class="ed-r3">${ovLine}</div>`:''}
-      ${!p.img?`<div class="ed-r3"><input class="ed-paste" placeholder="Product photo missing: paste its address (right-click the photo on lenehans.ie → Copy image address)" oninput="edSetP(${i},'img',this.value)"></div>`:''}
-      ${E.ai&&E.ai.sku===p.sku?edAiHtml_(E.ai, p):''}
-    </div></div>`;
-}
 function edAiHtml_(A, p){
   const msg = A.err==='needkey'
     ? `<div class="ed-warn"><b>The picture maker needs an AI key.</b> Your OpenAI key will do: in the web app's Apps Script, ⚙ Project Settings → Script properties → Add script property → <b>OPENAI_KEY</b> = your OpenAI API key → Save. No redeploy needed. (A Google key works too, as <b>GEMINI_KEY</b>.)</div>`
@@ -10833,52 +10858,6 @@ function edAiHtml_(A, p){
       <div class="ed-kl-btns"><button class="ed-kl-x" onclick="edAiMake(true)"${A.busy?' disabled':''}>Make 2 more</button></div>`:''}
     <div class="ed-ai-n">Check the product looks exactly like the real one (same size, colour and features) before you use it. The one you pick is saved to Klaviyo's image library as “${edEsc(p.name)} — in use (AI)” and used again next time.</div>
   </div>`;
-}
-function edRender_(){
-  const E=window._ed, box=document.getElementById('edOut'); if(!E||!box) return;
-  const parts=edParts_(E), warn=edPriceWarnings_(), idx=new Map(E.prods.map((p,i)=>[p.sku,i]));
-  const row=p=>edRowHtml_(E, p, idx.get(p.sku), parts);
-  const noIn=E.prods.filter(p=>!p.inuse).length, heavy=E.prods.filter(edHeavy_).length, mh=edMoreHead_(E, parts.more);
-  const f=(id,lbl,val,ta)=>`<label>${lbl}${ta?`<textarea id="${id}" rows="3" oninput="edSet('${id}',this.value)">${edEsc(val)}</textarea>`:`<input id="${id}" value="${edEsc(val)}" oninput="edSet('${id}',this.value)">`}</label>`;
-  const sf=(k,key,lbl,val)=>`<label>${lbl}<input value="${edEsc(val)}" oninput="edSetS(${k},'${key}',this.value)"></label>`;
-  box.innerHTML=`<div class="ed-grid">
-    <div class="ed-edit">
-      ${edSaveBarHtml_(E)}
-      ${!E.metaLive?`<div class="ed-warn">Pictures: ${edEsc(E.metaErr||'not reachable')}. Paste the updated <b>Code.gs</b> into the web app and deploy a New version; until then, paste each picture's address below.</div>`:''}
-      ${noIn?`<div class="ed-note">📷 ${noIn} product${noIn!==1?'s have':' has'} no in-use picture yet: 🪄 Make one, pick one from the library, or paste an address. Without one, the product photo is used.</div>`:''}
-      ${heavy?`<div class="ed-warn">⚠ ${heavy} in-use picture${heavy!==1?'s are':' is'} over ${ED.HEAVY_KB} KB and will load slowly on phones. <button class="ed-sm" onclick="edLightenAll()">🪶 Make lighter copies of all ${heavy}</button></div>`:''}
-      ${warn.length?`<div class="ed-warn"><b>Prices to fix before sending:</b><br>${warn.join('<br>')}</div>`:''}
-      ${f('edSubject','Subject line',E.copy.subject)}${f('edPre','Preview text',E.copy.preheader)}
-      ${f('edOffer','Offer strip at the top (leave empty for none)',E.copy.offer||'')}
-      ${f('edHead','Headline',E.copy.headline)}${f('edIntro','Intro (after “Hey {first name},”)',E.copy.intro,true)}
-      <div class="ed-2">${f('edCta','Button',E.copy.cta)}<label>Button link<input id="edLink2" value="${edEsc(E.link)}" oninput="edSet('edLink2',this.value)"></label></div>
-      <div class="ed-opts ed-ov"><label><input type="checkbox" ${E.ovOn?'checked':''} onchange="edOvSet('on')"> 🏷 Offer on the big pictures</label>
-        <select onchange="edOvSet('style',this.value)"${E.ovOn?'':' disabled'}>${ED_OV_STYLES.map(([v,l])=>`<option value="${v}"${E.ovStyle===v?' selected':''}>${l}</option>`).join('')}</select>
-        <select onchange="edOvSet('col',this.value)" title="Colours of the price box and the SAVE roundel"${E.ovOn?'':' disabled'}>${edOvColOpts_(E.ovCol||'navy')}</select>${edOvSw_(edOvCols_(E),'ed-ovsw-e')}
-        ${E.ovCol==='custom'?`<label class="ed-ovcc">Price box <input type="color" value="${edOvCols_(E).box.toLowerCase()}" oninput="edOvSet('cbox',this.value)"></label><label class="ed-ovcc">SAVE roundel <input type="color" value="${edOvCols_(E).badge.toLowerCase()}" oninput="edOvSet('cbadge',this.value)"></label>`:''}
-        <input class="ed-ovl" maxlength="24" value="${edEsc(E.ovLabel||'')}" placeholder="Label on the pictures (optional), e.g. EARLY BLACK FRIDAY" oninput="edOvSet('label',this.value)"${E.ovOn?'':' disabled'}></div>
-      <div class="ed-opts"><label><input type="checkbox" ${E.showTags?'checked':''} onchange="edToggle('showTags')"> Sales &amp; stock tags</label><label><input type="checkbox" ${E.showMore?'checked':''} onchange="edToggle('showMore')"> “${edEsc(mh.title)}” strip</label></div>
-      <div class="ed-tip">⠿ Drag a product or a whole section to move it — onto another product, into a section, the strip, or onto the ⭐ star to swap · the ↑ ↓ arrows carry on into the next section</div>
-      <div class="ed-sec star" data-dest="star"><div class="ed-sec-h">⭐ Star product: the big picture at the top</div>${parts.hero?row(parts.hero):''}</div>
-      ${parts.secs.map(s=>`<div class="ed-sec" data-dest="s${s.k}"><div class="ed-sec-h"><span class="ed-grip ed-sgrip" draggable="true" data-drag="s:${s.k}" title="Drag to move this whole section">⠿</span>Section ${s.k+1}${s.items.length?'':' <i>(empty: move products here, or remove it)</i>'}
-          <span class="ed-sec-mv"><button class="ed-sm" onclick="edSecMove(${s.k},-1)"${s.k===0?' disabled':''} title="Move this whole section up">↑ Up</button><button class="ed-sm" onclick="edSecMove(${s.k},1)"${s.k===parts.secs.length-1?' disabled':''} title="Move this whole section down">↓ Down</button></span><button class="ed-sm" onclick="edSecDel(${s.k})" title="Remove this section (its products go to the strip)">✕ Remove section</button></div>
-        <div class="ed-2">${sf(s.k,'eyebrow','Small heading',s.eyebrow)}${sf(s.k,'title','Section title',s.title)}</div>${sf(s.k,'why','One line on why',s.why)}
-        ${s.items.map(row).join('')}</div>`).join('')}
-      ${E.sections.length<ED.MAX_SECTIONS?`<div class="ed-addsec" data-dest="new"><button class="ed-sm" onclick="edSecAdd()">+ Add a section</button><span>or drag a product here to start one with it</span></div>`:''}
-      <div class="ed-sec more" data-dest="more"><div class="ed-sec-h">${edEsc(mh.eyebrow)} strip${E.showMore?'':' <i>(switched off)</i>'}</div>
-        <label>Title<input value="${edEsc(E.moreTitle)}" placeholder="${edEsc(mh.title)}" oninput="edSetMore(this.value)"></label>
-        ${parts.more.length?parts.more.map(row).join(''):'<div class="ed-note">Nothing here: every product is in a section.</div>'}</div>
-      <div class="ed-src">${E.copy.ai?'Words and sections by AI in the style of your best-opening campaigns — change anything.':'Words: the plain version (the AI couldn’t be reached), sections by product type — change anything.'} Tags come from our own sales and stock and are worked out again when you send.</div>
-    </div>
-    <div class="ed-prev">
-      <div class="ed-bar"><b>Preview</b><span>${edEsc(E.copy.subject)}</span>
-        <button onclick="edKlOpen()" title="Makes a draft campaign in Klaviyo with this email — nothing is sent">📤 Send to Klaviyo as draft</button><button onclick="edCopyHtml(this)">📋 Copy HTML</button><button onclick="edDownload(this)">⬇ Download .html</button>${E.ccSig&&E.ccSig===edCcSig_()?`<button onclick="edDesign()" title="Fetch pictures again and write new words — this design stays in 📂 Saved designs">🔄 New words</button>`:''}</div>
-      <div id="edKl"></div>
-      <iframe id="edFrame" title="Email preview"></iframe>
-      <div class="ed-src">📤 makes a Klaviyo draft with your usual audience and sender — you check it and press Send in Klaviyo. Or 📋 Copy HTML → Klaviyo → Templates → Create template → HTML.</div>
-    </div></div>`;
-  edDnd_(box);
-  edPreview_();
 }
 const edRe_ = (t)=>{ const E=window._ed; if(!E) return; clearTimeout(E._t); E._t=setTimeout(edPreview_, t||250); };
 window.edSet=function(id,v){ const E=window._ed; if(!E) return;
@@ -10976,19 +10955,8 @@ window.edLightenAll=async function(){ const E=window._ed; if(!E) return;
 const ED_OV_STYLES=[['tag','Price tag (bottom left) + SAVE roundel'],['roundel','SAVE roundel only (top right)'],['banner','Banner across the bottom']];
 function edStore_(k){ try{ return JSON.parse(localStorage.getItem(k)||'{}')||{}; }catch(e){ return {}; } }
 function edStorePut_(k,o){ try{ localStorage.setItem(k, JSON.stringify(o)); }catch(e){} }
-function edOvWant_(p){ const s=edStore_('lenehans_ed_ov_v1'); return (p.inuse in s) ? !!s[p.inuse] : p.inuseFrom!=='library'; }
-function edOvOn_(E,p){ return !!(E && E.ovOn && p && p.inuse && edOvWant_(p)); }
-function edOvKey_(E,p){ const c=edOvCols_(E,p); return [p.inuse, (+p.now).toFixed(2), (+p.was||0).toFixed(2), E.ovStyle, (E.ovLabel||'').trim()].join('|')+(c.k==='navy'?'':'|'+c.box+'/'+c.badge); }
 function edOvName_(E,p){ const c=edOvCols_(E,p); return `Offer · ${p.sku} · ${edEur(p.now)}${p.was>p.now?` (was ${edEur(p.was)})`:''} · ${E.ovStyle}${c.k==='navy'?'':' · '+c.k}${(E.ovLabel||'').trim()?' · '+E.ovLabel.trim().slice(0,24):''}`; }
-function edBigProds_(E){ const P=edParts_(E); return [P.hero].concat(P.secs.filter(s=>s.items.length).map(s=>s.items[0])).filter(Boolean); }
 // the picture to show big: the offer version when it's on and ready, else the clean in-use picture
-function edBigSrc_(E,p,preview){
-  if(!edOvOn_(E,p)) return p.inuse;
-  const o=p.ov&&p.ov.key===edOvKey_(E,p)?p.ov:null;
-  return preview ? ((o&&(o.data||o.url))||p.inuse) : ((o&&o.url)||p.inuse);
-}
-function edBigAlt_(E,p){ return edOvOn_(E,p) ? `${p.name}: now ${edEur(p.now)}${p.was>p.now?`, was ${edEur(p.was)}, save ${edPct_(p)}%`:''}` : p.name+' in use'; }
-window.edOvToggle=function(i){ const E=window._ed, p=E&&E.prods[i]; if(!p||!p.inuse) return; const s=edStore_('lenehans_ed_ov_v1'); s[p.inuse]=!edOvWant_(p); edStorePut_('lenehans_ed_ov_v1',s); edRender_(); };
 window.edOvSet=function(k,v){ const E=window._ed; if(!E) return; if(k==='on') E.ovOn=!E.ovOn; else if(k==='style') E.ovStyle=v; else if(k==='label') E.ovLabel=String(v||'').slice(0,24);
   else if(k==='col'){ if(v==='custom'&&!E.ovCustom){ const c=edOvCols_(E); E.ovCustom={box:c.box, badge:c.badge}; } E.ovCol=v; edOvPrefPut_(E); }   // V7.42.0 — colours
   else if(k==='cbox'||k==='cbadge'){ const h=edHex_(v); if(!h) return; const c0=edOvCols_(Object.assign({},E,{ovCol:'custom'})); E.ovCustom={box:c0.box, badge:c0.badge}; E.ovCustom[k==='cbox'?'box':'badge']=h; E.ovCol='custom'; edOvPrefPut_(E);
@@ -11050,8 +11018,8 @@ async function edOvBuild_(E,p,retry){
   ov.prom=(async()=>{
     try{
       E._src=E._src||{};
-      let src=E._src[p.inuse];
-      if(!src){ const f=await edPost_({action:'fetch_image', url:p.inuse}); if(!f||!f.ok) throw new Error((f&&f.error)||'could not open the picture'); src=E._src[p.inuse]='data:'+(f.mime||'image/png')+';base64,'+f.data; }
+      const pic=edPic_(p); let src=E._src[pic];
+      if(!src){ const f=await edPost_({action:'fetch_image', url:pic}); if(!f||!f.ok) throw new Error((f&&f.error)||'could not open the picture'); src=E._src[pic]='data:'+(f.mime||'image/png')+';base64,'+f.data; }
       ov.data=await window.edOvPaint_(src, {now:+p.now, was:+p.was||0, pct:edPct_(p), style:E.ovStyle, label:E.ovLabel||'', cols:edOvCols_(E,p)});
     }catch(e){ ov.err=String(e.message||e); }
     ov.busy=false;
@@ -11178,8 +11146,8 @@ function edDnd_(box){
 // ── saved designs ──
 const ED_SAVE_KEY='lenehans_ed_saves_v1', ED_SAVE_MAX=20;
 const ED_ROW_KEEP=['QtySold_Online_Total_30d','QtySold_Online_Total_7d','QtySold_Online_Arklow_365d','QtySold_Online_CapelStreet_365d','NetStock_Arklow','NetStock_CapelStreet','AgeDays'];
-const ED_P_KEEP=['sku','name','title','url','img','now','was','inuse','inuseFrom','inuseSize','lib','libIdx','webPrice','webAt','stock','imgFrom','noTag','ovCol'];
-const ED_E_KEEP=['id','saveName','theme','link','hero','sections','copy','showTags','showMore','moreTitle','ovOn','ovStyle','ovLabel','ovCol','ovCustom','klName','klAud','ccSig'];
+const ED_P_KEEP=['sku','name','title','url','img','now','was','inuse','inuseFrom','inuseSize','lib','libIdx','webPrice','webAt','stock','imgFrom','noTag','ovCol','big','btnCol','noSku','from'];
+const ED_E_KEEP=['id','saveName','theme','link','hero','sections','copy','showTags','showMore','moreTitle','ovOn','ovStyle','ovLabel','ovCol','ovCustom','klName','klAud','ccSig','ctaCol','endCol','moreBg','follow'];
 function edSaves_(){ try{ const a=JSON.parse(localStorage.getItem(ED_SAVE_KEY)||'[]'); return Array.isArray(a)?a.filter(x=>x&&x.id&&x.E):[]; }catch(e){ return []; } }
 const edNewId_ = () => 'ed'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function edSlim_(E){
@@ -11213,11 +11181,7 @@ function edSaveSoon_(){ const E=window._ed; if(!E) return; clearTimeout(edSaveSo
 function edSaveStatus_(E){ return E._saveErr ? `<span class="ed-bad">⚠ Not saved: ${edEsc(E._saveErr)} — delete some saved designs</span>` : E._savedAt ? `💾 Saved ${edWhen_(E._savedAt)}` : '💾 Saves as you go'; }
 function edSaveMark_(E){ if(E!==window._ed) return; const el=document.getElementById('edSaveSt'); if(el) el.innerHTML=edSaveStatus_(E);
   const b=document.getElementById('edSavedBtn'); if(b){ const n=edSaves_().length; b.textContent='📂 Saved designs'+(n?` (${n})`:''); } }
-function edSaveBarHtml_(E){ const n=edSaves_().length;
-  return `<div class="ed-save"><span id="edSaveSt" class="ed-save-st">${edSaveStatus_(E)}</span>
-    <input id="edSaveName" class="ed-save-n" value="${edEsc(edName_(E))}" title="The name in 📂 Saved email designs" oninput="edSaveName(this.value)">
-    <button class="ed-sm" onclick="edSaveCopy(this)" title="Keeps this version as it is now, so you can try changes and still come back to it">📌 Keep a copy of this version</button>
-    <button class="ed-sm" id="edSavedBtn" onclick="edSavedShow()">📂 Saved designs${n?` (${n})`:''}</button></div>`; }
+
 window.edSaveName=function(v){ const E=window._ed; if(!E) return; E.saveName=String(v||'').slice(0,80); edSaveSoon_(); };
 window.edSaveCopy=function(btn){ const E=window._ed; if(!E) return; edSaveNow_(E); const r=edSaveNow_(E,true);
   if(btn){ const t0='📌 Keep a copy of this version'; btn.textContent=r?'📌 Copy kept ✓ (in 📂 Saved designs)':'⚠ Not saved'; setTimeout(()=>{ btn.textContent=t0; },2500); }
@@ -11252,17 +11216,6 @@ function edRevive_(s){
   E._lastJson=JSON.stringify(edSlim_(E));
   return E;
 }
-window.edOpenSaved=function(id){
-  if(window._ed){ clearTimeout(edSaveSoon_._t); edSaveNow_(window._ed); }   // what's open now is saved first
-  const s=edSaves_().find(x=>x.id===id); if(!s) return;
-  const out=document.getElementById('ccResult'); if(!out) return;
-  window._ed=edRevive_(s);
-  if(!document.getElementById('edOut')) out.insertAdjacentHTML('beforeend', `<div class="ed-panel" id="edPanel"><div class="ed-h">🎨 Email designer <span>opened from 📂 Saved email designs · to design a new email, check a campaign above</span></div><div id="edOut"></div></div>`);
-  const bar=document.getElementById('edSavedBar'); if(bar) bar.dataset.open='';
-  edRender_(); edSavedBar_();
-  try{ document.getElementById('edPanel').scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){}
-  try{ logUsage('email_design_open', s.name); }catch(e){}
-};
 function edCcSig_(){ return (window._ccItems||[]).filter(i=>i.stock>0).map(i=>String(i.sku)).sort().join(','); }
 // leaving the page (or the tab going to the background) saves straight away
 try{ window.addEventListener('pagehide', ()=>{ try{ if(window._ed) edSaveNow_(window._ed); }catch(e){} });
@@ -11273,6 +11226,7 @@ function edPreview_(fromOv){
   fr.srcdoc=edHtml_(window._ed, true);
   if(!fromOv) edOvRefresh_();
   edSaveSoon_();   // V7.42.0
+  edHistSoon_();   // V7.43.0
 }
 window.edCopyHtml=async function(btn){
   const E=window._ed; if(!E) return; const t0=btn?btn.textContent:'';
@@ -11345,6 +11299,297 @@ window.edDownload=async function(btn){
   a.click(); try{ URL.revokeObjectURL(a.href); }catch(e){}
 };
 // ── the email itself (B+): table layout, inline styles, 600px, stacks on phones, dark-mode aware ──
+
+// ══ V7.43.0 — block editing · undo · follow-up emails (Mark, 21 Nov) ══════════════════════════════════════════════════
+// Mark, 21 Nov: "When changing a colour, allow users to enter a specific colour code (HEX code). Allow the colour of each
+// button to be changed individually. Allow the background colour of each section to be changed individually. Add a
+// "Revert" button to undo changes. Add an "Include Offer in Image" option for every block. has context menu" … "Also we
+// send a follow up email on some days. For example on monday we choose the products that are still in stock from the
+// weekend emails. and send something like the attached."
+//   • every colour has a hex box beside its picker (#FFD200 or FD0); presets as swatches
+//   • each product's Shop button can have its own colour (its ⋯ / right-click menu, or the Button chip on its row); the top,
+//     bottom and all product buttons at once from "Button colours"; the writing on a button follows its colour
+//   • each section and the strip can have its own background; on a dark background the writing turns light
+//   • ↶ Undo / ↷ Redo (Ctrl+Z / Ctrl+Y) and ⟲ Revert (back to how the design was made or opened — itself undoable)
+//   • 🏷 Include offer in image on every block — product photos too; a small row ticked shows as a big picture
+//   • any block can be a big picture or a small row (🖼 / ▭), wherever it is
+//   • right-click a product or a section (or its ⋯ button): make it the star, move it, big/small, offer, button colour,
+//     another picture, leave it out · move a section, its background, add one below, remove it
+//   • 🔁 Follow-up email (Email tab): pick the emails sent in the last few days (from Klaviyo, through the web app's
+//     FollowUp.gs) or 📂 saved designs; their products come back with the pictures they had, anything sold out since is
+//     left out, and the catch-up is laid out like the Monday "pick-me-up" — every product a big picture with Shop now.
+//   • our emails now carry a small hidden note per product (<!--ed {"s":SKU,…}-->) so a follow-up always knows the SKU.
+const ED_SWATCHES=['#002538','#3B5664','#C3022B','#E86A10','#FFD200','#1E7F3A','#111111','#FFFFFF','#EEF3F6','#F8F5EC'];
+const ED_HIST_MAX=80;
+// "#FD0", "fd0", "#FFD200", "FFD200" → "#FFD200"; anything else → ''
+function edHexIn_(v){ v=String(v||'').trim().replace(/^#/,'');
+  if(/^[0-9a-f]{3}$/i.test(v)) v=v.split('').map(c=>c+c).join(''); else if(!/^[0-9a-f]{6}$/i.test(v)) return '';
+  return '#'+v.toUpperCase(); }
+const edInk_ = bg => edLum_(bg)>0.4 ? '#111111' : '#ffffff';      // writing that reads on that colour
+const edPic_ = p => p ? (p.inuse||p.img||'') : '';                  // the picture a block shows
+function edBtnCol_(E,p,big){ return edHex_(p&&p.btnCol) || (big?ED.RED:ED.NAVY); }
+// is this product shown as a big picture? the star always; a section's first product unless made small; the rest when made big
+function edShownBig_(E,p,parts){ parts=parts||edParts_(E); if(!p) return false; if(parts.hero===p) return true;
+  for(const s of parts.secs){ const k=s.items.indexOf(p); if(k>=0) return k===0 ? p.big!==false : p.big===true; }
+  return !!(E.showMore && p.big===true); }
+function edBigProds_(E){ const P=edParts_(E); return [P.hero].concat(...P.secs.map(s=>s.items), P.more).filter(p=>p&&edShownBig_(E,p,P)); }
+// the offer: on product photos too; on by default for AI and pasted pictures, off for the team's and earlier emails' (they carry theirs)
+function edOvWant_(p){ const pic=edPic_(p); if(!pic) return false; const s=edStore_('lenehans_ed_ov_v1');
+  if(pic in s) return !!s[pic]; return !!p.inuse && p.inuseFrom!=='library' && p.inuseFrom!=='email'; }
+function edOvOn_(E,p){ return !!(E && E.ovOn && p && edPic_(p) && edOvWant_(p)); }
+function edOvKey_(E,p){ const c=edOvCols_(E,p); return [edPic_(p), (+p.now).toFixed(2), (+p.was||0).toFixed(2), E.ovStyle, (E.ovLabel||'').trim()].join('|')+(c.k==='navy'?'':'|'+c.box+'/'+c.badge); }
+function edBigSrc_(E,p,preview){ const base=edPic_(p); if(!edOvOn_(E,p)) return base;
+  const o=p.ov&&p.ov.key===edOvKey_(E,p)?p.ov:null; return preview ? ((o&&(o.data||o.url))||base) : ((o&&o.url)||base); }
+function edBigAlt_(E,p){ return edOvOn_(E,p) ? `${p.name}: now ${edEur(p.now)}${p.was>p.now?`, was ${edEur(p.was)}, save ${edPct_(p)}%`:''}` : (p.inuse?p.name+' in use':p.name); }
+window.edOvToggle=function(i){ const E=window._ed, p=E&&E.prods[i], pic=edPic_(p); if(!pic) return;
+  const s=edStore_('lenehans_ed_ov_v1'), on=!edOvWant_(p); s[pic]=on; edStorePut_('lenehans_ed_ov_v1',s);
+  if(on && !edShownBig_(E,p)){ p.big=true; if(edWhere_(E,p.sku)==='more' && !E.showMore) E.showMore=true; }   // an offer needs a big picture
+  edRender_(); };
+window.edBigSet=function(i,on){ const E=window._ed, p=E&&E.prods[i]; if(!p||p.sku===E.hero) return; p.big=!!on;
+  if(on && edWhere_(E,p.sku)==='more' && !E.showMore) E.showMore=true; edRender_(); };
+// ── colours: a picker + its hex code, kept in step ──
+function edColCtl_(key, val, title){ const v=edHex_(val);
+  return `<span class="ed-cc"><input type="color" value="${(v||'#C3022B').toLowerCase()}" oninput="edColPick(this,'${key}')" title="${edEsc(title||'Colour')}"><input class="ed-hex" value="${v}" placeholder="${v?'':'mixed'}" maxlength="7" spellcheck="false" oninput="edColHex(this,'${key}')" aria-label="${edEsc(title||'Colour')}: hex code" title="Type a colour code, e.g. #FFD200"></span>`; }
+window.edColPick=function(el,key){ const h=edHexIn_(el.value); if(!h) return; const t=el.parentNode&&el.parentNode.querySelector('.ed-hex'); if(t){ t.value=h; t.classList.remove('bad'); } edColSet_(key,h); };
+window.edColHex=function(el,key){ const h=edHexIn_(el.value); el.classList.toggle('bad', !h && el.value.trim()!==''); if(!h) return;
+  const c=el.parentNode&&el.parentNode.querySelector('input[type=color]'); if(c) c.value=h.toLowerCase(); edColSet_(key,h); };
+function edColSet_(key,h){ const E=window._ed; if(!E) return;
+  if(key==='cbox'||key==='cbadge') return window.edOvSet(key,h);
+  if(key==='cta'){ E.ctaCol=h; return edRe_(); }
+  if(key==='end'){ E.endCol=h; return edRe_(); }
+  if(key==='pbtn'){ E.prods.forEach(p=>{ p.btnCol=h; }); edBtnChips_(); return edRe_(); }
+  if(key.startsWith('m:')){ const a=_edMenu&&_edMenu.acts[+key.slice(2)]; if(a&&a.set) a.set(h); }
+}
+window.edBtnReset=function(){ const E=window._ed; if(!E) return; delete E.ctaCol; delete E.endCol; E.prods.forEach(p=>{ delete p.btnCol; }); edRender_(); };
+function edBtnChips_(){ const E=window._ed; if(!E) return; const P=edParts_(E);
+  document.querySelectorAll('.ed-bsw[data-mid]').forEach(b=>{ const p=E.prods.find(x=>x.sku===b.dataset.mid); if(p) b.style.setProperty('--c', edBtnCol_(E,p,edShownBig_(E,p,P))); }); }
+// ── undo / redo / revert ──
+function edSnap_(E){ const o=edSlim_(E); delete o.id; delete o.saveName; return JSON.stringify(o); }
+function edHistInit_(E){ if(!E._hist){ const s=edSnap_(E); E._hist=[s]; E._hix=0; E._base=s; } }
+function edHistSoon_(){ const E=window._ed; if(!E) return; edHistInit_(E); clearTimeout(E._ht); E._ht=setTimeout(()=>edHistPush_(E), 450); }
+function edHistPush_(E){ clearTimeout(E._ht); E._ht=null; edHistInit_(E); const s=edSnap_(E);
+  if(s!==E._hist[E._hix]){ E._hist=E._hist.slice(0,E._hix+1); E._hist.push(s); if(E._hist.length>ED_HIST_MAX) E._hist.shift(); E._hix=E._hist.length-1; }
+  edHistBtns_(E); }
+function edHistBtns_(E){ if(!E||E!==window._ed) return; const u=document.getElementById('edUndoB'), r=document.getElementById('edRedoB'), v=document.getElementById('edRevB');
+  if(u) u.disabled=!(E._hix>0); if(r) r.disabled=!(E._hist&&E._hix<E._hist.length-1); if(v&&v.dataset.sure!=='1') v.disabled=!(E._hist&&E._hist[E._hix]!==E._base); }
+function edApply_(E, snap){ const S=JSON.parse(snap), old=new Map((E.prods||[]).map(p=>[p.sku,p]));
+  ED_E_KEEP.forEach(k=>{ if(k==='id'||k==='saveName') return; if(S[k]===undefined) delete E[k]; else E[k]=S[k]; });
+  E.prods=(S.prods||[]).map(q=>{ const o=old.get(q.sku)||{}, p=Object.assign({lib:[], libIdx:0}, q); if(o.row) p.row=o.row; if(o.ov) p.ov=o.ov; return p; });
+  E.ai=null; }
+window.edUndo=function(){ const E=window._ed; if(!E) return; edHistInit_(E); if(E._ht) edHistPush_(E); if(E._hix<=0) return;
+  E._hix--; edApply_(E,E._hist[E._hix]); edRender_(); };
+window.edRedo=function(){ const E=window._ed; if(!E) return; edHistInit_(E); if(E._ht) edHistPush_(E); if(E._hix>=E._hist.length-1) return;
+  E._hix++; edApply_(E,E._hist[E._hix]); edRender_(); };
+window.edRevert=function(btn){ const E=window._ed; if(!E) return; edHistInit_(E); if(E._ht) edHistPush_(E); if(E._hist[E._hix]===E._base) return;
+  if(btn && btn.dataset.sure!=='1'){ btn.dataset.sure='1'; btn.textContent='⟲ Undo every change? Click again'; btn.classList.add('ed-sure');
+    setTimeout(()=>{ if(btn.isConnected&&btn.dataset.sure==='1'){ btn.dataset.sure=''; btn.textContent='⟲ Revert'; btn.classList.remove('ed-sure'); edHistBtns_(E); } },3500); return; }
+  edApply_(E,E._base); edRender_(); edHistPush_(E);   // a step of its own: ↶ Undo brings the changes back
+  try{ logUsage('email_design_revert', edName_(E)); }catch(e){} };
+// ── the right-click / ⋯ menu ──
+let _edMenu=null;
+function edVisible_(el){ for(let n=el;n&&n.nodeType===1;n=n.parentElement){ if(n.hidden) return false; try{ if(getComputedStyle(n).display==='none') return false; }catch(e){} } return !!el; }
+function edMenuClose_(){ const m=document.getElementById('edMenu'); if(m) m.remove(); _edMenu=null; }
+function edMenuShow_(x,y,title,items){
+  edMenuClose_(); const acts=[];
+  const html=items.map(it=>{
+    if(it.sep) return '<div class="ed-mn-sep"></div>';
+    if(it.head) return `<div class="ed-mn-h">${edEsc(it.head)}</div>`;
+    const n=acts.push(it)-1;
+    if(it.color) return `<div class="ed-mn-col"><div class="ed-mn-lbl">${it.label}</div><div class="ed-cp-sw">${ED_SWATCHES.map(c=>`<button type="button" style="background:${c}" title="${c}" onclick="edMenuCol(${n},'${c}')"></button>`).join('')}</div><div class="ed-cp-row">${edColCtl_('m:'+n, it.value||'', it.label.replace(/<[^>]+>/g,''))}<button type="button" class="ed-sm" onclick="edMenuCol(${n},'')">${it.resetLabel||'Reset'}</button></div></div>`;
+    return `<button type="button" role="menuitem" class="ed-mn-i${it.checked?' on':''}"${it.disabled?' disabled':''} onclick="edMenuDo(${n})">${it.checked!==undefined?`<span class="ed-mn-ck">${it.checked?'✓':''}</span>`:''}${it.label}</button>`; }).join('');
+  const m=document.createElement('div'); m.id='edMenu'; m.className='ed-mn'; m.setAttribute('role','menu');
+  m.innerHTML=(title?`<div class="ed-mn-t">${edEsc(title)}</div>`:'')+html; document.body.appendChild(m);
+  const W=window.innerWidth||1200, H=window.innerHeight||800, r=m.getBoundingClientRect();
+  m.style.left=Math.max(6,Math.min(x, W-r.width-6))+'px'; m.style.top=Math.max(6,Math.min(y, H-r.height-6))+'px';
+  _edMenu={acts, sy:window.scrollY||0, at:Date.now()}; const f=m.querySelector('button.ed-mn-i:not([disabled])'); if(f) try{ f.focus({preventScroll:true}); }catch(e){}
+}
+window.edMenuDo=function(n){ const a=_edMenu&&_edMenu.acts[n]; if(!a||a.disabled||!a.act) return; edMenuClose_(); a.act(); };
+window.edMenuCol=function(n,v){ const a=_edMenu&&_edMenu.acts[n]; if(!a) return; const h=v?edHexIn_(v):''; a.set(h);
+  const m=document.getElementById('edMenu'), cc=m&&m.querySelectorAll('.ed-mn-col .ed-cc'), c=[...(cc||[])].find(el=>el.querySelector(`[oninput*="'m:${n}'"]`));
+  if(c){ const show=h||a.value||''; const t=c.querySelector('.ed-hex'), p=c.querySelector('input[type=color]'); if(t) t.value=h; if(p&&show) p.value=show.toLowerCase(); } };
+function edMenuForP_(sku,x,y){
+  const E=window._ed; if(!E) return; const i=E.prods.findIndex(p=>p.sku===sku), p=E.prods[i]; if(!p) return;
+  const parts=edParts_(E), where=edWhere_(E,sku), big=edShownBig_(E,p,parts), star=where==='star', items=[];
+  if(!star) items.push({label:'⭐ Make it the star (top of the email)', act:()=>window.edMoveTo(i,'star')},
+    {label:'↑ Move up', act:()=>window.edNudge(i,-1)}, {label:'↓ Move down', act:()=>window.edNudge(i,1)}, {head:'Move to'});
+  if(!star){ parts.secs.forEach(s=>{ if('s'+s.k!==where) items.push({label:`Section ${s.k+1}${s.title?': '+edEsc(s.title):''}`, act:()=>window.edMoveTo(i,'s'+s.k)}); });
+    if(where!=='more') items.push({label:'The “more deals” strip', act:()=>window.edMoveTo(i,'more')});
+    if(E.sections.length<ED.MAX_SECTIONS) items.push({label:'+ A new section', act:()=>window.edMoveTo(i,'new')});
+    items.push({sep:1}, {label:big?'▭ Show as a small row':'🖼 Show as a big picture', act:()=>window.edBigSet(i,!big)}); }
+  if(edPic_(p)) items.push(E.ovOn ? {label:'🏷 Include offer in image', checked:edOvWant_(p), act:()=>window.edOvToggle(i)}
+                                  : {label:'🏷 Include offer in image (tick “Offer on the pictures” first)', disabled:true});
+  items.push({color:true, label:'🎨 Button colour', value:edBtnCol_(E,p,big), resetLabel:'Usual colour',
+    set:h=>{ if(h) p.btnCol=h; else delete p.btnCol; edBtnChips_(); edRe_(); }});
+  if((p.lib||[]).length>1) items.push({label:'↻ Another picture', act:()=>window.edPicNext(i)});
+  if(p.inuse) items.push({label:'📷 Product photo instead', act:()=>window.edPicNone(i)});
+  items.push({sep:1}, {label:'✕ Leave it out of the email', act:()=>window.edDrop(i)});
+  edMenuShow_(x,y,p.name,items);
+}
+function edMenuForS_(dest,x,y){
+  const E=window._ed; if(!E) return;
+  if(dest==='star') return E.hero?edMenuForP_(E.hero,x,y):null;
+  if(dest==='more') return edMenuShow_(x,y,'The “more deals” strip',[
+    {color:true, label:'🎨 Background colour', value:edHex_(E.moreBg)||'#FFFFFF', resetLabel:'No colour', set:h=>{ if(h) E.moreBg=h; else delete E.moreBg; edSecSw_(); edRe_(); }},
+    {label:E.showMore?'Hide the strip':'Show the strip', act:()=>window.edToggle('showMore')}]);
+  const k=+String(dest).slice(1), s=E.sections[k]; if(!s) return;
+  const items=[{label:'↑ Move this section up', disabled:k===0, act:()=>window.edSecMove(k,-1)}, {label:'↓ Move this section down', disabled:k===E.sections.length-1, act:()=>window.edSecMove(k,1)},
+    {color:true, label:'🎨 Background colour', value:edHex_(s.bg)||edSecBg_(E,k), resetLabel:'Usual colour', set:h=>{ if(h) s.bg=h; else delete s.bg; edSecSw_(); edRe_(); }}];
+  if(E.sections.length<ED.MAX_SECTIONS) items.push({label:'+ Add a section below', act:()=>{ E.sections.splice(k+1,0,{eyebrow:'',title:'New section',why:'',skus:[]}); edRender_(); }});
+  items.push({sep:1}, {label:'✕ Remove this section (its products go to the strip)', act:()=>window.edSecDel(k)});
+  edMenuShow_(x,y,`Section ${k+1}${s.title?': '+s.title:''}`,items);
+}
+// the usual section colours, by place among the sections that have products
+function edSecBg_(E,k){ const bgs=['#FFFFFF',ED.ICE,'#FFFFFF',ED.CREAM]; const P=edParts_(E), n=P.secs.filter(s=>s.items.length).findIndex(s=>s.k===k); return bgs[Math.max(0,n)%bgs.length]; }
+function edSecSw_(){ const E=window._ed; if(!E) return; document.querySelectorAll('.ed-secsw[data-mid]').forEach(b=>{ const d=b.dataset.mid;
+  b.style.setProperty('--c', d==='more'?(edHex_(E.moreBg)||'#FFFFFF'):(edHex_((E.sections[+d.slice(1)]||{}).bg)||edSecBg_(E,+d.slice(1)))); }); }
+window.edMenuBtn=function(ev){ ev.preventDefault(); ev.stopPropagation(); const b=ev.currentTarget, r=b.getBoundingClientRect(), k=b.dataset.mk, id=b.dataset.mid;
+  if(k==='p') edMenuForP_(id,r.left,r.bottom+4);
+  else if(k==='b'){ const E=window._ed, p=E&&E.prods.find(x=>x.sku===id); if(!p) return; const big=edShownBig_(E,p);
+    edMenuShow_(r.left,r.bottom+4,'Button colour · '+p.name,[{color:true, label:'🎨 Shop button', value:edBtnCol_(E,p,big), resetLabel:'Usual colour', set:h=>{ if(h) p.btnCol=h; else delete p.btnCol; edBtnChips_(); edRe_(); }}]); }
+  else edMenuForS_(id,r.left,r.bottom+4); };
+function edCtx_(box){
+  if(!box||box._edCtx) return; box._edCtx=true;
+  box.addEventListener('contextmenu',e=>{ const t=e.target; if(!t||!t.closest||t.closest('input,textarea,select,.ed-ai')) return;   // fields keep the usual menu (copy / paste)
+    const r=t.closest('.ed-r[data-sku]'); if(r){ e.preventDefault(); edMenuForP_(r.dataset.sku,e.clientX,e.clientY); return; }
+    const z=t.closest('.ed-sec[data-dest]'); if(z){ e.preventDefault(); edMenuForS_(z.dataset.dest,e.clientX,e.clientY); } });
+  box.addEventListener('keydown',e=>{ if(e.key==='ContextMenu'||(e.shiftKey&&e.key==='F10')){ const r=e.target&&e.target.closest&&e.target.closest('.ed-r[data-sku]'); if(r){ e.preventDefault(); const b=r.getBoundingClientRect(); edMenuForP_(r.dataset.sku,b.left+40,b.top+20); } } });
+}
+try{
+  document.addEventListener('mousedown',e=>{ const m=document.getElementById('edMenu'); if(m&&!m.contains(e.target)) edMenuClose_(); }, true);
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape' && document.getElementById('edMenu')){ edMenuClose_(); return; }
+    const E=window._ed, panel=document.getElementById('edPanel'); if(!E||!panel||!(e.ctrlKey||e.metaKey)) return;
+    const t=e.target||{}, tag=String(t.tagName||'');
+    if(/^(INPUT|TEXTAREA|SELECT)$/.test(tag)||t.isContentEditable) return;            // fields keep their own undo
+    if(!(t===document.body||(t.closest&&t.closest('#edPanel,#edMenu')))||!edVisible_(panel)) return;
+    const k=String(e.key||'').toLowerCase();
+    if(k==='z'&&!e.shiftKey){ e.preventDefault(); window.edUndo(); } else if(k==='y'||(k==='z'&&e.shiftKey)){ e.preventDefault(); window.edRedo(); } });
+  window.addEventListener('resize', edMenuClose_);
+  // scrolling the page away closes the menu — not the last bit of a scroll still settling when it opened
+  window.addEventListener('scroll', e=>{ const m=document.getElementById('edMenu'); if(!m||!_edMenu) return; const t=e.target;
+    if(t&&t.nodeType===1&&m.contains(t)) return;
+    if(t&&t.nodeType===1) { if(Date.now()-_edMenu.at>400) edMenuClose_(); return; }
+    if(Math.abs((window.scrollY||0)-_edMenu.sy)>40) edMenuClose_(); }, true);
+}catch(e){}
+// ── the editor: one product block ──
+function edRowHtml_(E, p, i, parts){
+  const where=edWhere_(E, p.sku), tag=edTag_(p), big=edShownBig_(E,p,parts), pic0=edPic_(p), want=edOvWant_(p), star=where==='star';
+  const thumb=(big?edBigSrc_(E,p,true):p.inuse)||p.img;
+  const ovSt = edOvOn_(E,p)&&big&&p.ov&&p.ov.key===edOvKey_(E,p) ? (p.ov.busy?' <span>⏳ adding the offer…</span>':p.ov.err?` <span class="ed-bad">offer not added: ${edEsc(p.ov.err)}</span>`:'') : '';
+  const ovHint = !want && p.inuse && (p.inuseFrom==='library'||p.inuseFrom==='email') ? ` <span class="ed-ovh">(off: ${p.inuseFrom==='email'?'the picture from the earlier email may show its offer already':'team pictures usually have the offer already'})</span>` : '';
+  const ovLine = E.ovOn && pic0 ? `<label class="ed-ovc"><input type="checkbox" ${want?'checked':''} onchange="edOvToggle(${i})"> 🏷 Include offer in image${big?'':' <span class="ed-ovh">(shows it as a big picture)</span>'}</label>${want&&big?`<select class="ed-ovp" onchange="edOvPick(${i},this.value)" title="Colours of the offer on this picture">${edOvColOpts_(p.ovCol,true)}</select>${edOvSw_(edOvCols_(E,p))}`:''}${ovSt}${ovHint}` : '';
+  const opts=[['star','⭐ Star (top of the email)']].concat(parts.secs.map(s=>['s'+s.k, `Section ${s.k+1}: ${s.title||s.eyebrow||'untitled'}`]), [['more','More deals strip']], E.sections.length<ED.MAX_SECTIONS?[['new','+ New section']]:[]);
+  const src={library:'from the Klaviyo library', ai:'AI picture (approved)', pasted:'pasted address', email:'from the earlier email'}[p.inuseFrom]||'';
+  const light=p._light==='busy'?' · ⏳ making a lighter copy…':(p._light&&p._light.startsWith('err:'))?` · <span class="ed-bad">${edEsc(p._light.slice(4))}</span>`:'';
+  const pic = p.inuse
+    ? `📷 In-use picture <b>${src}</b>${edHeavy_(p)?` · <span class="ed-bad">⚠ ${edKB_(p.inuseSize)} KB, slow on phones</span> <button class="ed-sm" onclick="edLighter(${i})">🪶 Make a lighter copy</button>`:''}${light}
+       ${(p.lib||[]).length>1?`<button class="ed-sm" onclick="edPicNext(${i})" title="${(p.lib||[]).length} pictures in the library for this product">↻ Another</button>`:''}<button class="ed-sm" onclick="edPicNone(${i})" title="Use the plain product photo instead">Product photo instead</button>`
+    : `📷 <b>No in-use picture</b> <button class="ed-sm ed-mk" onclick="edAiOpen(${i})"${p.img||p.inuse?'':' disabled title="Needs a product photo first"'}>🪄 Make one</button>
+       ${(p.lib||[]).length?`<button class="ed-sm" onclick="edPicNext(${i})">↻ Library picture</button>`:''}<input class="ed-paste" placeholder="…or paste a picture address" oninput="edPicPaste(${i},this.value)">`;
+  const bc=edBtnCol_(E,p,big);
+  return `<div class="ed-r${p.inuse?'':' noin'}${big?' big':''}" data-sku="${edEsc(p.sku)}">
+    <span class="ed-grip" draggable="true" data-drag="p:${edEsc(p.sku)}" title="${star?'Drag onto another product to swap it with the star':'Drag to move: onto another product, into any section, the strip, or onto the ⭐ star'}">⠿</span>
+    ${thumb?`<img class="ed-th" data-th="${edEsc(p.sku)}" src="${edEsc(thumb)}" alt="">`:`<div class="ed-th ed-th0">no photo</div>`}
+    <div class="ed-rm">
+      <div class="ed-r1"><input value="${edEsc(p.name)}" oninput="edSetP(${i},'name',this.value)" title="Name shown in the email"><span class="ed-p-pr">${edEur(p.now)}${p.was?` <s>${edEur(p.was)}</s>`:''}</span><button class="ed-dots" data-mk="p" data-mid="${edEsc(p.sku)}" onclick="edMenuBtn(event)" title="More: move, big or small, offer, button colour… (or right-click the product)" aria-label="More for ${edEsc(p.name)}">⋯</button></div>
+      <div class="ed-r2">${tag?`<button class="ed-tag ${tag.kind}${(p.noTag||!E.showTags)?' off':''}" onclick="edTagToggle(${i})" title="Worked out from our sales and stock. Click to hide or show it for this product.">${edEsc(tag.txt)}</button>`:''}
+        <select onchange="edMoveTo(${i},this.value)"${star?' disabled title="Pick ⭐ on another product to swap"':''}>${opts.map(([v,l])=>`<option value="${v}"${v===where?' selected':''}>${edEsc(l)}</option>`).join('')}</select>
+        ${star?'':`<button tabindex="-1" title="Move up" onclick="edNudge(${i},-1)">↑</button><button tabindex="-1" title="Move down" onclick="edNudge(${i},1)">↓</button>`}<button tabindex="-1" title="Leave out" onclick="edDrop(${i})">✕</button>
+        ${star?'':`<button class="ed-sm ed-sz" onclick="edBigSet(${i},${!big})" title="${big?'Show it as a small row':'Show it as a big picture'}">${big?'🖼 Big picture':'▭ Small row'}</button>`}
+        <button class="ed-bsw" data-mk="b" data-mid="${edEsc(p.sku)}" onclick="edMenuBtn(event)" style="--c:${bc}" title="This product’s Shop button colour (${bc})">Button</button></div>
+      <div class="ed-r3">${pic}</div>${ovLine?`<div class="ed-r3">${ovLine}</div>`:''}
+      ${!p.img?`<div class="ed-r3"><input class="ed-paste" placeholder="Product photo missing: paste its address (right-click the photo on lenehans.ie → Copy image address)" oninput="edSetP(${i},'img',this.value)"></div>`:''}
+      ${p.noSku?`<div class="ed-r3"><span class="ed-bad">⚠ Not matched to a SKU — its stock isn’t checked</span></div>`:''}
+      ${E.ai&&E.ai.sku===p.sku?edAiHtml_(E.ai, p):''}
+    </div></div>`;
+}
+// ── the editor ──
+function edRender_(){
+  const E=window._ed, box=document.getElementById('edOut'); if(!E||!box) return;
+  edMenuClose_(); edHistInit_(E);
+  const parts=edParts_(E), warn=edPriceWarnings_(), idx=new Map(E.prods.map((p,i)=>[p.sku,i]));
+  const row=p=>edRowHtml_(E, p, idx.get(p.sku), parts);
+  const noIn=E.prods.filter(p=>!p.inuse).length, heavy=E.prods.filter(edHeavy_).length, mh=edMoreHead_(E, parts.more);
+  const f=(id,lbl,val,ta)=>`<label>${lbl}${ta?`<textarea id="${id}" rows="3" oninput="edSet('${id}',this.value)">${edEsc(val)}</textarea>`:`<input id="${id}" value="${edEsc(val)}" oninput="edSet('${id}',this.value)">`}</label>`;
+  const sf=(k,key,lbl,val)=>`<label>${lbl}<input value="${edEsc(val)}" oninput="edSetS(${k},'${key}',this.value)"></label>`;
+  const pb=[...new Set(E.prods.map(p=>edHex_(p.btnCol)||''))], pbv=pb.length===1?pb[0]:'';
+  const FU=E.follow;
+  const secSw=(d,c)=>`<button class="ed-secsw" data-mk="s" data-mid="${d}" onclick="edMenuBtn(event)" style="--c:${c}" title="Background colour (${c}) — click to change">Background</button>`;
+  box.innerHTML=`<div class="ed-grid">
+    <div class="ed-edit">
+      ${edSaveBarHtml_(E)}
+      ${FU?`<div class="ed-note ed-fu-n">🔁 Follow-up of <b>${(FU.from||[]).map(edEsc).join('</b> + <b>')}</b> · ${E.prods.length} product${E.prods.length!==1?'s':''} still in stock${FU.dropped&&FU.dropped.length?`<br>Left out, sold out since: ${FU.dropped.map(edEsc).join(', ')}`:''}${FU.unknown&&FU.unknown.length?`<br><span class="ed-bad">⚠ ${FU.unknown.length} not matched to a SKU, so their stock isn’t checked: ${FU.unknown.map(edEsc).join(', ')}</span>`:''}</div>`:''}
+      ${!E.metaLive?`<div class="ed-warn">Pictures: ${edEsc(E.metaErr||'not reachable')}. Paste the updated <b>Code.gs</b> into the web app and deploy a New version; until then, paste each picture's address below.</div>`:''}
+      ${noIn?`<div class="ed-note">📷 ${noIn} product${noIn!==1?'s have':' has'} no in-use picture yet: 🪄 Make one, pick one from the library, or paste an address. Without one, the product photo is used.</div>`:''}
+      ${heavy?`<div class="ed-warn">⚠ ${heavy} in-use picture${heavy!==1?'s are':' is'} over ${ED.HEAVY_KB} KB and will load slowly on phones. <button class="ed-sm" onclick="edLightenAll()">🪶 Make lighter copies of all ${heavy}</button></div>`:''}
+      ${warn.length?`<div class="ed-warn"><b>Prices to fix before sending:</b><br>${warn.join('<br>')}</div>`:''}
+      ${f('edSubject','Subject line',E.copy.subject)}${f('edPre','Preview text',E.copy.preheader)}
+      ${f('edOffer','Offer strip at the top (leave empty for none)',E.copy.offer||'')}
+      ${f('edHead','Headline',E.copy.headline)}${f('edIntro','Intro (after “Hey {first name},”)',E.copy.intro,true)}
+      <div class="ed-2">${f('edCta','Button',E.copy.cta)}<label>Button link<input id="edLink2" value="${edEsc(E.link)}" oninput="edSet('edLink2',this.value)"></label></div>
+      <div class="ed-opts ed-btns"><b>Button colours</b>
+        <span class="ed-ovcc">Top ${edColCtl_('cta', E.ctaCol||ED.NAVY, 'Top button')}</span>
+        <span class="ed-ovcc">Every product ${edColCtl_('pbtn', pbv, 'Every product button')}</span>
+        <span class="ed-ovcc">Bottom ${edColCtl_('end', E.endCol||ED.NAVY, 'Bottom button')}</span>
+        <button class="ed-sm" onclick="edBtnReset()" title="Back to the usual colours: navy, and red on the big pictures">Usual colours</button>
+        <span class="ed-ovh">one product: its <b>Button</b> chip, or right-click it</span></div>
+      <div class="ed-opts ed-ov"><label><input type="checkbox" ${E.ovOn?'checked':''} onchange="edOvSet('on')"> 🏷 Offer on the pictures</label>
+        <select onchange="edOvSet('style',this.value)"${E.ovOn?'':' disabled'}>${ED_OV_STYLES.map(([v,l])=>`<option value="${v}"${E.ovStyle===v?' selected':''}>${l}</option>`).join('')}</select>
+        <select onchange="edOvSet('col',this.value)" title="Colours of the price box and the SAVE roundel"${E.ovOn?'':' disabled'}>${edOvColOpts_(E.ovCol||'navy')}</select>${edOvSw_(edOvCols_(E),'ed-ovsw-e')}
+        ${E.ovCol==='custom'?`<span class="ed-ovcc">Price box ${edColCtl_('cbox', edOvCols_(E).box, 'Price box')}</span><span class="ed-ovcc">SAVE roundel ${edColCtl_('cbadge', edOvCols_(E).badge, 'SAVE roundel')}</span>`:''}
+        <input class="ed-ovl" maxlength="24" value="${edEsc(E.ovLabel||'')}" placeholder="Label on the pictures (optional), e.g. EARLY BLACK FRIDAY" oninput="edOvSet('label',this.value)"${E.ovOn?'':' disabled'}></div>
+      <div class="ed-opts"><label><input type="checkbox" ${E.showTags?'checked':''} onchange="edToggle('showTags')"> Sales &amp; stock tags</label><label><input type="checkbox" ${E.showMore?'checked':''} onchange="edToggle('showMore')"> “${edEsc(mh.title)}” strip</label></div>
+      <div class="ed-tip">⠿ Drag a product or a whole section to move it — onto another product, into a section, the strip, or onto the ⭐ star to swap · ↑ ↓ carry on into the next section · <b>right-click</b> a product or section (or ⋯) for everything else</div>
+      <div class="ed-sec star" data-dest="star"><div class="ed-sec-h">⭐ Star product: the big picture at the top</div>${parts.hero?row(parts.hero):''}</div>
+      ${parts.secs.map(s=>`<div class="ed-sec" data-dest="s${s.k}"${edHex_(s.bg)?` style="--secbg:${edHex_(s.bg)}"`:''}><div class="ed-sec-h"><span class="ed-grip ed-sgrip" draggable="true" data-drag="s:${s.k}" title="Drag to move this whole section">⠿</span>Section ${s.k+1}${s.items.length?'':' <i>(empty: move products here, or remove it)</i>'}
+          ${secSw('s'+s.k, edHex_(s.bg)||edSecBg_(E,s.k))}
+          <span class="ed-sec-mv"><button class="ed-sm" onclick="edSecMove(${s.k},-1)"${s.k===0?' disabled':''} title="Move this whole section up">↑ Up</button><button class="ed-sm" onclick="edSecMove(${s.k},1)"${s.k===parts.secs.length-1?' disabled':''} title="Move this whole section down">↓ Down</button></span><button class="ed-sm" onclick="edSecDel(${s.k})" title="Remove this section (its products go to the strip)">✕ Remove section</button><button class="ed-dots" data-mk="s" data-mid="s${s.k}" onclick="edMenuBtn(event)" title="More for this section (or right-click it)" aria-label="More for section ${s.k+1}">⋯</button></div>
+        <div class="ed-2">${sf(s.k,'eyebrow','Small heading',s.eyebrow)}${sf(s.k,'title','Section title',s.title)}</div>${sf(s.k,'why','One line on why',s.why)}
+        ${s.items.map(row).join('')}</div>`).join('')}
+      ${E.sections.length<ED.MAX_SECTIONS?`<div class="ed-addsec" data-dest="new"><button class="ed-sm" onclick="edSecAdd()">+ Add a section</button><span>or drag a product here to start one with it</span></div>`:''}
+      <div class="ed-sec more" data-dest="more"><div class="ed-sec-h">${edEsc(mh.eyebrow)} strip${E.showMore?'':' <i>(switched off)</i>'} ${secSw('more', edHex_(E.moreBg)||'#FFFFFF')}<button class="ed-dots" data-mk="s" data-mid="more" onclick="edMenuBtn(event)" title="More for the strip (or right-click it)" aria-label="More for the strip" style="margin-left:auto">⋯</button></div>
+        <label>Title<input value="${edEsc(E.moreTitle)}" placeholder="${edEsc(mh.title)}" oninput="edSetMore(this.value)"></label>
+        ${parts.more.length?parts.more.map(row).join(''):'<div class="ed-note">Nothing here: every product is in a section.</div>'}</div>
+      <div class="ed-src">${FU?'Words by AI for a follow-up, in the style of your Monday catch-up — change anything.':E.copy.ai?'Words and sections by AI in the style of your best-opening campaigns — change anything.':'Words: the plain version (the AI couldn’t be reached), sections by product type — change anything.'} Tags come from our own sales and stock and are worked out again when you send.</div>
+    </div>
+    <div class="ed-prev">
+      <div class="ed-bar"><b>Preview</b><span>${edEsc(E.copy.subject)}</span>
+        <button onclick="edKlOpen()" title="Makes a draft campaign in Klaviyo with this email — nothing is sent">📤 Send to Klaviyo as draft</button><button onclick="edCopyHtml(this)">📋 Copy HTML</button><button onclick="edDownload(this)">⬇ Download .html</button>${FU?`<button onclick="edFollowWords(this)" title="Write new words for this follow-up — the products stay as they are">🔄 New words</button>`:E.ccSig&&E.ccSig===edCcSig_()?`<button onclick="edDesign()" title="Fetch pictures again and write new words — this design stays in 📂 Saved designs">🔄 New words</button>`:''}</div>
+      <div id="edKl"></div>
+      <iframe id="edFrame" title="Email preview"></iframe>
+      <div class="ed-src">📤 makes a Klaviyo draft with your usual audience and sender — you check it and press Send in Klaviyo. Or 📋 Copy HTML → Klaviyo → Templates → Create template → HTML.</div>
+    </div></div>`;
+  edDnd_(box); edCtx_(box);
+  edPreview_();
+  edHistBtns_(E);
+}
+function edSaveBarHtml_(E){ const n=edSaves_().length;
+  return `<div class="ed-save"><span id="edSaveSt" class="ed-save-st">${edSaveStatus_(E)}</span>
+    <span class="ed-undo"><button class="ed-sm" id="edUndoB" onclick="edUndo()" title="Undo the last change (Ctrl+Z)">↶ Undo</button><button class="ed-sm" id="edRedoB" onclick="edRedo()" title="Redo (Ctrl+Y)">↷ Redo</button><button class="ed-sm ed-rev" id="edRevB" onclick="edRevert(this)" title="Back to how this design was when it was made or opened — you can Undo that too">⟲ Revert</button></span>
+    <input id="edSaveName" class="ed-save-n" value="${edEsc(edName_(E))}" title="The name in 📂 Saved email designs" oninput="edSaveName(this.value)">
+    <button class="ed-sm" onclick="edSaveCopy(this)" title="Keeps this version as it is now, so you can try changes and still come back to it">📌 Keep a copy of this version</button>
+    <button class="ed-sm" id="edSavedBtn" onclick="edSavedShow()">📂 Saved designs${n?` (${n})`:''}</button></div>`; }
+// a design (saved, or a follow-up) opened into the Email tab's designer panel
+function edShowDesign_(E, head){
+  const out=document.getElementById('ccResult'); if(!out) return false;
+  window._ed=E;
+  if(!document.getElementById('edOut')) out.insertAdjacentHTML('beforeend', `<div class="ed-panel" id="edPanel"><div class="ed-h">🎨 Email designer <span>${head||''}</span></div><div id="edOut"></div></div>`);
+  else { const h=document.querySelector('#edPanel .ed-h span'); if(h&&head) h.innerHTML=head; }
+  const bar=document.getElementById('edSavedBar'); if(bar) bar.dataset.open='';
+  edRender_(); edSavedBar_();
+  try{ document.getElementById('edPanel').scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){}
+  return true;
+}
+window.edOpenSaved=function(id){
+  if(window._ed){ clearTimeout(edSaveSoon_._t); edSaveNow_(window._ed); }   // what's open now is saved first
+  const s=edSaves_().find(x=>x.id===id); if(!s) return;
+  edShowDesign_(edRevive_(s), 'opened from 📂 Saved email designs · to design a new email, check a campaign above');
+  try{ logUsage('email_design_open', s.name); }catch(e){}
+};
+// ── the email itself (B+): table layout, inline styles, 600px, stacks on phones, dark-mode aware ──
+// V7.43.0: any block big or small · each button its own colour · each section its own background · a hidden note per
+// product (<!--ed {"s":SKU,"p":picture,"o":1 when the offer is drawn on}-->) so a follow-up can read the email back.
+function edMark_(E,p){ return `<!--ed ${JSON.stringify({s:p.sku, p:edPic_(p), o:edOvOn_(E,p)&&edShownBig_(E,p)?1:0}).replace(/-/g,'\\u002d').replace(/</g,'\\u003c').replace(/>/g,'\\u003e')}-->`; }
 function edHtml_(E, preview){
   const NAVY=ED.NAVY, RED=ED.RED, MUTE=ED.MUTE, LINE=ED.LINE, ICE=ED.ICE, CREAM=ED.CREAM, BG=ED.BG;
   const F='Helvetica,Arial,sans-serif', PF="'Poppins',Helvetica,Arial,sans-serif";
@@ -11353,69 +11598,78 @@ function edHtml_(E, preview){
   const prefs = preview ? '<a href="#" style="color:#56656D;text-decoration:underline">Manage preferences</a>' : "{% manage_preferences 'Manage preferences' %}";
   const webv  = preview ? '<a href="#" style="color:#56656D">View it in your browser</a>' : "{% web_view 'View it in your browser' %}";
   const T=(inner,attrs='')=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"${attrs}>${inner}</table>`;
-  const btn=(txt,url,bg,fg,pad,size,center)=>`<table role="presentation" cellpadding="0" cellspacing="0" border="0"${center?' align="center"':''}><tr><td bgcolor="${bg}"${bg===NAVY?' class="dm-btn"':''} style="border-radius:24px;background:${bg}"><a href="${edEsc(url)}" target="_blank" style="display:inline-block;padding:${pad||'13px 28px'};font-family:${PF};font-size:${size||16}px;font-weight:600;line-height:20px;color:${fg};text-decoration:none;border-radius:24px">${edEsc(txt)}</a></td></tr></table>`;
-  const price=(p,big,fg)=>{ fg=fg||RED; return `<span${fg===RED?' class="dm-red"':''} style="font-family:${PF};font-size:${big||20}px;font-weight:700;color:${fg}">${edEur(p.now)}</span>${p.was>p.now?` <span class="dm-m" style="font-family:${F};font-size:14px;color:${MUTE};text-decoration:line-through">${edEur(p.was)}</span>`:''}`; };
+  const btn=(txt,url,bg,fg,pad,size,center)=>{ fg=fg||edInk_(bg); return `<table role="presentation" cellpadding="0" cellspacing="0" border="0"${center?' align="center"':''}><tr><td bgcolor="${bg}"${bg===NAVY?' class="dm-btn"':''} style="border-radius:24px;background:${bg}"><a href="${edEsc(url)}" target="_blank" style="display:inline-block;padding:${pad||'13px 28px'};font-family:${PF};font-size:${size||16}px;font-weight:600;line-height:20px;color:${fg};text-decoration:none;border-radius:24px">${edEsc(txt)}</a></td></tr></table>`; };
+  // writing colours: the usual ones (with dark-mode classes), or — on a section with its own background — ones that read on it
+  const TH0={t:NAVY, m:MUTE, r:RED, cls:true};
+  const themeFor=bg=>!bg?TH0:(edLum_(bg)<0.3?{t:'#FFFFFF', m:'#D5E2EA', r:'#FFB3BF', cls:false}:{t:NAVY, m:MUTE, r:RED, cls:false});
+  const price=(p,big,th)=>{ th=th||TH0; return `<span${th.cls?' class="dm-red"':''} style="font-family:${PF};font-size:${big||20}px;font-weight:700;color:${th.r}">${edEur(p.now)}</span>${p.was>p.now?` <span${th.cls?' class="dm-m"':''} style="font-family:${F};font-size:14px;color:${th.m};text-decoration:line-through">${edEur(p.was)}</span>`:''}`; };
   const chip=(txt,bg,fg)=>`<span style="display:inline-block;background:${bg};color:${fg};font-family:${F};font-size:12px;font-weight:700;line-height:16px;letter-spacing:.02em;padding:4px 10px;border-radius:12px;white-space:nowrap">${edEsc(txt)}</span>`;
   const save=p=>edPct_(p)>=5?chip('SAVE '+edPct_(p)+'%','#FCE9EC',RED):'';
   const tag=p=>{ if(!E.showTags||p.noTag) return ''; const t=edTag_(p); if(!t) return '';
     return t.kind==='low'?chip(t.txt.toUpperCase(),'#FFF1D6','#7A4B00'):t.kind==='new'?chip('NEW IN',ICE,NAVY):chip(t.txt.toUpperCase(),NAVY,'#ffffff'); };
   const chips=p=>[save(p),tag(p)].filter(Boolean).join(' ');
-  const youSave=p=>p.was>p.now?`<div class="dm-m" style="margin-top:4px;font-family:${F};font-size:13px;line-height:18px;font-weight:400;color:${MUTE}">You save ${edEur(p.was-p.now)}</div>`:'';
+  const youSave=(p,th)=>{ th=th||TH0; return p.was>p.now?`<div${th.cls?' class="dm-m"':''} style="margin-top:4px;font-family:${F};font-size:13px;line-height:18px;font-weight:400;color:${th.m}">You save ${edEur(p.was-p.now)}</div>`:''; };
   const pic=(src,w,alt,url,round)=>src?`<a href="${edEsc(url)}" target="_blank"><img src="${edEsc(src)}" width="${w}" alt="${edEsc(alt)}" style="display:block;width:100%;max-width:${w}px;height:auto;border:0;margin:0 auto;${round?'border-radius:14px;':''}"></a>`
     : `<div style="height:${Math.round(w*0.6)}px;background:#E5E9EB;border-radius:14px;font-family:${F};font-size:13px;line-height:${Math.round(w*0.6)}px;text-align:center;color:${MUTE}">picture</div>`;
   const eyebrow=(t,col)=>t?`<div class="${col?'':'dm-red'}" style="font-family:${F};font-size:12px;font-weight:700;letter-spacing:.16em;color:${col||RED};text-transform:uppercase">${edEsc(t)}</div>`:'';
+  const mk=p=>edMark_(E,p);
   const {hero, secs, more} = edParts_(E);
   const all=[hero].concat(...secs.map(s=>s.items), more).filter(Boolean);
   const top=Math.max(0,...all.map(edPct_));
   // ⭐ the star: a big in-use picture with its name, price and button under it — or, with no in-use picture, a navy text hero
+  const cta=edHex_(E.ctaCol);
   const intro=`<h1 class="h1 dm-t" style="margin:10px 0 12px;font-family:${PF};font-size:34px;line-height:40px;font-weight:700;color:${NAVY}">${edEsc(E.copy.headline)}</h1>
     <p class="dm-t" style="margin:0 0 22px;font-family:${F};font-size:17px;line-height:26px;color:${ED.INK}">Hey ${first}, ${edEsc(E.copy.intro)}</p>
-    ${btn(E.copy.cta||'Shop the Sale',E.link,NAVY,'#ffffff',null,null,true)}`;
+    ${btn(E.copy.cta||'Shop the Sale',E.link,cta||NAVY,null,null,null,true)}`;
   let heroHtml='';
   if(hero && hero.inuse){
-    heroHtml=`<tr><td style="padding:0">${pic(edBigSrc_(E,hero,preview),600,edBigAlt_(E,hero),hero.url)}</td></tr>
-<tr><td class="dm-line" style="padding:12px 24px;border-bottom:1px solid ${LINE}">${T(`<tr><td class="stack" valign="middle" style="font-family:${PF};font-size:15px;line-height:21px;font-weight:600;color:${NAVY};padding:2px 0"><span class="dm-t">${edEsc(hero.name)}</span><div style="margin-top:4px">${price(hero,18)} ${chips(hero)}</div></td><td class="stack c" width="130" align="right" valign="middle" style="width:130px;padding:2px 0">${btn('Shop now',hero.url,RED,'#ffffff','10px 22px',14)}</td></tr>`)}</td></tr>
+    heroHtml=`<tr><td style="padding:0">${mk(hero)}${pic(edBigSrc_(E,hero,preview),600,edBigAlt_(E,hero),hero.url)}</td></tr>
+<tr><td class="dm-line" style="padding:12px 24px;border-bottom:1px solid ${LINE}">${T(`<tr><td class="stack" valign="middle" style="font-family:${PF};font-size:15px;line-height:21px;font-weight:600;color:${NAVY};padding:2px 0"><span class="dm-t">${edEsc(hero.name)}</span><div style="margin-top:4px">${price(hero,18)} ${chips(hero)}</div></td><td class="stack c" width="130" align="right" valign="middle" style="width:130px;padding:2px 0">${btn('Shop now',hero.url,edBtnCol_(E,hero,true),null,'10px 22px',14)}</td></tr>`)}</td></tr>
 <tr><td class="px" align="center" style="padding:30px 40px 34px">${intro}</td></tr>`;
   } else if(hero){
-    heroHtml=`<tr><td bgcolor="${NAVY}" style="background:${NAVY};padding:0">${T(`<tr>
+    heroHtml=`<tr><td bgcolor="${NAVY}" style="background:${NAVY};padding:0">${mk(hero)}${T(`<tr>
 <td class="stack px" width="320" valign="middle" style="width:320px;padding:40px 16px 40px 36px">
   ${eyebrow(top?`Up to ${top}% off`:'',`#9CC3D5`)}
   <h1 class="h1" style="margin:12px 0 14px;font-family:${PF};font-size:34px;line-height:40px;font-weight:700;color:#ffffff">${edEsc(E.copy.headline)}</h1>
   <p style="margin:0 0 24px;font-family:${F};font-size:16px;line-height:25px;color:#D5E2EA">Hey ${first}, ${edEsc(E.copy.intro)}</p>
-  ${btn(E.copy.cta||'Shop the Sale',E.link,'#ffffff',NAVY)}
+  ${btn(E.copy.cta||'Shop the Sale',E.link,cta||'#ffffff',cta?null:NAVY)}
 </td>
-<td class="stack" width="280" valign="middle" style="width:280px;padding:28px 28px 28px 8px">${T(`<tr><td align="center" style="padding:16px 16px 4px">${chips(hero)||'&nbsp;'}</td></tr><tr><td align="center" style="padding:8px 16px">${pic(hero.img,212,hero.name,hero.url)}</td></tr><tr><td align="center" style="padding:0 16px 18px;font-family:${PF};font-size:14px;line-height:19px;font-weight:600;color:${NAVY}">${edEsc(hero.name)}<div style="margin-top:6px">${price(hero,18)}</div><div style="margin-top:12px">${btn('Shop now',hero.url,RED,'#ffffff','9px 20px',14,true)}</div></td></tr>`, ` bgcolor="#ffffff" style="background:#ffffff;border-radius:16px"`)}</td>
+<td class="stack" width="280" valign="middle" style="width:280px;padding:28px 28px 28px 8px">${T(`<tr><td align="center" style="padding:16px 16px 4px">${chips(hero)||'&nbsp;'}</td></tr><tr><td align="center" style="padding:8px 16px">${pic(edBigSrc_(E,hero,preview),212,edBigAlt_(E,hero),hero.url)}</td></tr><tr><td align="center" style="padding:0 16px 18px;font-family:${PF};font-size:14px;line-height:19px;font-weight:600;color:${NAVY}">${edEsc(hero.name)}<div style="margin-top:6px">${price(hero,18)}</div><div style="margin-top:12px">${btn('Shop now',hero.url,edBtnCol_(E,hero,true),null,'9px 20px',14,true)}</div></td></tr>`, ` bgcolor="#ffffff" style="background:#ffffff;border-radius:16px"`)}</td>
 </tr>`)}</td></tr>`;
   }
-  // the sections: a big picture of the first product, the rest as rows
-  const bgs=['#ffffff',ICE,'#ffffff',CREAM];
-  const rowHtml=p=>`<tr><td style="padding:6px 0">${T(`<tr>
+  // a product as a small row (white tile) or as a big picture with its name, price and button under it
+  const rowHtml=p=>`<tr><td style="padding:6px 0">${mk(p)}${T(`<tr>
 <td width="92" valign="middle" style="width:92px;padding:10px 0 10px 10px"><a href="${edEsc(p.url)}" target="_blank"><img src="${edEsc(p.inuse||p.img)}" width="80" alt="${edEsc(p.name)}" style="display:block;width:80px;height:auto;border:0"></a></td>
 <td valign="middle" style="padding:10px 12px;font-family:${PF};font-size:15px;line-height:20px;font-weight:600;color:${NAVY}"><span class="dm-t">${edEsc(p.name)}</span><div style="margin-top:6px">${price(p,17)}</div>${tag(p)?`<div style="margin-top:6px">${tag(p)}</div>`:''}</td>
-<td width="96" valign="middle" align="right" style="width:96px;padding:10px 12px 10px 0">${btn('Shop',p.url,NAVY,'#ffffff','9px 20px',14)}</td>
+<td width="96" valign="middle" align="right" style="width:96px;padding:10px 12px 10px 0">${btn('Shop',p.url,edBtnCol_(E,p,false),null,'9px 20px',14)}</td>
 </tr>`, ` class="dm-tile dm-line" style="border:1px solid ${LINE};border-radius:12px;background:#ffffff"`)}</td></tr>`;
-  const secHtml=(s,n)=>{ const lead=s.items[0], rest=s.items.slice(1), bg=bgs[n%bgs.length];
-    const bigPic = lead.inuse ? pic(edBigSrc_(E,lead,preview),536,edBigAlt_(E,lead),lead.url,true)
-      : T(`<tr><td align="center" bgcolor="#ffffff" class="dm-tile" style="background:#ffffff;border-radius:14px;padding:22px">${pic(lead.img,300,lead.name,lead.url)}</td></tr>`);
-    return `<tr><td bgcolor="${bg}" class="px dm-sec" style="background:${bg};padding:38px 32px 14px">
-  ${eyebrow(s.eyebrow)}
-  ${s.title?`<h2 class="dm-t" style="margin:8px 0 6px;font-family:${PF};font-size:26px;line-height:32px;font-weight:700;color:${NAVY}">${edEsc(s.title)}</h2>`:''}
-  ${s.why?`<p class="dm-m" style="margin:0 0 18px;font-family:${F};font-size:16px;line-height:24px;color:${MUTE}">${edEsc(s.why)}</p>`:'<div style="height:12px"></div>'}
-  ${T(`<tr><td style="padding:0">${bigPic}</td></tr>
-  <tr><td style="padding:14px 2px 6px">${T(`<tr><td class="stack" valign="middle" style="font-family:${PF};font-size:17px;line-height:23px;font-weight:600;color:${NAVY};padding:0 0 10px"><span class="dm-t">${edEsc(lead.name)}</span><div style="margin-top:6px">${price(lead,20)} ${chips(lead)}</div>${youSave(lead)}</td><td class="stack c" width="140" valign="middle" align="right" style="width:140px;padding:0 0 10px">${btn('Shop now',lead.url,RED,'#ffffff','11px 24px',15)}</td></tr>`)}</td></tr>
-  ${rest.map(rowHtml).join('')}`)}
+  const bigHtml=(p,th,firstBig)=>{ const pc = p.inuse ? pic(edBigSrc_(E,p,preview),536,edBigAlt_(E,p),p.url,true)
+      : T(`<tr><td align="center" bgcolor="#ffffff" class="dm-tile" style="background:#ffffff;border-radius:14px;padding:22px">${pic(edBigSrc_(E,p,preview),edOvOn_(E,p)?420:300,edBigAlt_(E,p),p.url)}</td></tr>`);   // with the offer drawn on, larger so the price reads
+    return `<tr><td style="padding:${firstBig?'0':'22px 0 0'}">${mk(p)}${pc}</td></tr>
+  <tr><td style="padding:14px 2px 6px">${T(`<tr><td class="stack" valign="middle" style="font-family:${PF};font-size:17px;line-height:23px;font-weight:600;color:${th.t};padding:0 0 10px"><span${th.cls?' class="dm-t"':''}>${edEsc(p.name)}</span><div style="margin-top:6px">${price(p,20,th)} ${chips(p)}</div>${youSave(p,th)}</td><td class="stack c" width="140" valign="middle" align="right" style="width:140px;padding:0 0 10px">${btn('Shop now',p.url,edBtnCol_(E,p,true),null,'11px 24px',15)}</td></tr>`)}</td></tr>`; };
+  const bgs=['#ffffff',ICE,'#ffffff',CREAM];
+  const secHtml=(s,n)=>{ const cbg=edHex_(s.bg), bg=cbg||bgs[n%bgs.length], th=cbg?themeFor(cbg):TH0, head=s.eyebrow||s.title||s.why;
+    let firstBig=true; const body=s.items.map((p,k)=>{ if(k===0 ? p.big!==false : p.big===true){ const h=bigHtml(p,th,firstBig); firstBig=false; return h; } return rowHtml(p); }).join('');
+    return `<tr><td bgcolor="${bg}" class="px${th.cls?' dm-sec':''}" style="background:${bg};padding:${head?38:26}px 32px 14px">
+  ${eyebrow(s.eyebrow, th.cls?null:th.r)}
+  ${s.title?`<h2${th.cls?' class="dm-t"':''} style="margin:8px 0 6px;font-family:${PF};font-size:26px;line-height:32px;font-weight:700;color:${th.t}">${edEsc(s.title)}</h2>`:''}
+  ${s.why?`<p${th.cls?' class="dm-m"':''} style="margin:0 0 18px;font-family:${F};font-size:16px;line-height:24px;color:${th.m}">${edEsc(s.why)}</p>`:(head?'<div style="height:12px"></div>':'')}
+  ${T(body)}
 </td></tr>`; };
   const secsHtml=secs.filter(s=>s.items.length).map(secHtml).join('');
-  // what's left: a compact strip (titled "Stocking fillers under €10" when everything in it is €10 or less)
+  // what's left: a compact strip (titled "Stocking fillers under €10" when everything in it is €10 or less); big ones first
   let moreHtml='';
   if(E.showMore && more.length){
-    const mh=edMoreHead_(E, more);
-    const cell=p=>`<td class="stack" width="50%" valign="top" style="width:50%;padding:5px">${T(`<tr>
+    const mh=edMoreHead_(E, more), cbg=edHex_(E.moreBg), th=cbg?themeFor(cbg):TH0, sb=cbg?` bgcolor="${cbg}"`:'', ss=cbg?`background:${cbg};`:'';
+    const bigs=more.filter(p=>p.big===true), small=more.filter(p=>p.big!==true);
+    const cell=p=>`<td class="stack" width="50%" valign="top" style="width:50%;padding:5px">${mk(p)}${T(`<tr>
 <td width="74" style="width:74px;padding:8px 0 8px 8px"><a href="${edEsc(p.url)}" target="_blank"><img src="${edEsc(p.inuse||p.img)}" width="66" alt="${edEsc(p.name)}" style="display:block;width:66px;height:auto;border:0"></a></td>
 <td style="padding:8px 10px;font-family:${PF};font-size:13px;line-height:18px;font-weight:600;color:${NAVY}"><a href="${edEsc(p.url)}" target="_blank" class="dm-t" style="color:${NAVY};text-decoration:none">${edEsc(p.name)}</a><div style="margin-top:4px">${price(p,16)}</div>${tag(p)?`<div style="margin-top:4px">${tag(p)}</div>`:''}</td></tr>`, ` class="dm-tile dm-line" style="border:1px solid ${LINE};border-radius:10px;background:#ffffff"`)}</td>`;
-    let rows=''; for(let k=0;k<more.length;k+=2) rows+=`<tr>${cell(more[k])}${more[k+1]?cell(more[k+1]):'<td class="stack" width="50%" style="width:50%"></td>'}</tr>`;
-    moreHtml=`<tr><td class="px" style="padding:34px 32px 8px">${eyebrow(mh.eyebrow)}<h2 class="dm-t" style="margin:6px 0 0;font-family:${PF};font-size:23px;line-height:29px;font-weight:700;color:${NAVY}">${edEsc(mh.title)}</h2></td></tr>
-<tr><td style="padding:6px 27px 6px">${T(rows)}</td></tr>`;
+    let rows=''; for(let k=0;k<small.length;k+=2) rows+=`<tr>${cell(small[k])}${small[k+1]?cell(small[k+1]):'<td class="stack" width="50%" style="width:50%"></td>'}</tr>`;
+    moreHtml=`<tr><td class="px"${sb} style="${ss}padding:34px 32px 8px">${eyebrow(mh.eyebrow, th.cls?null:th.r)}<h2${th.cls?' class="dm-t"':''} style="margin:6px 0 0;font-family:${PF};font-size:23px;line-height:29px;font-weight:700;color:${th.t}">${edEsc(mh.title)}</h2></td></tr>
+${bigs.length?`<tr><td class="px"${sb} style="${ss}padding:14px 32px 6px">${T(bigs.map((p,k)=>bigHtml(p,th,k===0)).join(''))}</td></tr>`:''}
+${small.length?`<tr><td${sb} style="${ss}padding:6px 27px 6px">${T(rows)}</td></tr>`:''}
+${cbg?`<tr><td${sb} style="${ss}height:22px;line-height:22px;font-size:0">&nbsp;</td></tr>`:''}`;
   }
   const nav=ED.NAV.map(([t,h])=>`<td align="center" style="padding:10px 4px"><a href="${h}" target="_blank" style="font-family:${F};font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#ffffff;text-decoration:none">${t}</a></td>`).join('');
   const foot=ED.FOOT.map(([t,h])=>`<td style="padding:4px 10px"><a href="${h}" target="_blank" style="font-family:${PF};font-size:13px;font-weight:600;color:#ffffff;text-decoration:none">${t}</a></td>`).join('');
@@ -11450,13 +11704,214 @@ ${offerTxt?`<tr><td bgcolor="${NAVY}" align="center" style="background:${NAVY};p
 ${heroHtml}
 ${secsHtml}
 ${moreHtml}
-<tr><td align="center" style="padding:36px 32px 34px"><div class="dm-t" style="font-family:${PF};font-size:20px;line-height:28px;font-weight:600;color:${NAVY}">Irish-owned for 160 years</div><p class="dm-m" style="margin:8px 0 18px;font-family:${F};font-size:15px;line-height:23px;color:${MUTE}">Shop online, or call in to us on Capel Street, Dublin 1.</p>${btn(E.copy.cta||'Shop the Sale',E.link,NAVY,'#ffffff',null,null,true)}</td></tr>
+<tr><td align="center" style="padding:36px 32px 34px"><div class="dm-t" style="font-family:${PF};font-size:20px;line-height:28px;font-weight:600;color:${NAVY}">Irish-owned for 160 years</div><p class="dm-m" style="margin:8px 0 18px;font-family:${F};font-size:15px;line-height:23px;color:${MUTE}">Shop online, or call in to us on Capel Street, Dublin 1.</p>${btn(E.copy.cta||'Shop the Sale',E.link,edHex_(E.endCol)||NAVY,null,null,null,true)}</td></tr>
 <tr><td bgcolor="${NAVY}" align="center" style="background:${NAVY};padding:18px 24px"><table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>${foot}</tr></table></td></tr>
 <tr><td align="center" style="padding:20px 24px 6px"><table role="presentation" align="center" class="dm-soc" cellpadding="0" cellspacing="0" border="0" style="border-radius:18px;padding:6px 4px"><tr>${soc}</tr></table></td></tr>
 <tr><td align="center" class="dm-m" style="padding:8px 24px 26px;font-family:${F};font-size:12px;line-height:20px;color:${MUTE}">Lenehans, 124–125 Capel Street, Dublin 1, D01 XV52<br>${unsub} · ${prefs}</td></tr>
 </table></td></tr></table>
 </body></html>`;
 }
+
+// ── 🔁 Follow-up email (V7.43.0) ─────────────────────────────────────────────────────────────────────────────────
+// Mark, 21 Nov: "we send a follow up email on some days. For example on monday we choose the products that are still in
+// stock from the weekend emails. and send something like the attached" (A little Monday pick-me-up…, 9 Nov: logo, a few
+// friendly lines, then every product as a picture with its name and Shop Now).
+// Where the products come from:
+//   • Klaviyo — the emails sent in the last few days, read back from their HTML through the web app (FollowUp.gs:
+//     recent_emails). Each product keeps the picture it had in that email. Our own emails carry a hidden SKU note per
+//     product; for others the SKU is found from this computer's designs, the dashboard's product titles, or Klaviyo's
+//     product-view events (FollowUp.gs: url_skus).
+//   • 📂 Saved designs on this computer — works without the web app update.
+// Then: anything sold out since is left out (today's Arklow + Capel stock), the live website price is checked, and the
+// follow-up opens in the designer as one list of big pictures, ready to change like any other design.
+const ED_FU_NAV=/^(sale|just-in|christmas-decorations-giftware|blog|about-us|greenhouses|new-in|clearance)$/i;
+function edNormUrl_(u){ return String(u||'').trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/[?#].*$/,'').replace(/\/+$/,''); }
+function edIsProdUrl_(u){ const m=String(u||'').match(/^https?:\/\/(?:www\.)?lenehans\.ie\/([^?#]+?)\.html(?:[?#]|$)/i); return !!m && !ED_FU_NAV.test(m[1]); }
+const edNameKey_ = t => String(t||'').toLowerCase().replace(/&amp;/g,'&').replace(/[^a-z0-9]+/g,' ').trim();
+// the products in an email's HTML, in the order they appear: link, name, picture, prices (+ SKU from our hidden note)
+function edEmailProducts_(html){
+  html=String(html||''); if(!html) return [];
+  let doc; try{ doc=new DOMParser().parseFromString(html,'text/html'); }catch(e){ return []; }
+  const toks=[], body=doc.body||doc.documentElement; if(!body) return [];
+  const tw=doc.createTreeWalker(body, 5);      // elements + text, in reading order
+  const prodOf=el=>{ const a=el&&el.closest&&el.closest('a[href]'); const h=a&&a.getAttribute('href'); return h&&edIsProdUrl_(h)?{u:edNormUrl_(h),raw:h}:null; };
+  let n;
+  while((n=tw.nextNode())){
+    if(n.nodeType===1){ if(n.tagName==='IMG'){ const a=prodOf(n); toks.push({k:'img', u:a?a.u:'', raw:a?a.raw:'', src:n.getAttribute('src')||'', w:+(n.getAttribute('width')||0), alt:n.getAttribute('alt')||''}); } continue; }
+    const par=n.parentNode; if(!par||/^(STYLE|SCRIPT|TITLE)$/i.test(par.tagName||'')) continue;
+    const t=String(n.nodeValue||'').replace(/[\s͏ ­]+/g,' ').trim(); if(!t) continue;
+    const a=prodOf(par); toks.push({k:'txt', u:a?a.u:'', raw:a?a.raw:'', t, dmt:!!(par.closest&&par.closest('.dm-t'))});
+  }
+  // hidden notes from our own emails: <!--ed {"s":SKU,"p":picture,"o":1}--> just before the product's link
+  const notes=new Map(); const re=/<!--ed (\{[\s\S]*?\})-->/g; let m;
+  while((m=re.exec(html))){ try{ const o=JSON.parse(m[1]); if(!o||!o.s) continue;
+    const hre=/href="([^"]+)"/gi; hre.lastIndex=m.index; let h; while((h=hre.exec(html))){ if(edIsProdUrl_(h[1])) break; }   // the product's own link, not "Shop the Sale"
+    if(h&&!notes.has(edNormUrl_(h[1]))) notes.set(edNormUrl_(h[1]), o); }catch(e){} }
+  const urls=[]; toks.forEach(t=>{ if(t.k==='img'&&t.u&&!urls.includes(t.u)) urls.push(t.u); });   // a product has a picture
+  const isBtn=s=>/^(shop|buy)( now| it| the .*)?$/i.test(s);
+  const isChip=s=>/^(save\b|you save|only \d+ left|new in|\d+\+? sold)/i.test(s);
+  const num=s=>parseFloat(String(s).replace(',','.'));
+  return urls.map(u=>{
+    let last=-1; toks.forEach((t,k)=>{ if(t.u===u) last=k; });
+    const first=toks.findIndex(t=>t.u===u); let end=toks.findIndex((t,k)=>k>last&&t.u&&t.u!==u); if(end<0) end=toks.length;
+    const seg=toks.slice(first,end), im=seg.filter(t=>t.k==='img'&&t.u===u).sort((a,b)=>b.w-a.w)[0]||{};
+    const texts=seg.filter(t=>t.k==='txt'), raw=(seg.find(t=>t.raw)||{}).raw||'';
+    const alt=String(im.alt||''), am=alt.match(/now\s*€\s*(\d+(?:[.,]\d{1,2})?)(?:,\s*was\s*€\s*(\d+(?:[.,]\d{1,2})?))?/i);
+    const nameT=texts.find(t=>t.dmt&&!/€\s*\d/.test(t.t)&&!isBtn(t.t)&&!isChip(t.t)) || texts.find(t=>t.u===u&&!isBtn(t.t)&&!/€\s*\d/.test(t.t)) || texts.find(t=>!/€\s*\d/.test(t.t)&&!isBtn(t.t)&&!isChip(t.t)&&t.t.length>3);
+    const name=(nameT&&nameT.t) || alt.replace(/:\s*now\s*€.*$/i,'').replace(/\s+in use$/i,'').trim();
+    let now=0, was=0;
+    if(am){ now=num(am[1]); was=am[2]?num(am[2]):0; }
+    else { const nums=[]; texts.forEach(t=>{ if(isChip(t.t)) return; String(t.t).replace(/€\s*(\d+(?:[.,]\d{1,2})?)/g,(x,v)=>{ nums.push(num(v)); return x; }); });
+      if(nums.length){ now=nums[0]; was=nums[1]>now?nums[1]:0; } }
+    const note=notes.get(u)||null;
+    const btn=seg.some(t=>t.k==='txt'&&t.u===u&&isBtn(t.t));                     // a Shop button to the same page: a product, not a banner
+    return {url:raw, nurl:u, name, pic:im.src||'', picW:im.w||0, offerPic:!!am, now, was, btn, sku:note?String(note.s):'', clean:note&&note.p?String(note.p):'', drawn:!!(note&&note.o)};
+  }).filter(p=>p.url&&(p.name||p.pic));
+}
+// SKUs for products that came without one
+async function edFuSkus_(list){
+  const need=()=>list.filter(p=>!p.sku);
+  const byUrl=new Map();                                     // 1. this computer: designs and the picture cache know link ↔ SKU
+  edSaves_().forEach(s=>((s.E&&s.E.prods)||[]).forEach(p=>{ if(p.url&&p.sku) byUrl.set(edNormUrl_(p.url), p.sku); }));
+  const mc=edMetaCache_(); Object.keys(mc).forEach(k=>{ const u=mc[k]&&mc[k].url; if(u) byUrl.set(edNormUrl_(u), k); });
+  need().forEach(p=>{ const s=byUrl.get(p.nurl||edNormUrl_(p.url)); if(s) p.sku=s; });
+  if(need().length){                                         // 2. the dashboard's own product titles: the same name, or the only one starting with it
+    const rows=(typeof state!=='undefined'&&state.computedRows)||[], byT=new Map(), keys=[];
+    rows.forEach(r=>{ const t=edNameKey_(r.ItemTitle), s=String(r.SKU||'').trim(); if(!t||!s) return; if(!byT.has(t)){ byT.set(t,s); keys.push(t); } else if(byT.get(t)!==s) byT.set(t,''); });
+    need().forEach(p=>{ const k=edNameKey_(p.name); if(!k) return; let s=byT.get(k);
+      if(!s && k.length>=14){ const hits=[...new Set(keys.filter(t=>t.startsWith(k)).map(t=>byT.get(t)).filter(Boolean))]; if(hits.length===1) s=hits[0]; }
+      if(s) p.sku=s; });
+  }
+  const left=need().filter(p=>p.url);                        // 3. Klaviyo's product-view events (web app: FollowUp.gs)
+  if(left.length){ const j=await edPost_({action:'url_skus', urls:left.map(p=>p.url)}); if(j&&j.ok&&j.skus) left.forEach(p=>{ const s=j.skus[p.url]; if(s) p.sku=String(s); }); }
+}
+// the bar on the Email tab, and its panel
+function edFollowBar_(){
+  const el=document.getElementById('edFollowBar'); if(!el) return; const F=window._edFU||{};
+  if(!F.open){ el.innerHTML=`<div class="ed-fu"><b>🔁 Follow-up email</b><span>a catch-up of the last few days’ emails, with only what’s still in stock — like the Monday “pick-me-up”</span><button class="ed-sm" onclick="edFollowOpen()">Build a follow-up…</button></div>`; return; }
+  const days=F.days||3, cut=Date.now()-days*864e5;
+  const S=edSaves_().filter(s=>new Date(s.at).getTime()>=cut);
+  const when=iso=>{ const d=new Date(iso); return isNaN(d)?'':d.toLocaleDateString('en-IE',{weekday:'short', day:'numeric', month:'short'})+' '+d.toLocaleTimeString('en-IE',{hour:'2-digit',minute:'2-digit'}); };
+  const pick=F.pick||{};
+  const kl = F.loading ? '<div class="ed-note">⏳ Asking Klaviyo for the emails sent…</div>'
+    : F.err==='setup' ? `<div class="ed-warn">To list the emails Klaviyo sent, the web app needs <b>FollowUp.gs</b> (a one-time set-up: add the file, add two lines to doPost in Code.gs, Deploy → New version). Until then, pick from 📂 saved designs below.</div>`
+    : F.err ? `<div class="ed-warn">Klaviyo: ${edEsc(F.err)}${F.hint?`<br>${edEsc(F.hint)}`:''}</div>`
+    : (F.emails||[]).length ? (F.emails||[]).map(e=>`<label class="ed-fu-r"><input type="checkbox" ${pick['k:'+e.id]?'checked':''} onchange="edFollowPick('k:${edEsc(e.id)}',this.checked)"><b>${edEsc(e.name||e.subject)}</b><span>sent ${when(e.sentAt)} · ${e.prods.length} product${e.prods.length!==1?'s':''}${e.subject&&e.subject!==e.name?` · “${edEsc(e.subject)}”`:''}</span></label>`).join('')
+    : `<div class="ed-note">Klaviyo sent no emails in the last ${days} day${days!==1?'s':''}.</div>`;
+  el.innerHTML=`<div class="ed-fu ed-fu-open"><div class="ed-fu-h"><b>🔁 Follow-up email</b><span>pick the emails to follow up — their products come back with the same pictures, anything sold out since is left out</span><button class="ed-sm" onclick="edFollowClose()">Close</button></div>
+    <div class="ed-fu-f"><label>Sent in the last <select onchange="edFollowDays(this.value)">${[2,3,4,5,7,10,14].map(d=>`<option value="${d}"${d===days?' selected':''}>${d} days</option>`).join('')}</select></label></div>
+    <div class="ed-fu-g"><div class="ed-fu-gh">From Klaviyo</div>${kl}</div>
+    ${S.length?`<div class="ed-fu-g"><div class="ed-fu-gh">From 📂 saved designs on this computer</div>${S.map(s=>`<label class="ed-fu-r"><input type="checkbox" ${pick['s:'+s.id]?'checked':''} onchange="edFollowPick('s:${s.id}',this.checked)"><b>${edEsc(s.name)}</b><span>saved ${when(s.at)} · ${s.n} product${s.n!==1?'s':''}</span></label>`).join('')}</div>`:''}
+    <div class="ed-kl-btns"><button class="ed-go" id="edFuGo" onclick="edFollowBuild(this)"${Object.values(pick).some(Boolean)?'':' disabled'}>🔁 Build the follow-up</button><span class="ed-fu-st" id="edFuSt">${edEsc(F.status||'')}</span></div>
+  </div>`;
+}
+window.edFollowOpen=function(){ const F=window._edFU=window._edFU||{days:3}; F.open=true; F.status=''; edFollowBar_(); edFollowLoad_(); };
+window.edFollowClose=function(){ const F=window._edFU||{}; F.open=false; edFollowBar_(); };
+window.edFollowDays=function(v){ const F=window._edFU||(window._edFU={}); F.days=Math.max(1,Math.min(14,+v||3)); F.pick={}; edFollowBar_(); edFollowLoad_(); };
+window.edFollowPick=function(k,on){ const F=window._edFU||{}; F.pick=F.pick||{}; F.pick[k]=!!on; const b=document.getElementById('edFuGo'); if(b) b.disabled=!Object.values(F.pick).some(Boolean); };
+async function edFollowLoad_(){
+  const F=window._edFU; if(!F) return; const days=F.days||3; F.loading=true; F.err=''; F.hint=''; F.emails=[]; edFollowBar_();
+  const j=await edPost_({action:'recent_emails', days});
+  if(window._edFU!==F||F.days!==days) return;
+  F.loading=false;
+  if(!j||!j.ok){ F.err=(j&&j.nopost)?'setup':((j&&j.error)||'not reachable'); F.hint=(j&&j.hint)||''; }
+  else F.emails=(j.emails||[]).map(e=>Object.assign({}, e, {prods:edEmailProducts_(e.html||'')})).filter(e=>e.prods.length);
+  // tick by default: everything Klaviyo sent in the window; with no Klaviyo list, the saved designs instead
+  F.pick={}; if(F.emails.length) F.emails.forEach(e=>{ F.pick['k:'+e.id]=true; });
+  else edSaves_().filter(s=>new Date(s.at).getTime()>=Date.now()-days*864e5).forEach(s=>{ F.pick['s:'+s.id]=true; });
+  edFollowBar_();
+}
+// the words: a short, friendly catch-up in the style of the Monday email
+async function edFollowCopy_(from, prods){
+  const top=Math.max(0,...prods.map(edPct_)), day=new Date().toLocaleDateString('en-IE',{weekday:'long'}), monday=day==='Monday';
+  const line=p=>`- ${edShortName_(p.name)} — now ${edEur(p.now)}${p.was>p.now?` (was ${edEur(p.was)})`:''}`;
+  const prompt=`You write the marketing emails for Lenehans.ie, a 160-year-old Irish hardware and DIY shop on Capel Street, Dublin.
+Our voice: warm, friendly, short and a little playful; Irish English; euro prices; never pushy.
+This is a FOLLOW-UP email: a catch-up for people who missed our recent emails (${from.join('; ')}). The same offers are still on and everything below is still in stock. A follow-up we sent before, for the style:
+subject "A little Monday pick-me-up..."; preview "Missed our weekend offers? Catch up on Pre-Black Friday deals, from clever gadgets to gift ideas."; intro "the weekend's over, but the good deals haven't gone anywhere. If you missed our Pre-Black Friday offers, here's your Monday catch-up."
+Today is ${day}. The products, in order:
+${prods.map(line).join('\n')}
+Reply with ONLY a JSON object, no other text:
+{"subject":"under 50 characters, at most one emoji","preheader":"under 90 characters, adds to the subject","headline":"under 32 characters","intro":"one or two short sentences, under 200 characters, no greeting (the email already says Hey <name>)","cta":"2 to 4 words","offer":"under 45 characters for a strip at the top, or an empty string"}`;
+  let d=await edPost_({action:'ai_brief', prompt, maxTokens:700});
+  try{
+    if(!d||d.error) throw new Error((d&&d.error)||'no answer');
+    const txt=((d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('')||'').trim();
+    const j=JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}')+1));
+    if(!j.subject||!j.headline||!j.intro) throw new Error('incomplete');
+    return {subject:String(j.subject), preheader:String(j.preheader||''), headline:String(j.headline), intro:String(j.intro), cta:String(j.cta||'Shop the deals'), offer:String(j.offer||''), sections:[], ai:true};
+  }catch(e){
+    return {subject: monday?'A little Monday pick-me-up…':'Missed these? They’re still here', preheader:`Missed our ${monday?'weekend ':''}offers? Catch up on ${prods.slice(0,2).map(p=>edShortName_(p.name)).join(', ')} and more.`,
+      headline: monday?'Your Monday catch-up':'In case you missed them',
+      intro: monday?"the weekend's over, but the good deals haven't gone anywhere. If you missed our offers, here's your Monday catch-up.":"the deals from our last emails are still on, and everything here is still in stock. Here's your catch-up.",
+      cta:'Shop the deals', offer: top?`STILL ON · UP TO ${top}% OFF`:'', sections:[], ai:false};
+  }
+}
+window.edFollowWords=async function(btn){ const E=window._ed; if(!E||!E.follow) return; const t0=btn&&btn.textContent; if(btn){ btn.disabled=true; btn.textContent='⏳ Writing…'; }
+  E.copy=await edFollowCopy_(E.follow.from||[], E.prods); if(window._ed===E) edRender_(); };
+// build it
+window.edFollowBuild=async function(btn){
+  const F=window._edFU; if(!F) return; const say=t=>{ F.status=t; const s=document.getElementById('edFuSt'); if(s) s.textContent=t; };
+  const rows=(typeof state!=='undefined'&&state.computedRows)||[]; if(!rows.length){ say('The dashboard data is still loading — try again in a moment.'); return; }
+  if(btn){ if(btn.disabled) return; btn.disabled=true; }
+  try{
+    say('⏳ Gathering the products…');
+    const from=[], list=[], seen=new Set();
+    const add=(p,src)=>{ const k=p.sku?'s:'+String(p.sku).toUpperCase():'u:'+(p.nurl||edNormUrl_(p.url)); if(seen.has(k)) return; seen.add(k); list.push(Object.assign({from:src}, p)); };
+    // the emails in the order they went out (Saturday's products before Sunday's)
+    [...(F.emails||[])].sort((x,y)=>String(x.sentAt).localeCompare(String(y.sentAt))).filter(e=>F.pick&&F.pick['k:'+e.id]).forEach(e=>{ from.push(e.name||e.subject); e.prods.forEach(p=>add(p, e.name||e.subject)); });
+    edSaves_().filter(s=>F.pick&&F.pick['s:'+s.id]).forEach(s=>{ from.push(s.name); const E0=edRevive_(s), P=edParts_(E0);
+      [P.hero].concat(...P.secs.map(x=>x.items), P.more).filter(Boolean).forEach(p=>add({sku:p.sku, url:p.url, nurl:edNormUrl_(p.url), name:p.name, title:p.title, img:p.img, inuse:p.inuse, inuseFrom:p.inuseFrom, inuseSize:p.inuseSize, lib:p.lib, now:p.now, was:p.was, ovCol:p.ovCol, design:true}, s.name)); });
+    if(!list.length){ say('No products in the emails picked.'); return; }
+    // after the SKUs are known, the same product from two emails is one product
+    await edFuSkus_(list);
+    const uniq=[], seen2=new Set(), skipped=[];
+    list.forEach(p=>{ const k=p.sku?'s:'+String(p.sku).toUpperCase():'u:'+(p.nurl||edNormUrl_(p.url)); if(seen2.has(k)) return; seen2.add(k);
+      if(!p.sku && !p.design && !(p.now>0) && !p.btn){ skipped.push(p.url); return; }     // no SKU, no price, no Shop button: a banner or a category link
+      uniq.push(p); });
+    // still in stock today?
+    const bySku=new Map(); rows.forEach(r=>{ const k=String(r.SKU||'').trim().toUpperCase(); if(k&&!bySku.has(k)) bySku.set(k,r); });
+    const keep=[], dropped=[], unknown=[];
+    uniq.forEach(p=>{ const r=p.sku?bySku.get(String(p.sku).toUpperCase()):null;
+      if(!r){ p.noSku=true; unknown.push(p.name||p.url); keep.push(p); return; }
+      p.row=r; p.sku=String(r.SKU).trim(); p.stock=Math.max(0,+r.NetStock_Arklow||0)+Math.max(0,+r.NetStock_CapelStreet||0);
+      if(p.stock>0) keep.push(p); else dropped.push(p.name||p.sku); });
+    if(!keep.length){ say(`Everything in those emails has sold out since (${dropped.length}).`); return; }
+    say(`⏳ ${keep.length} still in stock — getting pictures and today’s prices…`);
+    const withSku=keep.filter(p=>!p.noSku), titles={}; withSku.forEach(p=>{ titles[p.sku]=p.row.ItemTitle||p.name; });
+    const M=withSku.length?await edMeta_(withSku.map(p=>p.sku), titles):{meta:{}, live:true, err:''};
+    const ovStore=edStore_('lenehans_ed_ovurl_v1'), want=edStore_('lenehans_ed_ov_v1'), offerOf={};
+    Object.keys(ovStore).forEach(k=>{ offerOf[ovStore[k]]=k.split('|')[0]; });   // an offer picture → the clean picture it was drawn on
+    const prods=keep.map(p=>{
+      const m=(p.sku&&M.meta[p.sku])||{}, lib=(p.lib&&p.lib.length?p.lib:(m.library||[])).filter(x=>x&&x.url), r=p.row||{};
+      let now=+p.now||0, was=+p.was||0;
+      if(!now){ now=(m.finalPrice!=null?+m.finalPrice:0)||(+r.RetailPrice||0); was=(m.price!=null&&+m.price>now)?+m.price:0; }
+      const q={sku:p.sku||('URL:'+(p.nurl||p.url)), name:edShortName_(p.name||m.name||r.ItemTitle||''), title:r.ItemTitle||p.title||p.name||'', url:p.url||m.url||'', img:p.img||m.image||'',
+        now, was, lib, libIdx:0, webPrice:(m.finalPrice!=null?m.finalPrice:null), webAt:m.viewedAt||'', stock:p.stock, row:p.row, big:true, noSku:!!p.noSku, from:p.from, ovCol:p.ovCol,
+        imgFrom:m.image?(m.cached?'saved':'klaviyo'):''};
+      if(p.design){ q.inuse=p.inuse||''; q.inuseFrom=p.inuseFrom||''; q.inuseSize=p.inuseSize||0; return q; }
+      // the picture it had in the email: our offer picture → back to its clean picture with the offer drawn again at today's price
+      const clean=p.clean || (p.offerPic&&offerOf[p.pic]) || '';
+      if(clean && clean!==p.pic){ q.inuse=clean; q.inuseFrom=/klaviyomail/.test(clean)?'library':'pasted'; if(p.drawn||p.offerPic){ want[clean]=true; } }
+      else if(p.pic && (/klaviyomail\.com|cloudfront\.net/.test(p.pic) || p.picW>=300)){ q.inuse=p.pic; q.inuseFrom='email'; }      // the team's picture, as sent
+      else { if(!q.img && p.pic) q.img=p.pic; if(lib[0]){ q.inuse=lib[0].url; q.inuseFrom=/\(AI\)/.test(lib[0].name||'')?'ai':'library'; q.inuseSize=+lib[0].size||0; } else q.inuse=''; }
+      if(!q.img) q.img=p.pic||'';
+      return q; });
+    edStorePut_('lenehans_ed_ov_v1', want);
+    say('⏳ Writing the words…');
+    const copy=await edFollowCopy_(from, prods), pref=edOvPref_();
+    if(window._ed){ clearTimeout(edSaveSoon_._t); edSaveNow_(window._ed); }   // what's open now is kept
+    const E={theme:'Follow-up: '+from.join(' + '), link:'https://www.lenehans.ie/sale.html', prods, hero:prods[0].sku,
+      sections:[{eyebrow:'', title:'', why:'', skus:prods.slice(1).map(p=>p.sku)}], copy, showTags:true, showMore:true, moreTitle:'',
+      ovOn:true, ovStyle:'tag', ovLabel:'', ovCol:pref.col||'navy', ovCustom:pref.custom||null,
+      follow:{from, at:new Date().toISOString(), dropped, unknown, skipped}, metaErr:M.err, metaLive:M.live, ai:null};
+    say(`✓ ${prods.length} product${prods.length!==1?'s':''} in the follow-up${dropped.length?` · ${dropped.length} sold out, left out`:''}`);
+    F.open=false; edFollowBar_();
+    edShowDesign_(E, `🔁 follow-up of ${from.map(edEsc).join(' + ')} · check the words and pictures, then 📤 send to Klaviyo as a draft`);
+    try{ logUsage('email_followup', `${prods.length} products · ${dropped.length} sold out · ${from.length} email${from.length!==1?'s':''}`); }catch(e){}
+  } finally { if(btn&&btn.isConnected) btn.disabled=false; }
+};
+try{ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', ()=>edFollowBar_()); else setTimeout(()=>edFollowBar_(),0); }catch(e){}
 
 // ─── ORDER THIS CYCLE? (V7.31.1) ─────────────────────────────────────────────
 // For every line in an order: if we wait until this supplier's NEXT scheduled order
