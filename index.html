@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.43.0 · FOLLOW-UP EMAILS</title>
+  <title>Lenehans Purchasing Dashboard · V7.45.0 · REP ORDER CHECK</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1656,6 +1656,77 @@ input.ed-hex.bad{border-color:#dc2626!important;background:#fef2f2}
     .ei-warn-box{background:#fff7ed;border:1.5px solid #fed7aa;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:11px;color:#92400e;font-weight:600;line-height:1.5}
     .ei-tbl-wrap{overflow-x:auto}
     .ei-tbl{width:100%;border-collapse:collapse;font-size:12px}
+    /* V7.45.0 — rep order check */
+    .rc-box{border:2px solid #7c3aed;border-radius:14px;padding:16px 18px;background:#fff;margin-bottom:14px}
+    .rc-h{font-size:15px;font-weight:800;color:#5b21b6}
+    .rc-sub{font-size:12px;color:#64748b;margin:2px 0 10px;max-width:900px}
+    .rc-form{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:13px;color:#334155;margin-bottom:8px}
+    .rc-form label{display:inline-flex;flex-direction:row;align-items:center;gap:6px;font-weight:600}
+    .rc-form input[type=radio]{width:auto;margin:0}
+    #rcSup{width:290px;padding:7px 10px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:13px}
+    #rcMonths{width:60px;padding:5px 6px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px}
+    .rc-store{display:inline-flex;gap:10px;align-items:center;font-weight:600}
+    #rcPaste{width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd6fe;border-radius:9px;font:12px ui-monospace,Menlo,Consolas,monospace;resize:vertical}
+    .rc-go{display:flex;gap:8px;margin-top:8px}
+    .rc-btn{padding:8px 14px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer}
+    .rc-btn:hover{background:#f1f5f9}
+    .rc-btn.main{background:#5b21b6;border-color:#5b21b6;color:#fff}
+    .rc-btn.main:hover{background:#4c1d95}
+    .rc-msg{padding:12px 14px;font-size:13px;color:#475569}
+    .rc-msg.bad{color:#991b1b}
+    .rc-sum{border:1px solid #ddd6fe;background:#faf5ff;border-radius:12px;padding:14px 16px;margin-bottom:10px}
+    .rc-sum-h{font-weight:800;font-size:15px;color:#3b0764}
+    .rc-sum-t{font-size:13px;color:#334155;margin:6px 0 10px;line-height:1.55;max-width:1000px}
+    .rc-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-bottom:10px}
+    .rc-tile{background:#fff;border:1px solid #e9d5ff;border-radius:10px;padding:8px 12px;display:flex;flex-direction:column}
+    .rc-tile b{font-size:18px;color:#0f172a}
+    .rc-tile span{font-size:11px;color:#64748b}
+    .rc-tile.good b{color:#15803d}
+    .rc-tile.add b{color:#7c3aed}
+    .rc-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .rc-opt{font-size:12px;color:#475569;display:inline-flex;flex-direction:row;align-items:center;gap:5px}
+    .rc-opt input{width:auto;margin:0}
+    .rc-else{font-size:12px;color:#92400e;margin-top:8px}
+    .rc-bad{font-size:12px;color:#991b1b;margin:6px 0 10px}
+    .rc-bad summary{cursor:pointer;font-weight:700}
+    .rc-bad pre{white-space:pre-wrap;font-size:11px;color:#334155;background:#fff;border:1px solid #fecaca;border-radius:8px;padding:8px;max-height:160px;overflow:auto}
+    .rc-chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}
+    .rc-chip{border:1px solid #cbd5e1;background:#fff;border-radius:16px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;color:#334155}
+    .rc-chip span{color:#64748b;font-weight:600;margin-left:3px}
+    .rc-chip.on{background:#1e293b;color:#fff;border-color:#1e293b}
+    .rc-chip.on span{color:#cbd5e1}
+    .rc-sec{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#475569;margin:14px 0 6px}
+    .rc-sec.add{color:#6d28d9}
+    .rc-sec span{text-transform:none;letter-spacing:0;font-weight:600;color:#94a3b8;margin-left:6px}
+    .rc-row{display:grid;grid-template-columns:26px minmax(260px,1fr) 92px 112px 84px 124px 120px 92px;gap:10px;align-items:start;padding:10px 12px;border:1px solid #e2e8f0;border-left:4px solid #cbd5e1;border-radius:10px;background:#fff;margin-bottom:6px}
+    .rc-row.v-ok{border-left-color:#16a34a}.rc-row.v-raise{border-left-color:#2563eb}.rc-row.v-trim{border-left-color:#d97706}.rc-row.v-cut{border-left-color:#dc2626}.rc-row.v-nf{border-left-color:#94a3b8}.rc-row.v-add{border-left-color:#7c3aed}
+    .rc-row.off{opacity:.55;background:#f8fafc}
+    label.rc-inc{display:block}
+    .rc-inc input{width:16px;height:16px;margin:2px 0 0;cursor:pointer}
+    .rc-what{min-width:0}
+    .rc-top{font-size:13px;color:#0f172a}
+    .rc-code{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:800;color:#5b21b6}
+    .rc-desc{font-weight:600}
+    .rc-ours{font-size:11px;color:#64748b;margin-top:3px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+    .rc-sku{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;color:#1e40af}
+    .rc-title{color:#475569}
+    .rc-how{background:#f1f5f9;border-radius:6px;padding:1px 6px}
+    .rc-why{font-size:12px;color:#334155;margin-top:5px;line-height:1.45}
+    .rc-v{display:inline-block;font-weight:800;font-size:11px;border-radius:10px;padding:2px 8px;margin-right:4px;white-space:nowrap}
+    .rc-v.v-ok{background:#dcfce7;color:#166534}.rc-v.v-raise{background:#dbeafe;color:#1e40af}.rc-v.v-trim{background:#fef3c7;color:#92400e}.rc-v.v-cut{background:#fee2e2;color:#991b1b}.rc-v.v-nf{background:#f1f5f9;color:#475569}.rc-v.v-add{background:#ede9fe;color:#5b21b6}
+    .rc-note{font-size:11.5px;color:#92400e;margin-top:3px}
+    .rc-n,.rc-val{display:flex;flex-direction:column;align-items:flex-end;text-align:right}
+    .rc-n b,.rc-val b{font-size:14px;color:#0f172a;font-variant-numeric:tabular-nums}
+    .rc-n span,.rc-val span{font-size:10.5px;color:#64748b;line-height:1.3}
+    .rc-q{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:4px}
+    .rc-q input{width:62px;padding:5px 6px;border:1.5px solid #cbd5e1;border-radius:7px;font-weight:800;font-size:14px;text-align:right}
+    .rc-q.chg input{border-color:#7c3aed;background:#faf5ff}
+    .rc-per{font-size:10.5px;color:#64748b}
+    .rc-eq{flex-basis:100%;text-align:right;font-size:10.5px;color:#64748b}
+    .rc-more{margin-top:12px}
+    .rc-more summary{cursor:pointer;font-size:12px;font-weight:700;color:#475569;margin-bottom:8px}
+    .rc-foot{font-size:11px;color:#94a3b8;margin:12px 0 30px;max-width:1000px;line-height:1.5}
+    @media (max-width:900px){.rc-row{grid-template-columns:26px 1fr 1fr 1fr}.rc-what{grid-column:2 / -1}label.rc-inc{grid-row:1 / span 3}}
     .ei-tbl th{background:#e2e8f0;padding:7px 10px;text-align:left;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#374151;border-bottom:2px solid var(--line);white-space:nowrap}
     .ei-tbl th.r{text-align:right}.ei-tbl td{padding:7px 10px;border-bottom:1px solid var(--line-light);vertical-align:middle}.ei-tbl td.r{text-align:right;font-variant-numeric:tabular-nums}
     .ei-tbl tr:nth-child(even) td{background:#f7f9fc}.ei-tbl tr:hover td{background:#e8f0fe}.ei-tbl tr:last-child td{border-bottom:none}
@@ -1676,7 +1747,7 @@ input.ed-hex.bad{border-color:#dc2626!important;background:#fef2f2}
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.43.0 · built 2026-11-21 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>🔁 Email tab: Follow-up email — pick the emails sent in the last few days (from Klaviyo, or 📂 saved designs); their products come back with the same pictures, anything sold out since is left out, and the catch-up is laid out like the Monday “pick-me-up”, every product a big picture with Shop now</li><li>🖱 Email designer: right-click a product or a section (or ⋯) — make it the star, move it, big picture or small row, include the offer in the image, button colour, background colour, add or remove a section</li><li>🎨 Email designer: every button its own colour (or all at once), every section and the strip its own background, and a hex box beside every colour (e.g. #FFD200)</li><li>↶ Email designer: Undo / Redo (Ctrl+Z / Ctrl+Y) and ⟲ Revert to how the design started · 🏷 Include offer in image on every block, product photos too</li><li>⠿ Email designer: move blocks — drag a product onto another, into any section, the strip, a new section or onto the ⭐ star (they swap); drag whole sections, or ↑ Up / ↓ Down; the product ↑ ↓ arrows now carry on into the next section · + Add a section</li><li>💾 Email designer: saves as you go — 📂 Saved email designs on the Email tab (up to 20 on this computer): open one to carry on, 📌 keep a copy of a version before trying something, delete · 🔄 New words keeps the old design</li><li>🎨 Email designer: colours for the offer on the pictures — Navy &amp; red, Yellow &amp; black, Black &amp; yellow, Red &amp; black, White &amp; red or your own, for the whole email or just one picture</li><li>🐞 Email designer: the small pictures in the email now follow the picture chosen in the editor (↻ Another, a pasted picture, an AI picture or “Product photo instead”)</li><li>📍 Order screen step 3 “Capel covering” (after Seasonal): B lines and slower lines Capel is shipping online because Arklow is out, low or doesn’t stock them, or Capel shipped in these 30 days last year — with what fixing them does to the Capel share · 📍 tag on Bread & butter and Seasonal lines Capel is covering · “All Capel-covered lines” replaces the Arklow gap view · supplier cards show the Capel covering row</li><li>🏠 Home: four main cards in one row, 🧰 Tools as a strip across the page</li><li>🏠 Home: 📍 Capel share has its own card beside Purchasing, with today's % · 🚨 Urgent PO moved into the Capel share page · 📋 Supplier price list and 🔎 Where are we for… moved under Tools</li><li>📉 Capel share: a year of daily history rebuilt from Linnworks orders, trendline over the last 60 days, progress measured from 18 Nov · 🔭 Get ahead shows what Capel actually shipped in the same 30 days last year (CAPEL_SHARE_LY)</li><li>📍 Ship from Arklow is now the Capel share dashboard: today's % with the change on yesterday, progress to the 5% target, a daily chart with trendline and the date 5% is reached at this rate · 🗓 day by day: what moved the share (Arklow out / low / not stocked / had stock), the lines behind it and what to do now (send from Capel, order, check routing) · 🔭 get ahead: lines that sold online in the same 30 days last year that Arklow won't cover, with send/order quantities</li><li>📉 Ship from Arklow: day-by-day Capel share chart against the 5% line (CAPEL_SHARE_LOG, written each morning by CapelShareLog.gs) · 🚚 how many lines a Capel → Arklow transfer fixes on its own</li><li>📍 Ship from Arklow tab: % of online units shipped from Capel Street against a 5% target, the trend, and every line Capel ships sorted by why (not in Arklow / Arklow out / Arklow low / routing) with a suggested Arklow quantity, what Capel can send back, lines rising at Capel, and Build order per supplier</li><li>🏷 Email designer: the offer drawn onto the big in-use pictures — price, was-price, SAVE roundel and an optional label (price tag, roundel or banner), always today’s price, saved to Klaviyo when the email goes</li><li>🖼 Email designer, new look: big in-use pictures, products grouped by the job they do, honest sales &amp; stock tags (Only 10 left · 200+ sold in 30 days), “You save €x”, a stocking-fillers strip, dark mode and Gmail Promotions-tab markup · pictures from the Klaviyo image library · 🪄 no in-use picture? the AI (your OpenAI key, or Google Gemini) makes one for you to approve · 🪶 heavy pictures made lighter</li><li>📤 Email designer: Send to Klaviyo as draft — the email goes into Klaviyo as a draft campaign with your usual audience and sender; nothing is sent until you press Send there</li><li>🎨 Email tab: after checking a campaign, Design this email builds it in the Lenehans house style — pictures, links and live prices from Klaviyo, words in the style of your best-opening campaigns, ready to paste into Klaviyo</li><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
+  <div class="sub">V7.45.0 · built 2026-11-24 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>🧾 Rep order check (🧰 Tools, the 🧾 Rep order check tab, or 🧾 Check a rep’s order in the order screen): paste the order a supplier’s rep has written — each line is matched to our SKU (TP_ + code, the code, code + ASH, then the barcode), his packs are turned into our units from his price, and it is checked against the dashboard for Capel Street or Arklow: ✅ OK / ⬆ raise / ✂ trim / ✂ cut, each with the reason in plain words, his price against our cost, codes to fix in Linnworks, and the lines from his own ranges he left out · 📋 copy the changes for the rep, 📋 copy the corrected order, 📄 export the PO, ⬇ the check as a spreadsheet, or 🛒 open it in the order screen</li><li>📦 Email designer: no low-stock products in emails — 🔁 the follow-up leaves out anything with fewer than 3 in stock (Arklow + Capel) and anything not matched to a SKU, and lists them with the stock left · 📤 Send to Klaviyo checks every product’s stock again first and offers to leave out any now under 3</li><li>🐞 Follow-up: the star product of a dashboard-made email is read back under its own name, not the next section’s heading</li><li>🔁 Email tab: Follow-up email — pick the emails sent in the last few days (from Klaviyo, or 📂 saved designs); their products come back with the same pictures, anything sold out since is left out, and the catch-up is laid out like the Monday “pick-me-up”, every product a big picture with Shop now</li><li>🖱 Email designer: right-click a product or a section (or ⋯) — make it the star, move it, big picture or small row, include the offer in the image, button colour, background colour, add or remove a section</li><li>🎨 Email designer: every button its own colour (or all at once), every section and the strip its own background, and a hex box beside every colour (e.g. #FFD200)</li><li>↶ Email designer: Undo / Redo (Ctrl+Z / Ctrl+Y) and ⟲ Revert to how the design started · 🏷 Include offer in image on every block, product photos too</li><li>⠿ Email designer: move blocks — drag a product onto another, into any section, the strip, a new section or onto the ⭐ star (they swap); drag whole sections, or ↑ Up / ↓ Down; the product ↑ ↓ arrows now carry on into the next section · + Add a section</li><li>💾 Email designer: saves as you go — 📂 Saved email designs on the Email tab (up to 20 on this computer): open one to carry on, 📌 keep a copy of a version before trying something, delete · 🔄 New words keeps the old design</li><li>🎨 Email designer: colours for the offer on the pictures — Navy &amp; red, Yellow &amp; black, Black &amp; yellow, Red &amp; black, White &amp; red or your own, for the whole email or just one picture</li><li>🐞 Email designer: the small pictures in the email now follow the picture chosen in the editor (↻ Another, a pasted picture, an AI picture or “Product photo instead”)</li><li>📍 Order screen step 3 “Capel covering” (after Seasonal): B lines and slower lines Capel is shipping online because Arklow is out, low or doesn’t stock them, or Capel shipped in these 30 days last year — with what fixing them does to the Capel share · 📍 tag on Bread & butter and Seasonal lines Capel is covering · “All Capel-covered lines” replaces the Arklow gap view · supplier cards show the Capel covering row</li><li>🏠 Home: four main cards in one row, 🧰 Tools as a strip across the page</li><li>🏠 Home: 📍 Capel share has its own card beside Purchasing, with today's % · 🚨 Urgent PO moved into the Capel share page · 📋 Supplier price list and 🔎 Where are we for… moved under Tools</li><li>📉 Capel share: a year of daily history rebuilt from Linnworks orders, trendline over the last 60 days, progress measured from 18 Nov · 🔭 Get ahead shows what Capel actually shipped in the same 30 days last year (CAPEL_SHARE_LY)</li><li>📍 Ship from Arklow is now the Capel share dashboard: today's % with the change on yesterday, progress to the 5% target, a daily chart with trendline and the date 5% is reached at this rate · 🗓 day by day: what moved the share (Arklow out / low / not stocked / had stock), the lines behind it and what to do now (send from Capel, order, check routing) · 🔭 get ahead: lines that sold online in the same 30 days last year that Arklow won't cover, with send/order quantities</li><li>📉 Ship from Arklow: day-by-day Capel share chart against the 5% line (CAPEL_SHARE_LOG, written each morning by CapelShareLog.gs) · 🚚 how many lines a Capel → Arklow transfer fixes on its own</li><li>📍 Ship from Arklow tab: % of online units shipped from Capel Street against a 5% target, the trend, and every line Capel ships sorted by why (not in Arklow / Arklow out / Arklow low / routing) with a suggested Arklow quantity, what Capel can send back, lines rising at Capel, and Build order per supplier</li><li>🏷 Email designer: the offer drawn onto the big in-use pictures — price, was-price, SAVE roundel and an optional label (price tag, roundel or banner), always today’s price, saved to Klaviyo when the email goes</li><li>🖼 Email designer, new look: big in-use pictures, products grouped by the job they do, honest sales &amp; stock tags (Only 10 left · 200+ sold in 30 days), “You save €x”, a stocking-fillers strip, dark mode and Gmail Promotions-tab markup · pictures from the Klaviyo image library · 🪄 no in-use picture? the AI (your OpenAI key, or Google Gemini) makes one for you to approve · 🪶 heavy pictures made lighter</li><li>📤 Email designer: Send to Klaviyo as draft — the email goes into Klaviyo as a draft campaign with your usual audience and sender; nothing is sent until you press Send there</li><li>🎨 Email tab: after checking a campaign, Design this email builds it in the Lenehans house style — pictures, links and live prices from Klaviyo, words in the style of your best-opening campaigns, ready to paste into Klaviyo</li><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -1704,6 +1775,7 @@ input.ed-hex.bad{border-color:#dc2626!important;background:#fef2f2}
     <button class="tab-btn" data-tab="pricereview">💶 Price Review</button>
     <button class="tab-btn" data-tab="barcodes">🏷️ Barcodes</button>
     <button class="tab-btn" data-tab="pricelist">📋 Price list → order</button>
+    <button class="tab-btn" data-tab="repcheck">🧾 Rep order check</button>
     <button class="tab-btn" data-tab="whereare">🔎 Where are we for…</button>
     <button class="tab-btn" data-tab="deliveries" style="display:none">🚚 Deliveries</button>
     <div id="weatherChip" style="display:none;margin-left:auto;align-self:center;
@@ -1787,6 +1859,7 @@ input.ed-hex.bad{border-color:#dc2626!important;background:#fef2f2}
           <button class="home-link" style="justify-content:center;white-space:nowrap" data-goto="pricereview">💶 Price Review</button>
           <button class="home-link" style="justify-content:center;white-space:nowrap" data-goto="movein">🏠 Move-In</button>
           <button class="home-link" style="justify-content:center;white-space:nowrap" data-goto="pricelist">📋 Price list → order</button>
+          <button class="home-link" style="justify-content:center;white-space:nowrap" data-goto="repcheck">🧾 Check a rep’s order</button>
           <button class="home-link" style="justify-content:center;white-space:nowrap" data-goto="whereare">🔎 Where are we for…?</button>
         </div>
       </div>
@@ -2254,6 +2327,29 @@ Fine Sea Salt drum	SSFCTDP63	350g	6	238	34	7	5011289 002499	05011289 002512"
       </div>
     </div>
   </div><!-- /tab-pricelist -->
+  <div class="tab-panel" id="tab-repcheck">
+    <div style="padding:16px 0 8px;max-width:1260px">
+      <div class="rc-box">
+        <div class="rc-h">🧾 Check a rep’s order</div>
+        <div class="rc-sub">Paste the order a supplier’s rep has written for us. Each line is matched to our stock (TP_ + code, the code, code + ASH, then the barcode), checked against what the dashboard wants for the store, and you get a corrected order — what to cut, trim or raise, with the reason, and the lines he left out.</div>
+        <div class="rc-form">
+          <label>Supplier <input id="rcSup" list="rcSupList" placeholder="e.g. ASH001" autocomplete="off" onchange="rcSave_()"></label><datalist id="rcSupList"></datalist>
+          <span class="rc-store">For <label><input type="radio" name="rcStore" value="capel" onchange="rcSave_()"> 🏪 Capel Street</label><label><input type="radio" name="rcStore" value="arklow" onchange="rcSave_()"> 📦 Arklow</label></span>
+          <label title="The rep’s quantity stands where it leaves no more than this much stock (stock + on order + his order, at the line’s current pace); above that it is trimmed back">Keep the rep’s qty up to <input id="rcMonths" type="number" value="2" min="0.5" max="12" step="0.5" onchange="rcSave_()"> months’ stock</label>
+        </div>
+        <textarea id="rcPaste" rows="7" placeholder="Paste the rep’s order — one line per product, e.g.
+5001-92  PT400S40 40 WATT SOLDERING IRON  5013433400007  6 EACH  8.85
+1521-20  POWERMASTER 2PCE 16 AMP DZ FUSE  1 BOX 10  9.67
+1829-22  ENERGIZER LED 5W E14 GLASS FILAMENT CANDLE  12 EACH  2.59  10%
+A copy from Excel with a header row (Code · Description · Qty · Per · Price · Dis%) works too." onchange="rcSave_()"></textarea>
+        <div class="rc-go">
+          <button class="rc-btn main" onclick="rcRun()">▶ Check the order</button>
+          <button class="rc-btn" onclick="document.getElementById('rcPaste').value='';document.getElementById('rcResult').innerHTML='';window._rc=null;rcSave_()">Clear</button>
+        </div>
+      </div>
+      <div id="rcResult"></div>
+    </div>
+  </div><!-- /tab-repcheck -->
 
   <div class="tab-panel" id="tab-whereare">
     <div style="padding:16px 0 8px;max-width:1100px">
@@ -11240,6 +11336,41 @@ window.edCopyHtml=async function(btn){
 // ── V7.35.1 — 📤 Send to Klaviyo as draft (Mark, 18 Nov: "How can we push this email into Klaviyo - seamlessly") ──
 // The web app (the Send to Klaviyo part of Code.gs, doPost) makes the template and a DRAFT campaign with the usual
 // audience and sender. Nothing is scheduled or sent from the dashboard: the draft opens in Klaviyo for a last look.
+// V7.44.0 (Mark, 23 Nov: "We dont want to send stuff out of stock" · "Leave out anything with fewer than 3 in stock")
+const ED_MIN_STOCK=3;
+function edStockOf_(r){ return Math.max(0,+r.NetStock_Arklow||0)+Math.max(0,+r.NetStock_CapelStreet||0); }
+// every product in the design against the dashboard data as loaded now (Arklow + Capel net stock)
+function edStockCheck_(E){
+  const rows=(typeof state!=='undefined'&&state.computedRows)||[];
+  if(!rows.length) return {loaded:false, low:[], unknown:[]};
+  const by=new Map(); rows.forEach(r=>{ const k=String(r.SKU||'').trim().toUpperCase(); if(k&&!by.has(k)) by.set(k,r); });
+  const low=[], unknown=[];
+  (E.prods||[]).forEach(p=>{ const k=String(p.sku||'').trim().toUpperCase(), r=(!p.noSku&&k&&!/^URL:/.test(k))?by.get(k):null;
+    if(!r){ unknown.push(p); return; }
+    const n=edStockOf_(r); if(n<ED_MIN_STOCK) low.push({p, n}); });
+  return {loaded:true, low, unknown};
+}
+function edStockHtml_(E){
+  const c=edStockCheck_(E), out=c.low.length+c.unknown.length, note=E._klNote; E._klNote='';
+  let h=note?`<div class="ed-kl-note" style="color:#166534">${note}</div>`:'';
+  if(!c.loaded) return h+`<div class="ed-warn">⚠ Stock not checked: the dashboard data isn’t loaded. Load it first so nothing under ${ED_MIN_STOCK} in stock goes out.</div>`;
+  if(!out) return h+`<div class="ed-kl-note" style="color:#166534">✓ Stock checked just now: every product has ${ED_MIN_STOCK} or more (Arklow + Capel).</div>`;
+  const all=out>=(E.prods||[]).length;
+  h+=`<div class="ed-warn"><b>📦 Stock checked just now — ${out} product${out!==1?'s':''} shouldn’t go out:</b>`+
+    (c.low.length?`<br>Fewer than ${ED_MIN_STOCK} in stock: ${c.low.map(x=>`${edEsc(x.p.name)} (${x.n?x.n+' left':'sold out'})`).join(', ')}`:'')+
+    (c.unknown.length?`<br>Not matched to a SKU, so the stock can’t be checked: ${c.unknown.map(x=>edEsc(x.name||x.url||x.sku)).join(', ')}`:'')+
+    (all?`<br>That’s every product in the email — there’s nothing left to send.`:`<br><button class="ed-go" style="margin-top:8px" id="edKlLow" onclick="edKlDropLow()">✕ Leave ${out===1?'it':'all '+out} out of the email</button>`)+`</div>`;
+  return h;
+}
+window.edKlDropLow=function(){
+  const E=window._ed; if(!E) return; const c=edStockCheck_(E);
+  const bad=new Set([...c.low.map(x=>x.p.sku), ...c.unknown.map(p=>p.sku)]); if(!bad.size || bad.size>=E.prods.length) return;
+  const names=E.prods.filter(p=>bad.has(p.sku)).map(p=>p.name);
+  for(let i=E.prods.length-1;i>=0;i--) if(bad.has(E.prods[i].sku)) window.edDrop(i);   // the same as ✕ Leave it out: undo brings them back
+  E._klNote=`✓ Left out: ${names.map(edEsc).join(', ')}.`;
+  try{ logUsage('email_stock_dropout', names.length+' products'); }catch(e){}
+  edKlOpen(true);
+};
 const ED_AUD=[['main','Everyone on our email list (the usual)','everyone on our email list'],['non_openers','Didn’t open the last campaign (resend)','people who didn’t open the last campaign']];
 window.edKlOpen=function(fresh){
   const E=window._ed, box=document.getElementById('edKl'); if(!E||!box) return;
@@ -11253,8 +11384,9 @@ window.edKlOpen=function(fresh){
     <div class="ed-kl-meta">From <b>Lenehans.ie</b> · sales@lenehans.ie · subject “${edEsc(E.copy.subject)}” · sends in each person’s local time · UTM tracking on</div>
     ${warn?`<div class="ed-warn">⚠ ${warn} price${warn!==1?'s':''} above still to check in Magento — fine to send the draft now and fix ${warn!==1?'them':'it'} before you schedule.</div>`:''}
     ${noImg?`<div class="ed-warn">⚠ ${noImg} product${noImg!==1?'s have':' has'} no picture yet.</div>`:''}
+    ${edStockHtml_(E)}
     <div class="ed-kl-note">Nothing is sent. Klaviyo gets a draft; you check it there and press Schedule or Send yourself.</div>
-    <div class="ed-kl-btns"><button class="ed-go" id="edKlGo" onclick="edKlPush()">📤 Make the draft</button><button class="ed-kl-x" onclick="edKlOpen()">Cancel</button></div>
+    <div class="ed-kl-btns">${(()=>{ const c=edStockCheck_(E), low=c.low.length+c.unknown.length; return `<button class="${low?'ed-kl-x':'ed-go'}" id="edKlGo" onclick="edKlPush()">📤 Make the draft${low?' with them in':''}</button>`; })()}<button class="ed-kl-x" onclick="edKlOpen()">Cancel</button></div>
   </div>`;
 };
 window.edKlPush=async function(){
@@ -11518,7 +11650,7 @@ function edRender_(){
   box.innerHTML=`<div class="ed-grid">
     <div class="ed-edit">
       ${edSaveBarHtml_(E)}
-      ${FU?`<div class="ed-note ed-fu-n">🔁 Follow-up of <b>${(FU.from||[]).map(edEsc).join('</b> + <b>')}</b> · ${E.prods.length} product${E.prods.length!==1?'s':''} still in stock${FU.dropped&&FU.dropped.length?`<br>Left out, sold out since: ${FU.dropped.map(edEsc).join(', ')}`:''}${FU.unknown&&FU.unknown.length?`<br><span class="ed-bad">⚠ ${FU.unknown.length} not matched to a SKU, so their stock isn’t checked: ${FU.unknown.map(edEsc).join(', ')}</span>`:''}</div>`:''}
+      ${FU?`<div class="ed-note ed-fu-n">🔁 Follow-up of <b>${(FU.from||[]).map(edEsc).join('</b> + <b>')}</b> · ${E.prods.length} product${E.prods.length!==1?'s':''} ${FU.min?`with ${FU.min}+ in stock`:'still in stock'}${FU.dropped&&FU.dropped.length?`<br>Left out, ${FU.min?`fewer than ${FU.min} in stock`:'sold out since'}: ${FU.dropped.map(edEsc).join(', ')}`:''}${FU.unknown&&FU.unknown.length?(FU.min?`<br>Left out, not matched to a SKU so their stock can’t be checked: ${FU.unknown.map(edEsc).join(', ')}`:`<br><span class="ed-bad">⚠ ${FU.unknown.length} not matched to a SKU, so their stock isn’t checked: ${FU.unknown.map(edEsc).join(', ')}</span>`):''}</div>`:''}
       ${!E.metaLive?`<div class="ed-warn">Pictures: ${edEsc(E.metaErr||'not reachable')}. Paste the updated <b>Code.gs</b> into the web app and deploy a New version; until then, paste each picture's address below.</div>`:''}
       ${noIn?`<div class="ed-note">📷 ${noIn} product${noIn!==1?'s have':' has'} no in-use picture yet: 🪄 Make one, pick one from the library, or paste an address. Without one, the product photo is used.</div>`:''}
       ${heavy?`<div class="ed-warn">⚠ ${heavy} in-use picture${heavy!==1?'s are':' is'} over ${ED.HEAVY_KB} KB and will load slowly on phones. <button class="ed-sm" onclick="edLightenAll()">🪶 Make lighter copies of all ${heavy}</button></div>`:''}
@@ -11740,7 +11872,7 @@ function edEmailProducts_(html){
     if(n.nodeType===1){ if(n.tagName==='IMG'){ const a=prodOf(n); toks.push({k:'img', u:a?a.u:'', raw:a?a.raw:'', src:n.getAttribute('src')||'', w:+(n.getAttribute('width')||0), alt:n.getAttribute('alt')||''}); } continue; }
     const par=n.parentNode; if(!par||/^(STYLE|SCRIPT|TITLE)$/i.test(par.tagName||'')) continue;
     const t=String(n.nodeValue||'').replace(/[\s͏ ­]+/g,' ').trim(); if(!t) continue;
-    const a=prodOf(par); toks.push({k:'txt', u:a?a.u:'', raw:a?a.raw:'', t, dmt:!!(par.closest&&par.closest('.dm-t'))});
+    const a=prodOf(par); toks.push({k:'txt', u:a?a.u:'', raw:a?a.raw:'', t, dmt:!!(par.closest&&par.closest('.dm-t')), hd:!!(par.closest&&par.closest('h1,h2,h3'))});
   }
   // hidden notes from our own emails: <!--ed {"s":SKU,"p":picture,"o":1}--> just before the product's link
   const notes=new Map(); const re=/<!--ed (\{[\s\S]*?\})-->/g; let m;
@@ -11757,7 +11889,7 @@ function edEmailProducts_(html){
     const seg=toks.slice(first,end), im=seg.filter(t=>t.k==='img'&&t.u===u).sort((a,b)=>b.w-a.w)[0]||{};
     const texts=seg.filter(t=>t.k==='txt'), raw=(seg.find(t=>t.raw)||{}).raw||'';
     const alt=String(im.alt||''), am=alt.match(/now\s*€\s*(\d+(?:[.,]\d{1,2})?)(?:,\s*was\s*€\s*(\d+(?:[.,]\d{1,2})?))?/i);
-    const nameT=texts.find(t=>t.dmt&&!/€\s*\d/.test(t.t)&&!isBtn(t.t)&&!isChip(t.t)) || texts.find(t=>t.u===u&&!isBtn(t.t)&&!/€\s*\d/.test(t.t)) || texts.find(t=>!/€\s*\d/.test(t.t)&&!isBtn(t.t)&&!isChip(t.t)&&t.t.length>3);
+    const nameT=texts.find(t=>t.dmt&&!t.hd&&!/€\s*\d/.test(t.t)&&!isBtn(t.t)&&!isChip(t.t)) || texts.find(t=>t.u===u&&!isBtn(t.t)&&!/€\s*\d/.test(t.t)) || texts.find(t=>!/€\s*\d/.test(t.t)&&!isBtn(t.t)&&!isChip(t.t)&&t.t.length>3);
     const name=(nameT&&nameT.t) || alt.replace(/:\s*now\s*€.*$/i,'').replace(/\s+in use$/i,'').trim();
     let now=0, was=0;
     if(am){ now=num(am[1]); was=am[2]?num(am[2]):0; }
@@ -11798,7 +11930,7 @@ function edFollowBar_(){
     : F.err ? `<div class="ed-warn">Klaviyo: ${edEsc(F.err)}${F.hint?`<br>${edEsc(F.hint)}`:''}</div>`
     : (F.emails||[]).length ? (F.emails||[]).map(e=>`<label class="ed-fu-r"><input type="checkbox" ${pick['k:'+e.id]?'checked':''} onchange="edFollowPick('k:${edEsc(e.id)}',this.checked)"><b>${edEsc(e.name||e.subject)}</b><span>sent ${when(e.sentAt)} · ${e.prods.length} product${e.prods.length!==1?'s':''}${e.subject&&e.subject!==e.name?` · “${edEsc(e.subject)}”`:''}</span></label>`).join('')
     : `<div class="ed-note">Klaviyo sent no emails in the last ${days} day${days!==1?'s':''}.</div>`;
-  el.innerHTML=`<div class="ed-fu ed-fu-open"><div class="ed-fu-h"><b>🔁 Follow-up email</b><span>pick the emails to follow up — their products come back with the same pictures, anything sold out since is left out</span><button class="ed-sm" onclick="edFollowClose()">Close</button></div>
+  el.innerHTML=`<div class="ed-fu ed-fu-open"><div class="ed-fu-h"><b>🔁 Follow-up email</b><span>pick the emails to follow up — their products come back with the same pictures; anything with fewer than ${ED_MIN_STOCK} in stock is left out</span><button class="ed-sm" onclick="edFollowClose()">Close</button></div>
     <div class="ed-fu-f"><label>Sent in the last <select onchange="edFollowDays(this.value)">${[2,3,4,5,7,10,14].map(d=>`<option value="${d}"${d===days?' selected':''}>${d} days</option>`).join('')}</select></label></div>
     <div class="ed-fu-g"><div class="ed-fu-gh">From Klaviyo</div>${kl}</div>
     ${S.length?`<div class="ed-fu-g"><div class="ed-fu-gh">From 📂 saved designs on this computer</div>${S.map(s=>`<label class="ed-fu-r"><input type="checkbox" ${pick['s:'+s.id]?'checked':''} onchange="edFollowPick('s:${s.id}',this.checked)"><b>${edEsc(s.name)}</b><span>saved ${when(s.at)} · ${s.n} product${s.n!==1?'s':''}</span></label>`).join('')}</div>`:''}
@@ -11871,13 +12003,14 @@ window.edFollowBuild=async function(btn){
       uniq.push(p); });
     // still in stock today?
     const bySku=new Map(); rows.forEach(r=>{ const k=String(r.SKU||'').trim().toUpperCase(); if(k&&!bySku.has(k)) bySku.set(k,r); });
+    // V7.44.0 (Mark, 23 Nov): fewer than ED_MIN_STOCK in stock, or no SKU (so no stock to check) → left out and listed
     const keep=[], dropped=[], unknown=[];
     uniq.forEach(p=>{ const r=p.sku?bySku.get(String(p.sku).toUpperCase()):null;
-      if(!r){ p.noSku=true; unknown.push(p.name||p.url); keep.push(p); return; }
-      p.row=r; p.sku=String(r.SKU).trim(); p.stock=Math.max(0,+r.NetStock_Arklow||0)+Math.max(0,+r.NetStock_CapelStreet||0);
-      if(p.stock>0) keep.push(p); else dropped.push(p.name||p.sku); });
-    if(!keep.length){ say(`Everything in those emails has sold out since (${dropped.length}).`); return; }
-    say(`⏳ ${keep.length} still in stock — getting pictures and today’s prices…`);
+      if(!r){ unknown.push(p.name||p.url); return; }
+      p.row=r; p.sku=String(r.SKU).trim(); p.stock=edStockOf_(r);
+      if(p.stock>=ED_MIN_STOCK) keep.push(p); else dropped.push(`${p.name||p.sku} (${p.stock?p.stock+' left':'sold out'})`); });
+    if(!keep.length){ say(`Nothing in those emails has ${ED_MIN_STOCK} or more in stock now (${dropped.length} low or sold out${unknown.length?`, ${unknown.length} not matched to a SKU`:''}).`); return; }
+    say(`⏳ ${keep.length} with ${ED_MIN_STOCK}+ in stock — getting pictures and today’s prices…`);
     const withSku=keep.filter(p=>!p.noSku), titles={}; withSku.forEach(p=>{ titles[p.sku]=p.row.ItemTitle||p.name; });
     const M=withSku.length?await edMeta_(withSku.map(p=>p.sku), titles):{meta:{}, live:true, err:''};
     const ovStore=edStore_('lenehans_ed_ovurl_v1'), want=edStore_('lenehans_ed_ov_v1'), offerOf={};
@@ -11904,11 +12037,11 @@ window.edFollowBuild=async function(btn){
     const E={theme:'Follow-up: '+from.join(' + '), link:'https://www.lenehans.ie/sale.html', prods, hero:prods[0].sku,
       sections:[{eyebrow:'', title:'', why:'', skus:prods.slice(1).map(p=>p.sku)}], copy, showTags:true, showMore:true, moreTitle:'',
       ovOn:true, ovStyle:'tag', ovLabel:'', ovCol:pref.col||'navy', ovCustom:pref.custom||null,
-      follow:{from, at:new Date().toISOString(), dropped, unknown, skipped}, metaErr:M.err, metaLive:M.live, ai:null};
-    say(`✓ ${prods.length} product${prods.length!==1?'s':''} in the follow-up${dropped.length?` · ${dropped.length} sold out, left out`:''}`);
+      follow:{from, at:new Date().toISOString(), dropped, unknown, skipped, min:ED_MIN_STOCK}, metaErr:M.err, metaLive:M.live, ai:null};
+    say(`✓ ${prods.length} product${prods.length!==1?'s':''} in the follow-up${dropped.length?` · ${dropped.length} under ${ED_MIN_STOCK} in stock, left out`:''}${unknown.length?` · ${unknown.length} not matched to a SKU, left out`:''}`);
     F.open=false; edFollowBar_();
     edShowDesign_(E, `🔁 follow-up of ${from.map(edEsc).join(' + ')} · check the words and pictures, then 📤 send to Klaviyo as a draft`);
-    try{ logUsage('email_followup', `${prods.length} products · ${dropped.length} sold out · ${from.length} email${from.length!==1?'s':''}`); }catch(e){}
+    try{ logUsage('email_followup', `${prods.length} products · ${dropped.length} under ${ED_MIN_STOCK} · ${unknown.length} no SKU · ${from.length} email${from.length!==1?'s':''}`); }catch(e){}
   } finally { if(btn&&btn.isConnected) btn.disabled=false; }
 };
 try{ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', ()=>edFollowBar_()); else setTimeout(()=>edFollowBar_(),0); }catch(e){}
@@ -14257,6 +14390,7 @@ function bindEvents(){
       if(btn.dataset.tab==='alerts')     { try{ computeStockAlerts(); }catch(e){} }
       if(btn.dataset.tab==='movein')     renderMoveIn();
       if(btn.dataset.tab==='sales')      renderSalesIntel();
+      if(btn.dataset.tab==='repcheck')   rcOnTabOpen();   // V7.45.0
     });
   });
   // Home landing cards → jump to the matching tab by clicking its real tab button
@@ -16222,6 +16356,7 @@ function osRender(rebuild){
             <input class="po-review-search oq-search" id="osQSearch" type="text" placeholder="🔍 Search this order…" oninput="window._os.search=this.value;osRender()"></div>
           <div class="os-toolbar">
             <input class="po-review-search" id="osSearch" type="text" placeholder="🔍 Search this order…" oninput="window._os.search=this.value;osRender()">
+            <button tabindex="-1" class="secondary os-refine-toggle" onclick="rcOpenFor(window._os&&window._os.supplier)" title="Paste the order this supplier’s rep has written and check it against the dashboard">🧾 Check a rep’s order</button>
             <button tabindex="-1" class="secondary os-refine-toggle" onclick="const b=document.getElementById('osRefineBox');b.style.display=b.style.display==='flex'?'none':'flex';document.getElementById('osRefine').focus()">✦ Refine with AI</button>
             <span id="osRefineBox" style="display:none;flex:1;gap:6px;min-width:260px">
               <input class="os-refine" id="osRefine" type="text" placeholder='e.g. "only top sellers" or "drop anything under €50/mo"' onkeydown="if(event.key==='Enter')osRefineAI()">
@@ -18334,6 +18469,583 @@ function downloadNoosCsv(rows,label){
   a.download='PO_NeverOOS_'+label.replace(/[^a-z0-9]+/gi,'_')+'.csv';
   a.click();URL.revokeObjectURL(a.href);
 }
+
+// ══ V7.45.0 — REP ORDER CHECK ═══════════════════════════════════════════════════════════════
+// Mark, 23 Nov 2026 (the Ashtown rep's order for Capel): "check each SKU against our dashboard. Remember a TP_ may
+// prefix a code … Is it good? Can we improve on it? … then a suggested order for review. Then lets build this into
+// our dashboard". Paste a rep's order → each line is matched to our SKU (TP_ + code, the code, code + ASH, then the
+// barcode), the rep's packs are turned into our units from his price against our cost, and every line is checked
+// against what V8 wants for the chosen store: OK / raise / trim / cut, with the reason in plain words. Lines of the
+// same supplier that V8 wants and the rep left out are listed (his own ranges first). The corrected order can be
+// copied back to the rep (changes only, or in full), exported as a PO, or opened in the order screen.
+const RC_KEY='lh_repcheck_v1';
+const RC_ONE_WORDS='EACH|EA|SINGLE|UNITS|UNIT';      // one of ours, never followed by a count
+const RC_UNIT_WORDS='BOXES|BOX|PACKS|PACK|PKT|PK|CTN|CARTON|CASE|BAG|CARD|CRD|DOZEN|DOZ|SET|PAIR|PR|ROLL|TUB|TRAY|OUTER|INNER|BLISTER';
+const RC_UNIT_RE=new RegExp('^(?:('+RC_ONE_WORDS+')\\b|('+RC_UNIT_WORDS+')\\b(?:\\s*(?:OF\\s*)?(\\d+))?)','i');
+// a quantity followed by the rep's unit: "2 BOX 10", "10 EACH", "1 10 X 2", "2 10X2", "12 CARD 2", "3 PACK" —
+// a count is a whole number, never the start of the price after it ("1 EACH 24.35", "3 PACK 6.95")
+const RC_QTYPER_RE=new RegExp('(?:^|\\s)(\\d+(?:\\.\\d+)?)\\s+(?:(\\d+)\\s*[xX×]\\s*(\\d+)\\b|('+RC_ONE_WORDS+')\\b|('+RC_UNIT_WORDS+')\\b(?:\\s*(?:OF\\s*)?(\\d+)(?![\\d.,]))?)','gi');
+const RC_GRP={bb:'🍞 Bread & butter', season:'🎄 Seasonal', capel:'📍 Capel covering', b:'B line', rest:'The rest'};
+// words that start a title or a description but are no brand
+const RC_NOT_BRAND=new Set(['BLACK','WHITE','CHROME','BRASS','SILVER','GOLD','CLEAR','GREEN','BLUE','GREY','GALVANISED','GALV','PLASTIC','METAL','STEEL','UNIVERSAL','INDOOR','OUTDOOR','LARGE','SMALL','MEDIUM','MINI','PACK','CARD','SAFETY','LITTLE','SURE','PETROL','COOKER','EXTENSION','CABLE','FIXED','DOUBLE','SINGLE','ORIGINAL','MULTI','HEAVY','SUPER','ULTRA','POWER','LIGHT','LAMP','BULB','TWIN','WOODEN','RUBBER','ACQUA','MAP']);
+
+function rcNum_(s){
+  const t=String(s==null?'':s).replace(/[€£\s]/g,'').replace(/,(?=\d{3}(\D|$))/g,'').replace(',','.');
+  const v=parseFloat(t); return isFinite(v)?v:NaN;
+}
+function rcPerCount_(per){
+  const p=String(per||'').trim(); if(!p) return 1;
+  let m=p.match(/(\d+)\s*[xX×]\s*(\d+)/); if(m) return parseInt(m[1],10)||1;
+  m=p.match(RC_UNIT_RE); if(m) return m[3]?(parseInt(m[3],10)||1):1;
+  m=p.match(/(\d+)/); return m?(parseInt(m[1],10)||1):1;
+}
+// price, then a discount % and/or the line value, from the numbers after the unit
+function rcTail_(nums, q, o){
+  if(!nums.length) return;
+  o.p=nums[0].v;
+  const rest=nums.slice(1);
+  const pc=rest.find(n=>n.pct); if(pc){ o.d=pc.v; return; }
+  const near=(a,b)=>Math.abs(a-b)<=Math.max(0.05, 0.012*Math.abs(b));
+  if(rest.length>=2){
+    if(near(q*o.p*(1-rest[0].v/100), rest[1].v) && rest[0].v<100){ o.d=rest[0].v; return; }
+    if(near(q*o.p, rest[0].v)){ if(rest[1].v<100 && near(q*o.p*(1-rest[1].v/100), rest[0].v)) o.d=rest[1].v; return; }
+    if(rest[0].v<100) o.d=rest[0].v; return;
+  }
+  if(rest.length===1){ const x=rest[0].v; if(near(q*o.p, x)) return; if(x<100) o.d=x; }
+}
+// one pasted line, no header: CODE  description  [EAN]  QTY PER  PRICE  [DIS%]  [VALUE]
+function rcParseLine_(raw){
+  let line=String(raw).replace(/ /g,' ').replace(/\t/g,'  ').trim();
+  if(!line) return null;
+  let toks=line.split(/\s+/);
+  if(/^\d{1,3}\.?$/.test(toks[0]) && toks[1] && /[A-Za-z-]/.test(toks[1]) && /\d/.test(toks[1])) { line=line.slice(line.indexOf(toks[1])); toks=line.split(/\s+/); }
+  const code=toks[0];
+  if(!code || !/\d/.test(code) || !/^[A-Za-z0-9][A-Za-z0-9\-\/._]{1,24}$/.test(code)) return null;   // headings, totals, notes
+  let rest=line.slice(code.length);
+  let ean='';
+  const eans=[...rest.matchAll(/(?:^|\s)(\d{8}|\d{12,14})(?=\s|$)/g)];
+  if(eans.length){ const e=eans[eans.length-1]; ean=e[1]; rest=rest.slice(0,e.index)+' '+rest.slice(e.index+e[0].length); }
+  const o={code, desc:'', q:NaN, per:'EACH', m:1, p:NaN, d:0, ean, raw:String(raw).trim()};
+  const ms=[...rest.matchAll(RC_QTYPER_RE)];
+  let after='';
+  if(ms.length){
+    const m=ms[ms.length-1];
+    o.q=parseFloat(m[1]);
+    if(m[2]){ o.per=`${m[2]} X ${m[3]}`; o.m=parseInt(m[2],10)||1; }
+    else if(m[4]){ o.per=m[4].toUpperCase(); o.m=1; }
+    else { o.per=(m[5].toUpperCase()+(m[6]?' '+m[6]:'')); o.m=m[6]?(parseInt(m[6],10)||1):1; }
+    o.desc=rest.slice(0,m.index).trim();
+    after=rest.slice(m.index+m[0].length);
+  } else {
+    // no unit word: the trailing numbers are QTY PRICE [DIS] [VALUE]
+    const tm=rest.match(/((?:\s+[€]?-?\d+(?:[.,]\d+)?%?)+)\s*$/);
+    if(!tm) return {...o, bad:true};
+    const tn=tm[1].trim().split(/\s+/);
+    if(tn.length<2) return {...o, bad:true};
+    o.q=rcNum_(tn[0]); o.desc=rest.slice(0,tm.index).trim(); after=tn.slice(1).join(' ');
+  }
+  const nums=[...after.matchAll(/€?\s*(-?\d+(?:[.,]\d+)?)\s*(%)?/g)].map(x=>({v:rcNum_(x[1]), pct:!!x[2]})).filter(n=>isFinite(n.v));
+  rcTail_(nums, o.q, o);
+  o.desc=o.desc.replace(/\s{2,}/g,' ').trim();
+  if(!(o.q>0) || !(o.p>=0)) o.bad=true;
+  return o;
+}
+// a header row (Code · Description · Qty · Per · Price · Dis% · EAN · Value), tab-separated
+function rcHeaderMap_(line){
+  const c=line.split('\t').map(s=>s.trim().toLowerCase()); if(c.length<3) return null;
+  const f=re=>c.findIndex(x=>re.test(x));
+  const ci=f(/^(code|sku|item|stock ?code|product ?code|item ?code|ref)/), qi=f(/^(qty|quantity|order ?qty|qty ordered)/);
+  if(ci<0 || qi<0) return null;
+  return {ci, qi, di:f(/desc|product|name|title/), pi:f(/^(per|unit|uom|pack|unit of)/), pr:f(/price|cost|rate/), dis:f(/^dis|disc|%/), ei:f(/ean|barcode|bar code/), vi:f(/value|total|amount|line/)};
+}
+function rcParse_(text){
+  const lines=String(text||'').split(/\r?\n/), out=[], bad=[];
+  let H=null;
+  for(const raw of lines){
+    if(!raw.trim()) continue;
+    if(!H && !out.length){ const h=rcHeaderMap_(raw); if(h){ H=h; continue; } }
+    let o;
+    if(H){
+      const c=raw.split('\t');
+      const code=String(c[H.ci]||'').trim(); if(!code || !/\d/.test(code)) continue;
+      const per=H.pi>=0?String(c[H.pi]||'').trim().toUpperCase():'EACH';
+      o={code, desc:H.di>=0?String(c[H.di]||'').trim():'', q:rcNum_(c[H.qi]), per:per||'EACH', m:rcPerCount_(per), p:H.pr>=0?rcNum_(c[H.pr]):NaN,
+         d:H.dis>=0?(rcNum_(c[H.dis])||0):0, ean:H.ei>=0?String(c[H.ei]||'').replace(/\D/g,''):'', raw:raw.trim()};
+      if(!(o.q>0) || !(o.p>=0)) o.bad=true;
+    } else o=rcParseLine_(raw);
+    if(!o) continue;
+    if(o.bad) bad.push(o.raw); else out.push(o);
+  }
+  return {lines:out, bad, header:!!H};
+}
+
+// ── matching ──
+function rcIndex_(){
+  const bySku=new Map(), byEan=new Map();
+  for(const r of (state.computedRows||[])){
+    const k=normSku_(r.SKU); if(k){ (bySku.get(k)||bySku.set(k,[]).get(k)).push(r); }
+    const e=_normEan(r.Barcode); if(e && e.length>=7){ (byEan.get(e)||byEan.set(e,[]).get(e)).push(r); }
+  }
+  return {bySku, byEan};
+}
+function rcSales12_(r){
+  const fc=r&&r.v8&&r.v8.fc;
+  if(fc) return Math.round((fc.total||0)+(fc.extra||0)*12);
+  return state.channel==='capel' ? (r.QtySold_Shop_CapelStreet_365d||0)+(r.QtySold_Online_CapelStreet_365d||0) : (r.QtySold_Online_Total_365d||r.QtySold_Total_330d||0);
+}
+function rcSold30_(r){
+  const fc=r&&r.v8&&r.v8.fc;
+  if(fc && fc.s30raw!=null) return fc.s30raw;
+  return state.channel==='capel' ? (r.QtySold_Shop_CapelStreet_30d||0)+(r.QtySold_Online_CapelStreet_30d||0) : (r.QtySold_Online_Total_30d||0);
+}
+function rcPace_(r){
+  const fc=r&&r.v8&&r.v8.fc;
+  if(!fc) return Math.max(rcSales12_(r)/12, rcSold30_(r));
+  const ly=fc.ly30!=null ? fc.ly30*(fc.g||1) : 0;
+  return Math.max(fc.F||0, fc.avg||0, fc.s30raw||0, ly||0);
+}
+function rcPos_(r){ const st=Math.max(0,Math.round(r.stock||0)), inb=Math.max(0,Math.round(r.inboundPO||0)); return {st:Math.round(r.stock||0), inb, pos:st+inb}; }
+// what V8 wants before its own pack rounding (the rep's packs are applied instead)
+function rcNeed_(r){
+  if(!r || r._excluded) return 0;
+  let n = isFinite(r.buyUnrounded) && r.buyUnrounded!=null ? Number(r.buyUnrounded) : (r.buy||0);
+  const pk=Math.max(1,Math.round(r.packSize||r.SupplierPackSize||1));
+  if((r.buy||0) > Math.ceil(Math.max(0,n)/pk)*pk) n=r.buy;     // a Customer Service floor or similar raised it
+  return Math.max(0,n);
+}
+function rcPick_(cands, sup){
+  if(!cands || !cands.length) return null;
+  const s=String(sup||'').trim().toUpperCase();
+  return cands.slice().sort((a,b)=>
+    ((String(b.SupplierName||'').trim().toUpperCase()===s)-(String(a.SupplierName||'').trim().toUpperCase()===s)) ||
+    ((a._notDefaultSupplier?1:0)-(b._notDefaultSupplier?1:0)) ||
+    (rcSales12_(b)+(b.stock||0))-(rcSales12_(a)+(a.stock||0)))[0];
+}
+function rcMatch_(L, sup, IX){
+  const c=normSku_(L.code);
+  const pool=[...(IX.bySku.get('TP_'+c)||[]), ...(IX.bySku.get(c)||[])];
+  if(pool.length){ const r=rcPick_(pool, sup); return {r, how:normSku_(r.SKU)===c?'same code':'TP_ code'}; }
+  const a=IX.bySku.get(c+'ASH'); if(a && a.length) return {r:rcPick_(a, sup), how:'code + ASH'};
+  const e=_normEan(L.ean); if(e && IX.byEan.has(e)) return {r:rcPick_(IX.byEan.get(e), sup), how:'barcode'};
+  return {r:null, how:''};
+}
+// same barcode on another SKU: the same product split over two codes (sales on one, stock on the other),
+// or a barcode that belongs to a different product (cost far apart)
+function rcTwin_(r, IX, repEan){
+  const k=normSku_(r.SKU), seen=new Set(), others=[];
+  for(const e of new Set([_normEan(r.Barcode), _normEan(repEan)])){
+    if(!e || e.length<7 || !IX.byEan.has(e)) continue;
+    for(const x of IX.byEan.get(e)) if(normSku_(x.SKU)!==k && !seen.has(x)){ seen.add(x); others.push(x); }
+  }
+  if(!others.length) return null;
+  const mine=rcSales12_(r), cost=r.SupplierCostPrice||0;
+  const live=others.filter(x=>rcSales12_(x)>0 || (x.stock||0)>0).sort((a,b)=>rcSales12_(b)-rcSales12_(a) || (b.stock||0)-(a.stock||0));
+  if(!live.length) return null;
+  const t=live[0], tc=t.SupplierCostPrice||0, same=!(cost>0 && tc>0) || (tc/cost>=0.6 && tc/cost<=1.67);
+  if(!same) return {kind:'clash', r:t};
+  if(rcSales12_(t)<Math.max(3, 2*mine) && !(mine===0 && (t.stock||0)>0)) return null;   // this code is the one that sells
+  return {kind:'twin', r:t};
+}
+function rcFactor_(L, r, net){
+  const cost=r.SupplierCostPrice||0; if(!(cost>0) || !(net>0)) return 1;
+  const ratio=net/cost; if(ratio>=0.7 && ratio<=1.45) return 1;
+  const metre=/metre|meter|mtrs?\b|per m\b/i.test(`${r.ItemTitle||''} ${L.desc||''}`);
+  const cands=new Set([L.m, Math.round(r.SupplierPackSize||r.packSize||1)]);
+  if(L.m>1 || metre) cands.add(Math.round(ratio));
+  let best=0;
+  for(const c of cands){ if(c>1 && ratio/c>=0.8 && ratio/c<=1.25 && (!best || Math.abs(Math.log(ratio/c))<Math.abs(Math.log(ratio/best)))) best=c; }
+  return best||1;
+}
+const rcRndUp_=(x,c)=>x<=0?0:Math.ceil(x/c-1e-9)*c;
+
+function rcCheckLine_(L, sup, IX, M){
+  const net=(L.p||0)*(1-(L.d||0)/100);
+  const o={L, net, repVal:L.q*net, notes:[]};
+  const {r, how}=rcMatch_(L, sup, IX);
+  o.r=r; o.how=how;
+  if(!r){ o.v='nf'; o.sugRep=L.q; o.inc=false; o.factor=null; return o; }
+  const factor=rcFactor_(L, r, net), units=L.q*factor, unit=net/factor, cost=r.SupplierCostPrice||0;
+  const pk=Math.round(r.packSize||r.SupplierPackSize||1);
+  const cs = factor>1 ? factor : (pk>1 && units%pk===0 ? pk : 1);
+  const P=rcPos_(r);
+  let pos=P.pos, pace=rcPace_(r), need=rcNeed_(r), s12=rcSales12_(r);
+  const tw=rcTwin_(r, IX, L.ean);
+  if(tw && tw.kind==='twin'){
+    const t=tw.r, tp=rcPos_(t);
+    pos+=tp.pos; pace=Math.max(pace, rcPace_(t));
+    need=Math.max(0, rcNeed_(t)-P.pos);
+    o.twin=t;
+    o.notes.push(`Same barcode as ${t.SKU}${t.SupplierName!==r.SupplierName?' ('+String(t.SupplierName).split(' - ')[0]+')':''}, which sold ${fmtInt(rcSales12_(t))} in 12 months and has ${fmtInt(tp.pos)}${P.st>0?` — the ${fmtInt(P.st)} here sit on the code that doesn’t sell; move them across in Linnworks`:' — receive it onto that code'}.`);
+  } else if(tw && tw.kind==='clash'){
+    o.notes.push(`Barcode check: ${tw.r.SKU} (“${String(tw.r.ItemTitle||'').slice(0,40)}”) carries the same barcode — fix it in Linnworks so the till rings up the right one.`);
+  }
+  const needC=rcRndUp_(need, cs);
+  const after = pace>0 ? (pos+units)/pace : Infinity;
+  let v, sug;
+  if(r._excluded){ v='cut-dno'; sug=0; }
+  else if(units===needC){ v='ok'; sug=units; }
+  else if(units<needC){ v='raise'; sug=needC; }
+  else if(pace>0 && after<=M){ v='ok-over'; sug=units; }
+  else {
+    const cap = pace>0 ? Math.max(0, Math.floor((M*pace-pos)/cs+1e-9))*cs : 0;
+    sug=Math.max(needC, Math.min(units, cap));
+    v = (s12===0 && !(o.twin)) ? 'cut-dead' : sug===0 ? (o.twin?'cut-twin':'cut-enough') : 'trim';
+  }
+  if(o.twin && sug===0) v='cut-twin';
+  const pv = cost>0 ? unit/cost-1 : 0;
+  if(Math.abs(pv)>=0.05) o.notes.push(pv>0 ? `Rep’s price €${unit.toFixed(2)} is ${Math.round(pv*100)}% above our cost €${cost.toFixed(2)}${!(L.d>0)?' — no discount on this line; ask for it':''}.` : `Rep’s price €${unit.toFixed(2)} is ${Math.round(-pv*100)}% below our cost €${cost.toFixed(2)} — a good buy.`);
+  if(String(r.SupplierName||'').trim().toUpperCase()!==String(sup||'').trim().toUpperCase()) o.notes.push(`The dashboard buys this from ${String(r.SupplierName||'').split(' - ').slice(-1)[0]}.`);
+  if(P.st<0) o.notes.push(`Stock shows ${fmtInt(P.st)} — count it.`);
+  Object.assign(o, {factor, units, unit, cost, pv, cs, pos, st:P.st, inb:P.inb, pace, need, needC, after, s12, s30:rcSold30_(r), v, sugUnits:sug, sugRep:sug/factor, inc:sug>0, grp:v8GrpOf_(r)});
+  return o;
+}
+function rcMissed_(sup, used, lines){
+  const rows=osCanonicalRows(sup).filter(r=>(r.buy||0)>0 && !used.has(normSku_(r.SKU)));
+  const fam=new Set(), cnt=new Map();
+  const fw=s=>{ const m=String(s||'').toUpperCase().match(/^[^A-Z]*([A-Z]{4,})/); return m?m[1]:''; };
+  for(const o of lines){
+    for(const s of [o.L.code, o.r&&o.r.SKU]){ const t=String(s||'').toUpperCase().replace(/^TP_/,''); const m=t.match(/^(\d{4})-/); if(m) fam.add(m[1]); }
+    for(const w of [fw(o.L.desc), o.r?fw(o.r.ItemTitle):'']) if(w && !RC_NOT_BRAND.has(w)) cnt.set(w,(cnt.get(w)||0)+1);
+  }
+  const brands=new Set([...cnt].filter(([,n])=>n>=2).map(([w])=>w));
+  const out=rows.map(r=>{
+    const t=String(r.SKU||'').toUpperCase().replace(/^TP_/,''), m=t.match(/^(\d{4})-/), w=fw(r.ItemTitle);
+    const inRange=!!((m && fam.has(m[1])) || (w && brands.has(w)));
+    const P=rcPos_(r), grp=v8GrpOf_(r);
+    return {r, add:true, inRange, grp, st:P.st, inb:P.inb, pos:P.pos, pace:rcPace_(r), s12:rcSales12_(r), s30:rcSold30_(r),
+            sugUnits:r.buy||0, unit:r.SupplierCostPrice||0, inc:inRange && grp!=='rest', v:'add'};
+  });
+  const go={bb:0, season:1, capel:2, b:3, rest:4};
+  out.sort((a,b)=>(b.inRange-a.inRange) || (go[a.grp]??9)-(go[b.grp]??9) || b.s12-a.s12);
+  return out;
+}
+
+// ── state, saving ──
+window._rc=null;
+function rcSave_(){
+  try{
+    const C=window._rc, s={sup:document.getElementById('rcSup')?.value||'', store:rcStoreSel_(), M:parseFloat(document.getElementById('rcMonths')?.value)||2, text:document.getElementById('rcPaste')?.value||''};
+    if(C && C.sup===s.sup){ s.edits={}; [...C.lines, ...C.missed].forEach(o=>{ s.edits[rcKey_(o)]={q:o.sugRep, inc:o.inc}; }); }
+    localStorage.setItem(RC_KEY, JSON.stringify(s));
+  }catch(e){}
+}
+function rcLoad_(){ try{ return JSON.parse(localStorage.getItem(RC_KEY)||'null'); }catch(e){ return null; } }
+function rcKey_(o){ return o.add ? 'add|'+o.r.SKU : 'rep|'+o.idx+'|'+o.L.code; }
+function rcStoreSel_(){ const el=document.querySelector('input[name="rcStore"]:checked'); return el?el.value:state.channel; }
+function rcStoreName_(ch){ return ch==='capel'?'Capel Street':'Arklow'; }
+
+function rcSuppliers_(){
+  const s=new Set(); for(const r of (state.computedRows||[])) if(r.SupplierName) s.add(String(r.SupplierName));
+  return [...s].sort((a,b)=>a.localeCompare(b));
+}
+function rcResolveSup_(txt){
+  const t=String(txt||'').trim(); if(!t) return '';
+  const all=rcSuppliers_(), lo=t.toLowerCase();
+  return all.find(s=>s===t) || all.find(s=>s.toLowerCase()===lo) || all.find(s=>s.toLowerCase().split(' - ')[0]===lo) ||
+         all.find(s=>s.toLowerCase().startsWith(lo)) || all.find(s=>s.toLowerCase().includes(lo)) || '';
+}
+function rcOnTabOpen(){
+  const dl=document.getElementById('rcSupList');
+  if(dl && !dl.children.length) dl.innerHTML=rcSuppliers_().map(s=>`<option value="${esc(s)}">`).join('');
+  const sv=rcLoad_();
+  const sup=document.getElementById('rcSup'), pa=document.getElementById('rcPaste');
+  if(sv && sup && !sup.value && sv.sup) sup.value=sv.sup;
+  if(sv && pa && !pa.value && sv.text) pa.value=sv.text;
+  if(sv && sv.M){ const m=document.getElementById('rcMonths'); if(m) m.value=sv.M; }
+  const want=(sv&&sv.store)||state.channel;
+  document.querySelectorAll('input[name="rcStore"]').forEach(x=>{ x.checked = x.value===(window._rcStoreFor||want); });
+  window._rcStoreFor=null;
+}
+// from the order screen: "🧾 Check a rep's order" for this supplier and store
+function rcOpenFor(sup){
+  try{ poMinimise(); }catch(e){}
+  const b=document.querySelector('.tab-btn[data-tab="repcheck"]'); window._rcStoreFor=state.channel;
+  if(b) b.click();
+  const el=document.getElementById('rcSup'); if(el && sup){ el.value=sup; }
+  const pa=document.getElementById('rcPaste'); if(pa){ pa.focus(); }
+}
+
+// ── run ──
+function rcRun(){
+  const out=document.getElementById('rcResult'); if(!out) return;
+  const supTxt=document.getElementById('rcSup')?.value||'', text=document.getElementById('rcPaste')?.value||'';
+  const store=rcStoreSel_();
+  if(!(state.computedRows||[]).length){ out.innerHTML='<div class="rc-msg">The data is still loading — one moment.</div>'; return; }
+  const sup=rcResolveSup_(supTxt);
+  if(!sup){ out.innerHTML=`<div class="rc-msg bad">Which supplier is the rep from? ${supTxt?`“${esc(supTxt)}” doesn’t match a supplier in the dashboard.`:''} Type the code (e.g. ASH001) or pick from the list.</div>`; return; }
+  document.getElementById('rcSup').value=sup;
+  if(!text.trim()){ out.innerHTML='<div class="rc-msg">Paste the rep’s order first.</div>'; return; }
+  // the order is checked against the chosen store's figures: switch the store first if needed, then wait for them
+  if(state.channel!==store){
+    const btn=document.getElementById(store==='capel'?'channelCapel':'channelArklow');
+    out.innerHTML=`<div class="rc-msg">⏳ Working out ${rcStoreName_(store)}’s figures…</div>`;
+    if(btn) btn.click();
+  }
+  const t0=Date.now();
+  const go=()=>{
+    if(state._recomputing || state.channel!==store || (state._rowsChannel && state._rowsChannel!==store)){
+      if(Date.now()-t0<30000) return setTimeout(go, 200);
+      out.innerHTML=`<div class="rc-msg bad">${rcStoreName_(store)}’s figures didn’t finish — try again in a moment.</div>`; return;
+    }
+    try{ rcCompute_(sup, store, text); rcRender_(); rcSave_(); }
+    catch(e){ console.error(e); out.innerHTML=`<div class="rc-msg bad">Something went wrong checking the order: ${esc(e.message)}</div>`; }
+  };
+  go();
+}
+function rcCompute_(sup, store, text){
+  const M=Math.min(12, Math.max(0.5, parseFloat(document.getElementById('rcMonths')?.value)||2));
+  const P=rcParse_(text), IX=rcIndex_();
+  const lines=P.lines.map((L,i)=>{ const o=rcCheckLine_(L, sup, IX, M); o.idx=i; return o; });
+  const used=new Set();
+  lines.forEach(o=>{ if(o.r) used.add(normSku_(o.r.SKU)); if(o.twin) used.add(normSku_(o.twin.SKU)); });
+  const missed=rcMissed_(sup, used, lines);
+  // what was saved for this paste (edited quantities, ticks) comes back
+  const sv=rcLoad_();
+  if(sv && sv.sup===sup && sv.text===text && sv.edits){
+    [...lines, ...missed].forEach(o=>{ const e=sv.edits[rcKey_(o)]; if(!e) return; if(e.q!=null && isFinite(e.q)){ o.sugRep=e.q; o.sugUnits=o.add?e.q:e.q*(o.factor||1); } o.inc=!!e.inc; o.edited=true; });
+  }
+  window._rc={sup, store, M, lines, missed, bad:P.bad, header:P.header, filter:'all', at:new Date()};
+  try{ logUsage('rep_check', sup+' · '+lines.length+' lines'); }catch(e){}
+}
+
+// ── wording ──
+const RC_V={ok:['✅ OK','ok','Matches the dashboard'], 'ok-over':['✅ OK — a little over','ok','Leaves a sensible amount of stock'], raise:['⬆ Raise','raise','The dashboard wants more'],
+  trim:['✂ Trim','trim','More stock than needed'], 'cut-enough':['✂ Cut — enough stock','cut','Enough stock without it'], 'cut-dead':['✂ Cut — no sales','cut','No sales in 12 months'],
+  'cut-twin':['✂ Cut — stock on another code','cut','Same product, other code'], 'cut-dno':['✂ Cut — Do Not Order','cut','On the Do Not Order list'], nf:['❓ Not in the dashboard','nf','No SKU found'],
+  add:['➕ Rep left it out','add','The dashboard wants it']};
+function rcPaceTxt_(p){ return p>=1 ? `sells about ${v8Num_(p)} a month` : p>0 ? 'sells less than one a month' : 'no sales'; }
+function rcHasTxt_(o, S){ return `${S} has ${fmtInt(Math.max(0,o.st))}${o.inb>0?` (+${fmtInt(o.inb)} on order)`:''}`; }
+function rcMo_(x){ return !isFinite(x) ? 'years' : x>=10 ? Math.round(x)+' months' : (Math.round(x*10)/10)+' months'; }
+function rcWhy_(o){
+  const S=rcStoreName_(window._rc.store), f=fmtInt, M=window._rc.M;
+  if(o.add){
+    return `${o.pos<=0?`${S} is out of stock`:rcHasTxt_(o,S)} and ${rcPaceTxt_(o.pace)} (${f(o.s30)} in 30 days, ${f(o.s12)} in 12 months). The dashboard wants ${f(o.r.buy||0)}${(o.r.packSize||1)>1?` (packs of ${f(o.r.packSize)})`:''}.${o.inRange?'':' Not one of the ranges on the rep’s order.'}`;
+  }
+  if(o.v==='nf') return `No SKU in the dashboard for ${o.L.code}, TP_${o.L.code}, ${o.L.code}ASH${o.L.ean?' or barcode '+o.L.ean:''}. A new line for ${S}? Set it up in Linnworks first, then tick it.`;
+  const has=rcHasTxt_(o,S), pace=rcPaceTxt_(o.pace);
+  let t;
+  switch(o.v){
+    case 'ok': t=`Matches the dashboard (${f(o.needC)}). ${has} and ${pace}.`; break;
+    case 'ok-over': t=`The dashboard would order ${f(o.needC)}; the rep’s ${f(o.units)} is fine — ${has} and ${pace}, so it leaves about ${rcMo_(o.after)}.`; break;
+    case 'raise': t=`The dashboard wants ${f(o.needC)} — ${has} and ${pace}.`; break;
+    case 'trim': t=`${has} and ${pace}: the rep’s ${f(o.units)} would be ${rcMo_(o.after)}’ stock. ${f(o.sugUnits)} keeps it to about ${M} months.`; break;
+    case 'cut-enough': t=`${has} and ${pace}; the dashboard wants none now${o.pace>0 && o.pos/o.pace>=1?` (enough for ${rcMo_(o.pos/o.pace)})`:''}, and the rep’s ${f(o.units)} would make it ${rcMo_(o.after)}’ stock.`; break;
+    case 'cut-dead': t=`No sales at ${S} in 12 months${o.st>0?`, and ${S} has ${f(o.st)}`:''}.`; break;
+    case 'cut-twin': t=`Nothing needed on this code.`; break;
+    case 'cut-dno': t=`On the Do Not Order list.`; break;
+    default: t='';
+  }
+  if(o.factor>1) t+=` (1 ${o.L.per} = ${f(o.factor)} of ours.)`;
+  return t;
+}
+function rcRepQtyTxt_(L){ return `${fmtInt(L.q)} × ${esc(L.per)}`; }
+
+// ── render ──
+function rcRender_(){
+  const C=window._rc, out=document.getElementById('rcResult'); if(!C||!out) return;
+  const f=fmtInt, eur=x=>'€'+fmtInt(Math.round(x||0));
+  const S=rcStoreName_(C.store), L=C.lines, Mi=C.missed;
+  const m=L.filter(o=>o.r), nf=L.filter(o=>!o.r);
+  const by=k=>L.filter(o=>o.v===k), cut=L.filter(o=>/^cut/.test(o.v));
+  const repVal=L.reduce((a,o)=>a+o.repVal,0);
+  const keep=m.reduce((a,o)=>a+Math.min(o.units,o.sugUnits)*o.unit,0), over=m.reduce((a,o)=>a+Math.max(0,o.units-o.sugUnits)*o.unit,0);
+  const short=m.filter(o=>o.sugUnits>o.units), shortVal=short.reduce((a,o)=>a+(o.sugUnits-o.units)*o.unit,0);
+  const elsewhere=m.filter(o=>String(o.r.SupplierName||'').trim().toUpperCase()!==String(C.sup).trim().toUpperCase());
+  const inR=Mi.filter(x=>x.inRange && x.grp!=='rest'), inRVal=inR.reduce((a,x)=>a+x.sugUnits*x.unit,0), inROut=inR.filter(x=>x.pos<=0).length;
+  const sum=[
+    `Of the rep’s <b>${eur(repVal)}</b>, about <b>${eur(keep)}</b> is stock ${S} needs${over>=1?` and <b>${eur(over)}</b> is stock ${S} already has or doesn’t sell`:''}.`,
+    short.length?`He is short on <b>${f(short.length)}</b> line${short.length!==1?'s':''} (+${eur(shortVal)}).`:'',
+    inR.length?`He left out <b>${f(inR.length)}</b> bread-and-butter, seasonal and B line${inR.length!==1?'s':''} from his own ranges that the dashboard wants now (${eur(inRVal)}${inROut?`, ${f(inROut)} of them out of stock`:''}).`:'Nothing in his ranges that the dashboard wants is missing.',
+  ].filter(Boolean).join(' ');
+  const chips=[['all','All the rep’s lines',L.length],['cut','✂ Cut',cut.length],['trim','✂ Trim',by('trim').length],['raise','⬆ Raise',by('raise').length],
+    ['ok','✅ OK',by('ok').length+by('ok-over').length],['nf','❓ Not found',nf.length],['price','€ Price',m.filter(o=>Math.abs(o.pv)>=0.05).length],
+    ['fix','🔧 Fix in Linnworks',L.filter(o=>o.notes.some(n=>/Linnworks|count it/.test(n))).length],['add','➕ Left out',Mi.length]]
+    .filter(c=>c[0]==='all'||c[2]>0)
+    .map(([k,lbl,n])=>`<button class="rc-chip${C.filter===k?' on':''}" onclick="rcFilter('${k}')">${lbl} <span>${f(n)}</span></button>`).join('');
+  out.innerHTML=`
+    <div class="rc-sum">
+      <div class="rc-sum-h">🧾 ${esc(C.sup)} — the rep’s order for ${S}</div>
+      <div class="rc-sum-t">${sum}</div>
+      <div class="rc-tiles">
+        <div class="rc-tile"><b>${eur(repVal)}</b><span>Rep’s order · ${f(L.length)} lines</span></div>
+        <div class="rc-tile good"><b id="rcTotSug">—</b><span id="rcTotSugL">Suggested order</span></div>
+        <div class="rc-tile"><b>${f(cut.length)} · ${f(by('trim').length)} · ${f(by('raise').length)}</b><span>to cut · trim · raise</span></div>
+        <div class="rc-tile add"><b>${f(inR.length)}</b><span>left out, his ranges · ${eur(inRVal)}</span></div>
+      </div>
+      ${C.bad.length?`<details class="rc-bad"><summary>⚠ ${f(C.bad.length)} line${C.bad.length!==1?'s':''} of the paste couldn’t be read — check them</summary><pre>${esc(C.bad.join('\n'))}</pre></details>`:''}
+      <div class="rc-acts">
+        <button class="rc-btn main" onclick="rcToOrderScreen()">🛒 Open in the order screen</button>
+        <button class="rc-btn" onclick="rcCopyChanges(this)">📋 Copy the changes for the rep</button>
+        <button class="rc-btn" onclick="rcCopyOrder(this)">📋 Copy the corrected order</button>
+        <button class="rc-btn" onclick="rcExportPO()">📄 Export PO</button>
+        <button class="rc-btn" onclick="rcExportCheck()">⬇ The check as a spreadsheet (CSV)</button>
+        <label class="rc-opt"><input type="checkbox" id="rcOnlyThis" checked onchange="rcSave_()"> In the order screen, leave out the dashboard’s other ${esc(String(C.sup).split(' - ')[0])} lines</label>
+      </div>
+      ${elsewhere.length?`<div class="rc-else">${f(elsewhere.length)} of the rep’s lines are bought from another supplier in the dashboard (${esc(elsewhere.slice(0,4).map(o=>o.L.code).join(', '))}${elsewhere.length>4?'…':''}) — they are in the copied order and the PO export, but the order screen shows only ${esc(String(C.sup).split(' - ')[0])} lines.</div>`:''}
+    </div>
+    <div class="rc-chips">${chips}</div>
+    <div class="rc-list" id="rcList"></div>
+    <div class="rc-foot">How it reads the order: each code is looked up as TP_ + code, the code, code + ASH, then the barcode. The rep’s pack is turned into our units from his price against our cost (BOX 10 at €11.27 against our €1.12 = 10 of ours). His quantity stands where it matches the dashboard or leaves no more than ${C.M} months of stock (stock + on order); above that it is trimmed back, never below what the dashboard wants, and lines with plenty of stock or no sales are cut. Every quantity can be changed before you send it.</div>`;
+  rcRenderList_();
+}
+function rcFilter(k){ const C=window._rc; if(!C) return; C.filter=k; document.querySelectorAll('.rc-chip').forEach(b=>b.classList.toggle('on', b.getAttribute('onclick')===`rcFilter('${k}')`)); rcRenderList_(); }
+function rcRowHtml_(o, i, list){
+  const f=fmtInt, r=o.r, V=RC_V[o.v]||['',''], S=rcStoreName_(window._rc.store);
+  const ean=r?String(r.Barcode||'').trim():(o.L&&o.L.ean)||'';
+  const code=o.add ? String(r.SKU).replace(/^TP_/i,'') : o.L.code;
+  const desc=o.add ? (r.ItemTitle||'') : (o.L.desc||'');
+  const ours=r ? `<div class="rc-ours"><span class="rc-sku">${esc(r.SKU)}</span>${ean?`<button tabindex="-1" class="ls-ean" title="Click to copy barcode" onclick="osCopy(this,'${jsArg(ean)}')"><span class="ls-ean-n">${esc(ean)}</span></button>`:''}${!o.add && r.ItemTitle?` <span class="rc-title">${esc(r.ItemTitle)}</span>`:''}${o.how && o.how!=='same code'?` <span class="rc-how">by ${esc(o.how)}</span>`:''}</div>` : (ean?`<div class="rc-ours"><span class="rc-title">barcode ${esc(ean)}</span></div>`:'');
+  const unitLbl=o.add ? `<span class="rc-per">ours</span>` : `<span class="rc-per">${esc(o.L.per)}</span>`;
+  const sugLine=!o.add && o.factor>1 ? `<div class="rc-eq">= ${f(o.sugUnits)} of ours</div>` : '';
+  const val=(o.add ? o.sugUnits*o.unit : o.sugRep*o.net);
+  const notes=(o.notes||[]).map(n=>`<div class="rc-note">${esc(n)}</div>`).join('');
+  const changed = o.add ? o.inc : (o.r && (Math.abs(o.sugRep-o.L.q)>1e-9 || !o.inc));
+  return `<div class="rc-row v-${V[1]}${o.inc?'':' off'}" data-i="${i}" data-list="${list}">
+    <label class="rc-inc" title="${o.add?'Add to the order':'Keep on the order'}"><input type="checkbox"${o.inc?' checked':''} onchange="rcInc(${i},'${list}',this.checked)"></label>
+    <div class="rc-what">
+      <div class="rc-top"><span class="rc-code">${esc(code)}</span> <span class="rc-desc">${esc(desc)}</span></div>
+      ${ours}
+      <div class="rc-why"><span class="rc-v v-${V[1]}">${V[0]}</span> ${esc(rcWhy_(o))}</div>
+      ${notes}
+    </div>
+    <div class="rc-n"><b>${r?f(Math.max(0,o.st)):'—'}</b><span>in stock${o.inb>0?` · +${f(o.inb)} on order`:''}</span></div>
+    <div class="rc-n"><b>${r?f(o.s30):'—'}</b><span>sold 30 days · ${r?f(o.s12):'—'} in 12 months</span></div>
+    <div class="rc-n"><b>${r?f(o.add?(r.buy||0):o.needC):'—'}</b><span>dashboard${!o.add&&o.factor>1?' (ours)':''}</span></div>
+    <div class="rc-n">${o.add?'<b>—</b><span>rep</span>':`<b>${rcRepQtyTxt_(o.L)}</b><span>rep${o.factor>1?` = ${f(o.units)} of ours`:''}</span>`}</div>
+    <div class="rc-q${changed?' chg':''}"><input type="number" min="0" step="1" value="${Math.round((o.add?o.sugUnits:o.sugRep)*100)/100}" oninput="rcQty(${i},'${list}',this.value)">${unitLbl}${sugLine}</div>
+    <div class="rc-val"><b>${o.inc?'€'+f(Math.round(val)):'—'}</b><span>${o.add?'at our cost':'at the rep’s price'}</span></div>
+  </div>`;
+}
+function rcRenderList_(){
+  const C=window._rc, el=document.getElementById('rcList'); if(!C||!el) return;
+  const k=C.filter;
+  const pick=o=> k==='all' ? true : k==='cut' ? /^cut/.test(o.v) : k==='ok' ? (o.v==='ok'||o.v==='ok-over') : k==='price' ? (o.r && Math.abs(o.pv)>=0.05) :
+    k==='fix' ? o.notes.some(n=>/Linnworks|count it/.test(n)) : o.v===k;
+  let h='';
+  if(k!=='add'){
+    const rows=C.lines.map((o,i)=>[o,i]).filter(([o])=>pick(o));
+    h+=`<div class="rc-sec">The rep’s lines${k!=='all'?' — '+esc((RC_V[k]||[])[0]||{price:'€ price',fix:'🔧 fix in Linnworks',cut:'✂ cut',ok:'✅ OK'}[k]||''):''} · ${fmtInt(rows.length)}</div>`;
+    h+=rows.length?rows.map(([o,i])=>rcRowHtml_(o,i,'l')).join(''):'<div class="rc-msg">None.</div>';
+  }
+  if(k==='all'||k==='add'){
+    const inR=C.missed.map((o,i)=>[o,i]).filter(([o])=>o.inRange), other=C.missed.map((o,i)=>[o,i]).filter(([o])=>!o.inRange);
+    if(inR.length){ h+=`<div class="rc-sec add">➕ The rep left these out — his own ranges, and the dashboard wants them · ${fmtInt(inR.length)} <span>The rest are unticked: slow lines, tick to add</span></div>`; h+=inR.map(([o,i])=>rcRowHtml_(o,i,'m')).join(''); }
+    if(other.length){ h+=`<details class="rc-more"${k==='add'?' open':''}><summary>Other ${esc(String(C.sup).split(' - ')[0])} lines the dashboard wants — not in the rep’s ranges · ${fmtInt(other.length)} · €${fmtInt(Math.round(other.reduce((a,[o])=>a+o.sugUnits*o.unit,0)))} (not ticked)</summary>${other.map(([o,i])=>rcRowHtml_(o,i,'m')).join('')}</details>`; }
+  }
+  el.innerHTML=h;
+  rcTotals_();
+}
+function rcItem_(i, list){ const C=window._rc; return C ? (list==='m'?C.missed:C.lines)[i] : null; }
+function rcInc(i, list, on){ const o=rcItem_(i,list); if(!o) return; o.inc=!!on; o.edited=true; const row=document.querySelector(`.rc-row[data-i="${i}"][data-list="${list}"]`); if(row) row.classList.toggle('off', !o.inc); rcRowVal_(o,row); rcTotals_(); rcSave_(); }
+function rcQty(i, list, v){
+  const o=rcItem_(i,list); if(!o) return;
+  const q=Math.max(0, parseFloat(v)||0); o.edited=true;
+  if(o.add){ o.sugUnits=q; } else { o.sugRep=q; o.sugUnits=o.factor?q*o.factor:q; }
+  if(q>0 && !o.inc){ o.inc=true; }
+  const row=document.querySelector(`.rc-row[data-i="${i}"][data-list="${list}"]`);
+  if(row){ row.classList.toggle('off', !o.inc); const cb=row.querySelector('.rc-inc input'); if(cb) cb.checked=o.inc; const eq=row.querySelector('.rc-eq'); if(eq) eq.textContent=`= ${fmtInt(o.sugUnits)} of ours`; }
+  rcRowVal_(o,row); rcTotals_(); rcSave_();
+}
+function rcRowVal_(o,row){ if(!row) return; const v=row.querySelector('.rc-val b'); if(v) v.textContent=o.inc?'€'+fmtInt(Math.round(o.add?o.sugUnits*o.unit:o.sugRep*o.net)):'—'; }
+function rcOrderItems_(){
+  const C=window._rc; if(!C) return [];
+  return [...C.lines.filter(o=>o.inc && o.sugRep>0), ...C.missed.filter(o=>o.inc && o.sugUnits>0)];
+}
+function rcTotals_(){
+  const items=rcOrderItems_(), v=items.reduce((a,o)=>a+(o.add?o.sugUnits*o.unit:o.sugRep*o.net),0);
+  const t=document.getElementById('rcTotSug'), l=document.getElementById('rcTotSugL');
+  if(t) t.textContent='€'+fmtInt(Math.round(v));
+  if(l) l.textContent=`Suggested order · ${fmtInt(items.length)} lines ticked`;
+}
+
+// ── out ──
+function rcCopy_(btn, text){
+  const done=()=>{ const o=btn.textContent; btn.textContent='✓ Copied'; setTimeout(()=>{ btn.textContent=o; },1400); };
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(fb); else fb();
+  function fb(){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(e){} ta.remove(); done(); }
+}
+function rcDate_(){ const d=new Date(); return `${d.getDate()} ${_MONTH_ABBR[d.getMonth()]} ${d.getFullYear()}`; }
+function rcChangesText_(){
+  const C=window._rc; if(!C) return '';
+  const f=fmtInt, rem=[], chg=[], add=[];
+  for(const o of C.lines){
+    const q=o.inc?o.sugRep:0;
+    if(q===o.L.q) continue;
+    if(!o.r && !o.inc){ rem.push(`${o.L.code}  ${o.L.desc}  (was ${f(o.L.q)} ${o.L.per}) — not set up with us yet`); continue; }
+    if(q<=0) rem.push(`${o.L.code}  ${o.L.desc}  (was ${f(o.L.q)} ${o.L.per})`);
+    else chg.push(`${o.L.code}  ${o.L.desc}  ${f(o.L.q)} → ${f(q)} ${o.L.per}`);
+  }
+  for(const o of C.missed) if(o.inc && o.sugUnits>0){ const r=o.r, ean=String(r.Barcode||'').trim(); add.push(`${String(r.SKU).replace(/^TP_/i,'')}  ${r.ItemTitle}  × ${f(o.sugUnits)}${ean?'  (EAN '+ean+')':''}`); }
+  const head=`Changes to the order — ${String(C.sup).split(' - ').slice(-1)[0]} for Lenehans ${rcStoreName_(C.store)}, ${rcDate_()}`;
+  const part=(t,a)=>a.length?`\n${t} (${a.length})\n`+a.join('\n')+'\n':'';
+  return head+'\n'+(part('REMOVE',rem)+part('CHANGE',chg)+part('ADD',add) || '\nNo changes.\n');
+}
+function rcCopyChanges(btn){ rcCopy_(btn, rcChangesText_()); try{ logUsage('rep_check_copy', window._rc.sup); }catch(e){} }
+function rcOrderText_(){
+  const C=window._rc; if(!C) return '';
+  const rows=[['Code','Description','Qty','Per','Price','Dis%','EAN'].join('\t')];
+  for(const o of C.lines) if(o.inc && o.sugRep>0) rows.push([o.L.code, o.L.desc, o.sugRep, o.L.per, o.L.p, o.L.d||0, (o.r&&String(o.r.Barcode||'').trim())||o.L.ean||''].join('\t'));
+  for(const o of C.missed) if(o.inc && o.sugUnits>0) rows.push([String(o.r.SKU).replace(/^TP_/i,''), o.r.ItemTitle||'', o.sugUnits, 'EACH', o.unit, 0, String(o.r.Barcode||'').trim()].join('\t'));
+  return rows.join('\n');
+}
+function rcCopyOrder(btn){ rcCopy_(btn, rcOrderText_()); }
+function rcCsvCell_(v){ v=String(v==null?'':v).replace(/<[^>]+>/g,''); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+function rcDownload_(name, lines){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'}));
+  a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+// the same columns as the order screen's PO export, so the Linnworks import mapping still fits
+function rcExportPO(){
+  const C=window._rc; if(!C) return;
+  const items=rcOrderItems_().filter(o=>o.r);
+  if(!items.length){ alert('Nothing ticked with a quantity above 0.'); return; }
+  const cols=['SupplierName','SKU','ItemTitle','buy','SupplierCostPrice','_csRequired','_csQtyFloor','coverStatus','stock','target','reason'];
+  const lines=[[...cols,'Tax Rate','EAN'].join(',')];
+  for(const o of items){
+    const r={...o.r, SupplierName:C.sup, buy:Math.round(o.sugUnits), SupplierCostPrice:Math.round((o.add?o.unit:o.unit)*10000)/10000, reason:(o.add?'Added — rep left it out':'Rep order '+o.L.code+' '+rcRepQtyTxt_(o.L).replace('×','x'))};
+    lines.push([...cols.map(c=>{ let v=r[c]; if(typeof v==='boolean') v=v?'YES':'NO'; return rcCsvCell_(v); }),'0',String(o.r.Barcode||'').trim()].join(','));
+  }
+  rcDownload_(`PO_${C.sup.replace(/[^a-z0-9]+/gi,'_')}_rep_order_${C.store}.csv`, lines);
+  try{ logUsage('rep_check_export', C.sup+' · '+items.length+' lines'); }catch(e){}
+}
+function rcExportCheck(){
+  const C=window._rc; if(!C) return;
+  const head=['Rep code','Rep description','Rep qty','Per','Price','Dis%','Our SKU','EAN','Matched by','Group','Stock','On order','Sold 30 days','Sold 12 months','Sells a month','Dashboard qty (ours)','Rep qty (ours)','Verdict','Suggested qty (rep units)','Suggested qty (ours)','Rep €','Suggested €','Price vs our cost','Why','Notes'];
+  const L=[head.join(',')];
+  for(const o of C.lines){
+    const r=o.r;
+    L.push([o.L.code,o.L.desc,o.L.q,o.L.per,o.L.p,o.L.d||0, r?r.SKU:'', r?String(r.Barcode||'').trim():o.L.ean, o.how, r?(RC_GRP[o.grp]||o.grp||''):'', r?o.st:'', r?o.inb:'', r?o.s30:'', r?o.s12:'', r?Math.round(o.pace*10)/10:'', r?o.needC:'', r?o.units:'',
+      (RC_V[o.v]||[''])[0].replace(/^\S+\s/,''), o.inc?o.sugRep:0, r&&o.inc?o.sugUnits:'', Math.round(o.repVal*100)/100, o.inc?Math.round(o.sugRep*o.net*100)/100:0, r&&o.cost>0?Math.round(o.pv*100)+'%':'', rcWhy_(o), (o.notes||[]).join(' ')].map(rcCsvCell_).join(','));
+  }
+  for(const o of C.missed){
+    const r=o.r;
+    L.push([String(r.SKU).replace(/^TP_/i,''), r.ItemTitle, 0, 'EACH', o.unit, 0, r.SKU, String(r.Barcode||'').trim(), o.inRange?'left out — his ranges':'left out — other ranges', RC_GRP[o.grp]||o.grp||'', o.st, o.inb, o.s30, o.s12, Math.round(o.pace*10)/10, r.buy||0, 0,
+      'Rep left it out', o.inc?o.sugUnits:0, o.inc?o.sugUnits:0, 0, o.inc?Math.round(o.sugUnits*o.unit*100)/100:0, '', rcWhy_(o), ''].map(rcCsvCell_).join(','));
+  }
+  rcDownload_(`Rep_order_check_${C.sup.replace(/[^a-z0-9]+/gi,'_')}_${C.store}.csv`, L);
+}
+// put the checked order into the order screen: ticked lines at the suggested quantity (ours), unticked at 0
+function rcToOrderScreen(){
+  const C=window._rc; if(!C) return;
+  if(state.channel!==C.store){ alert(`The order screen is showing ${rcStoreName_(state.channel)} — switch back to ${rcStoreName_(C.store)} and check the order again.`); return; }
+  const rows=osCanonicalRows(C.sup); const sup=rows.length?rows[0].SupplierName:C.sup;
+  const had=window._poEdits[sup]?Object.keys(window._poEdits[sup]).length:0;
+  if(had && !confirm(`Replace your ${had} edited quantit${had!==1?'ies':'y'} for this supplier with the checked rep order?`)) return;
+  const ed=(window._poEdits[sup]={}), set=new Set();
+  const onlyThis=document.getElementById('rcOnlyThis')?.checked!==false;
+  if(onlyThis) for(const r of rows) ed[r.SKU]=0;
+  for(const o of [...C.lines, ...C.missed]){
+    if(!o.r) continue;
+    const r=o.r, q=o.inc?Math.round(o.sugUnits):0;
+    if(String(r.SupplierName||'')!==String(sup)) continue;   // bought from another supplier: not on this PO (it is in the export and the copied order)
+    ed[r.SKU]=(set.has(r.SKU)?(ed[r.SKU]||0):0)+q; set.add(r.SKU);
+  }
+  try{ logUsage('rep_check_order', sup); }catch(e){}
+  const bt=document.querySelector('.tab-btn[data-tab="buying"]'); if(bt) bt.click();
+  setTimeout(()=>openOrderScreen(sup, 'all'), 60);
+}
+
 
 </script>
 
