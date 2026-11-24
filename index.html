@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.45.0 · REP ORDER CHECK</title>
+  <title>Lenehans Purchasing Dashboard · V7.45.2 · REP ORDER CHECK</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1687,6 +1687,17 @@ input.ed-hex.bad{border-color:#dc2626!important;background:#fef2f2}
     .rc-opt{font-size:12px;color:#475569;display:inline-flex;flex-direction:row;align-items:center;gap:5px}
     .rc-opt input{width:auto;margin:0}
     .rc-else{font-size:12px;color:#92400e;margin-top:8px}
+    .rc-fin{margin:16px 0 6px;border:2px solid #16a34a;border-radius:12px;background:#f0fdf4;padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+    .rc-fin-t{flex:1;min-width:280px;font-size:13px;color:#14532d;line-height:1.5}
+    .rc-fin-skip{color:#92400e}
+    .rc-fin-r{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    label.rc-fin-vat{display:inline-flex;flex-direction:row;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#334155}
+    #rcVat{width:56px;padding:6px 7px;border:1.5px solid #86efac;border-radius:7px;font-size:13px;font-weight:700}
+    .rc-btn.main.rc-fin-btn{background:#16a34a;border-color:#16a34a;font-size:14px;padding:10px 18px}
+    .rc-btn.main.rc-fin-btn:hover{background:#15803d}
+    .rc-fin-msg{flex-basis:100%;font-size:12.5px;color:#166534}
+    .rc-fin-msg:empty{display:none}
+    .rc-kept{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:#5b21b6;background:#fff;border:1px dashed #c4b5fd;border-radius:9px;padding:7px 10px;margin:0 0 10px}
     .rc-bad{font-size:12px;color:#991b1b;margin:6px 0 10px}
     .rc-bad summary{cursor:pointer;font-weight:700}
     .rc-bad pre{white-space:pre-wrap;font-size:11px;color:#334155;background:#fff;border:1px solid #fecaca;border-radius:8px;padding:8px;max-height:160px;overflow:auto}
@@ -1747,7 +1758,7 @@ input.ed-hex.bad{border-color:#dc2626!important;background:#fef2f2}
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.45.0 · built 2026-11-24 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>🧾 Rep order check (🧰 Tools, the 🧾 Rep order check tab, or 🧾 Check a rep’s order in the order screen): paste the order a supplier’s rep has written — each line is matched to our SKU (TP_ + code, the code, code + ASH, then the barcode), his packs are turned into our units from his price, and it is checked against the dashboard for Capel Street or Arklow: ✅ OK / ⬆ raise / ✂ trim / ✂ cut, each with the reason in plain words, his price against our cost, codes to fix in Linnworks, and the lines from his own ranges he left out · 📋 copy the changes for the rep, 📋 copy the corrected order, 📄 export the PO, ⬇ the check as a spreadsheet, or 🛒 open it in the order screen</li><li>📦 Email designer: no low-stock products in emails — 🔁 the follow-up leaves out anything with fewer than 3 in stock (Arklow + Capel) and anything not matched to a SKU, and lists them with the stock left · 📤 Send to Klaviyo checks every product’s stock again first and offers to leave out any now under 3</li><li>🐞 Follow-up: the star product of a dashboard-made email is read back under its own name, not the next section’s heading</li><li>🔁 Email tab: Follow-up email — pick the emails sent in the last few days (from Klaviyo, or 📂 saved designs); their products come back with the same pictures, anything sold out since is left out, and the catch-up is laid out like the Monday “pick-me-up”, every product a big picture with Shop now</li><li>🖱 Email designer: right-click a product or a section (or ⋯) — make it the star, move it, big picture or small row, include the offer in the image, button colour, background colour, add or remove a section</li><li>🎨 Email designer: every button its own colour (or all at once), every section and the strip its own background, and a hex box beside every colour (e.g. #FFD200)</li><li>↶ Email designer: Undo / Redo (Ctrl+Z / Ctrl+Y) and ⟲ Revert to how the design started · 🏷 Include offer in image on every block, product photos too</li><li>⠿ Email designer: move blocks — drag a product onto another, into any section, the strip, a new section or onto the ⭐ star (they swap); drag whole sections, or ↑ Up / ↓ Down; the product ↑ ↓ arrows now carry on into the next section · + Add a section</li><li>💾 Email designer: saves as you go — 📂 Saved email designs on the Email tab (up to 20 on this computer): open one to carry on, 📌 keep a copy of a version before trying something, delete · 🔄 New words keeps the old design</li><li>🎨 Email designer: colours for the offer on the pictures — Navy &amp; red, Yellow &amp; black, Black &amp; yellow, Red &amp; black, White &amp; red or your own, for the whole email or just one picture</li><li>🐞 Email designer: the small pictures in the email now follow the picture chosen in the editor (↻ Another, a pasted picture, an AI picture or “Product photo instead”)</li><li>📍 Order screen step 3 “Capel covering” (after Seasonal): B lines and slower lines Capel is shipping online because Arklow is out, low or doesn’t stock them, or Capel shipped in these 30 days last year — with what fixing them does to the Capel share · 📍 tag on Bread & butter and Seasonal lines Capel is covering · “All Capel-covered lines” replaces the Arklow gap view · supplier cards show the Capel covering row</li><li>🏠 Home: four main cards in one row, 🧰 Tools as a strip across the page</li><li>🏠 Home: 📍 Capel share has its own card beside Purchasing, with today's % · 🚨 Urgent PO moved into the Capel share page · 📋 Supplier price list and 🔎 Where are we for… moved under Tools</li><li>📉 Capel share: a year of daily history rebuilt from Linnworks orders, trendline over the last 60 days, progress measured from 18 Nov · 🔭 Get ahead shows what Capel actually shipped in the same 30 days last year (CAPEL_SHARE_LY)</li><li>📍 Ship from Arklow is now the Capel share dashboard: today's % with the change on yesterday, progress to the 5% target, a daily chart with trendline and the date 5% is reached at this rate · 🗓 day by day: what moved the share (Arklow out / low / not stocked / had stock), the lines behind it and what to do now (send from Capel, order, check routing) · 🔭 get ahead: lines that sold online in the same 30 days last year that Arklow won't cover, with send/order quantities</li><li>📉 Ship from Arklow: day-by-day Capel share chart against the 5% line (CAPEL_SHARE_LOG, written each morning by CapelShareLog.gs) · 🚚 how many lines a Capel → Arklow transfer fixes on its own</li><li>📍 Ship from Arklow tab: % of online units shipped from Capel Street against a 5% target, the trend, and every line Capel ships sorted by why (not in Arklow / Arklow out / Arklow low / routing) with a suggested Arklow quantity, what Capel can send back, lines rising at Capel, and Build order per supplier</li><li>🏷 Email designer: the offer drawn onto the big in-use pictures — price, was-price, SAVE roundel and an optional label (price tag, roundel or banner), always today’s price, saved to Klaviyo when the email goes</li><li>🖼 Email designer, new look: big in-use pictures, products grouped by the job they do, honest sales &amp; stock tags (Only 10 left · 200+ sold in 30 days), “You save €x”, a stocking-fillers strip, dark mode and Gmail Promotions-tab markup · pictures from the Klaviyo image library · 🪄 no in-use picture? the AI (your OpenAI key, or Google Gemini) makes one for you to approve · 🪶 heavy pictures made lighter</li><li>📤 Email designer: Send to Klaviyo as draft — the email goes into Klaviyo as a draft campaign with your usual audience and sender; nothing is sent until you press Send there</li><li>🎨 Email tab: after checking a campaign, Design this email builds it in the Lenehans house style — pictures, links and live prices from Klaviyo, words in the style of your best-opening campaigns, ready to paste into Klaviyo</li><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
+  <div class="sub">V7.45.2 · built 2026-11-24 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>✅ Rep order check: Finish and Export at the end of the order — one CSV ready for upload (SKU · Supplier CODE · QTY · Unit Price · Vat Code · Barcode): every ticked line at your quantities in our units, at the rep’s price after his discount (added lines at our cost), the rep’s own codes, and a VAT code box beside the button (remembered)</li><li>🐞 Rep order check: the same order checked twice (two tabs, or after switching store) always gives the same answer — it no longer puts back the quantities of an earlier check (made for the other store, another months setting, or before the data refreshed); only lines you changed by hand are kept, and it says so, with ↺ Use the dashboard’s numbers · the Ashtown layout Value · Dis% · Nett is read, so 10% lines are priced after the discount</li><li>🧾 Rep order check (🧰 Tools, the 🧾 Rep order check tab, or 🧾 Check a rep’s order in the order screen): paste the order a supplier’s rep has written — each line is matched to our SKU (TP_ + code, the code, code + ASH, then the barcode), his packs are turned into our units from his price, and it is checked against the dashboard for Capel Street or Arklow: ✅ OK / ⬆ raise / ✂ trim / ✂ cut, each with the reason in plain words, his price against our cost, codes to fix in Linnworks, and the lines from his own ranges he left out · 📋 copy the changes for the rep, 📋 copy the corrected order, 📄 export the PO, ⬇ the check as a spreadsheet, or 🛒 open it in the order screen</li><li>📦 Email designer: no low-stock products in emails — 🔁 the follow-up leaves out anything with fewer than 3 in stock (Arklow + Capel) and anything not matched to a SKU, and lists them with the stock left · 📤 Send to Klaviyo checks every product’s stock again first and offers to leave out any now under 3</li><li>🐞 Follow-up: the star product of a dashboard-made email is read back under its own name, not the next section’s heading</li><li>🔁 Email tab: Follow-up email — pick the emails sent in the last few days (from Klaviyo, or 📂 saved designs); their products come back with the same pictures, anything sold out since is left out, and the catch-up is laid out like the Monday “pick-me-up”, every product a big picture with Shop now</li><li>🖱 Email designer: right-click a product or a section (or ⋯) — make it the star, move it, big picture or small row, include the offer in the image, button colour, background colour, add or remove a section</li><li>🎨 Email designer: every button its own colour (or all at once), every section and the strip its own background, and a hex box beside every colour (e.g. #FFD200)</li><li>↶ Email designer: Undo / Redo (Ctrl+Z / Ctrl+Y) and ⟲ Revert to how the design started · 🏷 Include offer in image on every block, product photos too</li><li>⠿ Email designer: move blocks — drag a product onto another, into any section, the strip, a new section or onto the ⭐ star (they swap); drag whole sections, or ↑ Up / ↓ Down; the product ↑ ↓ arrows now carry on into the next section · + Add a section</li><li>💾 Email designer: saves as you go — 📂 Saved email designs on the Email tab (up to 20 on this computer): open one to carry on, 📌 keep a copy of a version before trying something, delete · 🔄 New words keeps the old design</li><li>🎨 Email designer: colours for the offer on the pictures — Navy &amp; red, Yellow &amp; black, Black &amp; yellow, Red &amp; black, White &amp; red or your own, for the whole email or just one picture</li><li>🐞 Email designer: the small pictures in the email now follow the picture chosen in the editor (↻ Another, a pasted picture, an AI picture or “Product photo instead”)</li><li>📍 Order screen step 3 “Capel covering” (after Seasonal): B lines and slower lines Capel is shipping online because Arklow is out, low or doesn’t stock them, or Capel shipped in these 30 days last year — with what fixing them does to the Capel share · 📍 tag on Bread & butter and Seasonal lines Capel is covering · “All Capel-covered lines” replaces the Arklow gap view · supplier cards show the Capel covering row</li><li>🏠 Home: four main cards in one row, 🧰 Tools as a strip across the page</li><li>🏠 Home: 📍 Capel share has its own card beside Purchasing, with today's % · 🚨 Urgent PO moved into the Capel share page · 📋 Supplier price list and 🔎 Where are we for… moved under Tools</li><li>📉 Capel share: a year of daily history rebuilt from Linnworks orders, trendline over the last 60 days, progress measured from 18 Nov · 🔭 Get ahead shows what Capel actually shipped in the same 30 days last year (CAPEL_SHARE_LY)</li><li>📍 Ship from Arklow is now the Capel share dashboard: today's % with the change on yesterday, progress to the 5% target, a daily chart with trendline and the date 5% is reached at this rate · 🗓 day by day: what moved the share (Arklow out / low / not stocked / had stock), the lines behind it and what to do now (send from Capel, order, check routing) · 🔭 get ahead: lines that sold online in the same 30 days last year that Arklow won't cover, with send/order quantities</li><li>📉 Ship from Arklow: day-by-day Capel share chart against the 5% line (CAPEL_SHARE_LOG, written each morning by CapelShareLog.gs) · 🚚 how many lines a Capel → Arklow transfer fixes on its own</li><li>📍 Ship from Arklow tab: % of online units shipped from Capel Street against a 5% target, the trend, and every line Capel ships sorted by why (not in Arklow / Arklow out / Arklow low / routing) with a suggested Arklow quantity, what Capel can send back, lines rising at Capel, and Build order per supplier</li><li>🏷 Email designer: the offer drawn onto the big in-use pictures — price, was-price, SAVE roundel and an optional label (price tag, roundel or banner), always today’s price, saved to Klaviyo when the email goes</li><li>🖼 Email designer, new look: big in-use pictures, products grouped by the job they do, honest sales &amp; stock tags (Only 10 left · 200+ sold in 30 days), “You save €x”, a stocking-fillers strip, dark mode and Gmail Promotions-tab markup · pictures from the Klaviyo image library · 🪄 no in-use picture? the AI (your OpenAI key, or Google Gemini) makes one for you to approve · 🪶 heavy pictures made lighter</li><li>📤 Email designer: Send to Klaviyo as draft — the email goes into Klaviyo as a draft campaign with your usual audience and sender; nothing is sent until you press Send there</li><li>🎨 Email tab: after checking a campaign, Design this email builds it in the Lenehans house style — pictures, links and live prices from Klaviyo, words in the style of your best-opening campaigns, ready to paste into Klaviyo</li><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -18505,13 +18516,13 @@ function rcTail_(nums, q, o){
   o.p=nums[0].v;
   const rest=nums.slice(1);
   const pc=rest.find(n=>n.pct); if(pc){ o.d=pc.v; return; }
-  const near=(a,b)=>Math.abs(a-b)<=Math.max(0.05, 0.012*Math.abs(b));
-  if(rest.length>=2){
-    if(near(q*o.p*(1-rest[0].v/100), rest[1].v) && rest[0].v<100){ o.d=rest[0].v; return; }
-    if(near(q*o.p, rest[0].v)){ if(rest[1].v<100 && near(q*o.p*(1-rest[1].v/100), rest[0].v)) o.d=rest[1].v; return; }
-    if(rest[0].v<100) o.d=rest[0].v; return;
-  }
-  if(rest.length===1){ const x=rest[0].v; if(near(q*o.p, x)) return; if(x<100) o.d=x; }
+  const near=(a,b)=>Math.abs(a-b)<=Math.max(0.05, 0.012*Math.abs(b)), g=q*o.p;
+  // V7.45.1 — a discount is a number under 100 that, taken off the line, gives another number on the line (the nett
+  // value): Ashtown prints Value · Dis% · Nett ("24 EACH 1.99 47.76 10 42.98"), others Dis · Value
+  for(let i=0;i<rest.length;i++){ const d=rest[i].v; if(!(d>0 && d<100)) continue;
+    if(rest.some((n,j)=>j!==i && near(g*(1-d/100), n.v))){ o.d=d; return; } }
+  if(rest.some(n=>near(g, n.v))) return;                 // only the line value: no discount
+  if(rest.length && rest[0].v<100) o.d=rest[0].v;        // a lone number after the price: the discount
 }
 // one pasted line, no header: CODE  description  [EAN]  QTY PER  PRICE  [DIS%]  [VALUE]
 function rcParseLine_(raw){
@@ -18702,7 +18713,7 @@ function rcCheckLine_(L, sup, IX, M){
 function rcMissed_(sup, used, lines){
   const rows=osCanonicalRows(sup).filter(r=>(r.buy||0)>0 && !used.has(normSku_(r.SKU)));
   const fam=new Set(), cnt=new Map();
-  const fw=s=>{ const m=String(s||'').toUpperCase().match(/^[^A-Z]*([A-Z]{4,})/); return m?m[1]:''; };
+  const fw=s=>{ for(const t of String(s||'').toUpperCase().split(/\s+/).slice(0,4)){ if(/\d/.test(t)) continue; const m=t.match(/^[^A-Z]*([A-Z]{4,})/); if(m) return m[1]; } return ''; };
   for(const o of lines){
     for(const s of [o.L.code, o.r&&o.r.SKU]){ const t=String(s||'').toUpperCase().replace(/^TP_/,''); const m=t.match(/^(\d{4})-/); if(m) fam.add(m[1]); }
     for(const w of [fw(o.L.desc), o.r?fw(o.r.ItemTitle):'']) if(w && !RC_NOT_BRAND.has(w)) cnt.set(w,(cnt.get(w)||0)+1);
@@ -18721,13 +18732,26 @@ function rcMissed_(sup, used, lines){
 }
 
 // ── state, saving ──
+function rcQ_(o){ return o.add ? o.sugUnits : o.sugRep; }
+function rcSetQ_(o, q){ if(o.add) o.sugUnits=q; else { o.sugRep=q; o.sugUnits=o.factor?q*o.factor:q; } }
+function rcMark_(o){ o.edited = !(o.base && Math.abs(rcQ_(o)-o.base.q)<1e-9 && !!o.inc===o.base.inc); }
 window._rc=null;
+function rcMonths_(){ return Math.min(12, Math.max(0.5, parseFloat(document.getElementById('rcMonths')?.value)||2)); }
 function rcSave_(){
   try{
-    const C=window._rc, s={sup:document.getElementById('rcSup')?.value||'', store:rcStoreSel_(), M:parseFloat(document.getElementById('rcMonths')?.value)||2, text:document.getElementById('rcPaste')?.value||''};
-    if(C && C.sup===s.sup){ s.edits={}; [...C.lines, ...C.missed].forEach(o=>{ s.edits[rcKey_(o)]={q:o.sugRep, inc:o.inc}; }); }
+    const C=window._rc, s={v:2, sup:document.getElementById('rcSup')?.value||'', store:rcStoreSel_(), M:rcMonths_(), text:document.getElementById('rcPaste')?.value||''};
+    // hand changes are kept only for the check on screen: change the store, the months or the paste and they go
+    if(C && C.sup===s.sup && C.store===s.store && C.M===s.M && C.text===s.text){
+      s.edits={}; [...C.lines, ...C.missed].forEach(o=>{ if(o.edited) s.edits[rcKey_(o)]={q:rcQ_(o), inc:!!o.inc, bq:o.base.q, binc:o.base.inc}; });
+    }
     localStorage.setItem(RC_KEY, JSON.stringify(s));
   }catch(e){}
+}
+// ↺ drop the hand changes and check again on the dashboard's own numbers
+function rcForget(){
+  try{ const sv=rcLoad_(); if(sv){ delete sv.edits; localStorage.setItem(RC_KEY, JSON.stringify(sv)); } }catch(e){}
+  if(window._rc) window._rc.text=null;
+  rcRun();
 }
 function rcLoad_(){ try{ return JSON.parse(localStorage.getItem(RC_KEY)||'null'); }catch(e){ return null; } }
 function rcKey_(o){ return o.add ? 'add|'+o.r.SKU : 'rep|'+o.idx+'|'+o.L.code; }
@@ -18752,8 +18776,9 @@ function rcOnTabOpen(){
   if(sv && sup && !sup.value && sv.sup) sup.value=sv.sup;
   if(sv && pa && !pa.value && sv.text) pa.value=sv.text;
   if(sv && sv.M){ const m=document.getElementById('rcMonths'); if(m) m.value=sv.M; }
-  const want=(sv&&sv.store)||state.channel;
-  document.querySelectorAll('input[name="rcStore"]').forEach(x=>{ x.checked = x.value===(window._rcStoreFor||want); });
+  // V7.45.1 — always the store the dashboard is showing (not the last one checked), so a check never quietly switches store
+  const want=window._rcStoreFor||state.channel;
+  document.querySelectorAll('input[name="rcStore"]').forEach(x=>{ x.checked = x.value===want; });
   window._rcStoreFor=null;
 }
 // from the order screen: "🧾 Check a rep's order" for this supplier and store
@@ -18793,18 +18818,24 @@ function rcRun(){
   go();
 }
 function rcCompute_(sup, store, text){
-  const M=Math.min(12, Math.max(0.5, parseFloat(document.getElementById('rcMonths')?.value)||2));
+  const M=rcMonths_();
   const P=rcParse_(text), IX=rcIndex_();
   const lines=P.lines.map((L,i)=>{ const o=rcCheckLine_(L, sup, IX, M); o.idx=i; return o; });
   const used=new Set();
   lines.forEach(o=>{ if(o.r) used.add(normSku_(o.r.SKU)); if(o.twin) used.add(normSku_(o.twin.SKU)); });
   const missed=rcMissed_(sup, used, lines);
-  // what was saved for this paste (edited quantities, ticks) comes back
+  [...lines, ...missed].forEach(o=>{ o.base={q:rcQ_(o), inc:!!o.inc}; o.edited=false; });
+  // V7.45.1 (Mark, 24 Nov: the same order in two tabs gave two answers) — only lines changed BY HAND come back, and only
+  // for the same supplier, store, months and paste, and only while the dashboard still suggests what it did then.
+  // V7.45.0 put back every line's quantity from the last check, so a check first run for the other store (or before a
+  // data refresh) replaced today's figures.
+  let restored=0;
   const sv=rcLoad_();
-  if(sv && sv.sup===sup && sv.text===text && sv.edits){
-    [...lines, ...missed].forEach(o=>{ const e=sv.edits[rcKey_(o)]; if(!e) return; if(e.q!=null && isFinite(e.q)){ o.sugRep=e.q; o.sugUnits=o.add?e.q:e.q*(o.factor||1); } o.inc=!!e.inc; o.edited=true; });
+  if(sv && sv.v===2 && sv.sup===sup && sv.store===store && sv.M===M && sv.text===text && sv.edits){
+    [...lines, ...missed].forEach(o=>{ const e=sv.edits[rcKey_(o)]; if(!e || e.bq!==o.base.q || e.binc!==o.base.inc) return;
+      rcSetQ_(o, e.q); o.inc=!!e.inc; o.edited=true; restored++; });
   }
-  window._rc={sup, store, M, lines, missed, bad:P.bad, header:P.header, filter:'all', at:new Date()};
+  window._rc={sup, store, M, text, lines, missed, bad:P.bad, header:P.header, filter:'all', at:new Date(), restored};
   try{ logUsage('rep_check', sup+' · '+lines.length+' lines'); }catch(e){}
 }
 
@@ -18872,6 +18903,7 @@ function rcRender_(){
         <div class="rc-tile"><b>${f(cut.length)} · ${f(by('trim').length)} · ${f(by('raise').length)}</b><span>to cut · trim · raise</span></div>
         <div class="rc-tile add"><b>${f(inR.length)}</b><span>left out, his ranges · ${eur(inRVal)}</span></div>
       </div>
+      ${C.restored?`<div class="rc-kept">✏ ${f(C.restored)} line${C.restored!==1?'s':''} you changed by hand in this order earlier ${C.restored!==1?'are':'is'} kept. <button class="rc-btn" onclick="rcForget()">↺ Use the dashboard’s numbers</button></div>`:''}
       ${C.bad.length?`<details class="rc-bad"><summary>⚠ ${f(C.bad.length)} line${C.bad.length!==1?'s':''} of the paste couldn’t be read — check them</summary><pre>${esc(C.bad.join('\n'))}</pre></details>`:''}
       <div class="rc-acts">
         <button class="rc-btn main" onclick="rcToOrderScreen()">🛒 Open in the order screen</button>
@@ -18885,6 +18917,14 @@ function rcRender_(){
     </div>
     <div class="rc-chips">${chips}</div>
     <div class="rc-list" id="rcList"></div>
+    <div class="rc-fin" id="rcFinish">
+      <div class="rc-fin-t"><b>Gone through the order?</b> <span id="rcFinSum"></span></div>
+      <div class="rc-fin-r">
+        <label class="rc-fin-vat" title="The dashboard holds no VAT code per product, so the code typed here goes on every line (remembered on this computer)">VAT code <input id="rcVat" type="text" value="${esc(rcVat_())}" onchange="rcVatSet(this.value)"></label>
+        <button class="rc-btn main rc-fin-btn" onclick="rcFinishExport(this)">✅ Finish and Export</button>
+      </div>
+      <div class="rc-fin-msg" id="rcFinMsg"></div>
+    </div>
     <div class="rc-foot">How it reads the order: each code is looked up as TP_ + code, the code, code + ASH, then the barcode. The rep’s pack is turned into our units from his price against our cost (BOX 10 at €11.27 against our €1.12 = 10 of ours). His quantity stands where it matches the dashboard or leaves no more than ${C.M} months of stock (stock + on order); above that it is trimmed back, never below what the dashboard wants, and lines with plenty of stock or no sales are cut. Every quantity can be changed before you send it.</div>`;
   rcRenderList_();
 }
@@ -18936,12 +18976,13 @@ function rcRenderList_(){
   rcTotals_();
 }
 function rcItem_(i, list){ const C=window._rc; return C ? (list==='m'?C.missed:C.lines)[i] : null; }
-function rcInc(i, list, on){ const o=rcItem_(i,list); if(!o) return; o.inc=!!on; o.edited=true; const row=document.querySelector(`.rc-row[data-i="${i}"][data-list="${list}"]`); if(row) row.classList.toggle('off', !o.inc); rcRowVal_(o,row); rcTotals_(); rcSave_(); }
+function rcInc(i, list, on){ const o=rcItem_(i,list); if(!o) return; o.inc=!!on; rcMark_(o); const row=document.querySelector(`.rc-row[data-i="${i}"][data-list="${list}"]`); if(row) row.classList.toggle('off', !o.inc); rcRowVal_(o,row); rcTotals_(); rcSave_(); }
 function rcQty(i, list, v){
   const o=rcItem_(i,list); if(!o) return;
-  const q=Math.max(0, parseFloat(v)||0); o.edited=true;
-  if(o.add){ o.sugUnits=q; } else { o.sugRep=q; o.sugUnits=o.factor?q*o.factor:q; }
+  const q=Math.max(0, parseFloat(v)||0);
+  rcSetQ_(o, q);
   if(q>0 && !o.inc){ o.inc=true; }
+  rcMark_(o);
   const row=document.querySelector(`.rc-row[data-i="${i}"][data-list="${list}"]`);
   if(row){ row.classList.toggle('off', !o.inc); const cb=row.querySelector('.rc-inc input'); if(cb) cb.checked=o.inc; const eq=row.querySelector('.rc-eq'); if(eq) eq.textContent=`= ${fmtInt(o.sugUnits)} of ours`; }
   rcRowVal_(o,row); rcTotals_(); rcSave_();
@@ -18956,6 +18997,49 @@ function rcTotals_(){
   const t=document.getElementById('rcTotSug'), l=document.getElementById('rcTotSugL');
   if(t) t.textContent='€'+fmtInt(Math.round(v));
   if(l) l.textContent=`Suggested order · ${fmtInt(items.length)} lines ticked`;
+  const fs=document.getElementById('rcFinSum');
+  if(fs){ const F=rcFinishRows_(), u=F.rows.reduce((a,x)=>a+x.qty,0), e=F.rows.reduce((a,x)=>a+x.val,0);
+    fs.innerHTML=`The file will hold <b>${fmtInt(F.rows.length)}</b> line${F.rows.length!==1?'s':''} · ${fmtInt(u)} units · <b>€${fmtInt(Math.round(e))}</b> — every ticked line at your quantities, in our units.${F.skipped.length?` <span class="rc-fin-skip">${fmtInt(F.skipped.length)} ticked line${F.skipped.length!==1?'s aren’t':' isn’t'} in the dashboard (${esc(F.skipped.slice(0,4).map(o=>o.L.code).join(', '))}${F.skipped.length>4?'…':''}) — set ${F.skipped.length!==1?'them':'it'} up in Linnworks first; not in the file.</span>`:''}`; }
+}
+
+// ── ✅ Finish and Export (V7.45.2 — Mark, 24 Nov: "When a buyer has gone through the reps order and made changes. At the end
+// there should be a button. Finish and Export … SKU, Supplier CODE, QTY, Unit Price, Vat Code, Barcode … the edited order
+// ready for upload") — every ticked line at the buyer's quantity, in OUR units (a BOX 10 is 10), at the rep's price per
+// one of ours after his discount (added lines at our cost). Supplier CODE = the rep's own code; an added line gets ours
+// without TP_ only where it has the same form as his codes (e.g. 1435-00), otherwise blank. One row per SKU.
+const RC_VAT_KEY='lh_repcheck_vat';
+function rcVat_(){ try{ const v=localStorage.getItem(RC_VAT_KEY); return v==null?'0':v; }catch(e){ return '0'; } }   // 0 = what every PO export here sends as Tax Rate
+function rcVatSet(v){ try{ localStorage.setItem(RC_VAT_KEY, String(v==null?'':v).trim()); }catch(e){} }
+function rcShape_(s){ return String(s||'').toUpperCase().replace(/[0-9]/g,'9').replace(/[A-Z]/g,'A'); }
+function rcFinishRows_(){
+  const C=window._rc; if(!C) return {rows:[], skipped:[]};
+  const shapes=new Set(C.lines.map(o=>rcShape_(o.L.code)));
+  const by=new Map(), skipped=[];
+  for(const o of rcOrderItems_()){
+    if(!o.r){ skipped.push(o); continue; }
+    const sku=String(o.r.SKU), qty=Math.round(o.sugUnits||0);
+    if(!(qty>0)) continue;
+    let code=o.add ? sku.replace(/^TP_/i,'') : o.L.code;
+    if(o.add && !shapes.has(rcShape_(code))) code='';
+    const val=qty*(o.unit||0), x=by.get(sku);
+    if(x){ x.qty+=qty; x.val+=val; if(!x.code) x.code=code; }
+    else by.set(sku, {sku, code, qty, val, ean:String(o.r.Barcode||'').trim()||(o.L&&o.L.ean)||''});
+  }
+  return {rows:[...by.values()], skipped};
+}
+function rcFinishExport(btn){
+  const C=window._rc; if(!C) return;
+  const F=rcFinishRows_();
+  if(!F.rows.length){ alert('Nothing ticked with a quantity above 0 — nothing to export.'); return; }
+  const vat=String(document.getElementById('rcVat')?.value??rcVat_()).trim(); rcVatSet(vat);
+  const L=['SKU,Supplier CODE,QTY,Unit Price,Vat Code,Barcode'];
+  for(const x of F.rows){ const up=Math.round(x.val/x.qty*10000)/10000; L.push([x.sku, x.code, x.qty, up, vat, x.ean].map(rcCsvCell_).join(',')); }
+  const d=new Date(), ymd=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const name=`PO_${String(C.sup).split(' - ')[0].replace(/[^a-z0-9]+/gi,'_')}_${C.store==='capel'?'Capel_Street':'Arklow'}_${ymd}.csv`;
+  rcDownload_(name, L);
+  const e=F.rows.reduce((a,x)=>a+x.val,0), m=document.getElementById('rcFinMsg');
+  if(m) m.innerHTML=`✓ Exported <b>${fmtInt(F.rows.length)}</b> line${F.rows.length!==1?'s':''} (€${fmtInt(Math.round(e))}) — <b>${esc(name)}</b>${F.skipped.length?` · ${fmtInt(F.skipped.length)} not in the dashboard left out`:''}`;
+  try{ logUsage('rep_check_finish', C.sup+' · '+F.rows.length+' lines'); }catch(e){}
 }
 
 // ── out ──
