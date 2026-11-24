@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.45.2 · REP ORDER CHECK</title>
+  <title>Lenehans Purchasing Dashboard · V7.46.1 · GOODS-IN CHECK</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1737,6 +1737,52 @@ input.ed-hex.bad{border-color:#dc2626!important;background:#fef2f2}
     .rc-more{margin-top:12px}
     .rc-more summary{cursor:pointer;font-size:12px;font-weight:700;color:#475569;margin-bottom:8px}
     .rc-foot{font-size:11px;color:#94a3b8;margin:12px 0 30px;max-width:1000px;line-height:1.5}
+    /* V7.46.0 — 📦 Goods-in check */
+    .gi-box{border-color:#0f766e}
+    .gi-box .rc-h{color:#115e59}
+    .gi-box .rc-btn.main{background:#0f766e;border-color:#0f766e}
+    .gi-box .rc-btn.main:hover{background:#115e59}
+    .gi-drop{border:2px dashed #99f6e4;border-radius:12px;background:#f0fdfa;padding:14px 16px;margin:4px 0 10px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px;color:#134e4a}
+    .gi-drop.on{background:#ccfbf1;border-color:#0f766e}
+    .gi-drop b{font-size:14px}
+    .gi-file{font-size:12px;color:#0f766e;font-weight:700}
+    .gi-err{color:#991b1b;font-weight:600}
+    .gi-data{font-size:11.5px;color:#64748b;margin-top:6px}
+    .gi-sum{border-color:#99f6e4;background:#f0fdfa}
+    .gi-sum .rc-sum-h{color:#134e4a}
+    .gi-sum .rc-tile{border-color:#ccfbf1}
+    .gi-read{font-size:13px;color:#334155;margin:6px 0 10px;padding:8px 12px;border-radius:9px;background:#fff;border:1px solid #e2e8f0}
+    .gi-read.good{border-color:#86efac;color:#14532d}
+    .gi-read.bad{border-color:#fca5a5;color:#7f1d1d;background:#fef2f2}
+    .gi-po{background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:8px 12px;margin:0 0 10px;font-size:12.5px;color:#334155}
+    .gi-po.none{color:#475569;border-style:dashed}
+    .gi-po-h{font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#475569;margin-bottom:4px}
+    label.gi-po-l{display:flex;flex-direction:row;gap:6px;align-items:center;flex-wrap:wrap;padding:3px 0;font-weight:500}
+    label.gi-po-l input{width:auto;margin:0}
+    .gi-how{color:#64748b;font-size:11.5px}
+    .gi-warn{margin-top:6px;color:#9a3412;font-weight:700}
+    .gi-head{display:grid;grid-template-columns:minmax(300px,1fr) 160px 110px 130px 150px;gap:10px;padding:0 12px 4px;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.04em}
+    .gi-row{display:grid;grid-template-columns:minmax(300px,1fr) 160px 110px 130px 150px;gap:10px;align-items:start;padding:10px 12px;border:1px solid #e2e8f0;border-left:4px solid #cbd5e1;border-radius:10px;background:#fff;margin-bottom:6px;font-size:13px;color:#0f172a}
+    .gi-row.v-ok{border-left-color:#16a34a}
+    .gi-row.v-bad{border-left-color:#dc2626}
+    .gi-row.v-warn{border-left-color:#d97706}
+    .gi-row.v-info{border-left-color:#2563eb}
+    .gi-s{font-size:11.5px;color:#64748b}
+    .gi-badm{font-size:11.5px;color:#b91c1c;font-weight:800}
+    .gi-v{display:inline-block;font-weight:800;font-size:11.5px;border-radius:10px;padding:3px 9px;white-space:nowrap;background:#f1f5f9;color:#334155}
+    .gi-v.ok{background:#dcfce7;color:#166534}
+    .gi-v.bad{background:#fee2e2;color:#991b1b}
+    .gi-v.warn{background:#fef3c7;color:#92400e}
+    .gi-v.info{background:#dbeafe;color:#1e40af}
+    .gi-w{color:#9a3412;font-weight:700}
+    .gi-n{color:#475569}
+    .gi-bc{font-family:ui-monospace,Menlo,Consolas,monospace;color:#64748b}
+    .gi-link{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+    .gi-link input{flex:1;min-width:220px;padding:6px 9px;border:1px solid #cbd5e1;border-radius:7px;font-size:12.5px}
+    .gi-hits{flex-basis:100%;display:flex;flex-direction:column;gap:3px}
+    .gi-hit{text-align:left;border:1px solid #e2e8f0;background:#f8fafc;border-radius:7px;padding:5px 8px;font-size:12px;cursor:pointer}
+    .gi-hit:hover{background:#ecfeff;border-color:#5eead4}
+    .gi-left{font-size:12.5px;color:#334155;padding:5px 12px;border-bottom:1px dashed #e2e8f0}
     @media (max-width:900px){.rc-row{grid-template-columns:26px 1fr 1fr 1fr}.rc-what{grid-column:2 / -1}label.rc-inc{grid-row:1 / span 3}}
     .ei-tbl th{background:#e2e8f0;padding:7px 10px;text-align:left;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#374151;border-bottom:2px solid var(--line);white-space:nowrap}
     .ei-tbl th.r{text-align:right}.ei-tbl td{padding:7px 10px;border-bottom:1px solid var(--line-light);vertical-align:middle}.ei-tbl td.r{text-align:right;font-variant-numeric:tabular-nums}
@@ -1758,7 +1804,7 @@ input.ed-hex.bad{border-color:#dc2626!important;background:#fef2f2}
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.45.2 · built 2026-11-24 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>✅ Rep order check: Finish and Export at the end of the order — one CSV ready for upload (SKU · Supplier CODE · QTY · Unit Price · Vat Code · Barcode): every ticked line at your quantities in our units, at the rep’s price after his discount (added lines at our cost), the rep’s own codes, and a VAT code box beside the button (remembered)</li><li>🐞 Rep order check: the same order checked twice (two tabs, or after switching store) always gives the same answer — it no longer puts back the quantities of an earlier check (made for the other store, another months setting, or before the data refreshed); only lines you changed by hand are kept, and it says so, with ↺ Use the dashboard’s numbers · the Ashtown layout Value · Dis% · Nett is read, so 10% lines are priced after the discount</li><li>🧾 Rep order check (🧰 Tools, the 🧾 Rep order check tab, or 🧾 Check a rep’s order in the order screen): paste the order a supplier’s rep has written — each line is matched to our SKU (TP_ + code, the code, code + ASH, then the barcode), his packs are turned into our units from his price, and it is checked against the dashboard for Capel Street or Arklow: ✅ OK / ⬆ raise / ✂ trim / ✂ cut, each with the reason in plain words, his price against our cost, codes to fix in Linnworks, and the lines from his own ranges he left out · 📋 copy the changes for the rep, 📋 copy the corrected order, 📄 export the PO, ⬇ the check as a spreadsheet, or 🛒 open it in the order screen</li><li>📦 Email designer: no low-stock products in emails — 🔁 the follow-up leaves out anything with fewer than 3 in stock (Arklow + Capel) and anything not matched to a SKU, and lists them with the stock left · 📤 Send to Klaviyo checks every product’s stock again first and offers to leave out any now under 3</li><li>🐞 Follow-up: the star product of a dashboard-made email is read back under its own name, not the next section’s heading</li><li>🔁 Email tab: Follow-up email — pick the emails sent in the last few days (from Klaviyo, or 📂 saved designs); their products come back with the same pictures, anything sold out since is left out, and the catch-up is laid out like the Monday “pick-me-up”, every product a big picture with Shop now</li><li>🖱 Email designer: right-click a product or a section (or ⋯) — make it the star, move it, big picture or small row, include the offer in the image, button colour, background colour, add or remove a section</li><li>🎨 Email designer: every button its own colour (or all at once), every section and the strip its own background, and a hex box beside every colour (e.g. #FFD200)</li><li>↶ Email designer: Undo / Redo (Ctrl+Z / Ctrl+Y) and ⟲ Revert to how the design started · 🏷 Include offer in image on every block, product photos too</li><li>⠿ Email designer: move blocks — drag a product onto another, into any section, the strip, a new section or onto the ⭐ star (they swap); drag whole sections, or ↑ Up / ↓ Down; the product ↑ ↓ arrows now carry on into the next section · + Add a section</li><li>💾 Email designer: saves as you go — 📂 Saved email designs on the Email tab (up to 20 on this computer): open one to carry on, 📌 keep a copy of a version before trying something, delete · 🔄 New words keeps the old design</li><li>🎨 Email designer: colours for the offer on the pictures — Navy &amp; red, Yellow &amp; black, Black &amp; yellow, Red &amp; black, White &amp; red or your own, for the whole email or just one picture</li><li>🐞 Email designer: the small pictures in the email now follow the picture chosen in the editor (↻ Another, a pasted picture, an AI picture or “Product photo instead”)</li><li>📍 Order screen step 3 “Capel covering” (after Seasonal): B lines and slower lines Capel is shipping online because Arklow is out, low or doesn’t stock them, or Capel shipped in these 30 days last year — with what fixing them does to the Capel share · 📍 tag on Bread & butter and Seasonal lines Capel is covering · “All Capel-covered lines” replaces the Arklow gap view · supplier cards show the Capel covering row</li><li>🏠 Home: four main cards in one row, 🧰 Tools as a strip across the page</li><li>🏠 Home: 📍 Capel share has its own card beside Purchasing, with today's % · 🚨 Urgent PO moved into the Capel share page · 📋 Supplier price list and 🔎 Where are we for… moved under Tools</li><li>📉 Capel share: a year of daily history rebuilt from Linnworks orders, trendline over the last 60 days, progress measured from 18 Nov · 🔭 Get ahead shows what Capel actually shipped in the same 30 days last year (CAPEL_SHARE_LY)</li><li>📍 Ship from Arklow is now the Capel share dashboard: today's % with the change on yesterday, progress to the 5% target, a daily chart with trendline and the date 5% is reached at this rate · 🗓 day by day: what moved the share (Arklow out / low / not stocked / had stock), the lines behind it and what to do now (send from Capel, order, check routing) · 🔭 get ahead: lines that sold online in the same 30 days last year that Arklow won't cover, with send/order quantities</li><li>📉 Ship from Arklow: day-by-day Capel share chart against the 5% line (CAPEL_SHARE_LOG, written each morning by CapelShareLog.gs) · 🚚 how many lines a Capel → Arklow transfer fixes on its own</li><li>📍 Ship from Arklow tab: % of online units shipped from Capel Street against a 5% target, the trend, and every line Capel ships sorted by why (not in Arklow / Arklow out / Arklow low / routing) with a suggested Arklow quantity, what Capel can send back, lines rising at Capel, and Build order per supplier</li><li>🏷 Email designer: the offer drawn onto the big in-use pictures — price, was-price, SAVE roundel and an optional label (price tag, roundel or banner), always today’s price, saved to Klaviyo when the email goes</li><li>🖼 Email designer, new look: big in-use pictures, products grouped by the job they do, honest sales &amp; stock tags (Only 10 left · 200+ sold in 30 days), “You save €x”, a stocking-fillers strip, dark mode and Gmail Promotions-tab markup · pictures from the Klaviyo image library · 🪄 no in-use picture? the AI (your OpenAI key, or Google Gemini) makes one for you to approve · 🪶 heavy pictures made lighter</li><li>📤 Email designer: Send to Klaviyo as draft — the email goes into Klaviyo as a draft campaign with your usual audience and sender; nothing is sent until you press Send there</li><li>🎨 Email tab: after checking a campaign, Design this email builds it in the Lenehans house style — pictures, links and live prices from Klaviyo, words in the style of your best-opening campaigns, ready to paste into Klaviyo</li><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
+  <div class="sub">V7.46.1 · built 2026-11-24 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>🐞 Email check, email designer and the both-store tools show the real stock whichever store the dashboard is on — with the dashboard on 🏪 Capel Street (the rep order check switches to it) they had read Capel’s stock twice and no Arklow stock, so in-stock products showed as out of stock · the order screen’s “🚚 Arklow has N spare” on Capel orders reads Arklow’s real stock · Where are we for…, Emergency Ready and Price list → order likewise</li><li>📦 Goods-in check (🧰 Tools or the 📦 Goods-in check tab): drop in a supplier’s invoice (PDF, Excel or CSV) — every line is read and added up against the invoice’s net total, matched to our SKU (the PO’s lines, the supplier codes from Linnworks, the code / TP_ + code, the barcode, or a search you link once), its boxes turned into our units from the price, and checked against the PO (found by our PO number, the invoice number in Supplier ref, or an open PO with the same lines), Linnworks’ cost (1% / 1c) and the margin it sells at (under 30% flagged): ✅ OK · 💶 dearer / cheaper · 🔢 more / fewer than ordered · ➕ not on the PO · 🆓 free · ❓ not found · ⏳ on the PO, not invoiced — plus warnings for a second open PO for the same lines or an invoice already booked in · ✅ Finish and Export the PO for Linnworks built from the invoice · 📋 corrections for the PO · 📋 queries for the supplier · 📋 cost changes</li><li>✅ Rep order check: Finish and Export at the end of the order — one CSV ready for upload (SKU · Supplier CODE · QTY · Unit Price · Vat Code · Barcode): every ticked line at your quantities in our units, at the rep’s price after his discount (added lines at our cost), the rep’s own codes, and a VAT code box beside the button (remembered)</li><li>🐞 Rep order check: the same order checked twice (two tabs, or after switching store) always gives the same answer — it no longer puts back the quantities of an earlier check (made for the other store, another months setting, or before the data refreshed); only lines you changed by hand are kept, and it says so, with ↺ Use the dashboard’s numbers · the Ashtown layout Value · Dis% · Nett is read, so 10% lines are priced after the discount</li><li>🧾 Rep order check (🧰 Tools, the 🧾 Rep order check tab, or 🧾 Check a rep’s order in the order screen): paste the order a supplier’s rep has written — each line is matched to our SKU (TP_ + code, the code, code + ASH, then the barcode), his packs are turned into our units from his price, and it is checked against the dashboard for Capel Street or Arklow: ✅ OK / ⬆ raise / ✂ trim / ✂ cut, each with the reason in plain words, his price against our cost, codes to fix in Linnworks, and the lines from his own ranges he left out · 📋 copy the changes for the rep, 📋 copy the corrected order, 📄 export the PO, ⬇ the check as a spreadsheet, or 🛒 open it in the order screen</li><li>📦 Email designer: no low-stock products in emails — 🔁 the follow-up leaves out anything with fewer than 3 in stock (Arklow + Capel) and anything not matched to a SKU, and lists them with the stock left · 📤 Send to Klaviyo checks every product’s stock again first and offers to leave out any now under 3</li><li>🐞 Follow-up: the star product of a dashboard-made email is read back under its own name, not the next section’s heading</li><li>🔁 Email tab: Follow-up email — pick the emails sent in the last few days (from Klaviyo, or 📂 saved designs); their products come back with the same pictures, anything sold out since is left out, and the catch-up is laid out like the Monday “pick-me-up”, every product a big picture with Shop now</li><li>🖱 Email designer: right-click a product or a section (or ⋯) — make it the star, move it, big picture or small row, include the offer in the image, button colour, background colour, add or remove a section</li><li>🎨 Email designer: every button its own colour (or all at once), every section and the strip its own background, and a hex box beside every colour (e.g. #FFD200)</li><li>↶ Email designer: Undo / Redo (Ctrl+Z / Ctrl+Y) and ⟲ Revert to how the design started · 🏷 Include offer in image on every block, product photos too</li><li>⠿ Email designer: move blocks — drag a product onto another, into any section, the strip, a new section or onto the ⭐ star (they swap); drag whole sections, or ↑ Up / ↓ Down; the product ↑ ↓ arrows now carry on into the next section · + Add a section</li><li>💾 Email designer: saves as you go — 📂 Saved email designs on the Email tab (up to 20 on this computer): open one to carry on, 📌 keep a copy of a version before trying something, delete · 🔄 New words keeps the old design</li><li>🎨 Email designer: colours for the offer on the pictures — Navy &amp; red, Yellow &amp; black, Black &amp; yellow, Red &amp; black, White &amp; red or your own, for the whole email or just one picture</li><li>🐞 Email designer: the small pictures in the email now follow the picture chosen in the editor (↻ Another, a pasted picture, an AI picture or “Product photo instead”)</li><li>📍 Order screen step 3 “Capel covering” (after Seasonal): B lines and slower lines Capel is shipping online because Arklow is out, low or doesn’t stock them, or Capel shipped in these 30 days last year — with what fixing them does to the Capel share · 📍 tag on Bread & butter and Seasonal lines Capel is covering · “All Capel-covered lines” replaces the Arklow gap view · supplier cards show the Capel covering row</li><li>🏠 Home: four main cards in one row, 🧰 Tools as a strip across the page</li><li>🏠 Home: 📍 Capel share has its own card beside Purchasing, with today's % · 🚨 Urgent PO moved into the Capel share page · 📋 Supplier price list and 🔎 Where are we for… moved under Tools</li><li>📉 Capel share: a year of daily history rebuilt from Linnworks orders, trendline over the last 60 days, progress measured from 18 Nov · 🔭 Get ahead shows what Capel actually shipped in the same 30 days last year (CAPEL_SHARE_LY)</li><li>📍 Ship from Arklow is now the Capel share dashboard: today's % with the change on yesterday, progress to the 5% target, a daily chart with trendline and the date 5% is reached at this rate · 🗓 day by day: what moved the share (Arklow out / low / not stocked / had stock), the lines behind it and what to do now (send from Capel, order, check routing) · 🔭 get ahead: lines that sold online in the same 30 days last year that Arklow won't cover, with send/order quantities</li><li>📉 Ship from Arklow: day-by-day Capel share chart against the 5% line (CAPEL_SHARE_LOG, written each morning by CapelShareLog.gs) · 🚚 how many lines a Capel → Arklow transfer fixes on its own</li><li>📍 Ship from Arklow tab: % of online units shipped from Capel Street against a 5% target, the trend, and every line Capel ships sorted by why (not in Arklow / Arklow out / Arklow low / routing) with a suggested Arklow quantity, what Capel can send back, lines rising at Capel, and Build order per supplier</li><li>🏷 Email designer: the offer drawn onto the big in-use pictures — price, was-price, SAVE roundel and an optional label (price tag, roundel or banner), always today’s price, saved to Klaviyo when the email goes</li><li>🖼 Email designer, new look: big in-use pictures, products grouped by the job they do, honest sales &amp; stock tags (Only 10 left · 200+ sold in 30 days), “You save €x”, a stocking-fillers strip, dark mode and Gmail Promotions-tab markup · pictures from the Klaviyo image library · 🪄 no in-use picture? the AI (your OpenAI key, or Google Gemini) makes one for you to approve · 🪶 heavy pictures made lighter</li><li>📤 Email designer: Send to Klaviyo as draft — the email goes into Klaviyo as a draft campaign with your usual audience and sender; nothing is sent until you press Send there</li><li>🎨 Email tab: after checking a campaign, Design this email builds it in the Lenehans house style — pictures, links and live prices from Klaviyo, words in the style of your best-opening campaigns, ready to paste into Klaviyo</li><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -1787,6 +1833,7 @@ input.ed-hex.bad{border-color:#dc2626!important;background:#fef2f2}
     <button class="tab-btn" data-tab="barcodes">🏷️ Barcodes</button>
     <button class="tab-btn" data-tab="pricelist">📋 Price list → order</button>
     <button class="tab-btn" data-tab="repcheck">🧾 Rep order check</button>
+    <button class="tab-btn" data-tab="goodsin">📦 Goods-in check</button>
     <button class="tab-btn" data-tab="whereare">🔎 Where are we for…</button>
     <button class="tab-btn" data-tab="deliveries" style="display:none">🚚 Deliveries</button>
     <div id="weatherChip" style="display:none;margin-left:auto;align-self:center;
@@ -1871,6 +1918,7 @@ input.ed-hex.bad{border-color:#dc2626!important;background:#fef2f2}
           <button class="home-link" style="justify-content:center;white-space:nowrap" data-goto="movein">🏠 Move-In</button>
           <button class="home-link" style="justify-content:center;white-space:nowrap" data-goto="pricelist">📋 Price list → order</button>
           <button class="home-link" style="justify-content:center;white-space:nowrap" data-goto="repcheck">🧾 Check a rep’s order</button>
+          <button class="home-link" style="justify-content:center;white-space:nowrap" data-goto="goodsin">📦 Goods-in check</button>
           <button class="home-link" style="justify-content:center;white-space:nowrap" data-goto="whereare">🔎 Where are we for…?</button>
         </div>
       </div>
@@ -2361,6 +2409,31 @@ A copy from Excel with a header row (Code · Description · Qty · Per · Price 
       <div id="rcResult"></div>
     </div>
   </div><!-- /tab-repcheck -->
+
+  <div class="tab-panel" id="tab-goodsin">
+    <div style="padding:16px 0 8px;max-width:1260px">
+      <div class="rc-box gi-box">
+        <div class="rc-h">📦 Goods-in check</div>
+        <div class="rc-sub">Drop in a supplier’s invoice. Every line is read and added up against the invoice total, matched to our SKU (the PO’s lines, the supplier codes in Linnworks, the code, then the barcode), turned into our units, and checked against the PO, Linnworks’ cost (within 1% / 1c) and the margin we sell at (flag under 30%). You get the PO file for Linnworks built from the invoice, the corrections for an existing PO, and the queries for the supplier.</div>
+        <div id="giDrop" class="gi-drop" ondragover="event.preventDefault();this.classList.add('on')" ondragleave="this.classList.remove('on')" ondrop="giDrop(event)">
+          <div><b>⬇ Drop the invoice here</b> — PDF, Excel or CSV (more than one is fine)</div>
+          <label class="rc-btn" style="display:inline-flex;flex-direction:row;cursor:pointer">📂 Choose file<input type="file" accept=".pdf,.xlsx,.xls,.xlsm,.ods,.csv,.txt" multiple style="display:none" onchange="giFiles(this.files);this.value=''"></label>
+          <span id="giFileMsg" class="gi-file"></span>
+        </div>
+        <div class="rc-form">
+          <label>Supplier <input id="giSup" list="giSupList" placeholder="found from the invoice" autocomplete="off"></label><datalist id="giSupList"></datalist>
+          <span class="rc-store">Delivered to <label><input type="radio" name="giStore" value="capel" onchange="window._giStoreTouched=true"> 🏪 Capel Street</label><label><input type="radio" name="giStore" value="arklow" onchange="window._giStoreTouched=true"> 📦 Arklow</label></span>
+        </div>
+        <textarea id="giPaste" rows="6" placeholder="…or paste the invoice here (copied from the PDF or Excel). The supplier, the invoice number, our PO number and the store are read from it."></textarea>
+        <div class="rc-go">
+          <button class="rc-btn main" onclick="giRun()">▶ Check the invoice</button>
+          <button class="rc-btn" onclick="giClear()">Clear</button>
+        </div>
+        <div id="giDataMsg" class="gi-data"></div>
+      </div>
+      <div id="giResult"></div>
+    </div>
+  </div><!-- /tab-goodsin -->
 
   <div class="tab-panel" id="tab-whereare">
     <div style="padding:16px 0 8px;max-width:1100px">
@@ -7387,7 +7460,7 @@ function runCategoryIntel(){
   const oosSelling=[];    // out at Arklow but selling somewhere → order candidates
   const suppliers={};
   for(const r of matches){
-    const aStock=r.NetStock_Arklow||0, cStock=r.NetStock_CapelStreet||0;
+    const aStock=onl_(r,'NetStock_Arklow')||0, cStock=r.NetStock_CapelStreet||0;   // V7.45.3 — real Arklow stock in either view
     akStock+=aStock; csStock+=cStock;
     const akOnline=r.QtySold_Online_Arklow_365d||0;
     const csTill=r.QtySold_Shop_CapelStreet_365d||0;
@@ -7554,11 +7627,11 @@ function runEmergencyReady(){
       if(r.isDiscontinued) continue;
       seen.add(r.SKU); m.push(r);
     }
-    const ak=m.reduce((a,r)=>a+(r.NetStock_Arklow||0),0), cs=m.reduce((a,r)=>a+(r.NetStock_CapelStreet||0),0);
-    const oos=m.filter(r=>((r.NetStock_Arklow||0)+(r.NetStock_CapelStreet||0))<=0).length;
-    const sold30=m.reduce((a,r)=>a+(r.QtySold_Online_Total_30d||0)+(r.QtySold_Shop_CapelStreet_30d||0),0);
-    const selling=m.filter(r=>((r.QtySold_Online_Total_30d||0)+(r.QtySold_Shop_CapelStreet_30d||0))>0);
-    const oosSelling=m.filter(r=>((r.NetStock_Arklow||0)+(r.NetStock_CapelStreet||0))<=0 && ((r.QtySold_Online_Total_30d||0)+(r.QtySold_Shop_CapelStreet_30d||0)+(r.QtySold_Online_Arklow_365d||0))>0);
+    const ak=m.reduce((a,r)=>a+(onl_(r,'NetStock_Arklow')||0),0), cs=m.reduce((a,r)=>a+(r.NetStock_CapelStreet||0),0);
+    const oos=m.filter(r=>((onl_(r,'NetStock_Arklow')||0)+(r.NetStock_CapelStreet||0))<=0).length;
+    const sold30=m.reduce((a,r)=>a+(onl_(r,'QtySold_Online_Total_30d')||0)+(r.QtySold_Shop_CapelStreet_30d||0),0);
+    const selling=m.filter(r=>((onl_(r,'QtySold_Online_Total_30d')||0)+(r.QtySold_Shop_CapelStreet_30d||0))>0);
+    const oosSelling=m.filter(r=>((onl_(r,'NetStock_Arklow')||0)+(r.NetStock_CapelStreet||0))<=0 && ((onl_(r,'QtySold_Online_Total_30d')||0)+(r.QtySold_Shop_CapelStreet_30d||0)+(r.QtySold_Online_Arklow_365d||0))>0);
     let status, col, bg;
     if(!m.length){ status='❌ RANGE GAP — we stock nothing here'; col='#991b1b'; bg='#fef2f2'; gaps++; }
     else if(oos>=m.length*0.5 || (selling.length && oosSelling.length>=selling.length*0.5)){ status=`⚠️ THIN — ${oos} of ${m.length} out of stock`; col='#b45309'; bg='#fffbeb'; thin++; }
@@ -7632,8 +7705,8 @@ function runSupplierList(){
     for(const e of it.eans){ if(byEan.has(e)){ r=byEan.get(e); how='EAN'; break; } }
     if(!r && it.code && bySku.has(it.code.toUpperCase())){ r=bySku.get(it.code.toUpperCase()); how='code'; }
     if(!r){ gaps.push(it); continue; }
-    const ak=r.NetStock_Arklow||0, cs=r.NetStock_CapelStreet||0, stock=ak+cs;
-    const s30=(r.QtySold_Online_Total_30d||0)+(r.QtySold_Shop_CapelStreet_30d||0);
+    const ak=onl_(r,'NetStock_Arklow')||0, cs=r.NetStock_CapelStreet||0, stock=ak+cs;   // V7.45.3 — real Arklow stock in either view
+    const s30=(onl_(r,'QtySold_Online_Total_30d')||0)+(r.QtySold_Shop_CapelStreet_30d||0);
     const s365=(r.QtySold_Shop_CapelStreet_365d||0)+(r.QtySold_Online_CapelStreet_365d||0)+(r.QtySold_Online_Arklow_365d||0);
     const daily=s30>0?s30/30:(s365>0?s365/365:0);
     const cover=daily>0?stock/daily:(stock>0?999:0);
@@ -7848,9 +7921,10 @@ function runCampaignCheck(){
     const promoNet=promo>0?promo/VAT_RATE_CC:0;
     const marginPct=(promoNet>0&&cost>0)?((promoNet-cost)/promoNet*100):null;
     const belowCost=(promoNet>0&&cost>0&&promoNet<cost);
-    const ak=row.NetStock_Arklow||0, cs=row.NetStock_CapelStreet||0, stock=ak+cs;
-    const cover=row.daysOfCover!=null?row.daysOfCover:null;
-    const sold30=(row.QtySold_Online_Total_30d||0)+(row.QtySold_Shop_CapelStreet_30d||0);
+    const ak=onl_(row,'NetStock_Arklow')||0, cs=row.NetStock_CapelStreet||0, stock=ak+cs;   // V7.45.3 — real Arklow stock in either view
+    const sold30=(onl_(row,'QtySold_Online_Total_30d')||0)+(row.QtySold_Shop_CapelStreet_30d||0);
+    // the engine's cover is for the store on screen; in the Capel view it is worked out for both stores (an email sells online)
+    const cover=state.channel==='capel' ? (stock<=0?0:(sold30>0?Math.round(stock/(sold30/30)):9999)) : (row.daysOfCover!=null?row.daysOfCover:null);
     // season
     let seasonMult=1, seasonProf='NONE';
     try{ const cls=classifySkuName(row.ItemTitle); seasonProf=cls.seasonalProfile||'NONE';
@@ -8659,6 +8733,11 @@ function estLostRevenue(r){
 // esc() alone left apostrophes raw, so a supplier like "O'Brien" broke the handler.
 function jsArg(s){ return esc(String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'")); }
 
+// V7.45.3 (Mark, 24 Nov: the email check said products in stock were out of stock) — in the Capel Street view computeRow
+// writes Capel's stock and shop sales into NetStock_Arklow and QtySold_Online_Total_* so the engine works the same for both
+// stores. Anything about ONLINE or about BOTH stores reads the real figures through onl_(r, field) — in the Arklow view it
+// is simply r[field].
+function onl_(r, f){ if(!r) return undefined; const v=r['_onl_'+f]; return v!==undefined ? v : r[f]; }
 function computeRow(row){
   const demandMode   = document.getElementById('demandMode').value;
   const fallback90On  = document.getElementById('fallback90Btn')?.dataset.active==='true';
@@ -8676,7 +8755,10 @@ function computeRow(row){
 
   // ── Channel-aware stock and demand ────────────────────────────────────────
   if(isCapel){
+    const _o=k=>row['_onl_'+k]!==undefined ? row['_onl_'+k] : (row[k]||0);   // V7.45.3 — the real values, before Capel's go in
     row = {...row,
+      _onl_NetStock_Arklow: _o('NetStock_Arklow'), _onl_QtySold_Online_Total_7d: _o('QtySold_Online_Total_7d'), _onl_QtySold_Online_Total_30d: _o('QtySold_Online_Total_30d'),
+      _onl_QtySold_Online_Total_90d: _o('QtySold_Online_Total_90d'), _onl_QtySold_Online_Total_180d: _o('QtySold_Online_Total_180d'), _onl_Revenue_Online_Total_30d: _o('Revenue_Online_Total_30d'),
       NetStock_Arklow: row.NetStock_CapelStreet||0,
       QtySold_Online_Total_7d:   row.QtySold_Shop_CapelStreet_7d||0,
       QtySold_Online_Total_30d:  row.QtySold_Shop_CapelStreet_30d||0,
@@ -9426,10 +9508,10 @@ function v8OffSeason_(fc, prof, m, lbl){
 // own sales) → transfer instead of buying (Arklow ↔ Capel moves once or twice a week).
 function v8TransferSpare_(r){
   const capel=state.channel==='capel';
-  const other = capel ? (r.NetStock_Arklow||0) : (r.NetStock_CapelStreet||0);
+  const other = capel ? (onl_(r,'NetStock_Arklow')||0) : (r.NetStock_CapelStreet||0);   // V7.45.3 — the real Arklow stock
   if(!(other>0)) return null;
   const rate = capel
-    ? Math.max(r.QtySold_Online_Total_30d||0, ((r.QtySold_Online_Arklow_365d||0)+(r.QtySold_Online_CapelStreet_365d||0))/12)
+    ? Math.max(onl_(r,'QtySold_Online_Total_30d')||0, ((r.QtySold_Online_Arklow_365d||0)+(r.QtySold_Online_CapelStreet_365d||0))/12)
     : Math.max((r.QtySold_Shop_CapelStreet_30d||0)+(r.QtySold_Online_CapelStreet_30d||0), ((r.QtySold_Shop_CapelStreet_365d||0)+(r.QtySold_Online_CapelStreet_365d||0))/12);
   const spare=Math.floor(other-2*rate); if(spare<1) return null;
   const from=capel?'Arklow':'Capel';
@@ -10920,8 +11002,8 @@ function edRowNow_(sku){
 }
 function edTag_(p){
   const r=edRowNow_(p.sku)||p.row; if(!r) return null;
-  const n=x=>+x||0, on30=n(r.QtySold_Online_Total_30d), on7=n(r.QtySold_Online_Total_7d), on365=n(r.QtySold_Online_Arklow_365d)+n(r.QtySold_Online_CapelStreet_365d);
-  const stock=Math.max(0,n(r.NetStock_Arklow))+Math.max(0,n(r.NetStock_CapelStreet));
+  const n=x=>+x||0, on30=n(onl_(r,'QtySold_Online_Total_30d')), on7=n(onl_(r,'QtySold_Online_Total_7d')), on365=n(r.QtySold_Online_Arklow_365d)+n(r.QtySold_Online_CapelStreet_365d);
+  const stock=Math.max(0,n(onl_(r,'NetStock_Arklow')))+Math.max(0,n(r.NetStock_CapelStreet));   // V7.45.3 — real figures in either view
   const nice=x=>x>=100?Math.floor(x/100)*100:Math.floor(x/50)*50;
   if(stock>0 && stock<=12 && on30>=stock) return {txt:`Only ${stock} left`, kind:'low'};
   if(on30>=50) return {txt:`${nice(on30)}+ sold in 30 days`, kind:'hot'};
@@ -11260,7 +11342,7 @@ const edNewId_ = () => 'ed'+Date.now().toString(36)+Math.random().toString(36).s
 function edSlim_(E){
   const o={}; ED_E_KEEP.forEach(k=>{ if(E[k]!==undefined) o[k]=E[k]; });
   o.prods=(E.prods||[]).map(p=>{ const q={}; ED_P_KEEP.forEach(k=>{ if(p[k]!==undefined) q[k]=p[k]; });
-    if(p.row){ q.row={}; ED_ROW_KEEP.forEach(k=>{ if(p.row[k]!==undefined) q.row[k]=p.row[k]; }); } return q; });
+    if(p.row){ q.row={}; ED_ROW_KEEP.forEach(k=>{ const v=onl_(p.row,k); if(v!==undefined) q.row[k]=v; }); } return q; });
   return JSON.parse(JSON.stringify(o));
 }
 function edName_(E){ return String((E&&E.saveName)||(E&&E.copy&&E.copy.headline)||(E&&E.theme)||'Untitled email').replace(/\s+/g,' ').trim().slice(0,80); }
@@ -11349,7 +11431,7 @@ window.edCopyHtml=async function(btn){
 // audience and sender. Nothing is scheduled or sent from the dashboard: the draft opens in Klaviyo for a last look.
 // V7.44.0 (Mark, 23 Nov: "We dont want to send stuff out of stock" · "Leave out anything with fewer than 3 in stock")
 const ED_MIN_STOCK=3;
-function edStockOf_(r){ return Math.max(0,+r.NetStock_Arklow||0)+Math.max(0,+r.NetStock_CapelStreet||0); }
+function edStockOf_(r){ return Math.max(0,+onl_(r,'NetStock_Arklow')||0)+Math.max(0,+r.NetStock_CapelStreet||0); }   // V7.45.3 — real Arklow stock in either view
 // every product in the design against the dashboard data as loaded now (Arklow + Capel net stock)
 function edStockCheck_(E){
   const rows=(typeof state!=='undefined'&&state.computedRows)||[];
@@ -14402,6 +14484,7 @@ function bindEvents(){
       if(btn.dataset.tab==='movein')     renderMoveIn();
       if(btn.dataset.tab==='sales')      renderSalesIntel();
       if(btn.dataset.tab==='repcheck')   rcOnTabOpen();   // V7.45.0
+      if(btn.dataset.tab==='goodsin')    giOnTabOpen();   // V7.46.0
     });
   });
   // Home landing cards → jump to the matching tab by clicking its real tab button
@@ -19128,6 +19211,555 @@ function rcToOrderScreen(){
   try{ logUsage('rep_check_order', sup); }catch(e){}
   const bt=document.querySelector('.tab-btn[data-tab="buying"]'); if(bt) bt.click();
   setTimeout(()=>openOrderScreen(sup, 'all'), 60);
+}
+
+// ══ V7.46.0 — 📦 GOODS-IN CHECK ═══════════════════════════════════════════════════════════════════════════════
+// Mark, 24 Nov: goods-in from Ashtown, Stax, Wilsons… takes far too long — "We copy and paste in an invoice, you match to
+// skus - check cost prices, check margins. If ok - flag… If cost prices dont equal - flag. If not found - flag".
+// Learned from Linnworks (GoodsInLearn.gs): for rep suppliers the PO is typed from the invoice when the goods arrive
+// (Ashtown 80% same day), no delivered line is ever recorded short (the PO is edited to match), the invoice number sits in
+// Supplier ref ("A612459-", "612459", "00612505"), and the supplier's own code is in Linnworks for most items.
+// So: drop the invoice (PDF / Excel / CSV, or paste) → every line read and added up against the invoice's net total →
+// each line matched to our SKU (the PO's SKUs first, then the supplier codes from Linnworks, the code / TP_ + code /
+// code + suffix, the barcode, then a name search you link once) → the invoice's units turned into ours from the price →
+// checked against the PO (found by PO number, the invoice number in Supplier ref, or an open PO with the same lines) and
+// against Linnworks' cost and the margin we actually sell at. Out: the PO file for Linnworks built from the invoice
+// (instead of typing it), the corrections for an existing PO, a query list for the supplier and the cost changes.
+// Data: GOODSIN_SUPCODES and GOODSIN_PO_LINES, written each morning by GoodsInLearn.gs (V1.2) after the Linnworks sync.
+const GI_SUPCODES_URL='https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=963600734';
+const GI_POLINES_URL ='https://docs.google.com/spreadsheets/d/1LnMn_BU0DIHSOihsTVS0kl0bWITWlxayvdgfMtYoKyQ/export?format=csv&gid=2072800157';
+const GI_LAST_KEY='lh_goodsin_last_v1', GI_LINK_KEY='lh_goodsin_links_v1';
+const GI_TOL_PCT=0.01, GI_TOL_EUR=0.015, GI_MARGIN_MIN=30;      // Mark, 24 Nov: 1% / 1c on cost, flag margins under 30%
+const GI_PDFJS_V='4.10.38';
+const GI_UNIT_SRC='EACH|EA|PCS|PC|UNITS?|SINGLE|PAIRS?|PR|SETS?|LENGTHS?|LGTH|ROLLS?|SHEETS?|TINS?|TUBES?|BOTTLES?|LTRS?|KG|'
+  +'(?:BOX(?:ES)?|PACKS?|PKT|PK|CTN|CARTON|CASES?|CARDS?|CD|BAGS?|TUBS?|TRAYS?|OUTERS?|INNERS?|DOZ(?:EN)?|BLISTERS?)(?:\\s*(?:OF\\s*)?\\d+(?:\\s*[X×]\\s*\\d+)?)?|'
+  +'\\d+\\s*[X×]\\s*\\d+|\\d+\\s*(?:MTRS?|M|METRES?)';
+const GI_QTYUNIT_RE=new RegExp('(?:^|\\s)(\\d+(?:\\.\\d+)?)\\s+('+GI_UNIT_SRC+')(?=\\s+[€]?-?[\\d.,]+)','gi');
+const GI_NETLABEL_RE=/(net\s*goods|net\s*total|goods\s*value|sub\s*-?\s*total|total\s*net|nett?\s*amount|total\s*goods|total\s*ex\.?\s*vat|net\s*amount)/i;
+
+// ── reading ──────────────────────────────────────────────────────────────────────────────────────────────────
+function giNum_(s){ const t=String(s==null?'':s).replace(/[€£\s]/g,'').replace(/,(?=\d{3}(\D|$))/g,'').replace(',','.'); const v=parseFloat(t); return isFinite(v)?v:NaN; }
+function giNear_(a,b){ return Math.abs(a-b)<=Math.max(0.02, 0.006*Math.abs(b)); }
+function giPerCount_(per){
+  const p=String(per||'').toUpperCase(); let m=p.match(/(\d+)\s*[X×]\s*(\d+)/); if(m) return (+m[1])*(+m[2]);
+  if(/MTR|METRE|\bM\b/.test(p)) return 1;
+  m=p.match(/(\d+)/); return m?(+m[1]||1):1;
+}
+// price, discount and line total from the numbers after the unit: price first; the total is the number equal to
+// qty × price less a discount that is itself on the line (or no discount)
+function giTail_(q, nums, o){
+  o.p=nums[0].v; o.d=0; o.t=NaN;
+  const g=q*o.p, rest=nums.slice(1);
+  if(o.p===0){ o.t=0; return true; }
+  for(let i=rest.length-1;i>=0;i--){
+    const t=rest[i].v; if(!(t>=0)) continue;
+    if(giNear_(t,g)){ o.t=t; return true; }
+    const d=(1-t/g)*100;
+    if(d>0 && d<100 && rest.some((n,j)=>j!==i && Math.abs(n.v-d)<=0.06)){ o.t=t; o.d=Math.round(d*100)/100; return true; }
+  }
+  if(!rest.length){ o.t=Math.round(g*100)/100; return true; }
+  const pc=rest.find(n=>n.pct&&n.v>0&&n.v<100); if(pc){ o.d=pc.v; o.t=Math.round(g*(1-pc.v/100)*100)/100; return true; }
+  o.t=rest[rest.length-1].v; o.unsure=true; return true;
+}
+const GI_MONEY_RE=/\d\.\d{2}(?!\d)/;                       // a price or a total always has pence: "20.42", "1,021.00"
+function giNums_(s){ return [...String(s).matchAll(/€?\s*(-?\d[\d,]*(?:\.\d+)?|-?\.\d+)\s*(%)?/g)].map(x=>({v:giNum_(x[1]),pct:!!x[2]})).filter(n=>isFinite(n.v)); }
+function giIsCode_(t){ return !!t && /^[A-Z0-9][A-Z0-9\-\/._]{1,24}$/i.test(t) && (/\d/.test(t) || /^[A-Z]{5,}$/.test(t)) && !/^\d+\.\d+$/.test(t); }
+function giParseLine_(raw){
+  let line=String(raw).replace(/\u00a0/g,' ').replace(/\t/g,'  ').replace(/\s+$/,'').trim();
+  if(!line || line.length<6) return null;
+  line=line.replace(/\s+(?:[A-Z]{1,3}\d{0,2})$/,m=>/\d|^\s+[A-Z]$/.test(m)&&!/^\s+(EA|EACH|PCS|PR)$/i.test(m)?'':m);   // a trailing VAT code (S2, Z, V1)
+  let toks=line.split(/\s+/), m;
+  // 1. "CODE  description  5.00 ea (Each)  25.95/ea (Each)  [23]  129.75"  (Curust)
+  m=line.match(/^(\S+)\s+(.+?)\s+(\d+(?:\.\d+)?)\s*([A-Za-z]+)\s*\(([^)]*)\)\s+(-?[\d.,]+)\s*\/\s*[A-Za-z]+\s*(?:\([^)]*\))?\s+(?:(\d+(?:\.\d+)?)%?\s+)?(-?[\d.,]+)$/);
+  if(m && giIsCode_(m[1])){
+    const q=giNum_(m[3]), p=giNum_(m[6]), t=giNum_(m[8]), o={code:m[1], desc:m[2].trim(), q, per:(m[5]||m[4]).toUpperCase().replace(/^EACH$/,'EACH'), p, d:0, t, raw};
+    if(q>0 && p>0 && !giNear_(t,q*p)) o.d=Math.round((1-t/(q*p))*10000)/100;
+    return o;
+  }
+  // 2. "CODE  [ref]  description  QTY  UNIT  PRICE  [AMOUNT DIS EMC]  TOTAL"  (Ashtown and most)
+  if(giIsCode_(toks[0])){
+    const rest=line.slice(toks[0].length);
+    const ms=[...rest.matchAll(GI_QTYUNIT_RE)];
+    if(ms.length){
+      const mm=ms[ms.length-1], q=giNum_(mm[1]), per=mm[2].toUpperCase().replace(/\s+/g,' ');
+      const nums=giNums_(rest.slice(mm.index+mm[0].length));
+      if(q>0 && nums.length && GI_MONEY_RE.test(rest.slice(mm.index+mm[0].length))){ const o={code:toks[0], desc:rest.slice(0,mm.index).trim(), q, per, raw}; giTail_(q,nums,o); return o; }
+    }
+  }
+  // 3. "QTY  CODE  description  PRICE  [DISCOUNT]  TOTAL"  (Dominic Fleming)
+  if(/^\d+(?:\.\d+)?$/.test(toks[0]) && giIsCode_(toks[1]) && toks.length>=4){
+    const q=giNum_(toks[0]), rest=line.slice(line.indexOf(toks[1])+toks[1].length);
+    const tm=rest.match(/((?:\s+[€]?-?[\d.,]+%?)+)\s*$/);
+    if(q>0 && tm && /\d/.test(toks[1]) && GI_MONEY_RE.test(tm[1])){ const nums=giNums_(tm[1]); if(nums.length){ const o={code:toks[1], desc:rest.slice(0,tm.index).trim(), q, per:'EACH', raw}; giTail_(q,nums,o); return o; } }
+  }
+  // 4. "CODE  description  QTY  PRICE  [DIS]  [TOTAL]" — no unit word
+  if(giIsCode_(toks[0])){
+    const rest=line.slice(toks[0].length), tm=rest.match(/((?:\s+[€]?-?[\d.,]+%?){2,})\s*$/);
+    if(tm && GI_MONEY_RE.test(tm[1])){ const nums=giNums_(tm[1]); const q=nums[0].v;
+      if(q>0 && Number.isInteger(q) && nums.length>=2){ const o={code:toks[0], desc:rest.slice(0,tm.index).trim(), q, per:'EACH', raw}; giTail_(q,nums.slice(1),o); if(o.desc) return o; } }
+  }
+  return null;
+}
+// a header row (Code · Description · Qty · Per · Price · Dis · Total · EAN), from Excel / CSV or a tabbed paste
+function giHeaderMap_(cells){
+  const c=cells.map(s=>String(s||'').trim().toLowerCase()); if(c.length<3) return null;
+  const f=re=>c.findIndex(x=>re.test(x));
+  const ci=f(/^(item\s*)?(code|sku|stock\s*code|product\s*code|item\s*code|part\s*(no|number)|ref|cat(alogue)?\s*no)/), qi=f(/^(qty|quantity|sales\s*qty|qty\s*(sent|supplied|invoiced|shipped)|units?)$/);
+  if(ci<0 || qi<0) return null;
+  return {ci, qi, di:f(/desc|product\s*name|name|title/), pi:f(/^(per|uom|unit\s*of|pack)/), pr:f(/(unit\s*)?price|cost|rate(?!\s*%)/), dis:f(/^dis|disc/),
+          ti:f(/(line\s*)?total|amount|nett?\s*value|value|goods/), ei:f(/ean|barcode|bar\s*code/)};
+}
+function giParse_(text){
+  const rows=String(text||'').split(/\r?\n/), lines=[], bad=[];
+  let H=null, last=null;
+  for(const raw of rows){
+    if(!raw.trim()){ last=null; continue; }
+    if(!H && raw.includes('\t')){ const h=giHeaderMap_(raw.split('\t')); if(h){ H=h; continue; } }
+    let o=null;
+    if(H && raw.includes('\t')){
+      const c=raw.split('\t'), code=String(c[H.ci]||'').trim(), q=giNum_(c[H.qi]);
+      if(code && q>0){
+        const per=H.pi>=0?String(c[H.pi]||'').trim().toUpperCase():'', p=H.pr>=0?giNum_(c[H.pr]):NaN, t=H.ti>=0?giNum_(c[H.ti]):NaN;
+        o={code, desc:H.di>=0?String(c[H.di]||'').trim():'', q, per:per||'EACH', p:isFinite(p)?p:(isFinite(t)?t/q:NaN), d:H.dis>=0?(giNum_(c[H.dis])||0):0, t, ean:H.ei>=0?String(c[H.ei]||'').replace(/\D/g,''):'', raw};
+        if(!isFinite(o.t)) o.t=Math.round(o.q*o.p*(1-o.d/100)*100)/100;
+      }
+    } else o=giParseLine_(raw);
+    if(o && isFinite(o.p) && isFinite(o.t)){
+      const e=[...String(o.desc).matchAll(/(?:^|\s)(\d{13}|\d{12}|\d{8})(?=\s|$)/g)]; if(!o.ean && e.length) o.ean=e[e.length-1][1];
+      o.desc=String(o.desc).replace(/\s{2,}/g,' ').trim(); lines.push(o); last=o; continue;
+    }
+    const t=raw.trim();
+    // a description carried onto the next line ("NO.07260)", "CONTROL", "2500MAH")
+    const tk=t.split(/\s+/), twoCodes=tk.length>=2 && tk.length<=3 && giIsCode_(tk[0]) && (/-/.test(tk[0])||(/[A-Z]/i.test(tk[0])&&/\d/.test(tk[0]))) && /\d/.test(tk[1]) && /^[A-Z0-9][A-Z0-9\-\/._]{1,24}$/i.test(tk[1]) && !/^[A-Z]\d{2}\s+[A-Z0-9]{4}$/i.test(t);   // "0425-81 FMR52" — not an Eircode
+    if(last && !twoCodes && !/\d+[.,]\d{2}\s*$/.test(t) && t.length<=42 && !/\.\s*$|\b(please|shortages|notified|property|goods remain|e&oe|terms|conditions)\b/i.test(t) && !GI_NETLABEL_RE.test(t) && !/(^|\s)(page|continued|delivery|invoice|vat|total|tel|fax|email|web|customer|ref\.?|date|code)\b|[:@]|www\.|<<<|>>>/i.test(t)){ last.desc+=' '+t.replace(/\s{2,}/g,' '); continue; }
+    last=null;
+    if(twoCodes || (giIsCode_(tk[0]) && /\d+[.,]\d{2}/.test(t) && !GI_NETLABEL_RE.test(t) && !/^(S\d|IE\d+|VAT|TOTAL)$/i.test(tk[0]))) bad.push(t);   // looked like a product line, couldn't read it
+  }
+  return {lines, bad};
+}
+// the invoice's own figures: number, our PO number, net total, which store it was delivered to
+function giHead_(text){
+  const T=String(text||''), H={};
+  let m=T.match(/invoice\s*(?:no\.?|number|#)\s*[:.]?\s*([A-Z]{0,4}[-\/]?\d[\w\-\/]{3,})/i) || T.match(/\b((?:SIN|INV|SI|IN)[-\/]?\d{4,})\b/i);
+  if(m) H.inv=m[1].replace(/-$/,'');
+  const pos=[...new Set([...T.matchAll(/\bPO\d{9,14}\b/g)].map(x=>x[0]))]; H.pos=pos;
+  const nets=[]; const L=T.split(/\r?\n/);
+  for(let i=0;i<L.length;i++){ if(!GI_NETLABEL_RE.test(L[i])) continue;
+    let after=L[i].slice(L[i].search(GI_NETLABEL_RE)); let n=giNums_(after.replace(GI_NETLABEL_RE,''));
+    if(!n.length && L[i+1]) n=giNums_(L[i+1]);
+    n.forEach(x=>{ if(x.v>0) nets.push(x.v); }); }
+  H.nets=nets;
+  H.store=/\b(ARKLOW|KILBRIDE|Y14\s*FY06|\*WICKLOW)\b/i.test(T)?'arklow':(/\bCAPEL\b/i.test(T)?'capel':'');
+  m=T.match(/(?:invoice\s*date|date)\s*[:.]?\s*(\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}|\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4})/i); if(m) H.date=m[1];
+  return H;
+}
+function giSupFromText_(text){
+  const T=String(text||'').toUpperCase().slice(0,6000), all=rcSuppliers_();
+  const skip=new Set(['LENEHANS','LENEHAN','THOMAS','TRADING','LIMITED','IRELAND','DUBLIN','HARDWARE','SUPPLIES','INDUSTRIES','GROUP','THE','LTD','DEFAULT','ELECTRICAL','PRODUCTS','INTERNATIONAL','SALES','WHOLESALE']);
+  let best='', bs=0;
+  for(const s of all){
+    const name=String(s).toUpperCase(), parts=name.split(' - '), code=parts.length>1?parts[0].trim():'', words=(parts.length>1?parts.slice(1).join(' '):name).split(/[^A-Z0-9&]+/).filter(w=>w.length>=3&&!skip.has(w));
+    if(!words.length) continue;
+    let sc=0; if(new RegExp('\\b'+words[0].replace(/[&]/g,'\\&')+'\\b').test(T)) sc+=3; else continue;
+    words.slice(1).forEach(w=>{ if(new RegExp('\\b'+w.replace(/[&]/g,'\\&')+'\\b').test(T)) sc+=1; });
+    if(code && T.includes(code)) sc+=1;
+    if(sc>bs){ bs=sc; best=s; }
+  }
+  return best;
+}
+
+// ── files: PDF (pdf.js), Excel (SheetJS), CSV / text ─────────────────────────────────────────────────────────
+async function giPdfLib_(){
+  if(window._giPdf) return window._giPdf;
+  const bases=[`https://cdn.jsdelivr.net/npm/pdfjs-dist@${GI_PDFJS_V}/legacy/build/`,`https://unpkg.com/pdfjs-dist@${GI_PDFJS_V}/legacy/build/`];
+  let err;
+  for(const b of bases){ try{ const lib=await import(b+'pdf.min.mjs'); lib.GlobalWorkerOptions.workerSrc=b+'pdf.worker.min.mjs'; window._giPdf=lib; return lib; }catch(e){ err=e; } }
+  throw new Error('the PDF reader could not be loaded ('+(err&&err.message||err)+')');
+}
+// each page's words put back into lines, left to right; slanted words (the diagonal "Sales Invoice" watermark) left out
+async function giPdfText_(buf){
+  const lib=await giPdfLib_(); const doc=await lib.getDocument({data:new Uint8Array(buf), isEvalSupported:false}).promise; const out=[];
+  for(let p=1;p<=doc.numPages;p++){
+    const tc=await (await doc.getPage(p)).getTextContent(), rows=[];
+    for(const it of tc.items){
+      if(!it.str || !it.str.trim() || Math.abs(it.transform[1])>0.01 || Math.abs(it.transform[2])>0.01) continue;
+      const y=it.transform[5], x=it.transform[4], h=Math.abs(it.transform[3])||it.height||8;
+      let r=rows.find(r=>Math.abs(r.y-y)<=Math.max(2,h*0.35)); if(!r){ r={y,items:[]}; rows.push(r); }
+      r.items.push({x, w:it.width, s:it.str, h});
+    }
+    rows.sort((a,b)=>b.y-a.y);
+    for(const r of rows){ r.items.sort((a,b)=>a.x-b.x); let line='', end=null;
+      for(const it of r.items){ const cw=it.s.length?it.w/it.s.length:it.h*0.5;
+        if(end!=null){ const gap=it.x-end; line+=' '.repeat(gap>cw*1.6?Math.max(2,Math.round(gap/Math.max(cw,1))):(gap>cw*0.25?1:0)); }
+        line+=it.s; end=it.x+it.w; }
+      out.push(line.replace(/\s+$/,'')); }
+    out.push('');
+  }
+  return out.join('\n');
+}
+async function giXlsLib_(){
+  if(window._giXlsx) return window._giXlsx;
+  const lib=await import('https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs'); window._giXlsx=lib; return lib;
+}
+async function giXlsText_(buf){
+  const X=await giXlsLib_(), wb=X.read(new Uint8Array(buf),{type:'array'}), out=[];
+  for(const n of wb.SheetNames){ const rows=X.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:false,defval:''}); rows.forEach(r=>out.push(r.map(c=>String(c).replace(/[\t\r\n]+/g,' ')).join('\t'))); }
+  return out.join('\n');
+}
+function giCsvText_(text){ return String(text).replace(/^\ufeff/,'').split(/\r?\n/).map(l=>l.includes(',')&&!l.includes('\t')?parseCSVLine_(l).join('\t'):l).join('\n'); }
+async function giReadFile_(f){
+  const n=(f.name||'').toLowerCase();
+  if(/\.pdf$/.test(n) || f.type==='application/pdf') return giPdfText_(await f.arrayBuffer());
+  if(/\.(xlsx|xlsm|xls|ods)$/.test(n)) return giXlsText_(await f.arrayBuffer());
+  if(/\.msg$/.test(n)) throw new Error('that’s the Outlook email itself — open it and drag the PDF attachment in instead');
+  const t=await f.text(); return /\.csv$/.test(n)?giCsvText_(t):t;
+}
+async function giFiles(files){
+  const msg=document.getElementById('giFileMsg'), pa=document.getElementById('giPaste');
+  if(!files || !files.length) return;
+  const texts=[], names=[];
+  for(const f of files){
+    if(msg) msg.textContent='⏳ Reading '+f.name+'…';
+    try{ texts.push(await giReadFile_(f)); names.push(f.name); }
+    catch(e){ if(msg) msg.innerHTML='<span class="gi-err">Couldn’t read '+esc(f.name)+': '+esc(e.message||e)+'</span>'; return; }
+  }
+  if(pa) pa.value=texts.join('\n\n');
+  if(msg) msg.textContent='✓ Read '+names.join(', ');
+  const sup=document.getElementById('giSup'); if(sup) sup.value='';
+  giRun();
+}
+function giDrop(ev){ ev.preventDefault(); document.getElementById('giDrop')?.classList.remove('on'); giFiles(ev.dataTransfer&&ev.dataTransfer.files); }
+
+// ── data: supplier codes and PO lines from Linnworks (GoodsInLearn.gs) ───────────────────────────────────────
+async function giData_(){
+  const G=window._giData; if(G && G.ok && Date.now()-G.at<30*60000) return G;
+  if(window._giLoading) return window._giLoading;
+  window._giLoading=(async()=>{
+    const get=async(url,label)=>{ const r=await fetchWithTimeout(url,60000); if(!r.ok) throw new Error(label+' HTTP '+r.status); const t=await r.text(); if(/^\s*</.test(t)) throw new Error(label+' is not shared'); return parseCSV(t); };
+    const D={at:Date.now(), ok:false, sc:new Map(), scSku:new Map(), po:[], poBySup:new Map(), err:''};
+    try{
+      const [sc,po]=await Promise.all([get(GI_SUPCODES_URL,'GOODSIN_SUPCODES'), get(GI_POLINES_URL,'GOODSIN_PO_LINES')]);
+      for(const r of sc){
+        const sku=String(r['SKU']||'').replace(/^'+/,'').trim(), sup=String(r['Supplier']||'').trim(), code=String(r['Supplier code']||'').replace(/^'+/,'').trim();
+        if(!sku) continue;
+        const x={sku, sup, code, bc:String(r['Supplier barcode']||'').trim(), price:giNum_(r['Supplier price'])||0, def:String(r['Default supplier']).trim()==='1', ours:String(r['Our barcode']||'').trim()};
+        if(code){ const k=sup+'|'+code.toUpperCase(); (D.sc.get(k)||D.sc.set(k,[]).get(k)).push(x); }
+        const ks=normSku_(sku); (D.scSku.get(ks)||D.scSku.set(ks,[]).get(ks)).push(x);
+      }
+      const hasLine=po.length && ('PO line total' in po[0]);     // V1.2 writes both; V1.1's "PO unit cost" was really the line total
+      for(const r of po){
+        const ord=giNum_(r['Ordered'])||0, val=giNum_(r['PO unit cost'])||0;
+        const x={po:String(r['PO number']||'').trim(), ref:String(r['Supplier ref']||'').trim(), sup:String(r['Supplier']||'').trim(), store:String(r['Store']||'').trim(),
+                 status:String(r['Status']||'').trim().toUpperCase(), pd:String(r['PO date']||'').trim(), dd:String(r['Delivered date']||'').trim(),
+                 sku:String(r['SKU']||'').replace(/^'+/,'').trim(), ord, del:giNum_(r['Delivered'])||0, unit:hasLine?val:(ord>0?val/ord:0)};
+        if(!x.po || !x.sku) continue;
+        D.po.push(x); (D.poBySup.get(x.sup)||D.poBySup.set(x.sup,[]).get(x.sup)).push(x);
+      }
+      D.ok=true;
+    }catch(e){ D.err=e.message||String(e); }
+    window._giData=D; window._giLoading=null; return D;
+  })();
+  return window._giLoading;
+}
+function giLinks_(){ try{ return JSON.parse(localStorage.getItem(GI_LINK_KEY)||'{}')||{}; }catch(e){ return {}; } }
+function giLinkSave_(L){ try{ localStorage.setItem(GI_LINK_KEY, JSON.stringify(L)); }catch(e){} }
+function giIndex_(){
+  const bySku=new Map(), byEan=new Map();
+  for(const r of (state.computedRows||[])){
+    const k=normSku_(r.SKU); if(k){ (bySku.get(k)||bySku.set(k,[]).get(k)).push(r); }
+    const e=_normEan(r.Barcode); if(e && e.length>=7){ (byEan.get(e)||byEan.set(e,[]).get(e)).push(r); }
+  }
+  return {bySku, byEan};
+}
+// the POs this invoice belongs to: our PO number on it, the invoice number in Supplier ref, or open POs with the same lines
+function giFindPOs_(sup, H, skuSets, D, store){
+  const rows=D.poBySup.get(sup)||[], by=new Map();
+  for(const r of rows){ let p=by.get(r.po); if(!p){ p={po:r.po, ref:r.ref, store:r.store, status:r.status, pd:r.pd, dd:r.dd, lines:[], how:''}; by.set(r.po,p); } p.lines.push(r); }
+  const core=s=>String(s||'').replace(/\D/g,'').replace(/^0+/,'');
+  const invCore=core(H.inv), want=new Set(); const out=[];
+  for(const p of by.values()){
+    let how='';
+    if((H.pos||[]).includes(p.po)) how='the PO number on the invoice';
+    else if(invCore.length>=5 && p.ref && (core(p.ref)===invCore || core(p.ref).includes(invCore) || (core(p.ref).length>=5 && invCore.endsWith(core(p.ref))))) how='the invoice number in Supplier ref ('+p.ref+')';
+    const skus=new Set(p.lines.map(l=>normSku_(l.sku)));
+    let hit=0; skuSets.forEach(S=>{ for(const s of S) if(skus.has(s)){ hit++; break; } });
+    p.hit=hit; p.share=skuSets.length?hit/skuSets.length:0;
+    if(!how && p.status!=='DELIVERED' && hit>=Math.max(2, Math.ceil(skuSets.length*0.3))) how='open, with '+hit+' of these lines';
+    if(!how && p.status==='DELIVERED' && hit>=Math.max(3, Math.ceil(skuSets.length*0.6)) && skuSets.length>=3) how='already booked in, with '+hit+' of these lines';
+    if(!how) continue;
+    p.how=how; p.on=!/^already/.test(how) || (H.pos||[]).includes(p.po);
+    if(store && p.store && rcStoreName_(store)!==p.store && !/PO number|invoice number/.test(how)) continue;
+    out.push(p);
+  }
+  out.sort((a,b)=>(/PO number/.test(b.how)-/PO number/.test(a.how)) || (/invoice number/.test(b.how)-/invoice number/.test(a.how)) || b.hit-a.hit);
+  // two open POs with the same lines (one made by the buyer, one typed from the invoice): compare with the first only
+  const big=p=>p.status!=='DELIVERED' && p.hit>=Math.max(2, skuSets.length*0.8);
+  const first=out.find(p=>p.on && big(p)); if(first) out.forEach(p=>{ if(p!==first && big(p)){ p.on=false; p.dupOf=first.po; } });
+  return out.slice(0,8);
+}
+function giSold_(r){
+  const onQ=(+r.QtySold_Online_Arklow_365d||0)+(+r.QtySold_Online_CapelStreet_365d||0), onRev=(+r.Revenue_Online_Total_365d||0)*1.23;
+  const shQ=+r.QtySold_Shop_CapelStreet_365d||0, shRev=+r.Revenue_Shop_CapelStreet_365d||0, q=onQ+shQ;
+  return {q, inc:q>0?(onRev+shRev)/q:0};
+}
+
+// ── run ──────────────────────────────────────────────────────────────────────────────────────────────────────
+function giStoreSel_(){ const el=document.querySelector('input[name="giStore"]:checked'); return el?el.value:state.channel; }
+function giOnTabOpen(){
+  const dl=document.getElementById('giSupList'); if(dl && !dl.children.length) dl.innerHTML=rcSuppliers_().map(s=>`<option value="${esc(s)}">`).join('');
+  let sv=null; try{ sv=JSON.parse(localStorage.getItem(GI_LAST_KEY)||'null'); }catch(e){}
+  const pa=document.getElementById('giPaste'), sup=document.getElementById('giSup');
+  if(sv && pa && !pa.value && sv.text){ pa.value=sv.text; if(sup && !sup.value) sup.value=sv.sup||''; }
+  if(!document.querySelector('input[name="giStore"]:checked')){ const want=(sv&&sv.store)||state.channel; document.querySelectorAll('input[name="giStore"]').forEach(x=>{ x.checked=x.value===want; }); }
+  giData_().then(D=>{ const s=document.getElementById('giDataMsg'); if(s) s.innerHTML=D.ok?`Linnworks: ${fmtInt(D.sc.size)} supplier codes · ${fmtInt(new Set(D.po.map(x=>x.po)).size)} POs from the last 120 days`:`<span class="gi-err">Supplier codes / POs not loaded (${esc(D.err)}) — run setupGoodsInSync in GoodsInLearn.gs. The check still runs on the dashboard’s codes.</span>`; });
+}
+function giClear(){ ['giPaste','giSup'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); const r=document.getElementById('giResult'); if(r) r.innerHTML=''; const m=document.getElementById('giFileMsg'); if(m) m.textContent=''; window._gi=null; try{ localStorage.removeItem(GI_LAST_KEY); }catch(e){} }
+async function giRun(){
+  const out=document.getElementById('giResult'); if(!out) return;
+  const text=document.getElementById('giPaste')?.value||'';
+  if(!(state.computedRows||[]).length){ out.innerHTML='<div class="rc-msg">The data is still loading — one moment.</div>'; return; }
+  if(!text.trim()){ out.innerHTML='<div class="rc-msg">Drop the invoice in (PDF, Excel or CSV) or paste it into the box.</div>'; return; }
+  const H=giHead_(text);
+  const supEl=document.getElementById('giSup');
+  let sup=rcResolveSup_(supEl?.value||'');
+  out.innerHTML='<div class="rc-msg">⏳ Checking the invoice against Linnworks…</div>';
+  const D=await giData_();
+  if(!sup && (H.pos||[]).length && D.ok){ const r=D.po.find(x=>H.pos.includes(x.po)); if(r) sup=r.sup; }
+  if(!sup) sup=giSupFromText_(text);
+  if(!sup){ out.innerHTML=`<div class="rc-msg bad">Which supplier is this invoice from? Type the code (e.g. ASH001) or pick from the list, then ▶ Check.</div>`; return; }
+  if(supEl) supEl.value=sup;
+  // the store: the PO's, else where the invoice says it was delivered, else the one picked
+  let store=giStoreSel_();
+  if(D.ok && (H.pos||[]).length){ const r=D.po.find(x=>H.pos.includes(x.po)); if(r&&r.store) store=/capel/i.test(r.store)?'capel':'arklow'; }
+  else if(H.store && !window._giStoreTouched) store=H.store;
+  document.querySelectorAll('input[name="giStore"]').forEach(x=>{ x.checked=x.value===store; });
+  try{ localStorage.setItem(GI_LAST_KEY, JSON.stringify({sup, store, text:text.length<400000?text:''})); }catch(e){}
+  const C=giCompute_(sup, store, text, H, D);
+  window._gi=C; giRender_();
+  try{ logUsage('goods_in_check', sup+' · '+(H.inv||'')+' · '+C.lines.length+' lines'); }catch(e){}
+}
+function giCands_(L, sup, IX, D, links){
+  const c=String(L.code).toUpperCase().trim(), out=[], seen=new Set();
+  const add=(sku,how)=>{ const k=normSku_(sku); if(!k||seen.has(k)) return; const rows=IX.bySku.get(k); if(!rows) return; seen.add(k); out.push({k, rows, how}); };
+  const lk=links[sup+'|'+c]; if(lk) add(lk,'linked by you');
+  (D.sc.get(sup+'|'+c)||[]).forEach(x=>add(x.sku,'supplier code in Linnworks'));
+  [[c,'code = SKU'],['TP_'+c,'TP_ + code'],[c+'ASH','code + ASH'],[c+'DFE','code + DFE'],[c+'STAX','code + STAX']].forEach(([s,h])=>add(s,h));
+  const e=_normEan(L.ean); if(e && e.length>=7) (IX.byEan.get(e)||[]).forEach(r=>add(r.SKU,'barcode'));
+  return out;
+}
+function giRowFor_(rows, sup){ return rows.find(r=>r.SupplierName===sup) || rows.find(r=>r._defaultSupplier===sup) || rows[0]; }
+function giCompute_(sup, store, text, H, D){
+  const P=giParse_(text), IX=giIndex_(), links=giLinks_();
+  P.lines.forEach((L,i)=>{ L.i=i; L.cands=giCands_(L, sup, IX, D, links); });
+  const pos=giFindPOs_(sup, H, P.lines.map(L=>new Set(L.cands.map(c=>c.k))), D, store);
+  const C={sup, store, H, D, IX, P, pos, lines:P.lines.map(L=>({L})), filter:'all'};
+  giMatch_(C);
+  return C;
+}
+// (re)match every line against the ticked POs — run again when a PO is ticked / unticked or a code is linked
+function giMatch_(C){
+  const D=C.D, IX=C.IX, on=C.pos.filter(p=>p.on), poSku=new Map();
+  for(const p of on) for(const l of p.lines){ const k=normSku_(l.sku); const x=poSku.get(k)||{q:0,val:0,pos:[],booked:0,open:0};
+    const q=p.status==='DELIVERED'?l.del:Math.max(0,l.ord-l.del); x.q+=q; x.val+=q*l.unit; if(p.status==='DELIVERED') x.booked+=q; else x.open+=q; x.pos.push(p.po); poSku.set(k,x); }
+  C.poSku=poSku; const used=new Set();
+  for(const o of C.lines){
+    const L=o.L; Object.assign(o,{r:null, k:'', how:'', po:null, flags:[], notes:[]});
+    o.free=!(L.t>0);
+    if(!L.cands.length){ o.v='nf'; continue; }
+    const onPo=L.cands.find(c=>poSku.has(c.k)), pick=onPo || L.cands.find(c=>c.how!=='barcode') || L.cands[0];
+    o.k=pick.k; o.how=pick.how; o.r=giRowFor_(pick.rows, C.sup);
+    if(L.cands.length>1){ const other=L.cands.filter(c=>c.k!==pick.k).map(c=>c.rows[0].SKU); o.twins=other; }
+    const sc=(D.scSku.get(o.k)||[]).find(x=>x.sup===C.sup);
+    o.lwCost=(sc&&sc.price>0)?sc.price:(+o.r.SupplierCostPrice||0);
+    o.po=poSku.get(o.k)||null; if(o.po) used.add(o.k);
+    // units: the invoice's price per its unit against ours (the PO's price, else Linnworks')
+    const net1=L.q>0?L.t/L.q:0, gross1=L.p||0, ref=(o.po&&o.po.q>0&&o.po.val>0)?o.po.val/o.po.q:o.lwCost;
+    let f=1; const m=giPerCount_(L.per);
+    if(ref>0 && (gross1||net1)>0){
+      const rN=net1/ref, rG=(gross1||net1)/ref;
+      if(Math.max(rN,rG)>1.45){ const err=x=>Math.min(Math.abs(rN/x-1),Math.abs(rG/x-1));
+        f=[m, Math.round(rN), Math.round(rG)].filter(x=>x>=1).sort((a,b)=>err(a)-err(b))[0]||1; if(err(f)>0.2) f=1; } }
+    o.f=f; o.qty=Math.round(L.q*f*1000)/1000; o.unit=f?net1/f:net1; o.gross=f?gross1/f:gross1; o.value=L.t;
+    const S=giSold_(o.r); o.sold=S.q; o.inc=S.inc; o.margin=(S.inc>0&&o.unit>0)?((S.inc/1.23-o.unit)/(S.inc/1.23))*100:null;
+    o.bc=String(o.r.Barcode||'').trim()||(sc&&sc.bc)||'';
+    const diff=(a,b)=>b>0 && Math.abs(a/b-1)>GI_TOL_PCT && Math.abs(a-b)>=GI_TOL_EUR;
+    const poUnit=o.po&&o.po.q>0?o.po.val/o.po.q:0;
+    if(o.free){ o.flags.push('free'); }
+    else {
+      const base=poUnit>0?poUnit:o.lwCost;
+      o.costBase=base; o.costFrom=poUnit>0?'the PO':'Linnworks';
+      if(base>0 && diff(o.unit, base)){
+        if(!diff(o.gross, base) && o.gross>o.unit) o.flags.push('list');      // PO / Linnworks at list price, invoice gives a discount
+        else o.flags.push(o.unit>base?'dearer':'cheaper');
+      }
+    }
+    if(on.length){ if(!o.po) o.flags.push('notpo'); if(o.po && o.po.pos.length>1) o.notes.push('twopo'); if(o.po && o.po.booked>0) o.notes.push('booked'); }
+    if(o.margin!=null && o.margin<GI_MARGIN_MIN && !o.free) o.flags.push('margin');
+    const alt=(IX.bySku.get(o.k)||[]).filter(r=>r.SupplierName!==C.sup && +r.SupplierCostPrice>0 && +r.SupplierCostPrice<o.unit*0.9).sort((a,b)=>a.SupplierCostPrice-b.SupplierCostPrice)[0];
+    if(alt && !o.free) o.alt=alt;
+    if(!o.bc) o.notes.push('nobc');
+  }
+  // the invoice's quantity per SKU (a product can be on it twice — charged and free) against the PO's
+  const grp=new Map(); for(const o of C.lines) if(o.po){ grp.set(o.k,(grp.get(o.k)||0)+o.qty); }
+  for(const o of C.lines){ if(!o.po) continue; o.grpQ=grp.get(o.k); o.grpN=C.lines.filter(x=>x.k===o.k).length;
+    if(Math.abs(o.po.q-o.grpQ)>1e-6) o.flags.push(o.grpQ>o.po.q?'more':'less'); }
+  const pr=['dearer','more','notpo','margin','cheaper','list','less','free'];
+  for(const o of C.lines) if(o.r) o.v=o.flags.length?pr.find(x=>o.flags.includes(x)):'ok';
+  // PO lines not on this invoice
+  C.left=[]; for(const [k,x] of poSku){ if(used.has(k) || !(x.q>0)) continue; const rows=IX.bySku.get(k)||[]; C.left.push({k, sku:rows[0]?rows[0].SKU:k, title:rows[0]?rows[0].ItemTitle:'', q:x.q, unit:x.q?x.val/x.q:0, pos:x.pos, booked:x.booked}); }
+  C.left.sort((a,b)=>b.q*b.unit-a.q*a.unit);
+}
+
+// ── show ─────────────────────────────────────────────────────────────────────────────────────────────────────
+const GI_V={ok:['✅ OK','ok'], dearer:['💶 Dearer','bad'], cheaper:['💶 Cheaper','info'], list:['🏷 Discount','info'], more:['🔢 More than ordered','warn'], less:['🔢 Fewer than ordered','warn'],
+            notpo:['➕ Not on the PO','warn'], margin:['📉 Low margin','bad'], free:['🆓 Free','info'], nf:['❓ Not found','bad']};
+function giEur_(v, dp){ return '€'+(Math.abs(v)<10&&dp!==0?v.toFixed(2):v.toLocaleString('en-IE',{minimumFractionDigits:2,maximumFractionDigits:2})); }
+function giQtyTxt_(o){ const L=o.L; return o.f>1 ? `${fmtInt(L.q)} × ${esc(L.per)} = <b>${fmtInt(o.qty)}</b> of ours` : `<b>${fmtInt(o.qty)}</b>${L.per&&L.per!=='EACH'&&L.per!=='EA'?' × '+esc(L.per):''}`; }
+function giWhy_(o, C){
+  const S=String(C.sup).split(' - ').pop().replace(/\b\w+/g,w=>w[0]+w.slice(1).toLowerCase()), w=[];
+  if(o.v==='nf') return `Not in the dashboard under this code — search for it here and link it once (it’s remembered for this supplier), or add the code in Linnworks.`;
+  if(o.free) w.push(`Free — book in ${fmtInt(o.qty)} at €0${o.po&&o.po.val>0?` (the PO has them at ${giEur_(o.po.val/o.po.q)})`:''}.`);
+  if(o.flags.includes('dearer')) w.push(`${giEur_(o.unit)} each — ${o.costFrom} says ${giEur_(o.costBase)} (+${((o.unit/o.costBase-1)*100).toFixed(1)}%, ${giEur_((o.unit-o.costBase)*o.qty)} on this line). Query with ${esc(S)}, or update the cost.`);
+  if(o.flags.includes('cheaper')) w.push(`${giEur_(o.unit)} each — ${o.costFrom} says ${giEur_(o.costBase)} (${((o.unit/o.costBase-1)*100).toFixed(1)}%). Update the cost.`);
+  if(o.flags.includes('list')) w.push(`${o.costFrom==='the PO'?'The PO':'Linnworks'} has the list price ${giEur_(o.costBase)}; the invoice gives ${o.L.d}% off (${giEur_(o.unit)}) — the cost will be ${o.L.d}% too high if left.`);
+  const inv=o.grpN>1?`Invoiced ${fmtInt(o.grpQ)} in all (${o.grpN} lines on the invoice)`:`Invoiced ${fmtInt(o.qty)}`;
+  if(o.flags.includes('more')) w.push(`${inv} — the PO has ${fmtInt(o.po.q)} (${fmtInt(o.grpQ-o.po.q)} more than ordered).`);
+  if(o.flags.includes('less')) w.push(`${inv} — the PO has ${fmtInt(o.po.q)} (${fmtInt(o.po.q-o.grpQ)} still to come, or short).`);
+  if(o.flags.includes('notpo')) w.push(`Not on the PO — add it (${fmtInt(o.qty)} at ${giEur_(o.unit)}).`);
+  if(o.flags.includes('margin')) w.push(`Margin ${o.margin.toFixed(0)}% at what it sells for (${giEur_(o.inc)} inc VAT) — under ${GI_MARGIN_MIN}%.`);
+  if(o.v==='ok') w.push(C.pos.some(p=>p.on)?`Same as the PO — ${fmtInt(o.qty)} at ${giEur_(o.unit)}.`:`Same as Linnworks — ${fmtInt(o.qty)} at ${giEur_(o.unit)}.`);
+  if(o.notes.includes('twopo')) w.push(`<span class="gi-w">On ${o.po.pos.length} POs (${o.po.pos.join(', ')}) — make sure it isn’t booked in twice.</span>`);
+  if(o.notes.includes('booked')) w.push(`<span class="gi-w">${fmtInt(o.po.booked)} already booked in on ${o.po.pos.join(', ')}.</span>`);
+  if(o.twins && o.twins.length) w.push(`<span class="gi-n">Also found as ${o.twins.map(esc).join(', ')} — the same product on two SKUs?</span>`);
+  if(o.alt) w.push(`<span class="gi-n">Cheaper from ${esc(String(o.alt.SupplierName).split(' - ').pop())}: ${giEur_(+o.alt.SupplierCostPrice)}.</span>`);
+  if(o.notes.includes('nobc')) w.push(`<span class="gi-n">No barcode in Linnworks — label it.</span>`);
+  return w.join(' ');
+}
+function giCounts_(C){ const n={all:C.lines.length}; C.lines.forEach(o=>{ n[o.v]=(n[o.v]||0)+1; if(o.v!=='ok') n.check=(n.check||0)+1; }); n.left=C.left.length; return n; }
+function giRender_(){
+  const C=window._gi, out=document.getElementById('giResult'); if(!C||!out) return;
+  const H=C.H, n=giCounts_(C), sum=C.lines.reduce((a,o)=>a+(o.L.t||0),0), sumR=Math.round(sum*100)/100;
+  const net=(H.nets||[]).find(v=>Math.abs(v-sumR)<0.015), netShown=net!=null?net:(H.nets||[])[0];
+  const S=String(C.sup).split(' - ').pop();
+  const on=C.pos.filter(p=>p.on), dupe=C.pos.filter(p=>p.status!=='DELIVERED' && p.hit>=Math.max(2,C.lines.length*0.8));
+  const booked=on.filter(p=>p.status==='DELIVERED');
+  let h=`<div class="rc-sum gi-sum"><div class="rc-sum-h">📦 ${esc(S)}${H.inv?' · invoice '+esc(H.inv):''}${H.date?' · '+esc(H.date):''} · for ${rcStoreName_(C.store)}</div>`;
+  h+=`<div class="gi-read ${net!=null?'good':(netShown!=null?'bad':'')}">${net!=null?'✓':'⚠'} Read <b>${fmtInt(C.lines.length)}</b> line${C.lines.length!==1?'s':''} adding up to <b>${giEur_(sumR,2)}</b>${net!=null?` — the same as the invoice’s net total.`:(netShown!=null?` — but the invoice says <b>${giEur_(netShown,2)}</b> (${giEur_(Math.abs(netShown-sumR),2)} ${netShown>sumR?'missing':'extra'}). Check the lines below and any not read.`:` (no net total found on the invoice to compare).`)}</div>`;
+  if(C.P.bad.length) h+=`<details class="rc-bad"><summary>⚠ ${fmtInt(C.P.bad.length)} line${C.P.bad.length!==1?'s':''} looked like products but couldn’t be read</summary><pre>${esc(C.P.bad.join('\n'))}</pre></details>`;
+  // POs
+  if(!C.D.ok) h+=`<div class="gi-po none">Linnworks POs and supplier codes aren’t loaded (${esc(C.D.err||'')}) — lines are matched on the dashboard’s codes only and checked against Linnworks’ cost.</div>`;
+  else if(!C.pos.length) h+=`<div class="gi-po none">No PO found for this invoice${H.pos&&H.pos.length?` (${esc(H.pos.join(', '))} isn’t in the last 120 days)`:''} — so each line is checked against Linnworks’ cost. ✅ Finish and Export gives you the PO to import instead of typing it.</div>`;
+  else {
+    h+=`<div class="gi-po"><div class="gi-po-h">PO${C.pos.length>1?'s':''} for this invoice — ticked ones are compared</div>`;
+    C.pos.forEach((p,i)=>{ const val=p.lines.reduce((a,l)=>a+l.ord*l.unit,0);
+      h+=`<label class="gi-po-l"><input type="checkbox" ${p.on?'checked':''} onchange="giPoTick(${i},this.checked)"> <b>${esc(p.po)}</b> · ${esc(p.status.toLowerCase())}${p.status==='DELIVERED'&&p.dd?' '+esc(p.dd):''} · ${esc(p.store||'')} · ${fmtInt(p.lines.length)} lines · ${giEur_(val,2)}${p.ref?` · ref “${esc(p.ref)}”`:''} <span class="gi-how">found by ${esc(p.how)}</span></label>`; });
+    if(dupe.length>1) h+=`<div class="gi-warn">⚠ These lines are on ${dupe.length} open POs (${dupe.map(p=>esc(p.po)).join(', ')}) — receive one and cancel the other, or the stock on order is counted twice. Compared with ${esc((dupe.find(p=>p.on)||dupe[0]).po)}.</div>`;
+    if(booked.length) h+=`<div class="gi-warn">⚠ ${booked.map(p=>esc(p.po)).join(', ')} ${booked.length>1?'are':'is'} already booked in — check this invoice isn’t booked in a second time.</div>`;
+    h+=`</div>`;
+  }
+  const tile=(k,t,cls)=>`<div class="rc-tile ${cls||''}"><b>${fmtInt(n[k]||0)}</b><span>${t}</span></div>`;
+  h+=`<div class="rc-tiles">${tile('ok','✅ OK — book in as is','good')}${tile('dearer','💶 dearer than '+(on.length?'the PO':'Linnworks'))}${on.length?tile('more','🔢 more than ordered')+tile('less','🔢 fewer than ordered')+tile('notpo','➕ not on the PO'):''}${tile('nf','❓ not found')}${tile('free','🆓 free')}${on.length?tile('left','⏳ on the PO, not invoiced'):''}</div>`;
+  h+=`<div class="rc-acts"><button class="rc-btn" onclick="giCopyQuery(this)">📋 Copy the queries for ${esc(S)}</button>${on.length?`<button class="rc-btn" onclick="giCopyPoFix(this)">📋 Copy the corrections for the PO</button>`:''}<button class="rc-btn" onclick="giCopyCosts(this)">📋 Copy cost changes for Linnworks</button><button class="rc-btn" onclick="giExportCheck()">⬇ The check as a spreadsheet</button></div></div>`;
+  const chip=(k,t)=>`<button class="rc-chip ${C.filter===k?'on':''}" onclick="giFilter('${k}')">${t} <span>${fmtInt(n[k]||0)}</span></button>`;
+  h+=`<div class="rc-chips">${chip('all','All')}${chip('check','Needs a look')}${chip('ok','✅ OK')}${['dearer','cheaper','list','more','less','notpo','margin','free','nf'].filter(k=>n[k]).map(k=>chip(k,GI_V[k][0])).join('')}</div>`;
+  h+=`<div class="gi-head"><span>Invoice line</span><span>Invoiced</span><span>${on.length?'PO':'—'}</span><span>Cost · margin</span><span></span></div><div id="giList"></div>`;
+  if(C.left.length) h+=`<div class="rc-sec">⏳ On the PO, not on this invoice <span>${fmtInt(C.left.length)} lines · ${giEur_(C.left.reduce((a,x)=>a+x.q*x.unit,0),2)} — still to come, or cancel</span></div>`+C.left.map(x=>`<div class="gi-left"><span class="rc-sku">${esc(x.sku)}</span> ${esc(x.title)} · <b>${fmtInt(x.q)}</b> at ${giEur_(x.unit)} · ${esc(x.pos.join(', '))}${x.booked?` <span class="gi-w">(${fmtInt(x.booked)} booked in)</span>`:''}</div>`).join('');
+  h+=giFinHtml_();
+  out.innerHTML=h; giRenderList_();
+}
+function giRowHtml_(o, i, C){
+  const L=o.L, V=GI_V[o.v]||GI_V.ok, on=C.pos.some(p=>p.on);
+  const ours=o.r?`<div class="rc-ours">→ <span class="rc-sku">${esc(o.r.SKU)}</span> <span class="rc-title">${esc(o.r.ItemTitle||'')}</span> <span class="rc-how">${esc(o.how)}</span>${o.bc?` <span class="gi-bc">${esc(o.bc)}</span>`:''}</div>`
+    :`<div class="gi-link"><input id="giQ${i}" placeholder="Search our stock — name, SKU or barcode" onkeydown="if(event.key==='Enter')giLinkSearch(${i})"><button class="rc-btn" onclick="giLinkSearch(${i})">🔎</button><div id="giHits${i}" class="gi-hits"></div></div>`;
+  const inv=`${giQtyTxt_(o.r?o:{L,f:1,qty:L.q})}<div class="gi-s">${giEur_(o.r?o.unit:(L.q?L.t/L.q:0))} each${L.d?` (−${L.d}%)`:''}</div><div class="gi-s">${giEur_(L.t,2)}</div>`;
+  const po=!on?'':(o.po?`<b>${fmtInt(o.po.q)}</b><div class="gi-s">${giEur_(o.po.q?o.po.val/o.po.q:0)} each</div>`:(o.r?'<span class="gi-s">not on it</span>':''));
+  const cost=o.r?`${o.lwCost>0?`<div class="gi-s">Linnworks ${giEur_(o.lwCost)}</div>`:''}${o.margin!=null?`<div class="${o.margin<GI_MARGIN_MIN?'gi-badm':'gi-s'}">margin ${o.margin.toFixed(0)}%</div>`:`<div class="gi-s">no sales in 12 months</div>`}`:'';
+  return `<div class="gi-row v-${V[1]}"><div class="rc-what"><div class="rc-top"><span class="rc-code">${esc(L.code)}</span> <span class="rc-desc">${esc(L.desc)}</span></div>${ours}<div class="rc-why">${giWhy_(o,C)}</div></div><div>${inv}</div><div>${po}</div><div>${cost}</div><div><span class="gi-v ${V[1]}">${V[0]}</span></div></div>`;
+}
+function giRenderList_(){
+  const C=window._gi, el=document.getElementById('giList'); if(!C||!el) return;
+  const f=C.filter, show=C.lines.map((o,i)=>[o,i]).filter(([o])=>f==='all'||(f==='check'?o.v!=='ok':o.v===f));
+  const order={nf:0,dearer:1,more:2,notpo:3,margin:4,less:5,cheaper:6,list:7,free:8,ok:9};
+  if(f==='all'||f==='check') show.sort((a,b)=>(order[a[0].v]-order[b[0].v])||(a[1]-b[1]));
+  el.innerHTML=show.length?show.map(([o,i])=>giRowHtml_(o,i,C)).join(''):'<div class="rc-msg">Nothing here.</div>';
+}
+function giFilter(k){ const C=window._gi; if(!C) return; C.filter=k; giRender_(); }
+function giPoTick(i, on){ const C=window._gi; if(!C||!C.pos[i]) return; C.pos[i].on=!!on; giMatch_(C); giRender_(); }
+function giLinkSearch(i){
+  const C=window._gi; if(!C) return; const q=String(document.getElementById('giQ'+i)?.value||'').trim().toUpperCase(), box=document.getElementById('giHits'+i); if(!box) return;
+  if(q.length<2){ box.innerHTML=''; return; }
+  const words=q.split(/\s+/).filter(Boolean), seen=new Set(), hits=[];
+  for(const r of (state.computedRows||[])){ const k=normSku_(r.SKU); if(seen.has(k)) continue;
+    const t=(String(r.SKU)+' '+(r.ItemTitle||'')+' '+(r.Barcode||'')).toUpperCase();
+    if(words.every(w=>t.includes(w))){ seen.add(k); hits.push(r); if(hits.length>=8) break; } }
+  box.innerHTML=hits.length?hits.map(r=>`<button class="gi-hit" data-sku="${esc(r.SKU)}" onclick="giLink(${i},this.dataset.sku)"><span class="rc-sku">${esc(r.SKU)}</span> ${esc(r.ItemTitle||'')} <span class="gi-s">${esc(String(r.SupplierName||'').split(' - ')[0])} · €${(+r.SupplierCostPrice||0).toFixed(2)}</span></button>`).join(''):'<span class="gi-s">Nothing found — try fewer words.</span>';
+}
+function giLink(i, sku){
+  const C=window._gi; if(!C) return; const o=C.lines[i]; if(!o) return;
+  const L=giLinks_(); L[C.sup+'|'+String(o.L.code).toUpperCase().trim()]=sku; giLinkSave_(L);
+  o.L.cands=giCands_(o.L, C.sup, C.IX, C.D, L); giMatch_(C); giRender_();
+  try{ logUsage('goods_in_link', C.sup+' · '+o.L.code+' → '+sku); }catch(e){}
+}
+
+// ── out ──────────────────────────────────────────────────────────────────────────────────────────────────────
+function giFinRows_(){
+  const C=window._gi; if(!C) return {rows:[], skipped:[]};
+  const by=new Map(), skipped=[];
+  for(const o of C.lines){
+    if(!o.r){ skipped.push(o); continue; }
+    const sku=String(o.r.SKU), x=by.get(sku);
+    if(x){ x.qty+=o.qty; x.val+=o.value; } else by.set(sku,{sku, code:o.L.code, qty:o.qty, val:o.value, ean:o.bc||o.L.ean||''});
+  }
+  return {rows:[...by.values()].filter(x=>x.qty>0), skipped};
+}
+function giFinHtml_(){
+  const F=giFinRows_(), C=window._gi, e=F.rows.reduce((a,x)=>a+x.val,0), u=F.rows.reduce((a,x)=>a+x.qty,0);
+  return `<div class="rc-fin"><div class="rc-fin-t"><b>✅ Finish and Export</b> — the PO for Linnworks built from this invoice (instead of typing it): <b>${fmtInt(F.rows.length)}</b> lines · <b>${fmtInt(u)}</b> units · <b>${giEur_(e,2)}</b>, in our units at the invoice’s price after discount (free goods at €0, added to the same SKU)${F.skipped.length?`<br><span class="rc-fin-skip">${fmtInt(F.skipped.length)} line${F.skipped.length!==1?'s':''} not found yet ${F.skipped.length!==1?'are':'is'} left out: ${F.skipped.slice(0,6).map(o=>esc(o.L.code)).join(', ')}${F.skipped.length>6?'…':''} — link ${F.skipped.length!==1?'them':'it'} above first.</span>`:''}${C&&C.pos.some(p=>p.on&&p.status!=='DELIVERED')?`<br><span class="rc-fin-skip">There is already an open PO for these lines — receive that one (📋 Copy the corrections for the PO) rather than importing a second.</span>`:''}</div>
+  <div class="rc-fin-r"><label class="rc-fin-vat">VAT code <input id="giVat" type="text" value="${esc(rcVat_())}" onchange="rcVatSet(this.value)"></label><button class="rc-btn main rc-fin-btn" onclick="giFinishExport(this)">✅ Finish and Export</button></div><div class="rc-fin-msg" id="giFinMsg"></div></div>`;
+}
+function giFinishExport(btn){
+  const C=window._gi; if(!C) return; const F=giFinRows_();
+  if(!F.rows.length){ alert('No lines matched to our SKUs yet — nothing to export.'); return; }
+  const vat=String(document.getElementById('giVat')?.value??rcVat_()).trim(); rcVatSet(vat);
+  const L=['SKU,Supplier CODE,QTY,Unit Price,Vat Code,Barcode'];
+  for(const x of F.rows) L.push([x.sku, x.code, x.qty, Math.round(x.val/x.qty*10000)/10000, vat, x.ean].map(rcCsvCell_).join(','));
+  const d=new Date(), ymd=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const name=`PO_${String(C.sup).split(' - ')[0].replace(/[^a-z0-9]+/gi,'_')}_${C.store==='capel'?'Capel_Street':'Arklow'}_${(C.H.inv||ymd).replace(/[^a-z0-9\-]+/gi,'_')}.csv`;
+  rcDownload_(name, L);
+  const m=document.getElementById('giFinMsg'); if(m) m.innerHTML=`✓ Exported <b>${fmtInt(F.rows.length)}</b> lines (${giEur_(F.rows.reduce((a,x)=>a+x.val,0),2)}) — <b>${esc(name)}</b>`;
+  try{ logUsage('goods_in_finish', C.sup+' · '+(C.H.inv||'')+' · '+F.rows.length+' lines'); }catch(e){}
+}
+function giCopyQuery(btn){
+  const C=window._gi; if(!C) return; const S=String(C.sup).split(' - ').pop(), on=C.pos.some(p=>p.on), L=[];
+  for(const o of C.lines){
+    const d=`${o.L.code} ${o.L.desc}`.trim();
+    if(o.flags.includes('dearer')) L.push(`• ${d}: invoiced at ${giEur_(o.unit)} each, our ${on&&o.costFrom==='the PO'?'order':'agreed'} price is ${giEur_(o.costBase)} — ${fmtInt(o.qty)} units, ${giEur_((o.unit-o.costBase)*o.qty,2)} over`);
+    if(o.flags.includes('more') && !o.free && !L.some(x=>x.startsWith('• '+o.L.code+' ')&&x.includes('we ordered'))) L.push(`• ${d}: we ordered ${fmtInt(o.po.q)}, invoiced ${fmtInt(o.grpQ)} (${fmtInt(o.grpQ-o.po.q)} more than ordered)`);
+    if(o.flags.includes('notpo')) L.push(`• ${d}: not on our order — invoiced ${fmtInt(o.qty)} at ${giEur_(o.unit)}`);
+  }
+  const txt=L.length?`Invoice ${C.H.inv||''}${C.pos.filter(p=>p.on).length?' (our PO '+C.pos.filter(p=>p.on).map(p=>p.po).join(', ')+')':''} — please check:\n${L.join('\n')}\n`:`Invoice ${C.H.inv||''}: nothing to query with ${S}.`;
+  rcCopy_(btn, txt);
+}
+function giCopyPoFix(btn){
+  const C=window._gi; if(!C) return; const L=[];
+  for(const o of C.lines){ if(!o.r) continue; const s=o.r.SKU;
+    if(o.flags.includes('notpo')) L.push(`ADD\t${s}\t${o.qty}\t${(Math.round(o.unit*10000)/10000)}\t${o.L.desc}`);
+    else if(o.po){ if(Math.abs(o.po.q-o.grpQ)>1e-6 && !L.some(x=>x.startsWith('QTY\t'+s+'\t'))) L.push(`QTY\t${s}\t${o.po.q} → ${o.grpQ}\t\t${o.L.desc}`);
+      const pu=o.po.q?o.po.val/o.po.q:0; if(pu>0 && Math.abs(o.unit/pu-1)>GI_TOL_PCT && Math.abs(o.unit-pu)>=GI_TOL_EUR) L.push(`COST\t${s}\t€${pu.toFixed(4)} → €${o.unit.toFixed(4)}\t\t${o.L.desc}`); } }
+  for(const x of C.left) L.push(`NOT INVOICED\t${x.sku}\t${x.q}\t\t${x.title}`);
+  rcCopy_(btn, `Corrections for ${C.pos.filter(p=>p.on).map(p=>p.po).join(', ')} (invoice ${C.H.inv||''})\n`+(L.length?L.join('\n'):'None — the PO matches the invoice.'));
+}
+function giCopyCosts(btn){
+  const C=window._gi; if(!C) return; const L=['SKU\tItem\tLinnworks cost\tInvoice cost\tChange'];
+  for(const o of C.lines){ if(!o.r||o.free||!(o.lwCost>0)) continue; if(Math.abs(o.unit/o.lwCost-1)>GI_TOL_PCT && Math.abs(o.unit-o.lwCost)>=GI_TOL_EUR) L.push([o.r.SKU, o.r.ItemTitle||o.L.desc, o.lwCost.toFixed(4), o.unit.toFixed(4), ((o.unit/o.lwCost-1)*100).toFixed(1)+'%'].join('\t')); }
+  rcCopy_(btn, L.length>1?L.join('\n'):'No cost changes — every line matches Linnworks.');
+}
+function giExportCheck(){
+  const C=window._gi; if(!C) return;
+  const L=['Invoice code,Description,Invoiced,Per,Invoice price,Discount %,Line total,Our SKU,Our title,Our units,Invoice cost per unit,PO qty,PO cost per unit,Linnworks cost,Margin %,Verdict,Notes'];
+  for(const o of C.lines){ const pu=o.po&&o.po.q?o.po.val/o.po.q:''; L.push([o.L.code,o.L.desc,o.L.q,o.L.per,o.L.p,o.L.d||0,o.L.t,o.r?o.r.SKU:'',o.r?o.r.ItemTitle:'',o.r?o.qty:'',o.r?(Math.round(o.unit*10000)/10000):'',o.po?o.po.q:'',pu?Math.round(pu*10000)/10000:'',o.lwCost||'',o.margin!=null?o.margin.toFixed(1):'',(GI_V[o.v]||GI_V.ok)[0].replace(/^\S+\s/,''),giWhy_(o,C).replace(/<[^>]+>/g,'')].map(rcCsvCell_).join(',')); }
+  for(const x of C.left) L.push(['','',0,'','','','',x.sku,x.title,0,'',x.q,Math.round(x.unit*10000)/10000,'','','On the PO, not invoiced',x.pos.join(' ')].map(rcCsvCell_).join(','));
+  rcDownload_(`Goods_in_${String(C.sup).split(' - ')[0].replace(/[^a-z0-9]+/gi,'_')}_${(C.H.inv||'check').replace(/[^a-z0-9\-]+/gi,'_')}.csv`, L);
 }
 
 
