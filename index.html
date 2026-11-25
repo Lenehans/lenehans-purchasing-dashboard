@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Lenehans Purchasing Dashboard · V7.46.2 · GOODS-IN CHECK</title>
+  <title>Lenehans Purchasing Dashboard · V7.47.1 · GOODS-IN FIXES</title>
   <style>
     /* ── Design tokens ───────────────────────────────────────────────── */
     :root{
@@ -1464,6 +1464,20 @@ header .sub .hdr-new li{margin:1px 0}
 .ed-saved-r span{flex:1;color:#64748b;min-width:160px}
 .ed-sm.ed-del{border-color:#b91c1c;color:#b91c1c}
 .ed-sm.ed-del.ed-sure{background:#b91c1c;color:#fff}
+/* V7.47.0 — 👥 team designs · ⭐ Trustpilot */
+.ed-team-h{margin-top:10px;font-weight:700;color:#334155;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ed-team-h span{font-weight:400;color:#64748b}
+.ed-team-r{border-color:#c7d2fe}
+.ed-tp{align-items:center;gap:10px;padding:8px 10px;border:1px dashed #a7f3d0;border-radius:9px;background:#f0fdf4;margin-top:6px}
+.ed-tp label{display:inline-flex;flex-direction:row;align-items:center;gap:5px;font-weight:700}
+.ed-tp-st{font-size:11.5px;color:#475569}
+.ed-tp-l{flex-basis:100%;display:flex;flex-direction:column;gap:3px}
+.ed-tp-r{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:#334155;padding:3px 6px;border-radius:6px}
+.ed-tp-r.in{background:#dcfce7}
+.ed-tp-r.off{opacity:.55;text-decoration:line-through}
+.ed-tp-r span{color:#64748b;flex:1;min-width:140px}
+.ed-tp-r .ed-tp-s{color:#00B67A;letter-spacing:1px;flex:none;min-width:0}
+.ed-tp select{height:28px;padding:2px 6px;font-size:12px;width:auto}
 .ed-r.big{border-color:#93c5fd}
 .ed-dots{margin-left:4px;width:28px;height:26px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;border-radius:6px;cursor:pointer;font-size:16px;font-weight:800;line-height:20px;padding:0;flex:none}
 .ed-dots:hover{background:#f1f5f9}
@@ -1804,7 +1818,7 @@ input.ed-hex.bad{border-color:#dc2626!important;background:#fef2f2}
 <body>
 <header style="position:relative">
   <div class="title">Lenehans Purchasing</div>
-  <div class="sub">V7.46.2 · built 2026-11-24 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>📦 Goods-in check, tested on a 12-page Donal Lynch invoice (137 lines): reads the Lynch layout (Qty · Code · Details · Price · Net · VAT) and the barcode printed under each line, codes with no digits (GEELRGYL), and no longer mistakes a VAT figure for a discount · matches codes written without / - . (BCHK2000/4 = BCHK20004) and by the invoice’s barcode · an invoice line it can’t place is paired with a PO line of the same quantity and price · a product on the invoice twice (charged + free) is compared on its average price · “already booked in” said once, not on every line</li><li>🐞 Email check, email designer and the both-store tools show the real stock whichever store the dashboard is on — with the dashboard on 🏪 Capel Street (the rep order check switches to it) they had read Capel’s stock twice and no Arklow stock, so in-stock products showed as out of stock · the order screen’s “🚚 Arklow has N spare” on Capel orders reads Arklow’s real stock · Where are we for…, Emergency Ready and Price list → order likewise</li><li>📦 Goods-in check (🧰 Tools or the 📦 Goods-in check tab): drop in a supplier’s invoice (PDF, Excel or CSV) — every line is read and added up against the invoice’s net total, matched to our SKU (the PO’s lines, the supplier codes from Linnworks, the code / TP_ + code, the barcode, or a search you link once), its boxes turned into our units from the price, and checked against the PO (found by our PO number, the invoice number in Supplier ref, or an open PO with the same lines), Linnworks’ cost (1% / 1c) and the margin it sells at (under 30% flagged): ✅ OK · 💶 dearer / cheaper · 🔢 more / fewer than ordered · ➕ not on the PO · 🆓 free · ❓ not found · ⏳ on the PO, not invoiced — plus warnings for a second open PO for the same lines or an invoice already booked in · ✅ Finish and Export the PO for Linnworks built from the invoice · 📋 corrections for the PO · 📋 queries for the supplier · 📋 cost changes</li><li>✅ Rep order check: Finish and Export at the end of the order — one CSV ready for upload (SKU · Supplier CODE · QTY · Unit Price · Vat Code · Barcode): every ticked line at your quantities in our units, at the rep’s price after his discount (added lines at our cost), the rep’s own codes, and a VAT code box beside the button (remembered)</li><li>🐞 Rep order check: the same order checked twice (two tabs, or after switching store) always gives the same answer — it no longer puts back the quantities of an earlier check (made for the other store, another months setting, or before the data refreshed); only lines you changed by hand are kept, and it says so, with ↺ Use the dashboard’s numbers · the Ashtown layout Value · Dis% · Nett is read, so 10% lines are priced after the discount</li><li>🧾 Rep order check (🧰 Tools, the 🧾 Rep order check tab, or 🧾 Check a rep’s order in the order screen): paste the order a supplier’s rep has written — each line is matched to our SKU (TP_ + code, the code, code + ASH, then the barcode), his packs are turned into our units from his price, and it is checked against the dashboard for Capel Street or Arklow: ✅ OK / ⬆ raise / ✂ trim / ✂ cut, each with the reason in plain words, his price against our cost, codes to fix in Linnworks, and the lines from his own ranges he left out · 📋 copy the changes for the rep, 📋 copy the corrected order, 📄 export the PO, ⬇ the check as a spreadsheet, or 🛒 open it in the order screen</li><li>📦 Email designer: no low-stock products in emails — 🔁 the follow-up leaves out anything with fewer than 3 in stock (Arklow + Capel) and anything not matched to a SKU, and lists them with the stock left · 📤 Send to Klaviyo checks every product’s stock again first and offers to leave out any now under 3</li><li>🐞 Follow-up: the star product of a dashboard-made email is read back under its own name, not the next section’s heading</li><li>🔁 Email tab: Follow-up email — pick the emails sent in the last few days (from Klaviyo, or 📂 saved designs); their products come back with the same pictures, anything sold out since is left out, and the catch-up is laid out like the Monday “pick-me-up”, every product a big picture with Shop now</li><li>🖱 Email designer: right-click a product or a section (or ⋯) — make it the star, move it, big picture or small row, include the offer in the image, button colour, background colour, add or remove a section</li><li>🎨 Email designer: every button its own colour (or all at once), every section and the strip its own background, and a hex box beside every colour (e.g. #FFD200)</li><li>↶ Email designer: Undo / Redo (Ctrl+Z / Ctrl+Y) and ⟲ Revert to how the design started · 🏷 Include offer in image on every block, product photos too</li><li>⠿ Email designer: move blocks — drag a product onto another, into any section, the strip, a new section or onto the ⭐ star (they swap); drag whole sections, or ↑ Up / ↓ Down; the product ↑ ↓ arrows now carry on into the next section · + Add a section</li><li>💾 Email designer: saves as you go — 📂 Saved email designs on the Email tab (up to 20 on this computer): open one to carry on, 📌 keep a copy of a version before trying something, delete · 🔄 New words keeps the old design</li><li>🎨 Email designer: colours for the offer on the pictures — Navy &amp; red, Yellow &amp; black, Black &amp; yellow, Red &amp; black, White &amp; red or your own, for the whole email or just one picture</li><li>🐞 Email designer: the small pictures in the email now follow the picture chosen in the editor (↻ Another, a pasted picture, an AI picture or “Product photo instead”)</li><li>📍 Order screen step 3 “Capel covering” (after Seasonal): B lines and slower lines Capel is shipping online because Arklow is out, low or doesn’t stock them, or Capel shipped in these 30 days last year — with what fixing them does to the Capel share · 📍 tag on Bread & butter and Seasonal lines Capel is covering · “All Capel-covered lines” replaces the Arklow gap view · supplier cards show the Capel covering row</li><li>🏠 Home: four main cards in one row, 🧰 Tools as a strip across the page</li><li>🏠 Home: 📍 Capel share has its own card beside Purchasing, with today's % · 🚨 Urgent PO moved into the Capel share page · 📋 Supplier price list and 🔎 Where are we for… moved under Tools</li><li>📉 Capel share: a year of daily history rebuilt from Linnworks orders, trendline over the last 60 days, progress measured from 18 Nov · 🔭 Get ahead shows what Capel actually shipped in the same 30 days last year (CAPEL_SHARE_LY)</li><li>📍 Ship from Arklow is now the Capel share dashboard: today's % with the change on yesterday, progress to the 5% target, a daily chart with trendline and the date 5% is reached at this rate · 🗓 day by day: what moved the share (Arklow out / low / not stocked / had stock), the lines behind it and what to do now (send from Capel, order, check routing) · 🔭 get ahead: lines that sold online in the same 30 days last year that Arklow won't cover, with send/order quantities</li><li>📉 Ship from Arklow: day-by-day Capel share chart against the 5% line (CAPEL_SHARE_LOG, written each morning by CapelShareLog.gs) · 🚚 how many lines a Capel → Arklow transfer fixes on its own</li><li>📍 Ship from Arklow tab: % of online units shipped from Capel Street against a 5% target, the trend, and every line Capel ships sorted by why (not in Arklow / Arklow out / Arklow low / routing) with a suggested Arklow quantity, what Capel can send back, lines rising at Capel, and Build order per supplier</li><li>🏷 Email designer: the offer drawn onto the big in-use pictures — price, was-price, SAVE roundel and an optional label (price tag, roundel or banner), always today’s price, saved to Klaviyo when the email goes</li><li>🖼 Email designer, new look: big in-use pictures, products grouped by the job they do, honest sales &amp; stock tags (Only 10 left · 200+ sold in 30 days), “You save €x”, a stocking-fillers strip, dark mode and Gmail Promotions-tab markup · pictures from the Klaviyo image library · 🪄 no in-use picture? the AI (your OpenAI key, or Google Gemini) makes one for you to approve · 🪶 heavy pictures made lighter</li><li>📤 Email designer: Send to Klaviyo as draft — the email goes into Klaviyo as a draft campaign with your usual audience and sender; nothing is sent until you press Send there</li><li>🎨 Email tab: after checking a campaign, Design this email builds it in the Lenehans house style — pictures, links and live prices from Klaviyo, words in the style of your best-opening campaigns, ready to paste into Klaviyo</li><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
+  <div class="sub">V7.47.1 · built 2026-11-25 · <details class="hdr-new"><summary>What’s new ▾</summary><ul><li>📦 Goods-in check: reads “Ordered · Dispatched · To Follow” invoices (International Tool Industries) — the delivery is what was dispatched, and a line with nothing dispatched shows as ⏳ To follow (on back order), not 🆓 free · codes on their own (“73843  MASONRY…”) no longer read as a quantity · “19-1032-013-” matches 19-1032-013 · a supplier code found at the end of our barcode · an invoice line and a PO line with the same quantity and a code one character apart or a similar name are paired as 🔍 Same product? for you to check · “Nett Price” read as the invoice’s net total</li><li>👥 Email designer: team designs — every design is also saved for the whole team as you work; 📂 Saved designs shows 👥 Team designs with who made each and when: open your own to carry on, open someone else’s for your own copy (theirs is left as it is), and only the person who made a design can delete it for everyone · ⭐ Trustpilot reviews in the email: the TrustScore and 1–3 of the latest 4★/5★ reviews straight from Trustpilot, above the “160 years” close (✕ leave one out, ↻ latest reviews, or switch it off) — needs the web app V7.47 and TRUSTPILOT_FEED_URL</li><li>📦 Goods-in check, tested on a 12-page Donal Lynch invoice (137 lines): reads the Lynch layout (Qty · Code · Details · Price · Net · VAT) and the barcode printed under each line, codes with no digits (GEELRGYL), and no longer mistakes a VAT figure for a discount · matches codes written without / - . (BCHK2000/4 = BCHK20004) and by the invoice’s barcode · an invoice line it can’t place is paired with a PO line of the same quantity and price · a product on the invoice twice (charged + free) is compared on its average price · “already booked in” said once, not on every line</li><li>🐞 Email check, email designer and the both-store tools show the real stock whichever store the dashboard is on — with the dashboard on 🏪 Capel Street (the rep order check switches to it) they had read Capel’s stock twice and no Arklow stock, so in-stock products showed as out of stock · the order screen’s “🚚 Arklow has N spare” on Capel orders reads Arklow’s real stock · Where are we for…, Emergency Ready and Price list → order likewise</li><li>📦 Goods-in check (🧰 Tools or the 📦 Goods-in check tab): drop in a supplier’s invoice (PDF, Excel or CSV) — every line is read and added up against the invoice’s net total, matched to our SKU (the PO’s lines, the supplier codes from Linnworks, the code / TP_ + code, the barcode, or a search you link once), its boxes turned into our units from the price, and checked against the PO (found by our PO number, the invoice number in Supplier ref, or an open PO with the same lines), Linnworks’ cost (1% / 1c) and the margin it sells at (under 30% flagged): ✅ OK · 💶 dearer / cheaper · 🔢 more / fewer than ordered · ➕ not on the PO · 🆓 free · ❓ not found · ⏳ on the PO, not invoiced — plus warnings for a second open PO for the same lines or an invoice already booked in · ✅ Finish and Export the PO for Linnworks built from the invoice · 📋 corrections for the PO · 📋 queries for the supplier · 📋 cost changes</li><li>✅ Rep order check: Finish and Export at the end of the order — one CSV ready for upload (SKU · Supplier CODE · QTY · Unit Price · Vat Code · Barcode): every ticked line at your quantities in our units, at the rep’s price after his discount (added lines at our cost), the rep’s own codes, and a VAT code box beside the button (remembered)</li><li>🐞 Rep order check: the same order checked twice (two tabs, or after switching store) always gives the same answer — it no longer puts back the quantities of an earlier check (made for the other store, another months setting, or before the data refreshed); only lines you changed by hand are kept, and it says so, with ↺ Use the dashboard’s numbers · the Ashtown layout Value · Dis% · Nett is read, so 10% lines are priced after the discount</li><li>🧾 Rep order check (🧰 Tools, the 🧾 Rep order check tab, or 🧾 Check a rep’s order in the order screen): paste the order a supplier’s rep has written — each line is matched to our SKU (TP_ + code, the code, code + ASH, then the barcode), his packs are turned into our units from his price, and it is checked against the dashboard for Capel Street or Arklow: ✅ OK / ⬆ raise / ✂ trim / ✂ cut, each with the reason in plain words, his price against our cost, codes to fix in Linnworks, and the lines from his own ranges he left out · 📋 copy the changes for the rep, 📋 copy the corrected order, 📄 export the PO, ⬇ the check as a spreadsheet, or 🛒 open it in the order screen</li><li>📦 Email designer: no low-stock products in emails — 🔁 the follow-up leaves out anything with fewer than 3 in stock (Arklow + Capel) and anything not matched to a SKU, and lists them with the stock left · 📤 Send to Klaviyo checks every product’s stock again first and offers to leave out any now under 3</li><li>🐞 Follow-up: the star product of a dashboard-made email is read back under its own name, not the next section’s heading</li><li>🔁 Email tab: Follow-up email — pick the emails sent in the last few days (from Klaviyo, or 📂 saved designs); their products come back with the same pictures, anything sold out since is left out, and the catch-up is laid out like the Monday “pick-me-up”, every product a big picture with Shop now</li><li>🖱 Email designer: right-click a product or a section (or ⋯) — make it the star, move it, big picture or small row, include the offer in the image, button colour, background colour, add or remove a section</li><li>🎨 Email designer: every button its own colour (or all at once), every section and the strip its own background, and a hex box beside every colour (e.g. #FFD200)</li><li>↶ Email designer: Undo / Redo (Ctrl+Z / Ctrl+Y) and ⟲ Revert to how the design started · 🏷 Include offer in image on every block, product photos too</li><li>⠿ Email designer: move blocks — drag a product onto another, into any section, the strip, a new section or onto the ⭐ star (they swap); drag whole sections, or ↑ Up / ↓ Down; the product ↑ ↓ arrows now carry on into the next section · + Add a section</li><li>💾 Email designer: saves as you go — 📂 Saved email designs on the Email tab (up to 20 on this computer): open one to carry on, 📌 keep a copy of a version before trying something, delete · 🔄 New words keeps the old design</li><li>🎨 Email designer: colours for the offer on the pictures — Navy &amp; red, Yellow &amp; black, Black &amp; yellow, Red &amp; black, White &amp; red or your own, for the whole email or just one picture</li><li>🐞 Email designer: the small pictures in the email now follow the picture chosen in the editor (↻ Another, a pasted picture, an AI picture or “Product photo instead”)</li><li>📍 Order screen step 3 “Capel covering” (after Seasonal): B lines and slower lines Capel is shipping online because Arklow is out, low or doesn’t stock them, or Capel shipped in these 30 days last year — with what fixing them does to the Capel share · 📍 tag on Bread & butter and Seasonal lines Capel is covering · “All Capel-covered lines” replaces the Arklow gap view · supplier cards show the Capel covering row</li><li>🏠 Home: four main cards in one row, 🧰 Tools as a strip across the page</li><li>🏠 Home: 📍 Capel share has its own card beside Purchasing, with today's % · 🚨 Urgent PO moved into the Capel share page · 📋 Supplier price list and 🔎 Where are we for… moved under Tools</li><li>📉 Capel share: a year of daily history rebuilt from Linnworks orders, trendline over the last 60 days, progress measured from 18 Nov · 🔭 Get ahead shows what Capel actually shipped in the same 30 days last year (CAPEL_SHARE_LY)</li><li>📍 Ship from Arklow is now the Capel share dashboard: today's % with the change on yesterday, progress to the 5% target, a daily chart with trendline and the date 5% is reached at this rate · 🗓 day by day: what moved the share (Arklow out / low / not stocked / had stock), the lines behind it and what to do now (send from Capel, order, check routing) · 🔭 get ahead: lines that sold online in the same 30 days last year that Arklow won't cover, with send/order quantities</li><li>📉 Ship from Arklow: day-by-day Capel share chart against the 5% line (CAPEL_SHARE_LOG, written each morning by CapelShareLog.gs) · 🚚 how many lines a Capel → Arklow transfer fixes on its own</li><li>📍 Ship from Arklow tab: % of online units shipped from Capel Street against a 5% target, the trend, and every line Capel ships sorted by why (not in Arklow / Arklow out / Arklow low / routing) with a suggested Arklow quantity, what Capel can send back, lines rising at Capel, and Build order per supplier</li><li>🏷 Email designer: the offer drawn onto the big in-use pictures — price, was-price, SAVE roundel and an optional label (price tag, roundel or banner), always today’s price, saved to Klaviyo when the email goes</li><li>🖼 Email designer, new look: big in-use pictures, products grouped by the job they do, honest sales &amp; stock tags (Only 10 left · 200+ sold in 30 days), “You save €x”, a stocking-fillers strip, dark mode and Gmail Promotions-tab markup · pictures from the Klaviyo image library · 🪄 no in-use picture? the AI (your OpenAI key, or Google Gemini) makes one for you to approve · 🪶 heavy pictures made lighter</li><li>📤 Email designer: Send to Klaviyo as draft — the email goes into Klaviyo as a draft campaign with your usual audience and sender; nothing is sent until you press Send there</li><li>🎨 Email tab: after checking a campaign, Design this email builds it in the Lenehans house style — pictures, links and live prices from Klaviyo, words in the style of your best-opening campaigns, ready to paste into Klaviyo</li><li>📅 an order placed a few days before its scheduled day counts for that day — no more “overdue” two days after ordering</li><li>🔒 Customer Service requests: met once the stock is in (no purple bar, no forced order) · re-applied for the store you switch to · “discontinued / not available / unknown sku” = off · “ark”, “arklow/capel st” count for Arklow · Brief: ✓ requests already in stock — clear from the sheet</li><li>🔗 partner products: a line whose partner (what it needs, or what customers buy with it) is out here is flagged on the order screen and in the Buying Brief — RELATED tab + weekly bought-together from Linnworks</li><li>📄 one Export for the whole order — tick Bread & butter / Seasonal / B lines / The rest, get ONE PO file</li><li>👥 Team tab: dashboard-usage panel no longer throws “rows[0].map is not a function”</li><li>🛑 an empty data sheet now says so (red banner) instead of sticking at 70%</li><li>✂ header cut down — the change list now sits behind What’s new</li><li>🗂 supplier cards: done first, then most Bread & butter out</li><li>🏪 order screen never shows one store’s figures under the other’s name</li><li>💶 dear slow lines hold less</li><li>🗂 supplier cards split by Bread & butter / Seasonal / B / The rest</li><li>📄 each step exports as its own PO (Bread & butter first, then Seasonal …)</li><li>🍂 season tags (Summer/Winter/Spring/Autumn/Christmas) and product categories decide in/out of season — out-of-season lines not reordered</li><li>🚚 spare stock in the other store flagged</li><li>⚡ Quick walks each order: 🍞 Bread & butter › 🎄 Seasonal › B lines › The rest?</li><li>🧪 Model check runs each supplier on its own order cycle</li><li>🍞 Bread & butter / 🎄 Seasonal / B / The rest — order by group</li><li>🏪 Capel holds lean outside Bread & butter</li><li>📦 stock to clear or move</li><li>🆕 new lines need a second month of sales before they’re stocked</li><li>🧪 Model check shows € lost and carry cost</li><li>⚡ Quick sorts every order into Your call / Quick glance / Routine</li><li>12-month sales line on every row</li><li>⚠ wrong stock figures flagged</li><li>🧠 V8 ordering model LIVE for every supplier, both stores</li><li>🚨 sales lost to stock-outs, per day (online = Arklow and Capel both out)</li><li>⛔ stock-out log with 18 months of history</li><li>🧪 Model check</li><li>🧐 Buyer decides</li><li>🔁 Similar in stock</li><li>⚡ Quick view</li></ul></details></div>
   <div style="position:absolute;top:11px;right:14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700">
     <button id="userBadge" onclick="showUserPicker(true)" title="Change who's using the dashboard" style="background:#475569;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 —</button>
     <button id="homeBtn" title="Back to Home" style="background:#0f172a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🏠 Home</button>
@@ -11336,13 +11350,14 @@ function edDnd_(box){
 const ED_SAVE_KEY='lenehans_ed_saves_v1', ED_SAVE_MAX=20;
 const ED_ROW_KEEP=['QtySold_Online_Total_30d','QtySold_Online_Total_7d','QtySold_Online_Arklow_365d','QtySold_Online_CapelStreet_365d','NetStock_Arklow','NetStock_CapelStreet','AgeDays'];
 const ED_P_KEEP=['sku','name','title','url','img','now','was','inuse','inuseFrom','inuseSize','lib','libIdx','webPrice','webAt','stock','imgFrom','noTag','ovCol','big','btnCol','noSku','from'];
-const ED_E_KEEP=['id','saveName','theme','link','hero','sections','copy','showTags','showMore','moreTitle','ovOn','ovStyle','ovLabel','ovCol','ovCustom','klName','klAud','ccSig','ctaCol','endCol','moreBg','follow'];
+const ED_E_KEEP=['id','saveName','theme','link','hero','sections','copy','showTags','showMore','moreTitle','ovOn','ovStyle','ovLabel','ovCol','ovCustom','klName','klAud','ccSig','ctaCol','endCol','moreBg','follow','tp'];
 function edSaves_(){ try{ const a=JSON.parse(localStorage.getItem(ED_SAVE_KEY)||'[]'); return Array.isArray(a)?a.filter(x=>x&&x.id&&x.E):[]; }catch(e){ return []; } }
 const edNewId_ = () => 'ed'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function edSlim_(E){
   const o={}; ED_E_KEEP.forEach(k=>{ if(E[k]!==undefined) o[k]=E[k]; });
   o.prods=(E.prods||[]).map(p=>{ const q={}; ED_P_KEEP.forEach(k=>{ if(p[k]!==undefined) q[k]=p[k]; });
     if(p.row){ q.row={}; ED_ROW_KEEP.forEach(k=>{ const v=onl_(p.row,k); if(v!==undefined) q.row[k]=v; }); } return q; });
+  if(o.tp){ o.tp=Object.assign({}, o.tp); delete o.tp.loading; delete o.tp.err; }   // V7.47.0 — ⭐ Trustpilot reviews
   return JSON.parse(JSON.stringify(o));
 }
 function edName_(E){ return String((E&&E.saveName)||(E&&E.copy&&E.copy.headline)||(E&&E.theme)||'Untitled email').replace(/\s+/g,' ').trim().slice(0,80); }
@@ -11364,6 +11379,7 @@ function edSaveNow_(E, asCopy){
     catch(e){ if(list.length>1){ list.pop(); continue; } E._saveErr='this computer’s browser storage is full'; edSaveMark_(E); return null; } }
   if(!asCopy){ E._lastJson=json; E._savedAt=at; } E._saveErr='';
   edSaveMark_(E); edSavedBar_();
+  if(asCopy || !(E._teamBase && json===E._teamBase)){ if(!asCopy) E._teamBase=''; try{ edTeamPush_(rec); }catch(e){} }   // V7.47.0 — 👥 team designs
   return rec;
 }
 function edSaveSoon_(){ const E=window._ed; if(!E) return; clearTimeout(edSaveSoon_._t); edSaveSoon_._t=setTimeout(()=>edSaveNow_(E), 1200); }
@@ -11378,13 +11394,16 @@ window.edSaveCopy=function(btn){ const E=window._ed; if(!E) return; edSaveNow_(E
 // the list, on the Email tab above the checker result (there even before a campaign is checked)
 function edSavedBar_(){
   const el=document.getElementById('edSavedBar'); if(!el) return; const S=edSaves_();
-  if(!S.length){ el.innerHTML=''; return; }
-  const open=el.dataset.open==='1', cur=window._ed&&window._ed.id, last=S[0];
-  el.innerHTML=`<div class="ed-saved"><div class="ed-saved-h"><b>📂 Saved email designs</b><span>${S.length} on this computer · saved as you work</span>
-      ${open?'':`<span class="ed-saved-last">Last: “${edEsc(last.name)}”, ${edWhen_(last.at)}${last.id===cur?' (open)':` <button class="ed-sm" onclick="edOpenSaved('${last.id}')">Open</button>`}</span>`}
+  const me=(typeof usageUser==='function'?usageUser():'')||'', C=window._edTeam, open=el.dataset.open==='1';
+  if(!C || (open && Date.now()-C.at>60000)) edTeamList_();          // V7.47.0 — loads (or refreshes) the team list, then draws again
+  const nT=(C&&C.ok)?(C.list||[]).length:0;
+  if(!S.length && !nT){ el.innerHTML=''; return; }
+  const cur=window._ed&&window._ed.id, last=S[0];
+  el.innerHTML=`<div class="ed-saved"><div class="ed-saved-h"><b>📂 Saved email designs</b><span>${S.length} on this computer${nT?` · 👥 ${nT} team`:''} · saved as you work</span>
+      ${open||!last?'':`<span class="ed-saved-last">Last: “${edEsc(last.name)}”, ${edWhen_(last.at)}${last.id===cur?' (open)':` <button class="ed-sm" onclick="edOpenSaved('${last.id}')">Open</button>`}</span>`}
       <button class="ed-sm" onclick="edSavedToggle()">${open?'Hide the list':'Show all'}</button></div>
-    ${open?`<div class="ed-saved-l">${S.map(s=>`<div class="ed-saved-r${s.id===cur?' cur':''}"><b>${edEsc(s.name)}</b><span>${s.n} product${s.n!==1?'s':''} · ${edWhen_(s.at)}${s.by?' · '+edEsc(s.by):''}${s.copy?' · 📌 kept copy':''}${s.id===cur?' · open now':''}</span>
-        <button class="ed-sm" onclick="edOpenSaved('${s.id}')">${s.id===cur?'Reopen':'Open'}</button><button class="ed-sm ed-del" onclick="edSavedDel('${s.id}',this)">Delete</button></div>`).join('')}</div>`:''}</div>`;
+    ${open?`${S.length?`<div class="ed-team-h">💻 On this computer</div><div class="ed-saved-l">${S.map(s=>`<div class="ed-saved-r${s.id===cur?' cur':''}"><b>${edEsc(s.name)}</b><span>${s.n} product${s.n!==1?'s':''} · ${edWhen_(s.at)}${s.by?' · '+edEsc(s.by):''}${s.copy?' · 📌 kept copy':''}${s.id===cur?' · open now':''}</span>
+        <button class="ed-sm" onclick="edOpenSaved('${s.id}')">${s.id===cur?'Reopen':'Open'}</button><button class="ed-sm ed-del" onclick="edSavedDel('${s.id}',this)">Delete</button></div>`).join('')}</div>`:''}${edTeamHtml_(me,cur)}`:''}</div>`;
 }
 window.edSavedToggle=function(){ const el=document.getElementById('edSavedBar'); if(!el) return; el.dataset.open=el.dataset.open==='1'?'':'1'; edSavedBar_(); };
 window.edSavedShow=function(){ const el=document.getElementById('edSavedBar'); if(!el) return; if(window._ed) edSaveNow_(window._ed); el.dataset.open='1'; edSavedBar_(); try{ el.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){} };
@@ -11731,7 +11750,10 @@ function edRowHtml_(E, p, i, parts){
 // ── the editor ──
 function edRender_(){
   const E=window._ed, box=document.getElementById('edOut'); if(!E||!box) return;
-  edMenuClose_(); edHistInit_(E);
+  edMenuClose_();
+  if(E.tp===undefined){ E.tp={on:true, n:3, hide:[], items:[], loading:true}; E._tpTried=true; setTimeout(()=>edTpLoad_(E),0); }   // V7.47.0 — ⭐ Trustpilot
+  else if(!E._tpTried && E.tp.on && !(E.tp.items||[]).length){ E._tpTried=true; E.tp.loading=true; setTimeout(()=>edTpLoad_(E),0); }
+  edHistInit_(E);
   const parts=edParts_(E), warn=edPriceWarnings_(), idx=new Map(E.prods.map((p,i)=>[p.sku,i]));
   const row=p=>edRowHtml_(E, p, idx.get(p.sku), parts);
   const noIn=E.prods.filter(p=>!p.inuse).length, heavy=E.prods.filter(edHeavy_).length, mh=edMoreHead_(E, parts.more);
@@ -11764,6 +11786,7 @@ function edRender_(){
         ${E.ovCol==='custom'?`<span class="ed-ovcc">Price box ${edColCtl_('cbox', edOvCols_(E).box, 'Price box')}</span><span class="ed-ovcc">SAVE roundel ${edColCtl_('cbadge', edOvCols_(E).badge, 'SAVE roundel')}</span>`:''}
         <input class="ed-ovl" maxlength="24" value="${edEsc(E.ovLabel||'')}" placeholder="Label on the pictures (optional), e.g. EARLY BLACK FRIDAY" oninput="edOvSet('label',this.value)"${E.ovOn?'':' disabled'}></div>
       <div class="ed-opts"><label><input type="checkbox" ${E.showTags?'checked':''} onchange="edToggle('showTags')"> Sales &amp; stock tags</label><label><input type="checkbox" ${E.showMore?'checked':''} onchange="edToggle('showMore')"> “${edEsc(mh.title)}” strip</label></div>
+      <div class="ed-opts ed-tp" id="edTpBox">${edTpUiHtml_(E)}</div>
       <div class="ed-tip">⠿ Drag a product or a whole section to move it — onto another product, into a section, the strip, or onto the ⭐ star to swap · ↑ ↓ carry on into the next section · <b>right-click</b> a product or section (or ⋯) for everything else</div>
       <div class="ed-sec star" data-dest="star"><div class="ed-sec-h">⭐ Star product: the big picture at the top</div>${parts.hero?row(parts.hero):''}</div>
       ${parts.secs.map(s=>`<div class="ed-sec" data-dest="s${s.k}"${edHex_(s.bg)?` style="--secbg:${edHex_(s.bg)}"`:''}><div class="ed-sec-h"><span class="ed-grip ed-sgrip" draggable="true" data-drag="s:${s.k}" title="Drag to move this whole section">⠿</span>Section ${s.k+1}${s.items.length?'':' <i>(empty: move products here, or remove it)</i>'}
@@ -11929,7 +11952,7 @@ ${offerTxt?`<tr><td bgcolor="${NAVY}" align="center" style="background:${NAVY};p
 ${heroHtml}
 ${secsHtml}
 ${moreHtml}
-<tr><td align="center" style="padding:36px 32px 34px"><div class="dm-t" style="font-family:${PF};font-size:20px;line-height:28px;font-weight:600;color:${NAVY}">Irish-owned for 160 years</div><p class="dm-m" style="margin:8px 0 18px;font-family:${F};font-size:15px;line-height:23px;color:${MUTE}">Shop online, or call in to us on Capel Street, Dublin 1.</p>${btn(E.copy.cta||'Shop the Sale',E.link,edHex_(E.endCol)||NAVY,null,null,null,true)}</td></tr>
+${edTpHtml_(E,F,PF,NAVY,MUTE)}<tr><td align="center" style="padding:36px 32px 34px"><div class="dm-t" style="font-family:${PF};font-size:20px;line-height:28px;font-weight:600;color:${NAVY}">Irish-owned for 160 years</div><p class="dm-m" style="margin:8px 0 18px;font-family:${F};font-size:15px;line-height:23px;color:${MUTE}">Shop online, or call in to us on Capel Street, Dublin 1.</p>${btn(E.copy.cta||'Shop the Sale',E.link,edHex_(E.endCol)||NAVY,null,null,null,true)}</td></tr>
 <tr><td bgcolor="${NAVY}" align="center" style="background:${NAVY};padding:18px 24px"><table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>${foot}</tr></table></td></tr>
 <tr><td align="center" style="padding:20px 24px 6px"><table role="presentation" align="center" class="dm-soc" cellpadding="0" cellspacing="0" border="0" style="border-radius:18px;padding:6px 4px"><tr>${soc}</tr></table></td></tr>
 <tr><td align="center" class="dm-m" style="padding:8px 24px 26px;font-family:${F};font-size:12px;line-height:20px;color:${MUTE}">Lenehans, 124–125 Capel Street, Dublin 1, D01 XV52<br>${unsub} · ${prefs}</td></tr>
@@ -12138,6 +12161,155 @@ window.edFollowBuild=async function(btn){
   } finally { if(btn&&btn.isConnected) btn.disabled=false; }
 };
 try{ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', ()=>edFollowBar_()); else setTimeout(()=>edFollowBar_(),0); }catch(e){}
+
+// ══ V7.47.0 — 👥 TEAM EMAIL DESIGNS + ⭐ TRUSTPILOT REVIEWS ═══════════════════════════════════════════════════════
+// Mark, 24 Nov: "Can we have a global save so I can see what others have done in the email" — every design is also
+// saved to the team list through the web app (Code.gs V7.47: design_save / design_list / design_get / design_delete,
+// tab EMAIL_DESIGNS), at most every 20 s per design and when the page is left. 📂 Saved designs shows 👥 Team designs:
+// opening your own carries on with it; opening someone else's gives you your own copy ("… (from Luana)"); only the
+// person who made a design can delete it for everyone. A copy is shared only once it is changed.
+// "can we pull the trustpilot info directly from Trustpilot?" — the web app reads the Trustpilot → Klaviyo feed
+// (action trustpilot, Script property TRUSTPILOT_FEED_URL) when the email is designed; ⭐ Trustpilot reviews puts the
+// TrustScore line and 1–3 of the latest 4★/5★ reviews in the email, above the "160 years" close, as ordinary HTML
+// (so they show in the preview and need no Data Feed step in Klaviyo). ✕ leaves a review out; ↻ gets the latest.
+const ED_TEAM_GAP=20000;
+function edTeamPush_(rec, now){
+  if(!rec||!rec.id||!rec.E) return; const T=edTeamPush_; T.last=T.last||{}; T.pend=T.pend||{}; T.tm=T.tm||{};
+  T.pend[rec.id]=rec; clearTimeout(T.tm[rec.id]);
+  const wait=(T.last[rec.id]||0)+ED_TEAM_GAP-Date.now();
+  if(now||wait<=0) edTeamSend_(rec.id); else T.tm[rec.id]=setTimeout(()=>edTeamSend_(rec.id), wait);
+}
+async function edTeamSend_(id){
+  const T=edTeamPush_, rec=T.pend&&T.pend[id]; if(!rec) return; delete T.pend[id]; T.last[id]=Date.now();
+  const j=await edPost_({action:'design_save', rec});
+  window._edTeamErr=(j&&j.ok)?'':((j&&j.nopost)?'setup':((j&&j.error)||'not shared'));
+  if(j&&j.ok&&window._edTeam){ const L=window._edTeam.list||[], x={id:rec.id, name:rec.name, by:rec.by, at:rec.at, n:rec.n, subject:(rec.E.copy||{}).subject||''};
+    window._edTeam.list=[x].concat(L.filter(y=>y.id!==rec.id)); edSavedBar_(); }
+}
+// leaving the page: whatever is waiting goes now (sendBeacon survives the page closing)
+function edTeamFlush_(){ const T=edTeamPush_; if(!T.pend) return;
+  Object.keys(T.pend).forEach(id=>{ const rec=T.pend[id]; delete T.pend[id];
+    try{ navigator.sendBeacon(PO_UPDATER_URL, new Blob([JSON.stringify({action:'design_save', rec})],{type:'text/plain'})); }catch(e){} }); }
+try{ window.addEventListener('pagehide', ()=>{ try{ edTeamFlush_(); }catch(e){} });
+  document.addEventListener('visibilitychange', ()=>{ try{ if(document.visibilityState==='hidden') edTeamFlush_(); }catch(e){} }); }catch(e){}
+async function edTeamList_(force){
+  const C=window._edTeam; if(!force && C && Date.now()-C.at<60000) return C;
+  if(edTeamList_.busy) return C; edTeamList_.busy=true;
+  try{ const j=await edPost_({action:'design_list'});
+    window._edTeam={at:Date.now(), ok:!!(j&&j.ok), list:(j&&j.ok&&j.designs)||[], err:(j&&!j.ok)?(j.nopost?'setup':(j.error||'')):''}; }
+  finally{ edTeamList_.busy=false; }
+  edSavedBar_(); return window._edTeam;
+}
+function edTeamHtml_(me, cur){
+  const C=window._edTeam;
+  if(!C) return `<div class="ed-team-h">👥 Team designs <span>loading…</span></div>`;
+  if(C.err==='setup') return `<div class="ed-team-h">👥 Team designs <span>— need the updated web app (Code.gs V7.47: Deploy → Manage deployments → ✏️ → New version)</span></div>`;
+  if(C.err) return `<div class="ed-team-h">👥 Team designs <span class="ed-bad">couldn’t load: ${edEsc(C.err)}</span> <button class="ed-sm" onclick="edTeamList_(true)">↻</button></div>`;
+  const L=C.list||[];
+  return `<div class="ed-team-h">👥 Team designs <span>${L.length?`${L.length} saved by the team — open yours to carry on, someone else’s to get your own copy`:'none yet — every design is shared here as you work'}</span> <button class="ed-sm" onclick="edTeamList_(true)" title="Check for new designs">↻</button></div>
+    ${L.length?`<div class="ed-saved-l">${L.map(s=>{ const mine=!s.by||s.by===me;
+      return `<div class="ed-saved-r ed-team-r${s.id===cur?' cur':''}"><b>${edEsc(s.name||'Untitled email')}</b><span>${edEsc(s.by||'?')} · ${edWhen_(s.at)} · ${s.n||0} product${s.n!==1?'s':''}${s.subject?` · “${edEsc(String(s.subject).slice(0,60))}”`:''}${s.id===cur?' · open now':''}</span>
+        <button class="ed-sm" onclick="edOpenTeam('${edEsc(s.id)}',this)">${mine?'Open':'Open a copy'}</button>${mine&&me?`<button class="ed-sm ed-del" onclick="edTeamDel('${edEsc(s.id)}',this)" title="Removes it from the team list (not from this computer)">Delete for everyone</button>`:''}</div>`; }).join('')}</div>`:''}`;
+}
+window.edTeamList_=edTeamList_;
+window.edOpenTeam=async function(id, btn){
+  const t0=btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.textContent='⏳ Opening…'; }
+  const j=await edPost_({action:'design_get', id});
+  if(!j||!j.ok||!j.rec){ if(btn){ btn.disabled=false; btn.textContent='⚠ '+((j&&j.error)||'Could not open'); setTimeout(()=>{ if(btn.isConnected) btn.textContent=t0; },3000); } return; }
+  if(window._ed){ clearTimeout(edSaveSoon_._t); edSaveNow_(window._ed); }
+  const rec=j.rec, me=(typeof usageUser==='function'?usageUser():'')||'', theirs=!!(rec.by && me && rec.by!==me);
+  let s=rec;
+  if(theirs){ const nid=edNewId_(); s=JSON.parse(JSON.stringify(rec)); s.id=nid; s.E.id=nid;
+    s.E.saveName=s.name=String((rec.name||'Email')+' (from '+rec.by+')').slice(0,80); }
+  const E=edRevive_(s);
+  if(theirs){ E._teamBase=JSON.stringify(edSlim_(E)); E._lastJson=''; }      // kept on this computer; shared once changed
+  edShowDesign_(E, theirs?`your copy of ${edEsc(rec.by)}’s “${edEsc(rec.name||'')}” · their design is unchanged`:`opened from 👥 Team designs`);
+  if(theirs) edSaveNow_(E);
+  try{ logUsage('email_design_team_open', (theirs?'copy · ':'')+(rec.name||'')+' · '+(rec.by||'')); }catch(e){}
+};
+window.edTeamDel=async function(id, btn){
+  if(btn && btn.dataset.sure!=='1'){ btn.dataset.sure='1'; btn.textContent='Delete for everyone? Click again'; btn.classList.add('ed-sure');
+    setTimeout(()=>{ if(btn.isConnected){ btn.dataset.sure=''; btn.textContent='Delete for everyone'; btn.classList.remove('ed-sure'); } },3000); return; }
+  const me=(typeof usageUser==='function'?usageUser():'')||'';
+  const j=await edPost_({action:'design_delete', id, by:me});
+  if(j&&j.ok){ if(window._edTeam) window._edTeam.list=(window._edTeam.list||[]).filter(x=>x.id!==id); const T=edTeamPush_; if(T.pend) delete T.pend[id]; edSavedBar_(); }
+  else if(btn){ btn.textContent='⚠ '+((j&&j.error)||'Not deleted'); }
+};
+
+// ── ⭐ Trustpilot ──
+const ED_TP_GREEN='#00B67A';
+function edTpOn_(E){ return !!(E && E.tp && E.tp.on); }
+function edTpShown_(E){ const T=E&&E.tp; if(!T||!T.on) return []; const hide=new Set(T.hide||[]);
+  return (T.items||[]).filter(r=>!hide.has(edTpKey_(r))).slice(0, Math.max(1,Math.min(3,+T.n||3))); }
+function edTpKey_(r){ return String((r.by||'')+'|'+(r.title||'')).slice(0,120); }
+function edTpText_(s){ try{ const d=new DOMParser().parseFromString('<div>'+String(s||'')+'</div>','text/html'); d.querySelectorAll('script,style').forEach(x=>x.remove()); return (d.body.textContent||'').replace(/\s+/g,' ').trim(); }catch(e){ return String(s||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim(); } }
+// Trustpilot's TrustScore line: only text, bold and https pictures are kept
+function edTpClean_(html){
+  try{ const d=new DOMParser().parseFromString('<div>'+String(html||'')+'</div>','text/html'), out=[];
+    const walk=n=>{ n.childNodes.forEach(c=>{
+      if(c.nodeType===3){ out.push(edEsc(c.textContent)); return; }
+      if(c.nodeType!==1) return; const t=c.tagName.toLowerCase();
+      if(t==='img'){ const src=c.getAttribute('src')||''; if(/^https:\/\//i.test(src)) out.push(`<img src="${edEsc(src)}" alt="${edEsc(c.getAttribute('alt')||'')}" height="18" style="height:18px;vertical-align:middle;border:0">`); return; }
+      if(t==='script'||t==='style') return;
+      if(t==='b'||t==='strong'){ out.push('<b>'); walk(c); out.push('</b>'); return; }
+      if(t==='br'){ out.push(' '); return; }
+      walk(c); }); };
+    walk(d.body.firstChild); return out.join('').replace(/\s+/g,' ').trim();
+  }catch(e){ return edEsc(edTpText_(html)); }
+}
+function edTpDate_(s){ const d=new Date(s); return isNaN(d)?'':d.toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'}); }
+async function edTpLoad_(E, fresh){
+  if(!E) return; E.tp=E.tp||{on:true, n:3, hide:[], items:[]}; E.tp.loading=true; E.tp.err='';
+  if(E===window._ed) edTpUi_();
+  const j=await edPost_({action:'trustpilot', fresh:!!fresh});
+  E.tp.loading=false;
+  if(j && j.ok){
+    const good=(j.items||[]).filter(r=>!(r.stars>0 && r.stars<4));            // 4★ and 5★ only (stars unknown: kept)
+    Object.assign(E.tp, {items:good.slice(0,10).map(r=>({title:edTpText_(r.title).slice(0,120), text:edTpText_(r.text).slice(0,600), by:edTpText_(r.by).slice(0,60), date:r.date||'', stars:+r.stars||0})),
+      score:edTpClean_(j.score||''), link:/^https:\/\//.test(j.link||'')?j.link:'', at:j.at||new Date().toISOString(), dropped:(j.items||[]).length-good.length});
+    // the reviews are part of how the design is, not an edit: put them into every undo step (so ↶ / ⟲ never drop them)
+    if(E._hist){ const tp=edSlim_({tp:E.tp}).tp, fix=x=>{ try{ const o=JSON.parse(x); o.tp=tp; return JSON.stringify(o); }catch(e){ return x; } };
+      const wasBase=E._hist.map(x=>x===E._base); E._hist=E._hist.map(fix); E._base=fix(E._base); wasBase.forEach((w,i)=>{ if(w) E._hist[i]=E._base; }); edHistBtns_(E); }
+  } else E.tp.err=(j&&j.setup)?'setup':((j&&j.nopost)?'nopost':((j&&j.error)||'no answer'));
+  if(E===window._ed){ edTpUi_(); edPreview_(); edSaveSoon_(); }
+}
+window.edTpSet=function(k, v){ const E=window._ed; if(!E) return; E.tp=E.tp||{on:true,n:3,hide:[],items:[]};
+  if(k==='on') E.tp.on=!!v; else if(k==='n') E.tp.n=Math.max(1,Math.min(3,+v||3)); else if(k==='fresh'){ edTpLoad_(E,true); return; }
+  else if(k==='hide'){ const h=new Set(E.tp.hide||[]); h.has(v)?h.delete(v):h.add(v); E.tp.hide=[...h]; }
+  edTpUi_(); edPreview_(); edHistSoon_(); edSaveSoon_(); };
+function edTpStars_(n){ n=Math.round(+n||0); n=Math.min(5,n); return n>0?'★'.repeat(n)+(n<5?'<span style="color:#d6d6d6">'+'★'.repeat(5-n)+'</span>':''):''; }
+function edTpUiHtml_(E){
+  const T=E.tp||{}, shown=new Set(edTpShown_(E).map(edTpKey_)), hide=new Set(T.hide||[]);
+  const st=T.loading?'⏳ reading Trustpilot…'
+    : T.err==='setup'?'<span class="ed-bad">not set up yet — add TRUSTPILOT_FEED_URL in the web app’s Script properties</span>'
+    : T.err==='nopost'?'<span class="ed-bad">needs the updated web app (Code.gs V7.47)</span>'
+    : T.err?`<span class="ed-bad">couldn’t read Trustpilot: ${edEsc(T.err)}</span>`
+    : (T.items||[]).length?`${T.items.length} recent 4★–5★ review${T.items.length!==1?'s':''}${T.dropped?` (${T.dropped} lower left out)`:''} · read ${edWhen_(T.at)}`:'no 4★–5★ reviews in the feed';
+  return `<label><input type="checkbox" ${T.on?'checked':''} onchange="edTpSet('on',this.checked)"> ⭐ Trustpilot reviews</label>
+    <select onchange="edTpSet('n',this.value)"${T.on?'':' disabled'} title="How many reviews in the email">${[1,2,3].map(n=>`<option value="${n}"${(+T.n||3)===n?' selected':''}>${n} review${n>1?'s':''}</option>`).join('')}</select>
+    <button class="ed-sm" onclick="edTpSet('fresh')" title="Read the latest reviews from Trustpilot">↻ Latest reviews</button><span class="ed-tp-st">${st}</span>
+    ${T.on&&(T.items||[]).length?`<div class="ed-tp-l">${T.items.map(r=>{ const k=edTpKey_(r), off=hide.has(k), on=shown.has(k);
+      return `<div class="ed-tp-r${off?' off':on?' in':''}"><span class="ed-tp-s">${edTpStars_(r.stars)}</span> <b>${edEsc(r.title)}</b> <span>— ${edEsc(r.by)}${r.date?', '+edTpDate_(r.date):''}${off?' · left out':on?' · in the email':''}</span>
+        <button class="ed-sm" data-k="${edEsc(k)}" onclick="edTpSet('hide',this.dataset.k)">${off?'↩ Put back':'✕ Leave out'}</button></div>`; }).join('')}</div>`:''}`;
+}
+function edTpUi_(){ const el=document.getElementById('edTpBox'), E=window._ed; if(el&&E) el.innerHTML=edTpUiHtml_(E); }
+// the block in the email: '' when off or nothing to show, so the email is otherwise unchanged
+function edTpHtml_(E, F, PF, NAVY, MUTE){
+  const R=edTpShown_(E); if(!R.length) return '';
+  const T=E.tp, link=T.link||'https://www.trustpilot.com/review/lenehans.ie';
+  return `<tr><td class="px" style="padding:30px 32px 8px">
+<div class="dm-t" style="font-family:${PF};font-size:20px;line-height:28px;font-weight:600;color:${NAVY};text-align:center">What our customers say</div>
+${T.score?`<div class="dm-m" style="margin:6px 0 4px;font-family:${F};font-size:13px;line-height:20px;color:${MUTE};text-align:center">${T.score}</div>`:''}
+${R.map(r=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="dm-line" style="padding:16px 0;border-top:1px solid #E3E8EB">
+${r.stars?`<div style="font-size:17px;line-height:20px;letter-spacing:2px;color:${ED_TP_GREEN}">${edTpStars_(r.stars)}</div>`:''}
+${r.title?`<div class="dm-t" style="margin-top:6px;font-family:${F};font-size:15px;line-height:21px;font-weight:700;color:#191919">${edEsc(r.title)}</div>`:''}
+${r.text?`<div class="dm-m" style="margin-top:4px;font-family:${F};font-size:14px;line-height:21px;color:#333333">${edEsc(r.text.length>260?r.text.slice(0,257).replace(/\s+\S*$/,'')+'…':r.text)}</div>`:''}
+<div class="dm-m" style="margin-top:6px;font-family:${F};font-size:12px;line-height:18px;color:${MUTE}">${edEsc(r.by||'')}${r.date?' · '+edTpDate_(r.date):''}</div>
+</td></tr></table>`).join('\n')}
+<div style="padding:4px 0 6px;text-align:center;font-family:${F};font-size:13px"><a href="${edEsc(link)}" target="_blank" style="color:${NAVY};font-weight:700">Read all our reviews on Trustpilot ›</a></div>
+</td></tr>
+`;
+}
 
 // ─── ORDER THIS CYCLE? (V7.31.1) ─────────────────────────────────────────────
 // For every line in an order: if we wait until this supplier's NEXT scheduled order
@@ -19236,7 +19408,7 @@ const GI_UNIT_SRC='EACH|EA|PCS|PC|UNITS?|SINGLE|PAIRS?|PR|SETS?|LENGTHS?|LGTH|RO
   +'(?:BOX(?:ES)?|PACKS?|PKT|PK|CTN|CARTON|CASES?|CARDS?|CD|BAGS?|TUBS?|TRAYS?|OUTERS?|INNERS?|DOZ(?:EN)?|BLISTERS?)(?:\\s*(?:OF\\s*)?\\d+(?:\\s*[X×]\\s*\\d+)?)?|'
   +'\\d+\\s*[X×]\\s*\\d+|\\d+\\s*(?:MTRS?|M|METRES?)';
 const GI_QTYUNIT_RE=new RegExp('(?:^|\\s)(\\d+(?:\\.\\d+)?)\\s+('+GI_UNIT_SRC+')(?=\\s+[€]?-?[\\d.,]+)','gi');
-const GI_NETLABEL_RE=/(net\s*goods|net\s*total|goods\s*value|sub\s*-?\s*total|total\s*net|nett?\s*amount|total\s*goods|total\s*ex\.?\s*vat|net\s*amount)/i;
+const GI_NETLABEL_RE=/(net\s*goods|net\s*total|goods\s*value|sub\s*-?\s*total|total\s*net|nett?\s*amount|total\s*goods|total\s*ex\.?\s*vat|net\s*amount|nett\s*price)/i;
 
 // ── reading ──────────────────────────────────────────────────────────────────────────────────────────────────
 function giNum_(s){ const t=String(s==null?'':s).replace(/[€£\s]/g,'').replace(/,(?=\d{3}(\D|$))/g,'').replace(',','.'); const v=parseFloat(t); return isFinite(v)?v:NaN; }
@@ -19291,7 +19463,7 @@ function giParseLine_(raw){
   if(/^\d+(?:\.\d+)?$/.test(toks[0]) && (giIsCode_(toks[1]) || /^[A-Z]{4,}$/.test(toks[1])) && toks.length>=4){
     const q=giNum_(toks[0]), rest=line.slice(line.indexOf(toks[1])+toks[1].length);
     const tm=rest.match(/((?:\s+[€]?-?[\d.,]+%?)+)\s*$/);
-    if(q>0 && tm && (/\d/.test(toks[1]) || /^[A-Z]{4,}$/.test(toks[1])) && GI_MONEY_RE.test(tm[1])){ const nums=giNums_(tm[1]); if(nums.length){ const o={code:toks[1], desc:rest.slice(0,tm.index).trim(), q, per:'EACH', raw}; giTail_(q,nums,o); return o; } }
+    if(q>0 && tm && (/\d/.test(toks[1]) || /^[A-Z]{4,}$/.test(toks[1])) && GI_MONEY_RE.test(tm[1])){ const nums=giNums_(tm[1]); if(nums.length){ const o={code:toks[1], desc:rest.slice(0,tm.index).trim(), q, per:'EACH', raw}; giTail_(q,nums,o); if(!(o.unsure && giIsCode_(toks[0]))) return o; } }
   }
   // 4. "CODE  description  QTY  PRICE  [DIS]  [TOTAL]" — no unit word
   if(giIsCode_(toks[0])){
@@ -19310,11 +19482,26 @@ function giHeaderMap_(cells){
   return {ci, qi, di:f(/desc|product\s*name|name|title/), pi:f(/^(per|uom|unit\s*of|pack)/), pr:f(/(unit\s*)?price|cost|rate(?!\s*%)/), dis:f(/^dis|disc/),
           ti:f(/(line\s*)?total|amount|nett?\s*value|value|goods/), ei:f(/ean|barcode|bar\s*code/)};
 }
+// V7.47.1 — "Ordered  Dispatched  To Follow  Unit Price  Nett Price  Total" (International Tool Industries, 25 Nov):
+// the delivery is the Dispatched column; a line with nothing dispatched is on back order (€0), not free
+function giDispLine_(raw, DSP){
+  const line=String(raw).replace(/\u00a0/g,' ').trim(), toks=line.split(/\s+/); if(!giIsCode_(toks[0])) return null;
+  const need=DSP.tf?6:5, m=line.match(new RegExp('((?:\\s+€?-?[\\d.,]+){'+need+'})\\s*$')); if(!m) return null;
+  const n=giNums_(m[1]).map(x=>x.v); if(n.length!==need) return null;
+  const [ord,disp]=n, tf=DSP.tf?n[2]:ord-disp, [unit,nett,total]=n.slice(-3);
+  if(!(ord>=0 && disp>=0 && Number.isInteger(ord) && Number.isInteger(disp) && disp<=ord && Math.abs(ord-disp-tf)<1e-6)) return null;
+  if(disp>0 ? !giNear_(total, disp*(nett>0?nett:unit)) : total!==0) return null;
+  const desc=line.slice(toks[0].length, line.length-m[0].length).trim(); if(!desc) return null;
+  const p=disp>0&&nett>0?nett:unit, d=disp>0&&unit>0&&nett>0&&nett<unit-0.005?Math.round((1-nett/unit)*10000)/100:0;
+  return {code:toks[0], desc, q:disp, ord, follow:ord-disp, per:'EACH', p, d, t:total, gp:unit, raw};
+}
 function giParse_(text){
   const rows=String(text||'').split(/\r?\n/), lines=[], bad=[];
-  let H=null, last=null;
+  let H=null, last=null, DSP=null;
   for(const raw of rows){
     if(!raw.trim()){ last=null; continue; }
+    if(/\bordered\b.*\bdispatch/i.test(raw) && !/\d+[.,]\d{2}\s*$/.test(raw)){ DSP={tf:/to\s*follow/i.test(raw)}; last=null; continue; }
+    if(DSP && !raw.includes('\t')){ const o=giDispLine_(raw, DSP); if(o){ o.desc=String(o.desc).replace(/\s{2,}/g,' ').trim(); lines.push(o); last=o; continue; } }
     if(!H && raw.includes('\t')){ const h=giHeaderMap_(raw.split('\t')); if(h){ H=h; continue; } }
     let o=null;
     if(H && raw.includes('\t')){
@@ -19546,11 +19733,23 @@ function giCands_(L, sup, IX, D, links){
   const add=(sku,how)=>{ const k=normSku_(sku); if(!k||seen.has(k)) return; const rows=IX.bySku.get(k); if(!rows) return; seen.add(k); out.push({k, rows, how}); };
   const lk=links[sup+'|'+c]; if(lk) add(lk,'linked by you');
   (D.sc.get(sup+'|'+c)||[]).forEach(x=>add(x.sku,'supplier code in Linnworks'));
-  const c2=c.replace(/[^A-Z0-9]/g,'');
+  const c2=c.replace(/[^A-Z0-9]/g,''), c3=c.replace(/^[^A-Z0-9]+|[^A-Z0-9]+$/g,'');   // V7.47.1 — "19-1032-013-" is 19-1032-013
+  if(c3 && c3!==c){ (D.sc.get(sup+'|'+c3)||[]).forEach(x=>add(x.sku,'supplier code in Linnworks')); add(c3,'code = SKU (without the end “'+c.slice(c.length-1)+'”)'); add('TP_'+c3,'TP_ + code'); }
   [[c,'code = SKU'],['TP_'+c,'TP_ + code'],[c+'ASH','code + ASH'],[c+'DFE','code + DFE'],[c+'STAX','code + STAX'],[c2,'code without / - .'],['TP_'+c2,'TP_ + code without / - .']].forEach(([s,h])=>add(s,h));
   const e=_normEan(L.ean); if(e && e.length>=7) (IX.byEan.get(e)||[]).forEach(r=>add(r.SKU,'barcode'));
+  // V7.47.1 — no barcode on the invoice: our barcode for this supplier often ends in their code (FF Group 5204396·74333·5)
+  if(!out.length && /^\d{4,7}$/.test(c3||c)){ const cc=c3||c, hits=giSupBc_(IX, sup).filter(x=>{ const b=x.b, i=b.length-1-cc.length; return i>=5 && b.slice(i,b.length-1)===cc; });
+    if(hits.length===1) add(hits[0].r.SKU,'our barcode ends in the code'); }
   return out;
 }
+function giSupBc_(IX, sup){ IX.supBc=IX.supBc||new Map(); if(IX.supBc.has(sup)) return IX.supBc.get(sup);
+  const a=[], seen=new Set(); for(const r of (state.computedRows||[])){ if(r.SupplierName!==sup) continue; const b=_normEan(r.Barcode); if(!b||b.length<12||seen.has(b)) continue; seen.add(b); a.push({b, r}); }
+  IX.supBc.set(sup,a); return a; }
+// V7.47.1 — a look-alike: code one character apart, or the name shares 2+ words
+function giEdit1_(a,b){ a=String(a).toUpperCase(); b=String(b).toUpperCase(); if(a===b) return true; if(Math.abs(a.length-b.length)>1) return false;
+  let i=0,j=0,e=0; while(i<a.length&&j<b.length){ if(a[i]===b[j]){i++;j++;continue;} if(++e>1) return false; if(a.length>b.length) i++; else if(b.length>a.length) j++; else {i++;j++;} } return e+(a.length-i)+(b.length-j)<=1; }
+const GI_STOP=new Set(['WITH','AND','THE','FOR','PACK','BLACK','WHITE','GROUP','EACH','PCS','SET','SIZE','PLUS','MAX','HANDLE','WOODEN']);
+function giWords_(t){ return new Set(String(t||'').toUpperCase().replace(/[^A-Z ]+/g,' ').split(/\s+/).filter(w=>w.length>=4 && !GI_STOP.has(w))); }
 function giRowFor_(rows, sup){ return rows.find(r=>r.SupplierName===sup) || rows.find(r=>r._defaultSupplier===sup) || rows[0]; }
 function giCompute_(sup, store, text, H, D){
   const P=giParse_(text), IX=giIndex_(), links=giLinks_();
@@ -19568,10 +19767,10 @@ function giMatch_(C){
   C.poSku=poSku; const used=new Set();
   for(const o of C.lines){
     const L=o.L; Object.assign(o,{r:null, k:'', how:'', po:null, flags:[], notes:[]});
-    o.free=!(L.t>0);
-    if(!L.cands.length){ o.v='nf'; continue; }
+    o.follow=L.follow||0; o.free=!(L.t>0) && !(L.q===0 && o.follow>0);   // V7.47.1 — nothing dispatched = back order, not free
+    if(!L.cands.length){ o.v=(L.q===0&&o.follow>0)?'follow':'nf'; continue; }
     const onPo=L.cands.find(c=>poSku.has(c.k)), pick=onPo || L.cands.find(c=>c.how!=='barcode') || L.cands[0];
-    o.k=pick.k; o.how=pick.how; o.r=giRowFor_(pick.rows, C.sup);
+    o.k=pick.k; o.how=pick.how; o.r=giRowFor_(pick.rows, C.sup); o.guess=!!pick.guess;
     if(L.cands.length>1){ const other=L.cands.filter(c=>c.k!==pick.k).map(c=>c.rows[0].SKU); o.twins=other; }
     const sc=(D.scSku.get(o.k)||[]).find(x=>x.sup===C.sup);
     o.lwCost=(sc&&sc.price>0)?sc.price:(+o.r.SupplierCostPrice||0);
@@ -19587,6 +19786,7 @@ function giMatch_(C){
     const S=giSold_(o.r); o.sold=S.q; o.inc=S.inc; o.margin=(S.inc>0&&o.unit>0)?((S.inc/1.23-o.unit)/(S.inc/1.23))*100:null;
     o.bc=String(o.r.Barcode||'').trim()||(sc&&sc.bc)||'';
     if(o.free) o.flags.push('free');
+    if(o.guess) o.flags.push('guess');
     if(on.length){ if(!o.po) o.flags.push('notpo'); if(o.po && o.po.pos.length>1) o.notes.push('twopo'); if(o.po && o.po.booked>0 && on.some(p=>p.status!=='DELIVERED')) o.notes.push('booked'); }   // all booked in: the banner says it once
     if(o.margin!=null && o.margin<GI_MARGIN_MIN && !o.free) o.flags.push('margin');
     const alt=(IX.bySku.get(o.k)||[]).filter(r=>r.SupplierName!==C.sup && +r.SupplierCostPrice>0 && +r.SupplierCostPrice<o.unit*0.9).sort((a,b)=>a.SupplierCostPrice-b.SupplierCostPrice)[0];
@@ -19599,7 +19799,7 @@ function giMatch_(C){
   const diff=(a,b)=>b>0 && Math.abs(a/b-1)>GI_TOL_PCT && Math.abs(a-b)>=GI_TOL_EUR;
   for(const o of C.lines){ if(!o.r) continue; const g=grp.get(o.k); o.grpQ=g.q; o.grpN=g.n;
     if(o.po && Math.abs(o.po.q-o.grpQ)>1e-6) o.flags.push(o.grpQ>o.po.q?'more':'less');
-    if(o.free) continue;
+    if(o.free || o.L.q===0) continue;
     const poUnit=o.po&&o.po.q>0&&o.po.val>0?o.po.val/o.po.q:0, base=poUnit>0?poUnit:o.lwCost;
     const mine=g.n>1&&g.q>0?g.v/g.q:o.unit, mineG=g.n>1&&g.q>0?g.gv/g.q:o.gross;
     o.costBase=base; o.costFrom=poUnit>0?'the PO':'Linnworks'; o.cmp=mine;
@@ -19608,8 +19808,8 @@ function giMatch_(C){
       else if(!(g.n>1 && poUnit>0 && !diff(mine, poUnit))) o.flags.push(mine>base?'dearer':'cheaper');
     }
   }
-  const pr=['dearer','more','notpo','margin','cheaper','list','less','free'];
-  for(const o of C.lines) if(o.r) o.v=o.flags.length?pr.find(x=>o.flags.includes(x)):'ok';
+  const pr=['guess','dearer','more','notpo','margin','cheaper','list','less','free'];
+  for(const o of C.lines) if(o.r) o.v=(o.L.q===0&&o.follow>0)?'follow':(o.flags.length?pr.find(x=>o.flags.includes(x)):'ok');
   // PO lines not on this invoice
   C.left=[]; for(const [k,x] of poSku){ if(used.has(k) || !(x.q>0)) continue; const rows=IX.bySku.get(k)||[]; C.left.push({k, sku:rows[0]?rows[0].SKU:k, title:rows[0]?rows[0].ItemTitle:'', q:x.q, unit:x.q?x.val/x.q:0, pos:x.pos, booked:x.booked}); }
   C.left.sort((a,b)=>b.q*b.unit-a.q*a.unit);
@@ -19620,10 +19820,15 @@ function giMatch_(C){
     for(const o of C.lines){
       if(!(o.v==='nf' || o.flags.includes('notpo')) || !(o.L.t>0)) continue;
       const q=o.r?o.qty:o.L.q, u=o.L.t/q;
-      const m=C.left.filter(x=>!taken.has(x.k) && Math.abs(x.q-q)<1e-6 && x.unit>0 && Math.abs(x.unit/u-1)<=GI_TOL_PCT);
+      let m=C.left.filter(x=>!taken.has(x.k) && Math.abs(x.q-q)<1e-6 && x.unit>0 && Math.abs(x.unit/u-1)<=GI_TOL_PCT), guess=false;
+      if(!m.length){ const W=giWords_(o.L.desc);
+        m=C.left.filter(x=>{ if(taken.has(x.k) || Math.abs(x.q-q)>1e-6 || !(x.unit>0) || Math.abs(x.unit/u-1)>0.25) return false;
+          const code=String(x.sku).replace(/^TP_/i,''), near=String(o.L.code).length>=5 && giEdit1_(code, o.L.code);
+          let w=0; giWords_(x.title).forEach(t=>{ if(W.has(t)) w++; }); return near || w>=2; });
+        guess=true; }
       if(m.length!==1) continue;
       const rows=IX.bySku.get(m[0].k); if(!rows) continue;
-      taken.add(m[0].k); o.L.cands=[{k:m[0].k, rows, how:'on the PO as '+rows[0].SKU+' (same qty and price)'}].concat(o.L.cands); changed=true;
+      taken.add(m[0].k); o.L.cands=[{k:m[0].k, rows, guess, how:'on the PO as '+rows[0].SKU+(guess?' (look-alike — same qty, '+(String(o.L.code).length>=5&&giEdit1_(String(m[0].sku).replace(/^TP_/i,''),o.L.code)?'code one character apart':'similar name')+')':' (same qty and price)')}].concat(o.L.cands); changed=true;
     }
     if(changed){ C._paired=true; giMatch_(C); C._paired=false; }
   }
@@ -19631,12 +19836,16 @@ function giMatch_(C){
 
 // ── show ─────────────────────────────────────────────────────────────────────────────────────────────────────
 const GI_V={ok:['✅ OK','ok'], dearer:['💶 Dearer','bad'], cheaper:['💶 Cheaper','info'], list:['🏷 Discount','info'], more:['🔢 More than ordered','warn'], less:['🔢 Fewer than ordered','warn'],
-            notpo:['➕ Not on the PO','warn'], margin:['📉 Low margin','bad'], free:['🆓 Free','info'], nf:['❓ Not found','bad']};
+            notpo:['➕ Not on the PO','warn'], margin:['📉 Low margin','bad'], free:['🆓 Free','info'], nf:['❓ Not found','bad'],
+            guess:['🔍 Same product?','warn'], follow:['⏳ To follow','info']};
 function giEur_(v, dp){ return '€'+(Math.abs(v)<10&&dp!==0?v.toFixed(2):v.toLocaleString('en-IE',{minimumFractionDigits:2,maximumFractionDigits:2})); }
 function giQtyTxt_(o){ const L=o.L; return o.f>1 ? `${fmtInt(L.q)} × ${esc(L.per)} = <b>${fmtInt(o.qty)}</b> of ours` : `<b>${fmtInt(o.qty)}</b>${L.per&&L.per!=='EACH'&&L.per!=='EA'?' × '+esc(L.per):''}`; }
 function giWhy_(o, C){
   const S=String(C.sup).split(' - ').pop().replace(/\b\w+/g,w=>w[0]+w.slice(1).toLowerCase()), w=[];
+  if(o.v==='follow') return `On back order — ${fmtInt(o.L.ord)} ordered, none in this delivery (charged €0). Nothing to book in; leave it on the PO${o.r?'':' (not matched to our SKU yet)'}.`;
   if(o.v==='nf') return `Not in the dashboard under this code — search for it here and link it once (it’s remembered for this supplier), or add the code in Linnworks.`;
+  if(o.guess) w.push(`<span class="gi-w">Not the same code: the invoice has ${esc(o.L.code)}, the PO has ${esc(o.r.SKU)} — check it’s the same product (or a substitute) before booking it in.</span>`);
+  if(o.follow>0 && o.L.q>0) w.push(`<span class="gi-n">${fmtInt(o.follow)} more on back order (ordered ${fmtInt(o.L.ord)}).</span>`);
   if(o.free) w.push(`Free — book in ${fmtInt(o.qty)} at €0${o.po&&o.po.val>0?` (the PO has them at ${giEur_(o.po.val/o.po.q)})`:''}.`);
   const avg=o.grpN>1?' (average of its '+o.grpN+' lines)':'';
   if(o.flags.includes('dearer')) w.push(`${giEur_(o.cmp)} each${avg} — ${o.costFrom} says ${giEur_(o.costBase)} (+${((o.cmp/o.costBase-1)*100).toFixed(1)}%, ${giEur_((o.cmp-o.costBase)*(o.grpN>1?o.grpQ:o.qty))} on this product). Query with ${esc(S)}, or update the cost.`);
@@ -19655,7 +19864,7 @@ function giWhy_(o, C){
   if(o.notes.includes('nobc')) w.push(`<span class="gi-n">No barcode in Linnworks — label it.</span>`);
   return w.join(' ');
 }
-function giCounts_(C){ const n={all:C.lines.length}; C.lines.forEach(o=>{ n[o.v]=(n[o.v]||0)+1; if(o.v!=='ok') n.check=(n.check||0)+1; }); n.left=C.left.length; return n; }
+function giCounts_(C){ const n={all:C.lines.length}; C.lines.forEach(o=>{ n[o.v]=(n[o.v]||0)+1; if(o.v!=='ok'&&o.v!=='follow') n.check=(n.check||0)+1; }); n.left=C.left.length; return n; }
 function giRender_(){
   const C=window._gi, out=document.getElementById('giResult'); if(!C||!out) return;
   const H=C.H, n=giCounts_(C), sum=C.lines.reduce((a,o)=>a+(o.L.t||0),0), sumR=Math.round(sum*100)/100;
@@ -19678,10 +19887,10 @@ function giRender_(){
     h+=`</div>`;
   }
   const tile=(k,t,cls)=>`<div class="rc-tile ${cls||''}"><b>${fmtInt(n[k]||0)}</b><span>${t}</span></div>`;
-  h+=`<div class="rc-tiles">${tile('ok','✅ OK — book in as is','good')}${tile('dearer','💶 dearer than '+(on.length?'the PO':'Linnworks'))}${on.length?tile('more','🔢 more than ordered')+tile('less','🔢 fewer than ordered')+tile('notpo','➕ not on the PO'):''}${tile('nf','❓ not found')}${tile('free','🆓 free')}${on.length?tile('left','⏳ on the PO, not invoiced'):''}</div>`;
+  h+=`<div class="rc-tiles">${tile('ok','✅ OK — book in as is','good')}${tile('dearer','💶 dearer than '+(on.length?'the PO':'Linnworks'))}${on.length?tile('more','🔢 more than ordered')+tile('less','🔢 fewer than ordered')+tile('notpo','➕ not on the PO'):''}${n.guess?tile('guess','🔍 same product? (code differs)'):''}${tile('nf','❓ not found')}${tile('free','🆓 free')}${n.follow?tile('follow','⏳ to follow (not sent)'):''}${on.length?tile('left','⏳ on the PO, not invoiced'):''}</div>`;
   h+=`<div class="rc-acts"><button class="rc-btn" onclick="giCopyQuery(this)">📋 Copy the queries for ${esc(S)}</button>${on.length?`<button class="rc-btn" onclick="giCopyPoFix(this)">📋 Copy the corrections for the PO</button>`:''}<button class="rc-btn" onclick="giCopyCosts(this)">📋 Copy cost changes for Linnworks</button><button class="rc-btn" onclick="giExportCheck()">⬇ The check as a spreadsheet</button></div></div>`;
   const chip=(k,t)=>`<button class="rc-chip ${C.filter===k?'on':''}" onclick="giFilter('${k}')">${t} <span>${fmtInt(n[k]||0)}</span></button>`;
-  h+=`<div class="rc-chips">${chip('all','All')}${chip('check','Needs a look')}${chip('ok','✅ OK')}${['dearer','cheaper','list','more','less','notpo','margin','free','nf'].filter(k=>n[k]).map(k=>chip(k,GI_V[k][0])).join('')}</div>`;
+  h+=`<div class="rc-chips">${chip('all','All')}${chip('check','Needs a look')}${chip('ok','✅ OK')}${['guess','dearer','cheaper','list','more','less','notpo','margin','free','follow','nf'].filter(k=>n[k]).map(k=>chip(k,GI_V[k][0])).join('')}</div>`;
   h+=`<div class="gi-head"><span>Invoice line</span><span>Invoiced</span><span>${on.length?'PO':'—'}</span><span>Cost · margin</span><span></span></div><div id="giList"></div>`;
   if(C.left.length) h+=`<div class="rc-sec">⏳ On the PO, not on this invoice <span>${fmtInt(C.left.length)} lines · ${giEur_(C.left.reduce((a,x)=>a+x.q*x.unit,0),2)} — still to come, or cancel</span></div>`+C.left.map(x=>`<div class="gi-left"><span class="rc-sku">${esc(x.sku)}</span> ${esc(x.title)} · <b>${fmtInt(x.q)}</b> at ${giEur_(x.unit)} · ${esc(x.pos.join(', '))}${x.booked?` <span class="gi-w">(${fmtInt(x.booked)} booked in)</span>`:''}</div>`).join('');
   h+=giFinHtml_();
@@ -19698,8 +19907,8 @@ function giRowHtml_(o, i, C){
 }
 function giRenderList_(){
   const C=window._gi, el=document.getElementById('giList'); if(!C||!el) return;
-  const f=C.filter, show=C.lines.map((o,i)=>[o,i]).filter(([o])=>f==='all'||(f==='check'?o.v!=='ok':o.v===f));
-  const order={nf:0,dearer:1,more:2,notpo:3,margin:4,less:5,cheaper:6,list:7,free:8,ok:9};
+  const f=C.filter, show=C.lines.map((o,i)=>[o,i]).filter(([o])=>f==='all'||(f==='check'?(o.v!=='ok'&&o.v!=='follow'):o.v===f));
+  const order={nf:0,guess:1,dearer:1,more:2,notpo:3,margin:4,less:5,cheaper:6,list:7,free:8,follow:9,ok:10};
   if(f==='all'||f==='check') show.sort((a,b)=>(order[a[0].v]-order[b[0].v])||(a[1]-b[1]));
   el.innerHTML=show.length?show.map(([o,i])=>giRowHtml_(o,i,C)).join(''):'<div class="rc-msg">Nothing here.</div>';
 }
@@ -19763,6 +19972,7 @@ function giCopyQuery(btn){
 function giCopyPoFix(btn){
   const C=window._gi; if(!C) return; const L=[];
   for(const o of C.lines){ if(!o.r) continue; const s=o.r.SKU;
+    if(o.follow>0){ if(o.L.q>0) L.push(`PART\t${s}\t${o.L.q} of ${o.L.ord} delivered — ${o.follow} on back order\t\t${o.L.desc}`); continue; }   // V7.47.1 — leave the rest on the PO
     if(o.flags.includes('notpo')) L.push(`ADD\t${s}\t${o.qty}\t${(Math.round(o.unit*10000)/10000)}\t${o.L.desc}`);
     else if(o.po){ if(Math.abs(o.po.q-o.grpQ)>1e-6 && !L.some(x=>x.startsWith('QTY\t'+s+'\t'))) L.push(`QTY\t${s}\t${o.po.q} → ${o.grpQ}\t\t${o.L.desc}`);
       const pu=o.po.q?o.po.val/o.po.q:0; if(pu>0 && Math.abs(o.unit/pu-1)>GI_TOL_PCT && Math.abs(o.unit-pu)>=GI_TOL_EUR) L.push(`COST\t${s}\t€${pu.toFixed(4)} → €${o.unit.toFixed(4)}\t\t${o.L.desc}`); } }
@@ -19771,7 +19981,7 @@ function giCopyPoFix(btn){
 }
 function giCopyCosts(btn){
   const C=window._gi; if(!C) return; const L=['SKU\tItem\tLinnworks cost\tInvoice cost\tChange'];
-  for(const o of C.lines){ if(!o.r||o.free||!(o.lwCost>0)) continue; if(Math.abs(o.unit/o.lwCost-1)>GI_TOL_PCT && Math.abs(o.unit-o.lwCost)>=GI_TOL_EUR) L.push([o.r.SKU, o.r.ItemTitle||o.L.desc, o.lwCost.toFixed(4), o.unit.toFixed(4), ((o.unit/o.lwCost-1)*100).toFixed(1)+'%'].join('\t')); }
+  for(const o of C.lines){ if(!o.r||o.free||o.L.q===0||!(o.lwCost>0)) continue; if(Math.abs(o.unit/o.lwCost-1)>GI_TOL_PCT && Math.abs(o.unit-o.lwCost)>=GI_TOL_EUR) L.push([o.r.SKU, o.r.ItemTitle||o.L.desc, o.lwCost.toFixed(4), o.unit.toFixed(4), ((o.unit/o.lwCost-1)*100).toFixed(1)+'%'].join('\t')); }
   rcCopy_(btn, L.length>1?L.join('\n'):'No cost changes — every line matches Linnworks.');
 }
 function giExportCheck(){
